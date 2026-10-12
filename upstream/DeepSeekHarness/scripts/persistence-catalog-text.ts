@@ -1,0 +1,63 @@
+/** Authored language pairs for generated persistence reference prose. */
+
+/** Language of a generated persistence reference. */
+export type PersistenceCatalogLocale = 'en' | 'zh'
+
+const english = {
+  title: 'Session Persistence Event Catalog',
+  intro: 'Every repository-declared durable Session event appears here with its source declaration and resolved types. The catalog covers the logical and physical headers, event envelopes, and every SessionEventMap declaration merge. See [Session](subsystems/session.md) for replay and [persistence](subsystems/persistence.md) for storage.',
+  generation: 'Run `pnpm run gen-persistence-catalog` to regenerate both catalog languages, their pairing record, the known-event module, and the machine schema inventory. `pnpm run verify-persistence-catalog` checks all generated files. Declaration fences preserve source JSDoc and type references; resolved definitions expose their transitive structure.',
+  envelopeIntro: 'The envelope carries `type`, `seq`, `time`, `data`, optional `ignorable`, and conditional `surfaceOp` / `sourceEventSeqs`. A **surface** event produces model history; a **log-only** event does not. The inventory covers this repository; external plugin types require their own declarations and are outside this catalog.',
+  envelope: 'Event envelope', events: 'Events', sources: 'Sources: ', source: 'Source: ', types: 'Types: ',
+  pluginRecords: 'Experimental Plugin Record Catalog',
+  pluginRecordsLink: 'Experimental records appear in the separate [experimental plugin record catalog](experimental-persistence-catalog.md).',
+  pluginRecordsIntro: 'These current-source PluginRecordMap declarations describe ignorable, log-only records owned by experimental packages. Payload annotations link to their owning source without expanding referenced types. Records stay outside the known-event set, persistence schema fingerprints, and compatibility history; format migrations retain them on a best-effort basis.',
+  pluginRecordsGeneration: 'Run `pnpm run gen-persistence-catalog` to regenerate both persistence catalogs, their language pairs, and associated artifacts. `pnpm run verify-persistence-catalog` checks all generated files.',
+  pluginRecordsMainLink: 'Shared Session event declarations and resolved schemas appear in the [Session persistence event catalog](persistence-catalog.md).',
+  pluginRecordsEmpty: 'No production package currently declares a plugin record.',
+  pluginRecordColumns: '| Record | Owner | Purpose | Payload and source |',
+  fingerprints: 'Persistence type fingerprints',
+  fingerprintsIntro: 'The [machine inventory](persistence-schema.json) contains every reachable normalized type and its SHA-256 digest. Root digests include referenced types. Comments, source locations, alias names, erased brands, readonly markers, and harmless field, union, or intersection reordering do not affect these fingerprints. Tuple order, property names, value types, and optionality do. Catalog text and source locations can still produce a diff when digests stay unchanged.',
+  historyIntro: 'The [format references](persistence-changes/historical-formats/README.md) cover every historical Session format. The [change records](persistence-changes/README.md) acknowledge exact transitions using snapshots kept in this tree. Follow the [review workflow](cookbook/reviewing-persistence-type-changes.md) to classify a change and record it. These checks cover declared type structure; opaque payload contents and behavior without type changes are outside their scope.',
+  rootColumns: '| Root | Kind | SHA-256 | Resolved type |',
+  definitions: 'Resolved persistence types',
+  definitionsIntro: 'Each definition appears once. References preserve sharing and recursion; the digest beside a definition includes its complete reachable structure. Source names and locations identify its declarations but are excluded from its digest.',
+  propertyColumns: '| Property | Presence | Type |', positionColumns: '| Position | Presence | Type |',
+  optional: 'optional', required: 'required', rest: 'rest', index: 'index signature',
+  emptyObject: 'Object with no declared properties.', arrayPrefix: 'Array of ', arraySuffix: '.',
+  oneOf: 'One of:', opaque: ' (opaque)', opaqueExplanation: ": the declaration does not expose the stored value's internal fields.",
+  sourceCompatibility: 'Source compatibility: ', attributionAdditions: 'Attribution-only additions: ',
+  sourceColumns: '| kind | Form property | Other required fields | Full definition |',
+  notDeclared: 'not declared', none: 'none',
+}
+
+const chinese: Record<keyof typeof english, string> = {
+  title: 'Session Persistence Event Catalog',
+  intro: 'Every repository-declared durable Session event appears here with its source declaration and resolved types. The catalog covers the logical and physical headers, event envelopes, and every SessionEventMap declaration merge. See [Session](subsystems/session.md) for replay and [persistence](subsystems/persistence.md) for storage.',
+  generation: 'Run `pnpm run gen-persistence-catalog` to regenerate both catalog languages, their pairing record, the known-event module, and the machine schema inventory. `pnpm run verify-persistence-catalog` checks all generated files. Declaration fences preserve source JSDoc and type references; resolved definitions expose their transitive structure.',
+  envelopeIntro: 'The envelope carries `type`, `seq`, `time`, `data`, optional `ignorable`, and conditional `surfaceOp` / `sourceEventSeqs`. A **surface** event produces model history; a **log-only** event does not. The inventory covers this repository; external plugin types require their own declarations and are outside this catalog.',
+  envelope: 'Event envelope', events: 'Events', sources: 'Sources: ', source: 'Source: ', types: 'Types: ',
+  pluginRecords: 'Experimental Plugin Record Catalog',
+  pluginRecordsLink: 'Experimental records appear in the separate [experimental plugin record catalog](experimental-persistence-catalog.md).',
+  pluginRecordsIntro: 'These current-source PluginRecordMap declarations describe ignorable, log-only records owned by experimental packages. Payload annotations link to their owning source without expanding referenced types. Records stay outside the known-event set, persistence schema fingerprints, and compatibility history; format migrations retain them on a best-effort basis.',
+  pluginRecordsGeneration: 'Run `pnpm run gen-persistence-catalog` to regenerate both persistence catalogs, their language pairs, and associated artifacts. `pnpm run verify-persistence-catalog` checks all generated files.',
+  pluginRecordsMainLink: 'Shared Session event declarations and resolved schemas appear in the [Session persistence event catalog](persistence-catalog.md).',
+  pluginRecordsEmpty: 'No production package currently declares a plugin record.',
+  pluginRecordColumns: '| Record | Owner | Purpose | Payload and source |',
+  fingerprints: 'Persistence type fingerprints',
+  fingerprintsIntro: 'The [machine inventory](persistence-schema.json) contains every reachable normalized type and its SHA-256 digest. Root digests include referenced types. Comments, source locations, alias names, erased brands, readonly markers, and harmless field, union, or intersection reordering do not affect these fingerprints. Tuple order, property names, value types, and optionality do. Catalog text and source locations can still produce a diff when digests stay unchanged.',
+  historyIntro: 'The [format references](persistence-changes/historical-formats/README.md) cover every historical Session format. The [change records](persistence-changes/README.md) acknowledge exact transitions using snapshots kept in this tree. Follow the [review workflow](cookbook/reviewing-persistence-type-changes.md) to classify a change and record it. These checks cover declared type structure; opaque payload contents and behavior without type changes are outside their scope.',
+  rootColumns: '| Root | Kind | SHA-256 | Resolved type |',
+  definitions: 'Resolved persistence types',
+  definitionsIntro: 'Each definition appears once. References preserve sharing and recursion; the digest beside a definition includes its complete reachable structure. Source names and locations identify its declarations but are excluded from its digest.',
+  propertyColumns: '| Property | Presence | Type |', positionColumns: '| Position | Presence | Type |',
+  optional: 'optional', required: 'required', rest: 'rest', index: 'index signature',
+  emptyObject: 'Object with no declared properties.', arrayPrefix: 'Array of ', arraySuffix: '.',
+  oneOf: 'One of:', opaque: ' (opaque)', opaqueExplanation: ": the declaration does not expose the stored value's internal fields.",
+  sourceCompatibility: 'Source compatibility: ', attributionAdditions: 'Attribution-only additions: ',
+  sourceColumns: '| kind | Form property | Other required fields | Full definition |',
+  notDeclared: 'not declared', none: 'none',
+}
+
+/** Complete translated prose; adding an English key requires its Chinese counterpart. */
+export const persistenceCatalogText = { en: english, zh: chinese }

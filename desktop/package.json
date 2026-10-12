@@ -1,0 +1,16 @@
+{
+  "name": "deepsteam-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DeepSteam desktop window and owned service lifecycle",
+  "main": "main.cjs",
+  "deepsteamGracefulQuitProtocol": 1,
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.cjs && node --check preload.cjs",
+    "test": "node --test policy.test.cjs"
+  },
+  "devDependencies": {
+    "electron": "44.7.0"
+  }
+}

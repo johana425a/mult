@@ -1,0 +1,2809 @@
+{
+  "source_commit": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+  "compiler": "esbuild 0.28.2",
+  "targets": [
+    {
+      "package": "@deepseek-ai/cordis",
+      "version": "4.0.5-alpha.1",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "d5b6d1cdccf8a8a5e05a437c716882d6688a1446e6eab070bf09a2d8c8bb0cce",
+      "inputs": {
+        "vendor/cordis/src/utils.ts": "8fe273424583d21267ef13f248840e97454d09d836a0ac08323a9482c2069263",
+        "vendor/cordis/src/events.ts": "9aff93dcfcad98aebb692c19c36d3bf034a96f9085bc66900a997cda3f79e6fe",
+        "vendor/cordis/src/logger.ts": "05cb6be3e4cf8d078185b5d10c87e536c7d2b2b3ad43c270a0dbafaa28f41fef",
+        "vendor/cordis/src/fiber.ts": "b7661d6c19be76cef6b97d88719a8112c0f8b5abe65bd9e7d5947773fd4b96d4",
+        "vendor/cordis/src/reflect.ts": "6847b9781044023d65aebb5896a873b9f0a3d777eaf7fa0dd2a7a408eb6b74a6",
+        "vendor/cordis/src/registry.ts": "34bbd60ae502b4f85201c204afb52a9acabde6878d9278493478c1b2183debd3",
+        "vendor/cordis/src/context.ts": "96b388162d6013c1898de61e35f28917abb93809de24174980f2a1a348d0b115",
+        "vendor/cordis/src/service.ts": "614205c6ce7cf1a057b8b352e96aa4fcd734c967a3d2283a126c9c61f268e3be",
+        "vendor/cordis/src/index.ts": "071fb226e9a21556625e4391b28e6641b9b34b1cd402155246e0437993d8b740"
+      }
+    },
+    {
+      "package": "@deepseek-ai/cordis-plugin-group",
+      "version": "1.0.5-alpha.1",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "2df7d98448c20e9e07fdbe5a27b133a05abd049f0c226096bb6cce924023080c",
+      "inputs": {
+        "vendor/group/src/index.ts": "e3679df2068439b6624ef2b247f1e28db0de769f4986db3bd3da077f0d2269e6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/cordis-plugin-include",
+      "version": "1.0.10-alpha.1",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "f66fa0aeb5918d965cd02fc249aee453989080da16c7ee4a4e65ace573e61af2",
+      "inputs": {
+        "vendor/include/src/index.ts": "50005dcc3b35cb8e18e33ee157567aa14210b932fb25e22506d31aee25e59428"
+      }
+    },
+    {
+      "package": "@deepseek-ai/cordis-plugin-loader",
+      "version": "1.0.6-alpha.1",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "288cbbc81e1d70f31894d78e27e3cb4e6e5028391d5e2f625b65dc41d28d1ae3",
+      "inputs": {
+        "vendor/loader/src/internal.ts": "35a50d597fed58656a11e3c5294fdf99524ed8c106739b4fab522a288eefa877",
+        "vendor/loader/src/config/group.ts": "5e138e8a8fad22e21d031859345797c445efbc380559fc32d35b03c835e60ccc",
+        "vendor/loader/src/config/tree.ts": "761889adfb6b8a164fb12a0cec49a6ef439598b9267e85073000cfa9b7d682c8",
+        "vendor/loader/src/config/utils.ts": "d85b8ac1693af4667e9c0395cd1d6b15ec28387073a81f0d00bd38d909a05f8e",
+        "vendor/loader/src/config/diff.ts": "6025a6b9798a0a16af017bb7d8d6394bbe345685b2ace56b15975add5843edb3",
+        "vendor/loader/src/config/entry.ts": "6a061f1d3c2cdaac19409bf8ec6956ec5a0a457c4f1689be658d50af7c9ee294",
+        "vendor/loader/src/config/isolate.ts": "dfc9e961f61fe5f7701b5593f98902aa971884fb242e208fc0d5207794117094",
+        "vendor/loader/src/index.ts": "a135e2189a0feb0af08ff79de761698fb8ce7b41c96fefda1d4a299e5982fef3"
+      }
+    },
+    {
+      "package": "@deepseek-ai/cosmokit",
+      "version": "1.8.6-alpha.1",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "d99efe4db3bbc13d4d689ff51e14251f28de3dd678215ad69dd00231275dfa26",
+      "inputs": {
+        "vendor/cosmokit/src/misc.ts": "117617943074ea57c15f216905dacd2f6d1c4c2ff16586f97a7a7a87dbf2141f",
+        "vendor/cosmokit/src/array.ts": "cf4de899ecffd66a90d8cef6f4c7d127d31f77f776d8e173d41c30d2d7632cf7",
+        "vendor/cosmokit/src/volatile.ts": "937433215595f89da249ec7cabb89e331ff4135a40c6686a95666d2095315e55",
+        "vendor/cosmokit/src/types.ts": "cc49c12e4a637f7b0754ff78a8299e9c42fa40ee8c678550af0c538a80146a92",
+        "vendor/cosmokit/src/string.ts": "5564272b3e15e49235cbe3a8b453f27306baf282d23a893982841670f65d3c04",
+        "vendor/cosmokit/src/time.ts": "49957c4608465a1fbd738186a92c47fffcd1fc4ba59dbf89524f8a773fe16fe2",
+        "vendor/cosmokit/src/index.ts": "1087da74b9c461984e547d524ee766eebcf329a78e4720bff5b60a004ccf6e8c"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-agent",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "9aba5cc02f5d8c95d4bf5e172ccdf0218eeee4e6173d2037c1ad80f8a0357b88",
+      "inputs": {
+        "packages/core/agent/src/archive-admission.ts": "3a530fc561e309fec5493cfe509dd2acedfca16b648a8ca6f8da24efe33511e5",
+        "packages/core/agent/src/runtime-types.ts": "1ae0003c6968dc4af86e596d3ea08f6e517da0808e08089af2ed1818ab0651fc",
+        "packages/core/agent/src/types.ts": "b237d5d00d9b549cc32c7d91e08aaf83004d14d2bfa0179eeebc3fbfe18fed62",
+        "packages/core/agent/src/consumed-work.ts": "7c33ed30bd6bb5c4def5a406b2828e0930800c1cbe6cc03f5b189f1a0a7712d9",
+        "packages/core/agent/src/model-selection.ts": "8e54dfda2e4a110148f384e0866ce0c6b213096d314aa84c222fa14155498571",
+        "packages/core/agent/src/dispatch.ts": "6dc2702311305b9ecc8c8a932417bb7929f7313722fbb432a899e53d16efc6e0",
+        "packages/core/agent/src/index.ts": "9979fdae64fd0a342067981c39de9cde2da7066d28f8506a501fd51e8f9068b9"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-agent",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "ffa2b26ff0e0e68939b41b925caa90c3d25b1a525738ab6081ec416a852c2e0c",
+      "inputs": {
+        "packages/core/agent/src/archive-admission.ts": "3a530fc561e309fec5493cfe509dd2acedfca16b648a8ca6f8da24efe33511e5",
+        "packages/core/agent/src/runtime-types.ts": "1ae0003c6968dc4af86e596d3ea08f6e517da0808e08089af2ed1818ab0651fc",
+        "packages/core/agent/src/types.ts": "b237d5d00d9b549cc32c7d91e08aaf83004d14d2bfa0179eeebc3fbfe18fed62",
+        "packages/core/agent/src/consumed-work.ts": "7c33ed30bd6bb5c4def5a406b2828e0930800c1cbe6cc03f5b189f1a0a7712d9",
+        "packages/core/agent/src/model-selection.ts": "8e54dfda2e4a110148f384e0866ce0c6b213096d314aa84c222fa14155498571",
+        "packages/core/agent/src/dispatch.ts": "6dc2702311305b9ecc8c8a932417bb7929f7313722fbb432a899e53d16efc6e0",
+        "packages/core/agent/src/index.ts": "9979fdae64fd0a342067981c39de9cde2da7066d28f8506a501fd51e8f9068b9"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-agent-default-model",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "deb9da9d02451e452f9d4dd58cae8361101a4a9314c9c8af96383a69daf605b1",
+      "inputs": {
+        "packages/core/agent-default-model/src/index.ts": "d841737984875b31c7972e0d3023c0f41b9d4b09090d2cce902bbbaf3db338dc"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-agent-loop",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "c2bec770fa26424c52ce820389fea0789530a328e5e80e374eacf57262755f72",
+      "inputs": {
+        "packages/core/agent-loop/src/inbox.ts": "70c07ea75ebcf18df353bbccf7c2aa3ecf6cb0d687b96e3520b675680c29f662",
+        "packages/core/agent-loop/src/runtime-context.ts": "4944ee5cbbc24f21c27f1f0be54af7601da280b7fd2354e48fcc0ef6beeea839",
+        "packages/core/agent-loop/src/assistant-stream.ts": "120d2bec5efeec2aa54bf0e4261a45282936272d610dbbab21eee36b902629de",
+        "packages/core/agent-loop/src/tool-calls.ts": "5c7e8d8ff0028b436efdd13e5dffa4801d2311c211c3af039e7dab705f87b303",
+        "packages/core/agent-loop/src/agent.ts": "4add12f5c22bb1b8cf1dbc239c9b09fa3351feff2c936cb2b8900036468bd01b",
+        "packages/core/agent-loop/src/constants.ts": "435d31d3c8740f5ebaefa5c12f22d7cda8ea8c6d018e6fcda459161174ecc971",
+        "packages/core/agent-loop/src/index.ts": "3ea0262656c8ddcaa3be315c150bdc2af09371031c3c471d4ded511e21c6e86b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-agent-preset-registry",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "77727230f62a0e90a446604584afa11f5b032bf145add608a1e981d104bd1a0b",
+      "inputs": {
+        "packages/preset/agent-preset-registry/src/definition.ts": "d952da79acd930954b8d1667ffe692b1e5223f853127b5cbda6de7cf9cd76903",
+        "packages/preset/agent-preset-registry/src/session.ts": "8b52a3dbcd7432eb19e6bf991fc04050f52d213b2026c4a88f91dad37d672bcc",
+        "packages/preset/agent-preset-registry/src/mount.ts": "c008c324ca5b0e4d17dc167a440a0d30537d179905e99a8e67772968cec58917",
+        "packages/preset/agent-preset-registry/src/composition-inventory.ts": "974d33b69b99094d22fbefce05698f1e7a20c6845a4d6a7e4f7626c79a6cfd5d",
+        "packages/preset/agent-preset-registry/src/index.ts": "07a587dfe3b9d3cbe7d960919567bdc754459c0b55f6a1b13502da194767188d",
+        "packages/preset/agent-preset-registry/src/types.ts": "6268655505d96c2f818dcd05fb3335e30e653de1ac4206b26a9acca2d5b39089",
+        "packages/preset/agent-preset-registry/src/display.ts": "0233d9615cde02a8f86c19afd4ea6c4bd88789b733c18f8266aa04b5f81cace3"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-agent-preset-registry",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/preset/agent-preset-registry/src/definition.ts": "d952da79acd930954b8d1667ffe692b1e5223f853127b5cbda6de7cf9cd76903",
+        "packages/preset/agent-preset-registry/src/session.ts": "8b52a3dbcd7432eb19e6bf991fc04050f52d213b2026c4a88f91dad37d672bcc",
+        "packages/preset/agent-preset-registry/src/mount.ts": "c008c324ca5b0e4d17dc167a440a0d30537d179905e99a8e67772968cec58917",
+        "packages/preset/agent-preset-registry/src/composition-inventory.ts": "974d33b69b99094d22fbefce05698f1e7a20c6845a4d6a7e4f7626c79a6cfd5d",
+        "packages/preset/agent-preset-registry/src/index.ts": "07a587dfe3b9d3cbe7d960919567bdc754459c0b55f6a1b13502da194767188d",
+        "packages/preset/agent-preset-registry/src/types.ts": "6268655505d96c2f818dcd05fb3335e30e653de1ac4206b26a9acca2d5b39089",
+        "packages/preset/agent-preset-registry/src/display.ts": "0233d9615cde02a8f86c19afd4ea6c4bd88789b733c18f8266aa04b5f81cace3"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-agent-preset-registry",
+      "version": "0.2.1-alpha.2",
+      "export": "./display",
+      "source": "src/display.ts",
+      "output": "./lib/types/display.js",
+      "output_sha256": "b66843b44f0cd761825fdeeabcfb5ad6ceb7f76b1c7622a1eb80673162504e5c",
+      "inputs": {
+        "packages/preset/agent-preset-registry/src/definition.ts": "d952da79acd930954b8d1667ffe692b1e5223f853127b5cbda6de7cf9cd76903",
+        "packages/preset/agent-preset-registry/src/session.ts": "8b52a3dbcd7432eb19e6bf991fc04050f52d213b2026c4a88f91dad37d672bcc",
+        "packages/preset/agent-preset-registry/src/mount.ts": "c008c324ca5b0e4d17dc167a440a0d30537d179905e99a8e67772968cec58917",
+        "packages/preset/agent-preset-registry/src/composition-inventory.ts": "974d33b69b99094d22fbefce05698f1e7a20c6845a4d6a7e4f7626c79a6cfd5d",
+        "packages/preset/agent-preset-registry/src/index.ts": "07a587dfe3b9d3cbe7d960919567bdc754459c0b55f6a1b13502da194767188d",
+        "packages/preset/agent-preset-registry/src/types.ts": "6268655505d96c2f818dcd05fb3335e30e653de1ac4206b26a9acca2d5b39089",
+        "packages/preset/agent-preset-registry/src/display.ts": "0233d9615cde02a8f86c19afd4ea6c4bd88789b733c18f8266aa04b5f81cace3"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-anonymous-user-id",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "3ed16fcba68961a53cc18cb3793dd73948c8fb10368900264b6738552b7b5e8c",
+      "inputs": {
+        "packages/identity/anonymous-user-id/src/index.ts": "b39f7a3b61f39b46ffcbdc5a58b1536f0c4196c1ce9a102f40d761118e7ac512"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-api-gateway",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "1869c285aaa26aaf5b3596d28f2b8df63f6c188b758d6810fa34d9aa6497cf50",
+      "inputs": {
+        "packages/api/gateway/src/stream-protocol.ts": "c0d26dd8d3be737cbb9ae8ecf4e7084d1fb31b37693e94d7e79263c4aa8ce040",
+        "packages/api/gateway/src/stream-server.ts": "cc467061eeff90a804b40efbe236a87beefee3378ea06741d0b6c990ec71d5d7",
+        "packages/api/gateway/src/index.ts": "4df5b38b5e73f7ae5fe5bcab5c633c1aa589e99d36b5f9c975708df01e28b839",
+        "packages/api/gateway/src/types.ts": "326bdf2f9fadbdaf3d12e1b4c79ed5d149512a829d20a4ba9456b2a509e0b060"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-api-gateway",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/api/gateway/src/stream-protocol.ts": "c0d26dd8d3be737cbb9ae8ecf4e7084d1fb31b37693e94d7e79263c4aa8ce040",
+        "packages/api/gateway/src/stream-server.ts": "cc467061eeff90a804b40efbe236a87beefee3378ea06741d0b6c990ec71d5d7",
+        "packages/api/gateway/src/index.ts": "4df5b38b5e73f7ae5fe5bcab5c633c1aa589e99d36b5f9c975708df01e28b839",
+        "packages/api/gateway/src/types.ts": "326bdf2f9fadbdaf3d12e1b4c79ed5d149512a829d20a4ba9456b2a509e0b060"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-api-gateway",
+      "version": "0.2.1-alpha.2",
+      "export": "./stream-protocol",
+      "source": "src/stream-protocol.ts",
+      "output": "./lib/types/stream-protocol.js",
+      "output_sha256": "28c7e14abba99902423581e062fe2d59cf977755e54c85f694a60aff0e952289",
+      "inputs": {
+        "packages/api/gateway/src/stream-protocol.ts": "c0d26dd8d3be737cbb9ae8ecf4e7084d1fb31b37693e94d7e79263c4aa8ce040",
+        "packages/api/gateway/src/stream-server.ts": "cc467061eeff90a804b40efbe236a87beefee3378ea06741d0b6c990ec71d5d7",
+        "packages/api/gateway/src/index.ts": "4df5b38b5e73f7ae5fe5bcab5c633c1aa589e99d36b5f9c975708df01e28b839",
+        "packages/api/gateway/src/types.ts": "326bdf2f9fadbdaf3d12e1b4c79ed5d149512a829d20a4ba9456b2a509e0b060"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-api-session-controller",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "8ae697833f99de445b62d5b56ceb1ca0250dfb3d798cd524ce03cb9acdbf9930",
+      "inputs": {
+        "packages/api/session-controller/src/agent.ts": "c7740bd94bac7adb05b520c869451e18bc65201fa141a15d3e32241d4a2281c0",
+        "packages/api/session-controller/src/catalog.ts": "0554b609a5b46b8209e06a4be7c645931a71aece267f53d7be241957eb2dcf6b",
+        "packages/api/session-controller/src/commands.ts": "e5e9b7df2ff4d3477d9005548496e5ca1c2adaa69470aa6de399e822d683c7a7",
+        "packages/api/session-controller/src/control.ts": "1c68ae048ae911ac2e169b92b0e038ae0a3adc13a02c25ceb0b46536c5821b57",
+        "packages/api/session-controller/src/assistant-stream.ts": "ebe1cfa8156abdd1cc677cba8c8f08991120632d510554c05f0be772993e9272",
+        "packages/api/session-controller/src/history.ts": "20a2b002816817b04d7bae25e429034f79dbfa445ec2f7d90e4525a9c1652db8",
+        "packages/api/session-controller/src/file-references.ts": "870a790822334996b731d05901e4dc4b6a8ac6dec431b697b2c95db41739d91b",
+        "packages/api/session-controller/src/types.ts": "21286467d09fe556fa0576ac6f01ba9009ae82999a029976608a411822d993d3",
+        "packages/api/session-controller/src/list.ts": "e82e8c58559f46320cc2454bcfd22f872c443d606dd21a1b32517838c6f6b033",
+        "packages/api/session-controller/src/model-selection-projection.ts": "a45bdb4bf86025c62e45e83a582301ff649fea50c94f82eedd81b37ba6ef7f9f",
+        "packages/api/session-controller/src/skill-catalog.ts": "fb5cfc3c36fb36156a7be51c48b88bca841a43e11b9265cc94974a9074979d6e",
+        "packages/api/session-controller/src/media-references.ts": "ffe8273e5369ceee71c8369b589877d02c53280ffcbd31ae5c068fcc5fc47145",
+        "packages/api/session-controller/src/archived-session-gate.ts": "1445070c0a9da7ebe7e3032a24ab9fcc4a803973ac12d4adf4b872ea0f0d0e18",
+        "packages/api/session-controller/src/index.ts": "a9af054df924c9111e289b3a66cd3e5fd16c2a190ee74be6071d16bd2809b6b5",
+        "packages/api/session-controller/src/remote-events.ts": "c44915bb22ce3bb812932fa3901de01b69da03a82e9aac3f14d92a906e226fb5"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-api-session-controller",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "af2c774980782b31ab73030824d0c930252d234cf622431606686597804e8c60",
+      "inputs": {
+        "packages/api/session-controller/src/agent.ts": "c7740bd94bac7adb05b520c869451e18bc65201fa141a15d3e32241d4a2281c0",
+        "packages/api/session-controller/src/catalog.ts": "0554b609a5b46b8209e06a4be7c645931a71aece267f53d7be241957eb2dcf6b",
+        "packages/api/session-controller/src/commands.ts": "e5e9b7df2ff4d3477d9005548496e5ca1c2adaa69470aa6de399e822d683c7a7",
+        "packages/api/session-controller/src/control.ts": "1c68ae048ae911ac2e169b92b0e038ae0a3adc13a02c25ceb0b46536c5821b57",
+        "packages/api/session-controller/src/assistant-stream.ts": "ebe1cfa8156abdd1cc677cba8c8f08991120632d510554c05f0be772993e9272",
+        "packages/api/session-controller/src/history.ts": "20a2b002816817b04d7bae25e429034f79dbfa445ec2f7d90e4525a9c1652db8",
+        "packages/api/session-controller/src/file-references.ts": "870a790822334996b731d05901e4dc4b6a8ac6dec431b697b2c95db41739d91b",
+        "packages/api/session-controller/src/types.ts": "21286467d09fe556fa0576ac6f01ba9009ae82999a029976608a411822d993d3",
+        "packages/api/session-controller/src/list.ts": "e82e8c58559f46320cc2454bcfd22f872c443d606dd21a1b32517838c6f6b033",
+        "packages/api/session-controller/src/model-selection-projection.ts": "a45bdb4bf86025c62e45e83a582301ff649fea50c94f82eedd81b37ba6ef7f9f",
+        "packages/api/session-controller/src/skill-catalog.ts": "fb5cfc3c36fb36156a7be51c48b88bca841a43e11b9265cc94974a9074979d6e",
+        "packages/api/session-controller/src/media-references.ts": "ffe8273e5369ceee71c8369b589877d02c53280ffcbd31ae5c068fcc5fc47145",
+        "packages/api/session-controller/src/archived-session-gate.ts": "1445070c0a9da7ebe7e3032a24ab9fcc4a803973ac12d4adf4b872ea0f0d0e18",
+        "packages/api/session-controller/src/index.ts": "a9af054df924c9111e289b3a66cd3e5fd16c2a190ee74be6071d16bd2809b6b5",
+        "packages/api/session-controller/src/remote-events.ts": "c44915bb22ce3bb812932fa3901de01b69da03a82e9aac3f14d92a906e226fb5"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-api-session-controller",
+      "version": "0.2.1-alpha.2",
+      "export": "./remote-events",
+      "source": "src/remote-events.ts",
+      "output": "./lib/types/remote-events.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/api/session-controller/src/agent.ts": "c7740bd94bac7adb05b520c869451e18bc65201fa141a15d3e32241d4a2281c0",
+        "packages/api/session-controller/src/catalog.ts": "0554b609a5b46b8209e06a4be7c645931a71aece267f53d7be241957eb2dcf6b",
+        "packages/api/session-controller/src/commands.ts": "e5e9b7df2ff4d3477d9005548496e5ca1c2adaa69470aa6de399e822d683c7a7",
+        "packages/api/session-controller/src/control.ts": "1c68ae048ae911ac2e169b92b0e038ae0a3adc13a02c25ceb0b46536c5821b57",
+        "packages/api/session-controller/src/assistant-stream.ts": "ebe1cfa8156abdd1cc677cba8c8f08991120632d510554c05f0be772993e9272",
+        "packages/api/session-controller/src/history.ts": "20a2b002816817b04d7bae25e429034f79dbfa445ec2f7d90e4525a9c1652db8",
+        "packages/api/session-controller/src/file-references.ts": "870a790822334996b731d05901e4dc4b6a8ac6dec431b697b2c95db41739d91b",
+        "packages/api/session-controller/src/types.ts": "21286467d09fe556fa0576ac6f01ba9009ae82999a029976608a411822d993d3",
+        "packages/api/session-controller/src/list.ts": "e82e8c58559f46320cc2454bcfd22f872c443d606dd21a1b32517838c6f6b033",
+        "packages/api/session-controller/src/model-selection-projection.ts": "a45bdb4bf86025c62e45e83a582301ff649fea50c94f82eedd81b37ba6ef7f9f",
+        "packages/api/session-controller/src/skill-catalog.ts": "fb5cfc3c36fb36156a7be51c48b88bca841a43e11b9265cc94974a9074979d6e",
+        "packages/api/session-controller/src/media-references.ts": "ffe8273e5369ceee71c8369b589877d02c53280ffcbd31ae5c068fcc5fc47145",
+        "packages/api/session-controller/src/archived-session-gate.ts": "1445070c0a9da7ebe7e3032a24ab9fcc4a803973ac12d4adf4b872ea0f0d0e18",
+        "packages/api/session-controller/src/index.ts": "a9af054df924c9111e289b3a66cd3e5fd16c2a190ee74be6071d16bd2809b6b5",
+        "packages/api/session-controller/src/remote-events.ts": "c44915bb22ce3bb812932fa3901de01b69da03a82e9aac3f14d92a906e226fb5"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-app-boot",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "0421eb07f898f5bcef4a741f83c801a3d880f34c43fdb8eff072874d904e00fd",
+      "inputs": {
+        "packages/boot/app-boot/src/plugin-compatibility.ts": "ab688efec2beb165e2a0917b36fa72bfd5c8b96b8be3a1e6121b76ba24748135",
+        "packages/boot/app-boot/src/profile-compatibility.ts": "e1b2ae8907cd3220f622c49e94819f09d3e24fd8734a95b6d1efc1fa6d088162",
+        "packages/boot/app-boot/src/profile-resolution/legacy-links.ts": "781031f1480e0115a616f12e93401f139d34248185ddd97bf7f0292ec4d0c440",
+        "packages/boot/app-boot/src/profile.ts": "f0d48795b33068c5cba86d99523ad1f57bd44fd5fd17ca441859c69fa8624773",
+        "packages/boot/app-boot/src/profile-context.ts": "171261e7f96e51703ae5742c70de4182b42365bbb4ceb09c749c45090d1c7bc4",
+        "packages/boot/app-boot/src/profile-plugins.ts": "52950a8306250d6193b2633e72b4d86b922ade9eedb945e526b50508654d7745",
+        "packages/boot/app-boot/src/profile-sanitize.ts": "751d3093896d5e0cdf91b6507a42b73b6ba1169e37924a2538e597bdc2d4b425",
+        "packages/boot/app-boot/src/profile-resolution/resolver.ts": "2e6790adf769de81a2f8f7195f9e14e0a2d08731499c77ff34a41121e05b4ac3",
+        "packages/boot/app-boot/src/package-meta.ts": "2b09e3ce0ec793971c53176eded347b735ee41be2ddfdcbfd3492f945fd68e2a",
+        "packages/boot/app-boot/src/compatibility-preflight.ts": "789b04a95931b039ae43109535770dc7335fb207410f73fef2628cb764268a81",
+        "packages/boot/app-boot/src/official-bundle-packages.ts": "a0bcae46162e582d565dbe2a13383e8c1c4fb3883ace0af6fe3674f3b8ed76be",
+        "packages/boot/app-boot/src/official-bundles.generated.ts": "b2b35bb8ca27663ce87ebedbafe9c912dc4650cabbd2b978884ebda097651a1d",
+        "packages/boot/app-boot/src/official-bundles.ts": "7f447a43c56a0f4bcf6400dcc1508002e00e14b28440123f73d03a895b713f36",
+        "packages/boot/app-boot/src/config-schema/native.ts": "74c76cc02dbee5be5bd7f0029e2187728a7c52091392dab0e9156f822609166b",
+        "packages/boot/app-boot/src/config-schema/pattern.ts": "fb94255cfde7c316d058c43a1ea4ed9e88437af05796caf5e40d1373cd7d43dd",
+        "packages/boot/app-boot/src/config-schema/projector.ts": "6958a20b5bce6f730899aef263e594825f127f091c41606c267ed41857d44bba",
+        "packages/boot/app-boot/src/config-schema/document.ts": "9507b66d6e93ecc79d79597e442d09c385312faf492dfd5c1aa7e19942e30395",
+        "packages/boot/app-boot/src/config-schema/collect.ts": "64197ab7122e43a66e0b6565cda84b924a7a11473b6f45a6189ab66c44f87a48",
+        "packages/boot/app-boot/src/config-schema/index.ts": "ca3d6bd3d9a0de71d212c3b4372500eea9e3f8bd892b9884af7d88fcaf6ba76b",
+        "packages/boot/app-boot/src/profile-resolution/service.ts": "3a8a0c3e4e5c44cf7db8330786819af2b7fb2026c28c4cca62660fc377ccc06a",
+        "packages/boot/app-boot/src/index.ts": "d70d07d97828204d05da93c16e4e49630a0c42208dab35e3d4a7694f403082ac"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-atomic-write",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "ad942667b80c7c841e68ea14586e51fd2bd0bfc674c9bdca1cf1e6bc3aa8d513",
+      "inputs": {
+        "packages/util/atomic-write/src/index.ts": "9934692f741efdb2570ee8e108b84f2fad11c55b438d531409f1c2e16d35106a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-attachment",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "69d1e9987ad5b13dfce33dbb8bd29475a039fdaf14c620b9866ef333f6f5b2dd",
+      "inputs": {
+        "packages/attachment/attachment/src/error.ts": "ee24eb3fd7538212e7c95b4a4167ad28637df58b2f70549661630ae71eca2517",
+        "packages/attachment/attachment/src/admission.ts": "34d6453071f95e639fed9c9c23f6b59418f9b523ec2fe554b304e5bf6c03341b",
+        "packages/attachment/attachment/src/brand.ts": "558fa7aca6f787a568ca27d6bb7c5eb4747d56c811c625d4cb78d4885630064f",
+        "packages/attachment/attachment/src/request-projection.ts": "9601939cf6b7d887444d4ef2f2af64299880d2e7c2b699d0d04fdaa9ec555d72",
+        "packages/attachment/attachment/src/index.ts": "7afccd4c126a8b23acfaf31fe56e463196cd091da8585b00da4de4dca3c54574",
+        "packages/attachment/attachment/src/types.ts": "893a8d2501251873d7a885ac9d7249f9a79c3e71e18ef921c260bf56e2c6c354"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-attachment",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/attachment/attachment/src/error.ts": "ee24eb3fd7538212e7c95b4a4167ad28637df58b2f70549661630ae71eca2517",
+        "packages/attachment/attachment/src/admission.ts": "34d6453071f95e639fed9c9c23f6b59418f9b523ec2fe554b304e5bf6c03341b",
+        "packages/attachment/attachment/src/brand.ts": "558fa7aca6f787a568ca27d6bb7c5eb4747d56c811c625d4cb78d4885630064f",
+        "packages/attachment/attachment/src/request-projection.ts": "9601939cf6b7d887444d4ef2f2af64299880d2e7c2b699d0d04fdaa9ec555d72",
+        "packages/attachment/attachment/src/index.ts": "7afccd4c126a8b23acfaf31fe56e463196cd091da8585b00da4de4dca3c54574",
+        "packages/attachment/attachment/src/types.ts": "893a8d2501251873d7a885ac9d7249f9a79c3e71e18ef921c260bf56e2c6c354"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-attachment-local",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "bd7b59afc4c84580fdc9014fbd98e9e42f676dee74b19c5db9ac94a110064b30",
+      "inputs": {
+        "packages/attachment/attachment-local/src/compression-limiter.ts": "b25712ad14609b27f2e1c0d8118eafe7be0adb2180ce40739a02f1fd75722063",
+        "packages/attachment/attachment-local/src/encoding.ts": "6404620aaa9ccf87fdfcdb6302c2be09b666b76dd755a8f0f761c5890a7c9921",
+        "packages/attachment/attachment-local/src/sharp.ts": "6735e559022dccabc257c72af8e9d12b18bbd2c717503cbee84a125274e374de",
+        "packages/attachment/attachment-local/src/image.ts": "ec48db7f7702bb06317c10c393c1fc6a8ec0927f87f63021f419f015dd69827f",
+        "packages/attachment/attachment-local/src/normalization.ts": "3d1b849628f0c827497bac800af49272ac8c5b64be4c59d96bc9f0c23d76fffa",
+        "packages/attachment/attachment-local/src/store.ts": "4b627d534da3cdd8c7b8e3ca68656e25c8d46563bcf3971f50231c162deb1fa6",
+        "packages/attachment/attachment-local/src/file-store.ts": "8826c8ea6124c489c51c10bdc195f4f454b89370929e5d83c50e6232b2eef958",
+        "packages/attachment/attachment-local/src/request-image.ts": "bbb89a0150520a8c73d96fa884066e4b2cc82085864c5899500e45bd6aac889e",
+        "packages/attachment/attachment-local/src/index.ts": "1a1d3fda491bbb0789447e6f9ab92840d6652eff8d68fbccc2a4307ccc5f9f8b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-authorization",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "375289ab9026c989b5c78e87fe32fd32cb671fadd8a7d7f687eb87106ddc0eb9",
+      "inputs": {
+        "packages/credentials/authorization/src/index.ts": "b0b2f3a1cedd51eaccdc38eade6c3b2cdc4c8d108fd43179c280a96b048ad725",
+        "packages/credentials/authorization/src/types.ts": "0d9d91b01ee7f26dd0521567cb14a77a1aa6f84f552d5d6eddd6726552a29d8e"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-authorization",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/credentials/authorization/src/index.ts": "b0b2f3a1cedd51eaccdc38eade6c3b2cdc4c8d108fd43179c280a96b048ad725",
+        "packages/credentials/authorization/src/types.ts": "0d9d91b01ee7f26dd0521567cb14a77a1aa6f84f552d5d6eddd6726552a29d8e"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-brand",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "60e66f7a5f59c7b1a6152bc2779f08dd436e1040a0804d6f1d39656b6c0dd87b",
+      "inputs": {
+        "packages/util/brand/src/index.ts": "f9d6da858d7308117227dcc2306ce7246b7309b2ae22d413d289cbae51e83e98"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-browser-use",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "80440dab1b830378635deee547c5b7ca244053873f03a47aaef4cbec5fe3b706",
+      "inputs": {
+        "packages/browser-use/browser-use/src/index.ts": "34f69c863403138e93e9a26990174715f925fa6e27bca380c3970dc7ad527cd0",
+        "packages/browser-use/browser-use/src/brand.ts": "605e6179fed69daa6cea61856f1e99054beb4a4a9eb06d553316a3df61323166"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-browser-use",
+      "version": "0.2.1-alpha.2",
+      "export": "./brand",
+      "source": "src/brand.ts",
+      "output": "./lib/types/brand.js",
+      "output_sha256": "4e57c7461dd121e4eaee1accbd0855a121f253ab53cbe9e8035d671f9a29c249",
+      "inputs": {
+        "packages/browser-use/browser-use/src/index.ts": "34f69c863403138e93e9a26990174715f925fa6e27bca380c3970dc7ad527cd0",
+        "packages/browser-use/browser-use/src/brand.ts": "605e6179fed69daa6cea61856f1e99054beb4a4a9eb06d553316a3df61323166"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-chunked-list",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "3668c4ba0a3d22d7070a622943e69dbc40b016254a559a227c0a125dbdc28e8e",
+      "inputs": {
+        "packages/util/chunked-list/src/index.ts": "85488aa09c370e983f08b1fb97ba82640d063b32ffa96a61563a9b6e2be4fc36"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-client-connection",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "af789b52828de6e196186c6fa063d3dade67c28098e6f3fed24005bf00e16c19",
+      "inputs": {
+        "packages/client/connection/src/api-path.ts": "8d420a69c9e80584818433e3d909f09e9be13bc9a9d6a5be3bb02c427c328934",
+        "packages/client/connection/src/http-bridge.ts": "8fbfa5294a7cae95c3556ca6d7805bba81fa6b2d81384ab145461059ca73037a",
+        "packages/client/connection/src/loopback-hostname.ts": "4c21ef048250d543659c29a4876e820e90bdeb452f424dfbdbc19f3b500efa62",
+        "packages/client/connection/src/api-request-trust.ts": "879a4f497ad41355771303a5956851da04661be24b08435fe7bf13d42e1e3b9b",
+        "packages/client/connection/src/browser-auth.ts": "1e4011a8b37707e52e0637cbdaf61249c656b6da5031a8028356726944bc1083",
+        "packages/client/connection/src/rpc.ts": "ec53c1c853d85812779027b9ef090328a8fcf6c8e18fdb992f16815baf0c3591",
+        "packages/client/connection/src/rpc-schema.ts": "4224e854bb62b0c195c5a401683322fdc69cadf2a0cf27abd3fb7690ee35ffb2",
+        "packages/client/connection/src/operator-peer.ts": "638e7e0f1115426a7f50ba949bc8a89a344551c911faf4a2af2aa9840dcb84aa",
+        "packages/client/connection/src/rpc-host.ts": "c92250c0a14818f17358db12d78b0b58e65307ee45a0b0f175c46761e7b75f04",
+        "packages/client/connection/src/recovery-config.ts": "677ba43668fc82c7e9da4c7e79389aae9d594055f49a5073349edd38ee111d6e",
+        "packages/client/connection/src/index.ts": "b430cecc13cea70371a238e6f108174f5e0aeb455944e8c5210eb693e08ab59e"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-client-file-upload",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "9f3d9992b6d70d15d110033d383c4a0aaf0847c7e5fdd11ac33f2fe6309073f1",
+      "inputs": {
+        "packages/client/file-upload/src/http-route.ts": "dc91debb0862f7c153559dfc172cc95f185f47c25337feb27ec4f4c5e5db76e0",
+        "packages/client/file-upload/src/protocol.ts": "cf535d3e55e49465e07806b71b0a40df30709f4e9af8d28ce464a44ce6f17978",
+        "packages/client/file-upload/src/index.ts": "3d37afa7fb27cee1f1e4574a9dc886dd5ba0e5d972a849cf62b85610f7140a19",
+        "packages/client/file-upload/src/types.ts": "e38991333ef538f1036e8f6a348624e785cbba0f6eee8ddd0f4de4fd21831ed8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-client-file-upload",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/client/file-upload/src/http-route.ts": "dc91debb0862f7c153559dfc172cc95f185f47c25337feb27ec4f4c5e5db76e0",
+        "packages/client/file-upload/src/protocol.ts": "cf535d3e55e49465e07806b71b0a40df30709f4e9af8d28ce464a44ce6f17978",
+        "packages/client/file-upload/src/index.ts": "3d37afa7fb27cee1f1e4574a9dc886dd5ba0e5d972a849cf62b85610f7140a19",
+        "packages/client/file-upload/src/types.ts": "e38991333ef538f1036e8f6a348624e785cbba0f6eee8ddd0f4de4fd21831ed8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-commands",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "1f1b3d8d4e2b6bd13e629308147d865c681185265b93660eec0071f9bb4ad329",
+      "inputs": {
+        "packages/interaction/commands/src/brand.ts": "2e0689a8a79ea23e3228f467b7ca10bcb8b4a97e67bf5c6c9621ffa68d7711bd",
+        "packages/interaction/commands/src/index.ts": "c9416db54cc48ab5b72adaa22d8534596e87bc8795d88ac5d807fdcccb4e6066",
+        "packages/interaction/commands/src/types.ts": "0a1721623007f1b34a3b8ca1e1559b0257db7de0940ae9714ec54c6d30fff335"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-commands",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/interaction/commands/src/brand.ts": "2e0689a8a79ea23e3228f467b7ca10bcb8b4a97e67bf5c6c9621ffa68d7711bd",
+        "packages/interaction/commands/src/index.ts": "c9416db54cc48ab5b72adaa22d8534596e87bc8795d88ac5d807fdcccb4e6066",
+        "packages/interaction/commands/src/types.ts": "0a1721623007f1b34a3b8ca1e1559b0257db7de0940ae9714ec54c6d30fff335"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-commands",
+      "version": "0.2.1-alpha.2",
+      "export": "./brand",
+      "source": "src/brand.ts",
+      "output": "./lib/types/brand.js",
+      "output_sha256": "8a7931b3f33dff3d5d68d1996dc06db017f810f395abab8bb3cfb24a21c96665",
+      "inputs": {
+        "packages/interaction/commands/src/brand.ts": "2e0689a8a79ea23e3228f467b7ca10bcb8b4a97e67bf5c6c9621ffa68d7711bd",
+        "packages/interaction/commands/src/index.ts": "c9416db54cc48ab5b72adaa22d8534596e87bc8795d88ac5d807fdcccb4e6066",
+        "packages/interaction/commands/src/types.ts": "0a1721623007f1b34a3b8ca1e1559b0257db7de0940ae9714ec54c6d30fff335"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-compaction",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "b39935a1013320e9e3e3cb242cc2c618e76f6b13c1d8508865c0052f00dd1387",
+      "inputs": {
+        "packages/compaction/compaction/src/brand.ts": "f27af81196216a6a50faf5e15da75cdb0935e47e2e78dc3d3fc7ce2dd6733a82",
+        "packages/compaction/compaction/src/tool-pairing.ts": "30916d32b421553a7753aa56f5e5890bdfa2bf41b0ce3c8f42bd529fd2da4b9a",
+        "packages/compaction/compaction/src/checkpoint.ts": "194c6f7bf0b0a403837cff2815c37f657b35a7713b5a354cb40f64dfb42a44e3",
+        "packages/compaction/compaction/src/index.ts": "1d50528c7daf5950e79d7edb2fabca48da6682fc536e911c9f64e4d0bdea4ba1",
+        "packages/compaction/compaction/src/types.ts": "af47584231f20be810e5d1f354f5f23d1a02995c454b4d2027070b502eae1e22"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-compaction",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/compaction/compaction/src/brand.ts": "f27af81196216a6a50faf5e15da75cdb0935e47e2e78dc3d3fc7ce2dd6733a82",
+        "packages/compaction/compaction/src/tool-pairing.ts": "30916d32b421553a7753aa56f5e5890bdfa2bf41b0ce3c8f42bd529fd2da4b9a",
+        "packages/compaction/compaction/src/checkpoint.ts": "194c6f7bf0b0a403837cff2815c37f657b35a7713b5a354cb40f64dfb42a44e3",
+        "packages/compaction/compaction/src/index.ts": "1d50528c7daf5950e79d7edb2fabca48da6682fc536e911c9f64e4d0bdea4ba1",
+        "packages/compaction/compaction/src/types.ts": "af47584231f20be810e5d1f354f5f23d1a02995c454b4d2027070b502eae1e22"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-compaction",
+      "version": "0.2.1-alpha.2",
+      "export": "./checkpoint",
+      "source": "src/checkpoint.ts",
+      "output": "./lib/types/checkpoint.js",
+      "output_sha256": "7b1f50cbd014e3793b6dd7fafc4b99e1c1ad131e7bf3fb4370c82e9d0524e71c",
+      "inputs": {
+        "packages/compaction/compaction/src/brand.ts": "f27af81196216a6a50faf5e15da75cdb0935e47e2e78dc3d3fc7ce2dd6733a82",
+        "packages/compaction/compaction/src/tool-pairing.ts": "30916d32b421553a7753aa56f5e5890bdfa2bf41b0ce3c8f42bd529fd2da4b9a",
+        "packages/compaction/compaction/src/checkpoint.ts": "194c6f7bf0b0a403837cff2815c37f657b35a7713b5a354cb40f64dfb42a44e3",
+        "packages/compaction/compaction/src/index.ts": "1d50528c7daf5950e79d7edb2fabca48da6682fc536e911c9f64e4d0bdea4ba1",
+        "packages/compaction/compaction/src/types.ts": "af47584231f20be810e5d1f354f5f23d1a02995c454b4d2027070b502eae1e22"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-compaction-basic",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "2410ef117a014521068a8c09fb9d450745b303906ad699947d10686ff91199b7",
+      "inputs": {
+        "packages/compaction/compaction-basic/src/config.ts": "4972edc6447dcff87eab54c3a9c5984171238aa06aa0eb34ffde4bfac4ce1275",
+        "packages/compaction/compaction-basic/src/summarizer.ts": "03ef6eb0b6a011530829820e30ff709c2c1b34cfa37a98c19c0037432b9d2f55",
+        "packages/compaction/compaction-basic/src/region.ts": "295b53cc9e924f7cb2e843e0d0d296e89ead73da2aab9790282db30736e2e063",
+        "packages/compaction/compaction-basic/src/index.ts": "c298756c1d06a24593dc573e08f337f7f012675bcfaa675edb7d5368b19649f6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-compaction-image-offload",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "93957e555678d8a9abe142788eff6d0353ea8ad1abb41e7bc686e730a70f4177",
+      "inputs": {
+        "packages/compaction/compaction-image-offload/src/image-offload.ts": "e41285733e5c748b67055c74441170b5a959b9032820e1c5e9cf27a583e31b6a",
+        "packages/compaction/compaction-image-offload/src/project-message.ts": "b7f65a1b6e6bcd854d60c76a40018c578439d7dfd33ce8ae9815ea5160a6cf5e",
+        "packages/compaction/compaction-image-offload/src/projection.ts": "b3f1d52de96af237af9e95fcfdc51a9efb3121f269c696bacf0a9618b72fe4ca",
+        "packages/compaction/compaction-image-offload/src/index.ts": "e05f418b18a4e2a0854499ea88051a1a40c56641011fec9d7f6e5a0bd165aae4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-compaction-image-offload",
+      "version": "0.2.1-alpha.2",
+      "export": "./projection",
+      "source": "src/projection.ts",
+      "output": "./lib/types/projection.js",
+      "output_sha256": "2f2f6c934aa57fc6ea6102235839e2894e6f41289ca65f4bf851059c788e4461",
+      "inputs": {
+        "packages/compaction/compaction-image-offload/src/image-offload.ts": "e41285733e5c748b67055c74441170b5a959b9032820e1c5e9cf27a583e31b6a",
+        "packages/compaction/compaction-image-offload/src/project-message.ts": "b7f65a1b6e6bcd854d60c76a40018c578439d7dfd33ce8ae9815ea5160a6cf5e",
+        "packages/compaction/compaction-image-offload/src/projection.ts": "b3f1d52de96af237af9e95fcfdc51a9efb3121f269c696bacf0a9618b72fe4ca",
+        "packages/compaction/compaction-image-offload/src/index.ts": "e05f418b18a4e2a0854499ea88051a1a40c56641011fec9d7f6e5a0bd165aae4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-compaction-tool-result-pruner",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "3b2144dffc6e737942fe62e1367f5fe43649cf4541a08db9f441319a66fae1a3",
+      "inputs": {
+        "packages/compaction/compaction-tool-result-pruner/src/config.ts": "8538c8b2b3bd7b2b085a86119b694f7934e308a5c4b7f4406e963b190b6eaa98",
+        "packages/compaction/compaction-tool-result-pruner/src/index.ts": "2890f336ca42f9d8259794eebbc4a9423f69a7394c41796b9981216ed29ed536"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-computer-use",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "db792b3f5cc518510083c2744ac8b863bea69f29307733341b1ca0975d1cceca",
+      "inputs": {
+        "packages/computer-use/computer-use/src/index.ts": "cdab7238f2f9c9bce4a0bf1e458e1f5bf42346bd3f18d3f1cc276a9e3de0b1eb",
+        "packages/computer-use/computer-use/src/brand.ts": "eda1c763c3443dbcc6490a7cdc65b740faac370e452194572c2a09f47fd5906b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-computer-use",
+      "version": "0.2.1-alpha.2",
+      "export": "./brand",
+      "source": "src/brand.ts",
+      "output": "./lib/types/brand.js",
+      "output_sha256": "feb5ee9fa79ade12a8f7ea8d329bdeb8643479d0f118427ef7be257f726e5416",
+      "inputs": {
+        "packages/computer-use/computer-use/src/index.ts": "cdab7238f2f9c9bce4a0bf1e458e1f5bf42346bd3f18d3f1cc276a9e3de0b1eb",
+        "packages/computer-use/computer-use/src/brand.ts": "eda1c763c3443dbcc6490a7cdc65b740faac370e452194572c2a09f47fd5906b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-config-editor",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "853162eb201f9195fad0913d0520d6a5259d6bc198d13fe461918b4a428e1401",
+      "inputs": {
+        "packages/boot/config-editor/src/index.ts": "34a0b17d43446f8e35d4a35de0da2fd0f93673a3dc925956a6abfa4d8ffcbf33"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-credentials",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "80fc3e7718504d93408df86fa9c9b0f5859432c274c87b8560025b91a2092e9b",
+      "inputs": {
+        "packages/credentials/credentials/src/index.ts": "76657cee0662455e8950204b2b6a7f07bc6bb7c142c754715ed78db7fe88731d",
+        "packages/credentials/credentials/src/types.ts": "c4477b743020e14f6a191172d2f662765ffceabbe6b67b7c3681662dfed8049a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-credentials",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/credentials/credentials/src/index.ts": "76657cee0662455e8950204b2b6a7f07bc6bb7c142c754715ed78db7fe88731d",
+        "packages/credentials/credentials/src/types.ts": "c4477b743020e14f6a191172d2f662765ffceabbe6b67b7c3681662dfed8049a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-deepseek-account",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "5573fae9e71ce2cf726910754df834241f84b9a2c487c45c64e873babfb9834b",
+      "inputs": {
+        "packages/credentials/deepseek-account/src/account-tasks.ts": "472a1406eec26f38de99ff9fb3d2828c27772d45a2e93e97cb45c91e046d3f56",
+        "packages/credentials/deepseek-account/src/index.ts": "52fba639ae88a6bdea0e702e3c1daa24e3ca519d37c5dc06d668f22abd1c67b9",
+        "packages/credentials/deepseek-account/src/types.ts": "b2188c6e394526631fc8348a2eea4c62050023ea04dfbd88b1ef7a3f99a90f31"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-deepseek-account",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/credentials/deepseek-account/src/account-tasks.ts": "472a1406eec26f38de99ff9fb3d2828c27772d45a2e93e97cb45c91e046d3f56",
+        "packages/credentials/deepseek-account/src/index.ts": "52fba639ae88a6bdea0e702e3c1daa24e3ca519d37c5dc06d668f22abd1c67b9",
+        "packages/credentials/deepseek-account/src/types.ts": "b2188c6e394526631fc8348a2eea4c62050023ea04dfbd88b1ef7a3f99a90f31"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-deepseek-account-platform",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "7afdd230ce19cc588fc6a11982948aea5891eb8a521aa358c258350965e5c026",
+      "inputs": {
+        "packages/credentials/deepseek-account-platform/src/protocol.ts": "fe59de1da59763d39de3705923d05114d89a78eac0e9791297bb4f5b7d0f9d1e",
+        "packages/credentials/deepseek-account-platform/src/details.ts": "470e945ec18c3f361d218bcc9e983c3a57c3a0e75c829bb3143a35dfc9ff9d40",
+        "packages/credentials/deepseek-account-platform/src/logout.ts": "1906a6163849f4ee3e8f25f370cb9708d33e528454384d90210c90be8de6f55a",
+        "packages/credentials/deepseek-account-platform/src/index.ts": "425324c3db58c1f703a8d63f30f3d5b41cb57987d6c2bcda0d11cdf9b8549f10",
+        "packages/credentials/deepseek-account-platform/src/types.ts": "bbca8f707ce6c0c6fd3c22aa9fd0fd1397a294a1e4e60e7596e67c09b99a2757"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-deepseek-account-platform",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/credentials/deepseek-account-platform/src/protocol.ts": "fe59de1da59763d39de3705923d05114d89a78eac0e9791297bb4f5b7d0f9d1e",
+        "packages/credentials/deepseek-account-platform/src/details.ts": "470e945ec18c3f361d218bcc9e983c3a57c3a0e75c829bb3143a35dfc9ff9d40",
+        "packages/credentials/deepseek-account-platform/src/logout.ts": "1906a6163849f4ee3e8f25f370cb9708d33e528454384d90210c90be8de6f55a",
+        "packages/credentials/deepseek-account-platform/src/index.ts": "425324c3db58c1f703a8d63f30f3d5b41cb57987d6c2bcda0d11cdf9b8549f10",
+        "packages/credentials/deepseek-account-platform/src/types.ts": "bbca8f707ce6c0c6fd3c22aa9fd0fd1397a294a1e4e60e7596e67c09b99a2757"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-deepseek-llm-api-extensions",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "063a2108784efb6e9bf86d5939c22caccb8cadf54284f726fbc8bdc5d46d6c73",
+      "inputs": {
+        "packages/llm/deepseek-llm-api-extensions/src/index.ts": "bda2206d97137d5761e17a39bdfbd0e9000d0a9191bf8c909b47be81e99f1fbd",
+        "packages/llm/deepseek-llm-api-extensions/src/types.ts": "07222cc288a4174b0db18bd7abd6a9e4542bd823ce74986d97b372992fdea957"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-deepseek-llm-api-extensions",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/llm/deepseek-llm-api-extensions/src/index.ts": "bda2206d97137d5761e17a39bdfbd0e9000d0a9191bf8c909b47be81e99f1fbd",
+        "packages/llm/deepseek-llm-api-extensions/src/types.ts": "07222cc288a4174b0db18bd7abd6a9e4542bd823ce74986d97b372992fdea957"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-deque",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "cbcba205b2b127fa06c9a2d3b36038bfc44dfd8d7730ce95d66b75bbe8a84059",
+      "inputs": {
+        "packages/util/deque/src/index.ts": "6dd9b24cc99aeeffb1e70c880306d76ced4a3b769dbd2131d7f129fa8a6649e7"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-experimental-browser-use-playwright-mcp",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "367a97ed3893ee2f486e4cc9ce11377c36ab42f37e8fa3148bbf4bbc824da469",
+      "inputs": {
+        "packages/experimental/browser-use-playwright-mcp/src/index.ts": "886ee8f590fc8d2a7146378749ea2455b32b02b4a3cb8009159c9b4040a4bf3c"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-experimental-browser-use-runtime",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "4c179de68bb05d206dc4197db0805e2d3b34bbd6e23567b1161e2f6fd6a1a05b",
+      "inputs": {
+        "packages/experimental/browser-use-runtime/src/index.ts": "e5407a8f04418f246fd05120aba349bb530702198c73b86347459360fb77880b",
+        "packages/experimental/browser-use-runtime/src/mcp.ts": "86d4e57e357fb7c87d49326344b8e3c2398fbccd29e34f6568db6fe3764fccc8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-experimental-browser-use-runtime",
+      "version": "0.2.1-alpha.2",
+      "export": "./mcp",
+      "source": "src/mcp.ts",
+      "output": "./lib/types/mcp.js",
+      "output_sha256": "384bd909c17ef938422dae7da2945bb09cbc9fa910f25043c7925e11754596d7",
+      "inputs": {
+        "packages/experimental/browser-use-runtime/src/index.ts": "e5407a8f04418f246fd05120aba349bb530702198c73b86347459360fb77880b",
+        "packages/experimental/browser-use-runtime/src/mcp.ts": "86d4e57e357fb7c87d49326344b8e3c2398fbccd29e34f6568db6fe3764fccc8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-experimental-computer-use-cua-driver-native",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "3ca557639951eeab2e391df033514dccfaf6255141ba0632ab195534d0d9692d",
+      "inputs": {
+        "packages/experimental/computer-use-cua-driver-native/src/index.ts": "ddcbff07ab6912d73963bb45d5a05235eef3c9f51e8e720b3d0f659708f45eb5"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-file-reference",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "c6b5f86c5cafba8192cd8177cbabeb24efeaf2e58cb25f38a40556a3f5e1a42d",
+      "inputs": {
+        "packages/context/file-reference/src/grammar.ts": "de096119435cd32d6e8485f866bc9ef648adb7d6d9c79c3451a76ec74a0e8927",
+        "packages/context/file-reference/src/index.ts": "cfd2cb19db5d4b09bb7a974ed3c1080c5e77ab4b297a7fcf2a3772547824796f",
+        "packages/context/file-reference/src/types.ts": "9c72ffb7158bc573a3da5d7a1ce1bee0d83ac132883540a4e4e980f326836684"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-file-reference",
+      "version": "0.2.1-alpha.2",
+      "export": "./grammar",
+      "source": "src/grammar.ts",
+      "output": "./lib/types/grammar.js",
+      "output_sha256": "cac9d96e664cb5d4ac243872bbdbc3c2b46c98eab6bd520f70f0157b2ca403db",
+      "inputs": {
+        "packages/context/file-reference/src/grammar.ts": "de096119435cd32d6e8485f866bc9ef648adb7d6d9c79c3451a76ec74a0e8927",
+        "packages/context/file-reference/src/index.ts": "cfd2cb19db5d4b09bb7a974ed3c1080c5e77ab4b297a7fcf2a3772547824796f",
+        "packages/context/file-reference/src/types.ts": "9c72ffb7158bc573a3da5d7a1ce1bee0d83ac132883540a4e4e980f326836684"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-file-reference",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/context/file-reference/src/grammar.ts": "de096119435cd32d6e8485f866bc9ef648adb7d6d9c79c3451a76ec74a0e8927",
+        "packages/context/file-reference/src/index.ts": "cfd2cb19db5d4b09bb7a974ed3c1080c5e77ab4b297a7fcf2a3772547824796f",
+        "packages/context/file-reference/src/types.ts": "9c72ffb7158bc573a3da5d7a1ce1bee0d83ac132883540a4e4e980f326836684"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-fs",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "0f661a4cf77ba519d37c6ace9f919f0b05649b3a5214eba5a36789e815177e64",
+      "inputs": {
+        "packages/fs/fs/src/types.ts": "5918ac1953e92aaeadb00d209c6043a8207c165e82085c9fdef4581f0b2933a4",
+        "packages/fs/fs/src/index.ts": "bb3e351a975fde0f5d313cf9374af958b5d92f85b9f7c6688ccc7098409690d7"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-fs-local",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "7b7c8fd53180be127fec8507d148ca5a9442339e162691608a016d5826322781",
+      "inputs": {
+        "packages/fs/fs-local/src/win32.ts": "2fa3696f3c852a3206c21221f6269673c3e1c1cb15fb1f6f7fa75b27b1ea7d77",
+        "packages/fs/fs-local/src/fsio.ts": "d7cc70e0a8b06981b94e1ca64963f956f939892c4ea0399e282be5427c42778f",
+        "packages/fs/fs-local/src/index.ts": "77cdf3a1a259c9e24fef28f42f937a6b5ce1ad6d692fbc8dab148925cc4f1f28"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-fs-observation-policy",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "616fa9ffe8754ab067d6c1331eeb0a1f72da18a0c8695783f15a6cde96d14ebf",
+      "inputs": {
+        "packages/fs/fs-observation-policy/src/index.ts": "def6cb5ed29c6d9ba7bccd3a9936349ea1fc1b6d439ca709a077ae88794afc06"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-goal",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "2312fe082e69aa1d30619b9a8f66eb88cc28e2e60ac56230c2a893d5a1d05cea",
+      "inputs": {
+        "packages/goal/goal/src/runtime.ts": "ce11cd1fbb2363f3238722c552f19cfb66a44fe5c238788632704b30cb2d5572",
+        "packages/goal/goal/src/fold.ts": "8dc7086395f436c6af4a816e668ddfd89ba527f801a877bf74d131f08870ab6e",
+        "packages/goal/goal/src/index.ts": "333ebc31489619ee083235c5f5ceeb38ac3c6c844b2a0179458058401a6ebf9a",
+        "packages/goal/goal/src/types.ts": "a33a493854f86cfa1bb959d257e1d5b1237f1666dec617633a2af1fe28cd5719",
+        "packages/goal/goal/src/client.ts": "0f0e86602112ba060f64e16dd7cb16a99a4cf938edacd86b791779b4efd003be"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-goal",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/goal/goal/src/runtime.ts": "ce11cd1fbb2363f3238722c552f19cfb66a44fe5c238788632704b30cb2d5572",
+        "packages/goal/goal/src/fold.ts": "8dc7086395f436c6af4a816e668ddfd89ba527f801a877bf74d131f08870ab6e",
+        "packages/goal/goal/src/index.ts": "333ebc31489619ee083235c5f5ceeb38ac3c6c844b2a0179458058401a6ebf9a",
+        "packages/goal/goal/src/types.ts": "a33a493854f86cfa1bb959d257e1d5b1237f1666dec617633a2af1fe28cd5719",
+        "packages/goal/goal/src/client.ts": "0f0e86602112ba060f64e16dd7cb16a99a4cf938edacd86b791779b4efd003be"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-goal",
+      "version": "0.2.1-alpha.2",
+      "export": "./client",
+      "source": "src/client.ts",
+      "output": "./lib/types/client.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/goal/goal/src/runtime.ts": "ce11cd1fbb2363f3238722c552f19cfb66a44fe5c238788632704b30cb2d5572",
+        "packages/goal/goal/src/fold.ts": "8dc7086395f436c6af4a816e668ddfd89ba527f801a877bf74d131f08870ab6e",
+        "packages/goal/goal/src/index.ts": "333ebc31489619ee083235c5f5ceeb38ac3c6c844b2a0179458058401a6ebf9a",
+        "packages/goal/goal/src/types.ts": "a33a493854f86cfa1bb959d257e1d5b1237f1666dec617633a2af1fe28cd5719",
+        "packages/goal/goal/src/client.ts": "0f0e86602112ba060f64e16dd7cb16a99a4cf938edacd86b791779b4efd003be"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-goal-round-driver",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "15e0d477d20573eca23b5186f73f70aecb9f19e7f83aeaeacd18ef71be44cc69",
+      "inputs": {
+        "packages/goal/goal-round-driver/src/prompt.ts": "48410d77077e88053cded777736a425534e91b36402ab46dc151ea9867a3db97",
+        "packages/goal/goal-round-driver/src/index.ts": "b59f61befcf8746327ec25b4a3812d44e243113da47cc323033806e8c65b6293"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-home-paths",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "8dadd8b8355e882c63382c78475eb4f8e7c9580212dd1b55e86fb7f9c3fe9f29",
+      "inputs": {
+        "packages/util/home-paths/src/index.ts": "143a1583d9f5203f000da672de1dd27fe9994db9332d8c25f101c149c91cb643"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-host-webserver",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6504fdad930d0a4133ec710613902cc8687d763c74124fd46142d69d6de47132",
+      "inputs": {
+        "packages/host/webserver/src/injections.ts": "9a9687608fe7b5cbf8d2d13b081db283251c10efadbcdde75485342807c47b93",
+        "packages/host/webserver/src/index.ts": "70c70ac5ba109b67d6fc88765edf32fe7af6d9444499a828f59d1667e33c18a7"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-http-proxy",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "2269dc61d6e5b300f8c911b66a19c9dfafd8b9f581edb08c21df59178d2d24da",
+      "inputs": {
+        "packages/util/http-proxy/src/policy.ts": "4827eabf9fac440298fa38e1bdc4189bafa9a7d98852a25848d62b03ecc6aacf",
+        "packages/util/http-proxy/src/install.ts": "acf606d8cdbee7364c3c55dbae025e3fa1c2a4d81b708d071e57562546894427",
+        "packages/util/http-proxy/src/index.ts": "065a1154dd85977e4549ff692554b1d5c002a835ba30ce15a02d210e8f9678b6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-jobs",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "b2959f389b8a39032784f35c64dda2ed17a9d07f6a8a5adf50fce0deb9211aab",
+      "inputs": {
+        "packages/jobs/jobs/src/archive-admission.ts": "eb9c37cb3b2652fcc96f9a5d400f6e0c8a2861b963cd9852627a9d10105cf988",
+        "packages/jobs/jobs/src/brand.ts": "2c32667ce16df059efaa06681339f78875ea57511751ae66269293bfa7cdf3c8",
+        "packages/jobs/jobs/src/types.ts": "1a4c1c952d8f3b0e196ca088e21f15936497673e679a11fdb3ba83bad116c44c",
+        "packages/jobs/jobs/src/index.ts": "7cda58a0c085ced5053cfe18addf9ea55d217568ac2e7ae4e7f394ef0b4023f1",
+        "packages/jobs/jobs/src/view.ts": "dbaa623bcfcd2c5ebf0c3155231d3e298d2cf734bb2cb6510d95bcf1703713d6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-jobs",
+      "version": "0.2.1-alpha.2",
+      "export": "./brand",
+      "source": "src/brand.ts",
+      "output": "./lib/types/brand.js",
+      "output_sha256": "b2cf7ab1cf8b9f7a95391b6458354c06cfd2885afaf69d3594b4bcdd3491f731",
+      "inputs": {
+        "packages/jobs/jobs/src/archive-admission.ts": "eb9c37cb3b2652fcc96f9a5d400f6e0c8a2861b963cd9852627a9d10105cf988",
+        "packages/jobs/jobs/src/brand.ts": "2c32667ce16df059efaa06681339f78875ea57511751ae66269293bfa7cdf3c8",
+        "packages/jobs/jobs/src/types.ts": "1a4c1c952d8f3b0e196ca088e21f15936497673e679a11fdb3ba83bad116c44c",
+        "packages/jobs/jobs/src/index.ts": "7cda58a0c085ced5053cfe18addf9ea55d217568ac2e7ae4e7f394ef0b4023f1",
+        "packages/jobs/jobs/src/view.ts": "dbaa623bcfcd2c5ebf0c3155231d3e298d2cf734bb2cb6510d95bcf1703713d6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-jobs",
+      "version": "0.2.1-alpha.2",
+      "export": "./view",
+      "source": "src/view.ts",
+      "output": "./lib/types/view.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/jobs/jobs/src/archive-admission.ts": "eb9c37cb3b2652fcc96f9a5d400f6e0c8a2861b963cd9852627a9d10105cf988",
+        "packages/jobs/jobs/src/brand.ts": "2c32667ce16df059efaa06681339f78875ea57511751ae66269293bfa7cdf3c8",
+        "packages/jobs/jobs/src/types.ts": "1a4c1c952d8f3b0e196ca088e21f15936497673e679a11fdb3ba83bad116c44c",
+        "packages/jobs/jobs/src/index.ts": "7cda58a0c085ced5053cfe18addf9ea55d217568ac2e7ae4e7f394ef0b4023f1",
+        "packages/jobs/jobs/src/view.ts": "dbaa623bcfcd2c5ebf0c3155231d3e298d2cf734bb2cb6510d95bcf1703713d6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-jobs-local",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "5cb8e1d474ccd6677c3c2f89802957ee4dff83967de348694bd76e804a9ca00e",
+      "inputs": {
+        "packages/jobs/jobs-local/src/events.ts": "e0d8eef812e00653f808f4879fb0b4b460f6dea0f5b99c9505319a877018b78c",
+        "packages/jobs/jobs-local/src/pump.ts": "1c26ed31582dd029f59b87c444842d7a4d632b79e509c4f3510a95d275341201",
+        "packages/jobs/jobs-local/src/ring.ts": "ce5c351de29390a08cd459bf9b71194a1da6bcfceb6bbdf06ae4b8367528efc9",
+        "packages/jobs/jobs-local/src/index.ts": "b342014279db814186818ec2cc3d8a355c28483d3c29f8324e22dee80cc90a02"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-launch-environment",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "ce58551cdec5b02cb272941b596cf09ad4d41c5cf0b99322b0040a8e93b1e44b",
+      "inputs": {
+        "packages/util/launch-environment/src/index.ts": "4b9cb39fd421108a1b4d3a38fe98814efad96b36770c2508ef223a090b5c1695"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-lazy-require",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "49304c8343cc115662c0bc771af2bddddcda029f52d4ad34e2ba2a9dbe559e46",
+      "inputs": {
+        "packages/util/lazy-require/src/index.ts": "3453ea694b03c110b366c4d6c18ff6f2d32004ded38cd43ceb89c3ed7aa11fdf"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "af14acccd8704370106819116d721d416f7d126ad9a2bf37dfd6d72a9a38fdaa",
+      "inputs": {
+        "packages/llm/llm/src/message.ts": "5826fb32bc3d6e2221a7a39cc8b4fecc57282540a332417bb9f2ac3522b5c7da",
+        "packages/llm/llm/src/error.ts": "cd8657420bb84060ee45b1e72fa668df26b090532afd8afd2a96da983a74f792",
+        "packages/llm/llm/src/retry-policy.ts": "eee2423a0152096026446dd651f29678e0c504f0349a91758720f01f74efa871",
+        "packages/llm/llm/src/call-config.ts": "1b70454e4c6d579ebe2a24f76c25f22f90d4e9c7fb0c90f73afd731371962bd0",
+        "packages/llm/llm/src/adapter-failure.ts": "533507191d814fc7b3df5ae65076b2ebc4134bbb47a2bbd9bb7309d7e7f9241b",
+        "packages/llm/llm/src/api-key.ts": "16bf926a82b0c0c1d4adbee78e2a1eebe260f100285795edb8330f3fe46141a4",
+        "packages/llm/llm/src/content.ts": "e679f0972cef3f6301c4a9f321ee288ef0a63223ec51c093349c186cdc81ff35",
+        "packages/llm/llm/src/attribution.ts": "44cc79c833cadc78ef0e124da87786bf9d7765f1409d885ec97b5e0e7d8f9ffb",
+        "packages/llm/llm/src/brand.ts": "a3a3f22174353af8aea34a9a439986530bffcc6df6339e55612fd5a1fa4fb14c",
+        "packages/llm/llm/src/types.ts": "f807e8c051af974e3a963e3c0abd156d5504ea057c80228a07397ccc3bae1791",
+        "packages/llm/llm/src/assembler.ts": "a2d065645058a70195a504b101e9eed23df3eaced3def868d602f3a863b03887",
+        "packages/llm/llm/src/assistant-stream.ts": "9ff074108132ef0ffeefffd8e7967d05db4c6bef1689242807ef7a1d2105dfeb",
+        "packages/llm/llm/src/index.ts": "33967a6fb6a27b1f17e89d8596eb9d66a5ce848964c7c2a0d2d93f31fe7c4c2d"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "876e478a8832f3b5fe03dabd98d113ed274367518e1b2bc2a776a33a0d972ba9",
+      "inputs": {
+        "packages/llm/llm/src/message.ts": "5826fb32bc3d6e2221a7a39cc8b4fecc57282540a332417bb9f2ac3522b5c7da",
+        "packages/llm/llm/src/error.ts": "cd8657420bb84060ee45b1e72fa668df26b090532afd8afd2a96da983a74f792",
+        "packages/llm/llm/src/retry-policy.ts": "eee2423a0152096026446dd651f29678e0c504f0349a91758720f01f74efa871",
+        "packages/llm/llm/src/call-config.ts": "1b70454e4c6d579ebe2a24f76c25f22f90d4e9c7fb0c90f73afd731371962bd0",
+        "packages/llm/llm/src/adapter-failure.ts": "533507191d814fc7b3df5ae65076b2ebc4134bbb47a2bbd9bb7309d7e7f9241b",
+        "packages/llm/llm/src/api-key.ts": "16bf926a82b0c0c1d4adbee78e2a1eebe260f100285795edb8330f3fe46141a4",
+        "packages/llm/llm/src/content.ts": "e679f0972cef3f6301c4a9f321ee288ef0a63223ec51c093349c186cdc81ff35",
+        "packages/llm/llm/src/attribution.ts": "44cc79c833cadc78ef0e124da87786bf9d7765f1409d885ec97b5e0e7d8f9ffb",
+        "packages/llm/llm/src/brand.ts": "a3a3f22174353af8aea34a9a439986530bffcc6df6339e55612fd5a1fa4fb14c",
+        "packages/llm/llm/src/types.ts": "f807e8c051af974e3a963e3c0abd156d5504ea057c80228a07397ccc3bae1791",
+        "packages/llm/llm/src/assembler.ts": "a2d065645058a70195a504b101e9eed23df3eaced3def868d602f3a863b03887",
+        "packages/llm/llm/src/assistant-stream.ts": "9ff074108132ef0ffeefffd8e7967d05db4c6bef1689242807ef7a1d2105dfeb",
+        "packages/llm/llm/src/index.ts": "33967a6fb6a27b1f17e89d8596eb9d66a5ce848964c7c2a0d2d93f31fe7c4c2d"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm",
+      "version": "0.2.1-alpha.2",
+      "export": "./brand",
+      "source": "src/brand.ts",
+      "output": "./lib/types/brand.js",
+      "output_sha256": "00ea010c32067e258ce81f8130622ca5f14b533d803cc91f0ff3c03002e1cc76",
+      "inputs": {
+        "packages/llm/llm/src/message.ts": "5826fb32bc3d6e2221a7a39cc8b4fecc57282540a332417bb9f2ac3522b5c7da",
+        "packages/llm/llm/src/error.ts": "cd8657420bb84060ee45b1e72fa668df26b090532afd8afd2a96da983a74f792",
+        "packages/llm/llm/src/retry-policy.ts": "eee2423a0152096026446dd651f29678e0c504f0349a91758720f01f74efa871",
+        "packages/llm/llm/src/call-config.ts": "1b70454e4c6d579ebe2a24f76c25f22f90d4e9c7fb0c90f73afd731371962bd0",
+        "packages/llm/llm/src/adapter-failure.ts": "533507191d814fc7b3df5ae65076b2ebc4134bbb47a2bbd9bb7309d7e7f9241b",
+        "packages/llm/llm/src/api-key.ts": "16bf926a82b0c0c1d4adbee78e2a1eebe260f100285795edb8330f3fe46141a4",
+        "packages/llm/llm/src/content.ts": "e679f0972cef3f6301c4a9f321ee288ef0a63223ec51c093349c186cdc81ff35",
+        "packages/llm/llm/src/attribution.ts": "44cc79c833cadc78ef0e124da87786bf9d7765f1409d885ec97b5e0e7d8f9ffb",
+        "packages/llm/llm/src/brand.ts": "a3a3f22174353af8aea34a9a439986530bffcc6df6339e55612fd5a1fa4fb14c",
+        "packages/llm/llm/src/types.ts": "f807e8c051af974e3a963e3c0abd156d5504ea057c80228a07397ccc3bae1791",
+        "packages/llm/llm/src/assembler.ts": "a2d065645058a70195a504b101e9eed23df3eaced3def868d602f3a863b03887",
+        "packages/llm/llm/src/assistant-stream.ts": "9ff074108132ef0ffeefffd8e7967d05db4c6bef1689242807ef7a1d2105dfeb",
+        "packages/llm/llm/src/index.ts": "33967a6fb6a27b1f17e89d8596eb9d66a5ce848964c7c2a0d2d93f31fe7c4c2d"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm",
+      "version": "0.2.1-alpha.2",
+      "export": "./message",
+      "source": "src/message.ts",
+      "output": "./lib/types/message.js",
+      "output_sha256": "ef9e590d96e9ee1f2f20b106d1a943ff6d8e4bd938430ee63fcd71fee94b21c8",
+      "inputs": {
+        "packages/llm/llm/src/message.ts": "5826fb32bc3d6e2221a7a39cc8b4fecc57282540a332417bb9f2ac3522b5c7da",
+        "packages/llm/llm/src/error.ts": "cd8657420bb84060ee45b1e72fa668df26b090532afd8afd2a96da983a74f792",
+        "packages/llm/llm/src/retry-policy.ts": "eee2423a0152096026446dd651f29678e0c504f0349a91758720f01f74efa871",
+        "packages/llm/llm/src/call-config.ts": "1b70454e4c6d579ebe2a24f76c25f22f90d4e9c7fb0c90f73afd731371962bd0",
+        "packages/llm/llm/src/adapter-failure.ts": "533507191d814fc7b3df5ae65076b2ebc4134bbb47a2bbd9bb7309d7e7f9241b",
+        "packages/llm/llm/src/api-key.ts": "16bf926a82b0c0c1d4adbee78e2a1eebe260f100285795edb8330f3fe46141a4",
+        "packages/llm/llm/src/content.ts": "e679f0972cef3f6301c4a9f321ee288ef0a63223ec51c093349c186cdc81ff35",
+        "packages/llm/llm/src/attribution.ts": "44cc79c833cadc78ef0e124da87786bf9d7765f1409d885ec97b5e0e7d8f9ffb",
+        "packages/llm/llm/src/brand.ts": "a3a3f22174353af8aea34a9a439986530bffcc6df6339e55612fd5a1fa4fb14c",
+        "packages/llm/llm/src/types.ts": "f807e8c051af974e3a963e3c0abd156d5504ea057c80228a07397ccc3bae1791",
+        "packages/llm/llm/src/assembler.ts": "a2d065645058a70195a504b101e9eed23df3eaced3def868d602f3a863b03887",
+        "packages/llm/llm/src/assistant-stream.ts": "9ff074108132ef0ffeefffd8e7967d05db4c6bef1689242807ef7a1d2105dfeb",
+        "packages/llm/llm/src/index.ts": "33967a6fb6a27b1f17e89d8596eb9d66a5ce848964c7c2a0d2d93f31fe7c4c2d"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm",
+      "version": "0.2.1-alpha.2",
+      "export": "./assistant-stream",
+      "source": "src/assistant-stream.ts",
+      "output": "./lib/types/assistant-stream.js",
+      "output_sha256": "33a9872739737b5fcadcc981f007d39fd7b3a374a57376dff269fc1af0607e79",
+      "inputs": {
+        "packages/llm/llm/src/message.ts": "5826fb32bc3d6e2221a7a39cc8b4fecc57282540a332417bb9f2ac3522b5c7da",
+        "packages/llm/llm/src/error.ts": "cd8657420bb84060ee45b1e72fa668df26b090532afd8afd2a96da983a74f792",
+        "packages/llm/llm/src/retry-policy.ts": "eee2423a0152096026446dd651f29678e0c504f0349a91758720f01f74efa871",
+        "packages/llm/llm/src/call-config.ts": "1b70454e4c6d579ebe2a24f76c25f22f90d4e9c7fb0c90f73afd731371962bd0",
+        "packages/llm/llm/src/adapter-failure.ts": "533507191d814fc7b3df5ae65076b2ebc4134bbb47a2bbd9bb7309d7e7f9241b",
+        "packages/llm/llm/src/api-key.ts": "16bf926a82b0c0c1d4adbee78e2a1eebe260f100285795edb8330f3fe46141a4",
+        "packages/llm/llm/src/content.ts": "e679f0972cef3f6301c4a9f321ee288ef0a63223ec51c093349c186cdc81ff35",
+        "packages/llm/llm/src/attribution.ts": "44cc79c833cadc78ef0e124da87786bf9d7765f1409d885ec97b5e0e7d8f9ffb",
+        "packages/llm/llm/src/brand.ts": "a3a3f22174353af8aea34a9a439986530bffcc6df6339e55612fd5a1fa4fb14c",
+        "packages/llm/llm/src/types.ts": "f807e8c051af974e3a963e3c0abd156d5504ea057c80228a07397ccc3bae1791",
+        "packages/llm/llm/src/assembler.ts": "a2d065645058a70195a504b101e9eed23df3eaced3def868d602f3a863b03887",
+        "packages/llm/llm/src/assistant-stream.ts": "9ff074108132ef0ffeefffd8e7967d05db4c6bef1689242807ef7a1d2105dfeb",
+        "packages/llm/llm/src/index.ts": "33967a6fb6a27b1f17e89d8596eb9d66a5ce848964c7c2a0d2d93f31fe7c4c2d"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm-deepseek",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "e5b1c2f498e9d66e344b10f74a25a40ac05c751f83d7cb30001bd6b9d82636f1",
+      "inputs": {
+        "packages/llm/llm-deepseek/src/defaults.ts": "f0c753f0d4188f615182d7d25eabed7bc24021ece255524ac5cb8089718b0520",
+        "packages/llm/llm-deepseek/src/models.ts": "7f1c3a6938e965d829e4d6ef4875236274125a8d289e97ba3a9292f4de0e5111",
+        "packages/llm/llm-deepseek/src/image-tokens.ts": "9a7e16b2fd451f99a99b36a39eda33aa1d26f0d3243545f0152ec7f802ec064a",
+        "packages/llm/llm-deepseek/src/request-pricing.ts": "8dcbb62ffcdb7f45eecc176c5219bc1dd424e36c4c9b469d5cb6223b1a503d8d",
+        "packages/llm/llm-deepseek/src/config.ts": "868d6c24522bb3d1306dc9e09c09780922f412ec8827ef9de1f70e6beb311526",
+        "packages/llm/llm-deepseek/src/model-info.ts": "b173d9dd4aa63405f7c30e3fe5844fc59b5117d3e1ed58476a09b72eb2fbff70",
+        "packages/llm/llm-deepseek/src/file-id.ts": "27aff248186c4e7230a6ddbd803bdee4eadb655607a859c350e77bb29cb9c269",
+        "packages/llm/llm-deepseek/src/messages-api.ts": "c4f2036fc3b561690f05426f308bbee525a4a5ae121e47ebf61b7bc3a7b8656c",
+        "packages/llm/llm-deepseek/src/files-api.ts": "0f38622c30c85266bf17db38e0171a130bbee5ce0404327a1de949b1393eca26",
+        "packages/llm/llm-deepseek/src/upload-index.ts": "d14e35054f7a034cabf3fbd87ac9f336f4af39585e30b45322d195b38bba1791",
+        "packages/llm/llm-deepseek/src/file-store.ts": "3a361dcc47ab661a89f8a44e65e607f8d4e56a073cfce9cde8e4121e43bd109e",
+        "packages/llm/llm-deepseek/src/request-files.ts": "ff78a42d27cefd8cb7f2f30fe95802d87d817af05df476ea0c4236c3c0678a22",
+        "packages/llm/llm-deepseek/src/request-extensions.ts": "4ec4c58efb30f6666d5eccad44d0319f7bdac1065140140b4ad85492fcde0d4e",
+        "packages/llm/llm-deepseek/src/images.ts": "bf72a07169a9db4ad9944d76f5f0788ad83ef627d4911e92e9273f565dfd0e1f",
+        "packages/llm/llm-deepseek/src/replay.ts": "3edd01ffaedc422a148e1a66e8e93203ac07cb5aa558e35485501e564216f148",
+        "packages/llm/llm-deepseek/src/serialize.ts": "affef37797fb9ba27058dd9f5977c19335fc0e1f37676bd978ab6b00385b1cd6",
+        "packages/llm/llm-deepseek/src/transport.ts": "7d1f6ed8fe861ee71ba2d0c6a2a9e8512ddc1b6dc17d43a8795ab520a38746b6",
+        "packages/llm/llm-deepseek/src/sse.ts": "7ffcba377583018aa1a7f86c6d757b7dd6c1955ad8252103e2f33a4ceb90a741",
+        "packages/llm/llm-deepseek/src/translate.ts": "254f4b8fe292dadc5c24df3375b01920f5e5b345be09eae4290e91e9e810c1ba",
+        "packages/llm/llm-deepseek/src/adapter.ts": "3da7add8a973c648e630a0244e21cfdc65ac0d37c62d53219ebc328245e65a41",
+        "packages/llm/llm-deepseek/src/host.ts": "4c8970a815a73525ef534563cd8b24e414c12701022697e0dbf95d1cc813f3ef",
+        "packages/llm/llm-deepseek/src/index.ts": "fbaef7f24ef9d2816490f92982bbf7f02362b96425c6d3bf35ec5885b10c6ad5"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm-deepseek-account",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "8447eb311fbb18fb97bbe9aac1faef3e1dedc6c3057da6ab49a14f75381749fa",
+      "inputs": {
+        "packages/llm/llm-deepseek-account/src/config.ts": "2b8701021ef0641cdeb90981fe873c29044192c3d680e0d3aefa3d8853d01788",
+        "packages/llm/llm-deepseek-account/src/index.ts": "18238c924466c5673dd9a2dfd8b33725c837dde197895c45498c3934b03124ae"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm-deepseek-api-key",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "2df56b633347ac2eb44c4f0b4aab74cc7d5721730dd6319532b17d7d9f2b2f41",
+      "inputs": {
+        "packages/llm/llm-deepseek-api-key/src/config.ts": "b6db143c0ccb3d61af975b48779f5d9e0ec9eed3b27a81048c0104a7d667b503",
+        "packages/llm/llm-deepseek-api-key/src/index.ts": "a79c991738b7b53fcb60f82517b638d9ec28fcb7649b15949345c368793c4136"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm-pi-ai",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "0b67c79a1d2a4026a5819c06e26df61da3dc61ed9686f58be10d75fb8496b4ea",
+      "inputs": {
+        "packages/llm/llm-pi-ai/src/replay.ts": "5f5e2aee49771ea9849a0852d45c8b65110a4f52f3127f10cd85f0d66783dc92",
+        "packages/llm/llm-pi-ai/src/catalog.ts": "a318a9f4b6631098ba7f575db9b826c32624ae0683dafd2c8b2a5c8f17c5257c",
+        "packages/llm/llm-pi-ai/src/models.ts": "5371f5f8e82cc7c70943bb09e0aba1d261df2a76408e45d56651705382b908b9",
+        "packages/llm/llm-pi-ai/src/provider.ts": "2d96334b97e207ebac84b0e0ec1db04ad21c0aae83d73a457cfa8922d38ec573",
+        "packages/llm/llm-pi-ai/src/config.ts": "fb126e455806216badfb8c2d1ee9b0e2db8abde0be266aa37afa4f42fdaf3279",
+        "packages/llm/llm-pi-ai/src/context.ts": "d0ce209804d1abba63665374f09a04e78d00b305692830fba8ecf640edad572d",
+        "packages/llm/llm-pi-ai/src/stream.ts": "e3563cc091cc2e6b0c2bdbd4c1614339d7cbb01f747a956931b43f3256e0c640",
+        "packages/llm/llm-pi-ai/src/adapter.ts": "cb686e5640df2eb311c94c15f06c18a17af31246aac669d69699964a2324408a",
+        "packages/llm/llm-pi-ai/src/auth.ts": "50fbdd55f60a95bdc256edfbc2686a3d96e108b3b9d4a441c9649a2870ef9fee",
+        "packages/llm/llm-pi-ai/src/discovery.ts": "6f6a249dce322bebb48e72c35c5113225de187aa2b09cde91d15ecba371aa966",
+        "packages/llm/llm-pi-ai/src/login.ts": "b5c265c92e4a86ff39abfb497107a2a00a030ed24964f4faf071116eb2292f8b",
+        "packages/llm/llm-pi-ai/src/index.ts": "1aa1823262d01d9e2bdc33177b82bfb1082b4559cbde288bb3606db19d575f2d"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm-retry",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "68a0440a756876437698ef97c7bcc236b7b28a09a2e709803b7d2d65159e3c67",
+      "inputs": {
+        "packages/llm/llm-retry/src/brand.ts": "3c30dc58c1ea674128a5ed98a6158fba654147c06b245522ccb1b1b08d45d721",
+        "packages/llm/llm-retry/src/index.ts": "d33553781ed2118aab3b249c159fae550d359627565e4714c9ea599e474b8093",
+        "packages/llm/llm-retry/src/types.ts": "9c377ed575053427da1f0cef97c056aee0f6c4a80d413dea0f70086bbd05fb0b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-llm-retry",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/llm/llm-retry/src/brand.ts": "3c30dc58c1ea674128a5ed98a6158fba654147c06b245522ccb1b1b08d45d721",
+        "packages/llm/llm-retry/src/index.ts": "d33553781ed2118aab3b249c159fae550d359627565e4714c9ea599e474b8093",
+        "packages/llm/llm-retry/src/types.ts": "9c377ed575053427da1f0cef97c056aee0f6c4a80d413dea0f70086bbd05fb0b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-mcp-client",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "f38e98c057ef9ac4c14f9b8d52718cefa172b4326fbc01411bbea34bdb5f0b10",
+      "inputs": {
+        "packages/mcp/mcp-client/src/transport.ts": "6f3fca685af3d5654c476e95db24e1245dc1fa021a0bd7f477ce4ad997e1c8f6",
+        "packages/mcp/mcp-client/src/tools.ts": "59203150bda479a990afcdaf60483a35a836887926892e1074e02d0294c01af9",
+        "packages/mcp/mcp-client/src/connection.ts": "06dc1b3a1297b8b23f6ac5c44f3ba6740716c76db71c28cfb8f14d6c0340030e",
+        "packages/mcp/mcp-client/src/server-context.ts": "02ca9fe759891788572385a00f0cc7b6e92d6e98e103c1d00dd99ccec0d6319a",
+        "packages/mcp/mcp-client/src/index.ts": "f279bd88743ca73b0d9834915d1bb31e455e21c87f4990808cfd55b273db4d1c"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-native-command",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "0ae340a0a69d2e3f5b374f57a95d96c756dbc5e84e9b79db01fc891207b54cb9",
+      "inputs": {
+        "packages/util/native-command/src/runner.ts": "5395718ed7f3f8a8de2d5a780bb162fbb147cb34a257c5de5b1c480bb967b718",
+        "packages/util/native-command/src/path-opener.ts": "12a62ed33240568c874d9e589a0d2ab64fa14bfd840c571909e72a439a3452fb",
+        "packages/util/native-command/src/desktop-entry.ts": "9ede7edfa26d66fb937656a5d05279a0252dee86ded59f62fa968a11a774c150",
+        "packages/util/native-command/src/file-applications-linux.ts": "3453ad796daf512db810e2010afa542ba376da4e486cfc191ac57ac3e8e1cb81",
+        "packages/util/native-command/src/file-applications-windows.ts": "b6323edbaa130b3532597c1c46ca806d9e161b50f6420e38692e6b809a80620d",
+        "packages/util/native-command/src/types.ts": "54d8b9ce4a69353ee43b85a4d47504628fbc94688eb3983b6cf3273afc1d9097",
+        "packages/util/native-command/src/file-applications.ts": "164d250ef3a949abe652cfad26385ae3dec5124c4c70375469fd921894051227",
+        "packages/util/native-command/src/index.ts": "0d6c4c35af35d1c8881833dd2d633823f19928a409f8abe127a2cb4466eb71ae"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-native-command",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "b9b5e61ad4527718ba9938f69eed6241052133445c09ae8a32d4b9c8bab560ab",
+      "inputs": {
+        "packages/util/native-command/src/runner.ts": "5395718ed7f3f8a8de2d5a780bb162fbb147cb34a257c5de5b1c480bb967b718",
+        "packages/util/native-command/src/path-opener.ts": "12a62ed33240568c874d9e589a0d2ab64fa14bfd840c571909e72a439a3452fb",
+        "packages/util/native-command/src/desktop-entry.ts": "9ede7edfa26d66fb937656a5d05279a0252dee86ded59f62fa968a11a774c150",
+        "packages/util/native-command/src/file-applications-linux.ts": "3453ad796daf512db810e2010afa542ba376da4e486cfc191ac57ac3e8e1cb81",
+        "packages/util/native-command/src/file-applications-windows.ts": "b6323edbaa130b3532597c1c46ca806d9e161b50f6420e38692e6b809a80620d",
+        "packages/util/native-command/src/types.ts": "54d8b9ce4a69353ee43b85a4d47504628fbc94688eb3983b6cf3273afc1d9097",
+        "packages/util/native-command/src/file-applications.ts": "164d250ef3a949abe652cfad26385ae3dec5124c4c70375469fd921894051227",
+        "packages/util/native-command/src/index.ts": "0d6c4c35af35d1c8881833dd2d633823f19928a409f8abe127a2cb4466eb71ae"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-output-retention",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "5846f25c5070d04786f674294fbcdcea0b42d38eed73bc3bbaa4ab57d79d2f9b",
+      "inputs": {
+        "packages/util/output-retention/src/index.ts": "fbe1c6ff8c6fc09e62c5b90fb98bcaba2ccddfd4cfe1c8e717a97a085ed405d4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-package-manifest",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/util/package-manifest/src/index.ts": "2371370db9a92c3d4e69b46c10ecc89435a343fb6ccb3dfc1187bd984b429b95"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-ptc-runtime",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "ecc511f471757874c865da412e65ac2f73f4b2125d8d8e31672d3e589efad5f1",
+      "inputs": {
+        "packages/ptc-runtime/ptc-runtime/src/index.ts": "880e2868e554160e7ae69d250435b821e951827f193c1971d9d81c1c0ee2a922"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-pwsh-local",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "b9a3587d3c43e911d370afe7e772329204af3a2a16ef3b9bdc899f016d2674a5",
+      "inputs": {
+        "packages/shell/pwsh-local/src/resolve.ts": "5c832a5a3cd944735dca27e608b40a1fd5e259ed5629b8c92d0ae899157fcf37",
+        "packages/shell/pwsh-local/src/index.ts": "feebf120ba9c27590b138da54fbc4124bbf79a1a63b56008199676c30239f5a4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-sandbox",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "e07eace806bfbd76b95d502f2f2b667b2086270c4051bde2fc61760f59969558",
+      "inputs": {
+        "packages/sandbox/sandbox/src/escalation.ts": "82b165b60d20ebcd78ab51a4ba503a88b4305fa6a8ba1b420da749759ecc5085",
+        "packages/sandbox/sandbox/src/roots.ts": "8a18e1474012415def8197a4ee493394a91cc739a6ec94eb83c6b4d980b7a23b",
+        "packages/sandbox/sandbox/src/diagnostics.ts": "758d86ef3e565f534a9903ea75b25bab92d31d7c080c8740ff118388966c8659",
+        "packages/sandbox/sandbox/src/index.ts": "46592025ce36d04ff8d1bfa9d6594dd8d1527883649ccf40ff7a169e94e68dc6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-sandbox-policy",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "74c01bb830c7a99d22c4730a465d838d2071819b1ee966843a6aba81a3678ace",
+      "inputs": {
+        "packages/sandbox/sandbox-policy/src/session-mode.ts": "afe650fc43e87031eb7b50d9a1717b926906e4fcaab01199cd434235586714d7",
+        "packages/sandbox/sandbox-policy/src/index.ts": "6fce58e5bf63475f761871389bbf01043fba859f22e44c805522c39afbff32d6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-schedule",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "1f19b53e8dc65722fcc8ef155dea16387cad05dc4738a7107fd16fff17858d2d",
+      "inputs": {
+        "packages/schedule/schedule/src/domain.ts": "d7a5ca9121a284276f841a7429302e447b8de77df76eedc9adcaf2b2a6d506cd",
+        "packages/schedule/schedule/src/delivery-history.ts": "c7a1b1e1456c9c103288d14003e87614841708f6c9f00766e202a85c2fb11d2c",
+        "packages/schedule/schedule/src/runtime.ts": "ef63c291f544d5f75c6228ca7fbd77e443400e1af26b8bf230ca1be131918520",
+        "packages/schedule/schedule/src/storage.ts": "6c4aefcb05c34cd25079f45d0524ce687a36d3640aaf473b12e92ca2ace579cc",
+        "packages/schedule/schedule/src/update.ts": "ef186da70fe5b378a657722730a03faa18089fca37e6cf8776527c436d1b8104",
+        "packages/schedule/schedule/src/index.ts": "23e748d6e7e95a50169ed576f3cb7e559284a9912ddeb1cc3bd1eda1a4adc4ec",
+        "packages/schedule/schedule/src/client.ts": "b896930f968a94d9954d2eeed3e736b63ef3cb5288eea2f52ee86f96ca72899b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-schedule",
+      "version": "0.2.1-alpha.2",
+      "export": "./client",
+      "source": "src/client.ts",
+      "output": "./lib/types/client.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/schedule/schedule/src/domain.ts": "d7a5ca9121a284276f841a7429302e447b8de77df76eedc9adcaf2b2a6d506cd",
+        "packages/schedule/schedule/src/delivery-history.ts": "c7a1b1e1456c9c103288d14003e87614841708f6c9f00766e202a85c2fb11d2c",
+        "packages/schedule/schedule/src/runtime.ts": "ef63c291f544d5f75c6228ca7fbd77e443400e1af26b8bf230ca1be131918520",
+        "packages/schedule/schedule/src/storage.ts": "6c4aefcb05c34cd25079f45d0524ce687a36d3640aaf473b12e92ca2ace579cc",
+        "packages/schedule/schedule/src/update.ts": "ef186da70fe5b378a657722730a03faa18089fca37e6cf8776527c436d1b8104",
+        "packages/schedule/schedule/src/index.ts": "23e748d6e7e95a50169ed576f3cb7e559284a9912ddeb1cc3bd1eda1a4adc4ec",
+        "packages/schedule/schedule/src/client.ts": "b896930f968a94d9954d2eeed3e736b63ef3cb5288eea2f52ee86f96ca72899b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-scope",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "9c210fb469feb67828d757630e3e5b201fb60fb2472c84a82f2c065d091b57f0",
+      "inputs": {
+        "packages/core/scope/src/store.ts": "e2f6c98e271cbae483393ccd1e5212a255def165a8a591d308efbd827af67278",
+        "packages/core/scope/src/index.ts": "074b8f0c3fa2e240effd0a7e65c54be7c14debc1e53bb712334ce20d15affe4a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "d64a7f6ea9ec773506928543c57a477244178a1f88234a096661433c32c88afc",
+      "inputs": {
+        "packages/core/session/src/types.ts": "52d888910538bb201f4637d777273675ffcebb4644653afeff9edbd911dc49f1",
+        "packages/core/session/src/known-event-types.ts": "5c0d12301d8c583362fafb9f542269f1686af69f66ffac63ad00991aaaff27e8",
+        "packages/core/session/src/surface.ts": "5b5394dc02584cb3549330b358fbe5919d05f8a6920d90f6819bb7e3b4783154",
+        "packages/core/session/src/request-header.ts": "abd8ef57c34ad6ddbc21ba83398092f6aff64ac5c0f38efb353cebb04f654ad4",
+        "packages/core/session/src/tool-history.ts": "53ae6aebe5ebe9b1eb782f008315db33ff637611093e40fa3529ec3019b56683",
+        "packages/core/session/src/repair.ts": "c2835c920aba203c709e44686e55f43bb4d357ea59cfef3561c371b8ff115540",
+        "packages/core/session/src/fork.ts": "de80ecbf0e6a7961c096a2d7f0304bc6f6c83f897268304e28352357da06bfb0",
+        "packages/core/session/src/preparation.ts": "51bcd61f505928fc1d98cc59ecfd5e0a34b3a5cbd3ecb7937caef0da87b7baa5",
+        "packages/core/session/src/seq-ranges.ts": "9f746691995926cb17d3dd19da04871f2355be40c798ed5a8256659e6bf14559",
+        "packages/core/session/src/index.ts": "434e079558c804497cabee0fb73329843bfa4ceb1dce3e3d1b33c73469bdb2f4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "5fe138a7a8f9245f9fc8d34f7da1b777ca50b5b1f84fe83498872d592c236528",
+      "inputs": {
+        "packages/core/session/src/types.ts": "52d888910538bb201f4637d777273675ffcebb4644653afeff9edbd911dc49f1",
+        "packages/core/session/src/known-event-types.ts": "5c0d12301d8c583362fafb9f542269f1686af69f66ffac63ad00991aaaff27e8",
+        "packages/core/session/src/surface.ts": "5b5394dc02584cb3549330b358fbe5919d05f8a6920d90f6819bb7e3b4783154",
+        "packages/core/session/src/request-header.ts": "abd8ef57c34ad6ddbc21ba83398092f6aff64ac5c0f38efb353cebb04f654ad4",
+        "packages/core/session/src/tool-history.ts": "53ae6aebe5ebe9b1eb782f008315db33ff637611093e40fa3529ec3019b56683",
+        "packages/core/session/src/repair.ts": "c2835c920aba203c709e44686e55f43bb4d357ea59cfef3561c371b8ff115540",
+        "packages/core/session/src/fork.ts": "de80ecbf0e6a7961c096a2d7f0304bc6f6c83f897268304e28352357da06bfb0",
+        "packages/core/session/src/preparation.ts": "51bcd61f505928fc1d98cc59ecfd5e0a34b3a5cbd3ecb7937caef0da87b7baa5",
+        "packages/core/session/src/seq-ranges.ts": "9f746691995926cb17d3dd19da04871f2355be40c798ed5a8256659e6bf14559",
+        "packages/core/session/src/index.ts": "434e079558c804497cabee0fb73329843bfa4ceb1dce3e3d1b33c73469bdb2f4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session",
+      "version": "0.2.1-alpha.2",
+      "export": "./fork",
+      "source": "src/fork.ts",
+      "output": "./lib/types/fork.js",
+      "output_sha256": "2ad96c28d485b16424785b0176901346c399d2cbef7c523a39d4e8085fd09b89",
+      "inputs": {
+        "packages/core/session/src/types.ts": "52d888910538bb201f4637d777273675ffcebb4644653afeff9edbd911dc49f1",
+        "packages/core/session/src/known-event-types.ts": "5c0d12301d8c583362fafb9f542269f1686af69f66ffac63ad00991aaaff27e8",
+        "packages/core/session/src/surface.ts": "5b5394dc02584cb3549330b358fbe5919d05f8a6920d90f6819bb7e3b4783154",
+        "packages/core/session/src/request-header.ts": "abd8ef57c34ad6ddbc21ba83398092f6aff64ac5c0f38efb353cebb04f654ad4",
+        "packages/core/session/src/tool-history.ts": "53ae6aebe5ebe9b1eb782f008315db33ff637611093e40fa3529ec3019b56683",
+        "packages/core/session/src/repair.ts": "c2835c920aba203c709e44686e55f43bb4d357ea59cfef3561c371b8ff115540",
+        "packages/core/session/src/fork.ts": "de80ecbf0e6a7961c096a2d7f0304bc6f6c83f897268304e28352357da06bfb0",
+        "packages/core/session/src/preparation.ts": "51bcd61f505928fc1d98cc59ecfd5e0a34b3a5cbd3ecb7937caef0da87b7baa5",
+        "packages/core/session/src/seq-ranges.ts": "9f746691995926cb17d3dd19da04871f2355be40c798ed5a8256659e6bf14559",
+        "packages/core/session/src/index.ts": "434e079558c804497cabee0fb73329843bfa4ceb1dce3e3d1b33c73469bdb2f4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session",
+      "version": "0.2.1-alpha.2",
+      "export": "./surface",
+      "source": "src/surface.ts",
+      "output": "./lib/types/surface.js",
+      "output_sha256": "c1df16ececb2864c6262b500a7fc52c4b470523fe34c1d2dc339936374d65f3e",
+      "inputs": {
+        "packages/core/session/src/types.ts": "52d888910538bb201f4637d777273675ffcebb4644653afeff9edbd911dc49f1",
+        "packages/core/session/src/known-event-types.ts": "5c0d12301d8c583362fafb9f542269f1686af69f66ffac63ad00991aaaff27e8",
+        "packages/core/session/src/surface.ts": "5b5394dc02584cb3549330b358fbe5919d05f8a6920d90f6819bb7e3b4783154",
+        "packages/core/session/src/request-header.ts": "abd8ef57c34ad6ddbc21ba83398092f6aff64ac5c0f38efb353cebb04f654ad4",
+        "packages/core/session/src/tool-history.ts": "53ae6aebe5ebe9b1eb782f008315db33ff637611093e40fa3529ec3019b56683",
+        "packages/core/session/src/repair.ts": "c2835c920aba203c709e44686e55f43bb4d357ea59cfef3561c371b8ff115540",
+        "packages/core/session/src/fork.ts": "de80ecbf0e6a7961c096a2d7f0304bc6f6c83f897268304e28352357da06bfb0",
+        "packages/core/session/src/preparation.ts": "51bcd61f505928fc1d98cc59ecfd5e0a34b3a5cbd3ecb7937caef0da87b7baa5",
+        "packages/core/session/src/seq-ranges.ts": "9f746691995926cb17d3dd19da04871f2355be40c798ed5a8256659e6bf14559",
+        "packages/core/session/src/index.ts": "434e079558c804497cabee0fb73329843bfa4ceb1dce3e3d1b33c73469bdb2f4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-format",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "4cd462ad163f30e8b336a22b23d46a89db1efca1837eb23c0507eeca40d68720",
+      "inputs": {
+        "packages/session/session-format/src/error.ts": "3e70871b5a20791326763edd2d15fe466e353ec5110694dd08365cf70b688f2a",
+        "packages/session/session-format/src/json.ts": "58fb72bb042e5d9f02aa7df0622d94d89f8f67ee0e2791126c1b215ef049b2cc",
+        "packages/session/session-format/src/chain.ts": "c96b1577a77bd19f527085f1677eec9f2e95cc053b316225425b18aa2f5e3ec1",
+        "packages/session/session-format/src/context.ts": "15b1782e8c73e5dc8da37f1be114af982c4619c2ed2608c685e3539c150fabd2",
+        "packages/session/session-format/src/catalog.ts": "5ed89a5cede7ba93a36dadc6901c5a5142de1e85dc2a1e036aec04e4db476ef4",
+        "packages/session/session-format/src/filename.ts": "2ac6a0d7e4a422d595b515214555129137f6f6ee2643adf470c786de7c539c55",
+        "packages/session/session-format/src/types.ts": "0e13d108b86ebce46073057a5c6b8abe53ecc9e617bc4b3d21485a746e403dc5",
+        "packages/session/session-format/src/index.ts": "b0e9cd526c5824b47a95c474e26c9c5538a2a2d46b10670c9ed65a205d12ffe7"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-format-catalog",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "152d9461254788de325009b124f658ef4a7c5dc773ce5e3ae7908f6cebccadc6",
+      "inputs": {
+        "packages/session/session-format-catalog/src/message-projections.ts": "55440dba1a74e200d303d9653e069f2c49d226860d91159eb17e65262e0b8d89",
+        "packages/session/session-format-catalog/src/current.ts": "20e66609c38e3b6128dfd7be18423e86c4d7d5886d0c183f5e12d2a2dc62bb3a",
+        "packages/session/session-format-catalog/src/generated.ts": "deda09f61c604774e0ec08a96459fe68113da4f651dfc4399a39d4a433840a8d",
+        "packages/session/session-format-catalog/src/children.ts": "b7ea141d1b004086b690c3b52d52e76eff6f0e362869e8fad79866dd84c37d5d",
+        "packages/session/session-format-catalog/src/historical.ts": "9573da19b464db0b2afafc7e027f5a104f08e3bfd273e89f718055442039e882",
+        "packages/session/session-format-catalog/src/index.ts": "37e13aba514de83c0e7ad3a16be83e5ea48f7d7537b02675f71d1b31b35d2328"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-format-catalog",
+      "version": "0.2.1-alpha.2",
+      "export": "./message-projections",
+      "source": "src/message-projections.ts",
+      "output": "./lib/types/message-projections.js",
+      "output_sha256": "c2ae3a43a3cf9d5b8473d06d0bc0f5dea02d303d878157e576e9912fa9bea64e",
+      "inputs": {
+        "packages/session/session-format-catalog/src/message-projections.ts": "55440dba1a74e200d303d9653e069f2c49d226860d91159eb17e65262e0b8d89",
+        "packages/session/session-format-catalog/src/current.ts": "20e66609c38e3b6128dfd7be18423e86c4d7d5886d0c183f5e12d2a2dc62bb3a",
+        "packages/session/session-format-catalog/src/generated.ts": "deda09f61c604774e0ec08a96459fe68113da4f651dfc4399a39d4a433840a8d",
+        "packages/session/session-format-catalog/src/children.ts": "b7ea141d1b004086b690c3b52d52e76eff6f0e362869e8fad79866dd84c37d5d",
+        "packages/session/session-format-catalog/src/historical.ts": "9573da19b464db0b2afafc7e027f5a104f08e3bfd273e89f718055442039e882",
+        "packages/session/session-format-catalog/src/index.ts": "37e13aba514de83c0e7ad3a16be83e5ea48f7d7537b02675f71d1b31b35d2328"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-format-v0-to-v1",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6ca9eb83488d7ae697c832444f27bba2703670d208281e462dd439ccc3dc593d",
+      "inputs": {
+        "packages/session/session-format-v0-to-v1/src/dispositions.ts": "da69af042887c883f42378a9c7069ac292e8fad0a03ddcc6b9ffe9eb779e904b",
+        "packages/session/session-format-v0-to-v1/src/validation-helpers.ts": "e0b9d9d696ca3d65acc0f62d1f7037284cb40afb4a55367fe19a53d7377918fd",
+        "packages/session/session-format-v0-to-v1/src/payload-validation.ts": "32a46e4ca5d17972360c423c63002054df022750ade0e11ece2232b21eb0da62",
+        "packages/session/session-format-v0-to-v1/src/validation.ts": "524ce51327c4871c32c841d44d26173eda0ad4514bd7246e25fc8a0259480131",
+        "packages/session/session-format-v0-to-v1/src/codec.ts": "8965cf99710edabef10b28788c6d2b4d42503f995dbeb968b372cae294fdd716",
+        "packages/session/session-format-v0-to-v1/src/migration.ts": "0548cbc656c0669fccdc503ef7bde5b854fbeb12a327fff8884343fd9cd1605e",
+        "packages/session/session-format-v0-to-v1/src/relationships.ts": "5f85fabd852eba9f734af247afd151f76250251138ded5d19d0d8c9bbc3e07cb",
+        "packages/session/session-format-v0-to-v1/src/index.ts": "2448cf89913e910a9ee281327e0669188d2546f8cbacc52a4914d60d78028988"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-format-v1-to-v2",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "e0f9f2ed3a270d9a4bf2945ad8c3d6d11738ff3b99e9939224a9a8d9b81c8141",
+      "inputs": {
+        "packages/session/session-format-v1-to-v2/src/dispositions.ts": "c5cabee7d7f094c871650d08ab0cc8890bb12dba0e5dec5c764a4c73c04a0e1d",
+        "packages/session/session-format-v1-to-v2/src/validation.ts": "fa883b320faf9f6e6cdbea591bc877dbbab2085d8ec8db653531334f52f7a041",
+        "packages/session/session-format-v1-to-v2/src/codec.ts": "f53b91a21efcecb8af33940df18e9c5b288bdcedcb12950e7515bb173e000e8e",
+        "packages/session/session-format-v1-to-v2/src/migration.ts": "5e0514632eae19483f0c708084cc562afb604d476a2db3b894171bed6228e5c2",
+        "packages/session/session-format-v1-to-v2/src/index.ts": "9042d7c30ce76534643d3a86b4450d6328d46778b49fe7ef4567cd42e8a2db65"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-format-v2-to-v3",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "4039677a414d238b5a4e0dfbe20cb1420e109738aa88bf07711441f9de00b6c2",
+      "inputs": {
+        "packages/session/session-format-v2-to-v3/src/payload.ts": "27fa2d9cd357422d58fe764bbef1c28b17a25031f164b1fafb29c42a006f1b86",
+        "packages/session/session-format-v2-to-v3/src/validation.ts": "e41dbd9e35529f2e65c33615063dde83b7b33d4e6c120186e00bfbd56a69a8ed",
+        "packages/session/session-format-v2-to-v3/src/codec.ts": "be4746e5fceec06a746c45c76578730ac92f527d8f6dda7664d20ddd38637621",
+        "packages/session/session-format-v2-to-v3/src/references.ts": "21b25ff30128c6eb73ab03efe72202e00f8d7a34455228f0d31700963abe5857",
+        "packages/session/session-format-v2-to-v3/src/migration.ts": "bdbcf22a6daf4584bb62357da7514929a02954c89b7d4a90f40432d241207edd",
+        "packages/session/session-format-v2-to-v3/src/index.ts": "3d130b9d8b1197da02c9f5982731bb6b5ccc860ffe9792e732be20f4f14aad8a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-format-v3-to-v4",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "7f40d7717f2934da1114dbf59eb08a8929d380d48ef63b493a1b6c7773072aa4",
+      "inputs": {
+        "packages/session/session-format-v3-to-v4/src/sources.ts": "3848aeb9c12e5c962c882405d88173956483103d4b53670b5f25f3185018e004",
+        "packages/session/session-format-v3-to-v4/src/message-sources.ts": "880cf946c56416cabb3aba30a17be32d39f60961ff6568460567442b8fba28d0",
+        "packages/session/session-format-v3-to-v4/src/retired-syntax.ts": "6941b51779964c30367299c44579b1ed31b00115e7c74d69171f711e5e61c1aa",
+        "packages/session/session-format-v3-to-v4/src/system-message.ts": "50c19486a8c378e4755d610de1dff5d3bdad3cf9e1021d1dbf3a46501e9fa32c",
+        "packages/session/session-format-v3-to-v4/src/developer.ts": "176b7ad6479672351ca08419ff6fca35d635289e9651a672b009ed972d973e5b",
+        "packages/session/session-format-v3-to-v4/src/fork-result.ts": "c9bdc6bfe83c454e5a1b929660541a7398927a891a0a0a7cec50431a4088697c",
+        "packages/session/session-format-v3-to-v4/src/tool-role.ts": "867aded1027588ffa65439efc2eb18748db5255370b65552b1c05130ecb6fa9d",
+        "packages/session/session-format-v3-to-v4/src/relationships.ts": "4802f65c6dee1d5da515116f7171e408cc9bf63219e04fd669d22db484493ebb",
+        "packages/session/session-format-v3-to-v4/src/facts.ts": "ce1bb0dd3cc8eec269fd923eb2ca9ab4f9409d95b2673cc7437c3be97482582f",
+        "packages/session/session-format-v3-to-v4/src/validation.ts": "c726ae5cae703afc898e240ac1e65b8ea5a96e9fa20ab2a1890e93d043b3f6dd",
+        "packages/session/session-format-v3-to-v4/src/codec.ts": "2e82811f3a805c3985b6ad56ab5129a3c656a2712357e02da1e9653679f384f0",
+        "packages/session/session-format-v3-to-v4/src/content.ts": "6015ff507bcbbe776c3af36ce5e9c2ca5d18f15c82305d1db05226993279d234",
+        "packages/session/session-format-v3-to-v4/src/extension-identities.ts": "9737373f41a47c209938de8ec015b4fd3b3e591141905607a4a52bae652bb0ed",
+        "packages/session/session-format-v3-to-v4/src/references.ts": "472fca4d333c00e6a9c79d5301403a5db657defab269ca1673498ca42037a746",
+        "packages/session/session-format-v3-to-v4/src/migration.ts": "96a68188aaeb61a81f72c7fc7137929640d3aaf5d0745f5a610e3cf76797be12",
+        "packages/session/session-format-v3-to-v4/src/index.ts": "aa59d82dab8cfb1616e687c8f2543ebae055baffd6a3d1927ba4bea1d4252a28"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-persistence",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "951379f5769b1bcddfe78044e6dcdae24d72b8f5e77d0ab0f20d8c1b4002e662",
+      "inputs": {
+        "packages/session/session-persistence/src/revision.ts": "bc860d72f32e17335ee9c7dd74a2a3309053704ff7ebbe377c50e3927c879855",
+        "packages/session/session-persistence/src/errors.ts": "caaa07e52ac133e4012ff6f4f920e7cc737dce6dd1083e279e363b993c2524bd",
+        "packages/session/session-persistence/src/storage-contract.ts": "062911ece08832418f2fd0dc8fabdd8848897de6b2d97bc7fca54a634e0c99bd",
+        "packages/session/session-persistence/src/index.ts": "d3da1fc3977e23eb5c2f73d6245a0d9c5967f9a0d755065e74ccd26e76794f14"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-persistence-jsonl",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "62e2939a455fc262730c4c20c586ae5ebf3af80af5cf51c867050cfe93efe736",
+      "inputs": {
+        "packages/session/session-persistence-jsonl/src/storage.ts": "41d6e4af01d3f613eb9d4e89e3d8ddded5070b4e73c7b3f858a61cbbd3b43b33",
+        "packages/session/session-persistence-jsonl/src/win32.ts": "410402b1b28047db87bea4c7c60794d0f1f7338c7b736e06fa43e476f479f579",
+        "packages/session/session-persistence-jsonl/src/lease.ts": "377f24b1446382d703d5f1346f44e15a25368a0e7967e5bd41db700a919d7ad8",
+        "packages/session/session-persistence-jsonl/src/format.ts": "87d536ead041fb953f866e0191a79b4dbbbc510aee1461706f9cdc2e4c46a038",
+        "packages/session/session-persistence-jsonl/src/zstd-private-decoder.ts": "8bc5fef50df97985cb3c1184dad8f30c099452b9f80546ac71e8c19fd4614d63",
+        "packages/session/session-persistence-jsonl/src/zstd-public-decoder.ts": "d5ac67fb55c01da8fcf4f73f3500f4b9463cfea0ce1d9e7f02c973ddfb5035a5",
+        "packages/session/session-persistence-jsonl/src/zstd.ts": "b100f7c208acbf34e61351236b82be4c93a47c7d25926b8e9478a6156f2f0ff5",
+        "packages/session/session-persistence-jsonl/src/migration-verifier.ts": "244a5e3b999dae197028cb6f89ce6c0dafbc8c70bb05e6c21f50751f6113c7ab",
+        "packages/session/session-persistence-jsonl/src/generation.ts": "43a400aaa47be789173ef4d5dd3226bce374cbfac300c2bff199b5a7d108efd6",
+        "packages/session/session-persistence-jsonl/src/catalog-migration.ts": "414ffd8d3ed6b80bb239f54916ec64e6b5f3d06ebc5a0d950922391271d612fa",
+        "packages/session/session-persistence-jsonl/src/index.ts": "7e967bc8815e656fd4ccb7686626de239df7b4499554f3b1a1145a167fc9aa47"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-projection",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "dd8cc5eba7947512c0afab32b85a6e23b14b72aa821bd8e83703173ede852258",
+      "inputs": {
+        "packages/session/session-projection/src/index.ts": "f6e57c06f57b20a74e87a8a476a7adfb67ccbbd3d924bd52420db93ac9a7381b",
+        "packages/session/session-projection/src/types.ts": "6ad9530ea5cfc8ff3e73b34413e5757da8091248b0a874c304f5c5a83500f555"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-projection",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/session/session-projection/src/index.ts": "f6e57c06f57b20a74e87a8a476a7adfb67ccbbd3d924bd52420db93ac9a7381b",
+        "packages/session/session-projection/src/types.ts": "6ad9530ea5cfc8ff3e73b34413e5757da8091248b0a874c304f5c5a83500f555"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-query",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "1550bd7e79c165e2b12801a380731c803f6c8b7332068725a703f2496ae2f1f5",
+      "inputs": {
+        "packages/session-query/session-query/src/config.ts": "5850ab0dd78a26843d6ff899f5bb85af4cc8745f163ff71a17586bcda5da570f",
+        "packages/session-query/session-query/src/cold-read.ts": "e2bbc3e2e59c7a4843e9d957e99c37f323d59d224502366a1fcc17f29e196317",
+        "packages/session-query/session-query/src/sources.ts": "57bf2721a598b86f796aac4946ace26d59529cb15f2eec587c068b1cdd88feb7",
+        "packages/session-query/session-query/src/corpus.ts": "632b1178f54b88a607c61f4929551e8f766f15a8fac57fb22697df8e6cdbab60",
+        "packages/session-query/session-query/src/observation.ts": "04a470ad5245aac1e70e0bf899515a931e52e7dba94ffcc0bfe9a978932e1347",
+        "packages/session-query/session-query/src/extraction.ts": "7ee4fbae1b5101613fd1174289678c97faf77ecbee57649b9970998822277479",
+        "packages/session-query/session-query/src/documents.ts": "07f4a5af51d1a4bee5aede654e6cf9198d97c176d8b4ea39666bf6c3fdd95acd",
+        "packages/session-query/session-query/src/filters.ts": "574759cf15980ad2e0b69791d26c596c6a573bae52d613294e12770ac583ecdc",
+        "packages/session-query/session-query/src/tracing.ts": "f63d528f4e31bbf7bb79c9add03095885e87f1ecf71c6aeaee01d509639ea60a",
+        "packages/session-query/session-query/src/cursor.ts": "78eb05f7db53414fd742572f91fa7f575622a4759d32ce5ba2999aa1ed4825f6",
+        "packages/session-query/session-query/src/index.ts": "549f7f90c90efec63a5c7d69dbc65938c0f9578f85dcfc8ee25a49a43a8e83e3"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-title",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "23e04e809b72197da0ccbd2f3d7304daf9f47cc13bde6299856b651b8b2674c2",
+      "inputs": {
+        "packages/session/session-title/src/normalize.ts": "97ed4df405f793a9b7155d723b2ccaa77b57884a27965dc6376efb6cde25e080",
+        "packages/session/session-title/src/index.ts": "1fc0c2d541d2f0139496591ebd09a3be0eb46fee67b86b9e87d7990866889411",
+        "packages/session/session-title/src/types.ts": "ebe56d55b99fd921e96b2829126bd10b3f352792a6d22dbc0bacd9909f4923f6",
+        "packages/session/session-title/src/client.ts": "8a43fe3451196bc6137ee3c2cf703ba55989733a4685e5ebca31b8feec1d5479"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-title",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/session/session-title/src/normalize.ts": "97ed4df405f793a9b7155d723b2ccaa77b57884a27965dc6376efb6cde25e080",
+        "packages/session/session-title/src/index.ts": "1fc0c2d541d2f0139496591ebd09a3be0eb46fee67b86b9e87d7990866889411",
+        "packages/session/session-title/src/types.ts": "ebe56d55b99fd921e96b2829126bd10b3f352792a6d22dbc0bacd9909f4923f6",
+        "packages/session/session-title/src/client.ts": "8a43fe3451196bc6137ee3c2cf703ba55989733a4685e5ebca31b8feec1d5479"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-session-title",
+      "version": "0.2.1-alpha.2",
+      "export": "./client",
+      "source": "src/client.ts",
+      "output": "./lib/types/client.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/session/session-title/src/normalize.ts": "97ed4df405f793a9b7155d723b2ccaa77b57884a27965dc6376efb6cde25e080",
+        "packages/session/session-title/src/index.ts": "1fc0c2d541d2f0139496591ebd09a3be0eb46fee67b86b9e87d7990866889411",
+        "packages/session/session-title/src/types.ts": "ebe56d55b99fd921e96b2829126bd10b3f352792a6d22dbc0bacd9909f4923f6",
+        "packages/session/session-title/src/client.ts": "8a43fe3451196bc6137ee3c2cf703ba55989733a4685e5ebca31b8feec1d5479"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-settings",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "942b3fa0af0d47b6ff32ce054148845f903ead904db658b12d4d6bc71b0338ba",
+      "inputs": {
+        "packages/settings/settings/src/redact.ts": "901ab42027b7c1bc97451705977fd811dd860c7e69efec7d74ce49db446967dc",
+        "packages/settings/settings/src/schema.ts": "f8bca9076735196c49966e31b729ecb9ed7e3bec4568385f519d3e3d2da50fdc",
+        "packages/settings/settings/src/index.ts": "462c902f2782a14e2bb002338cbdd56a5971daa7ffca7114ac053636f154b5e9",
+        "packages/settings/settings/src/types.ts": "fde8e28bde0fc1ffe390b53a2975832e1501e55b74b862e1e6c9be7824f97833"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-settings",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/settings/settings/src/redact.ts": "901ab42027b7c1bc97451705977fd811dd860c7e69efec7d74ce49db446967dc",
+        "packages/settings/settings/src/schema.ts": "f8bca9076735196c49966e31b729ecb9ed7e3bec4568385f519d3e3d2da50fdc",
+        "packages/settings/settings/src/index.ts": "462c902f2782a14e2bb002338cbdd56a5971daa7ffca7114ac053636f154b5e9",
+        "packages/settings/settings/src/types.ts": "fde8e28bde0fc1ffe390b53a2975832e1501e55b74b862e1e6c9be7824f97833"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-shell",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "461f6e6710bdcb3d087265586ebff8cdc269ac68a43f18f6bb7f74885da138d3",
+      "inputs": {
+        "packages/shell/shell/src/types.ts": "32a710e1000dae0a7c47efbd9f970e5495ac3bad5e0a0e2298388f42ef03c089",
+        "packages/shell/shell/src/render.ts": "e3c156942bce5b743500283c44a06398ad4640c879552e4290f91ac218b9e908",
+        "packages/shell/shell/src/index.ts": "2f4612974ca1cbcebb119007102b3daa66a95bad507f5278b8f87bd141083590"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-shell-env",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "2424c4798826eb5793563182912cbae412832903a8a04bdf36bab1729a823798",
+      "inputs": {
+        "packages/shell/shell-env/src/index.ts": "69923f92f1a2e0b5fff75825d1f848b076495ffd056950b945cb9309be829a50"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-skill",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6e76061468eaab9db95d114973792473dd5da9c7c4f556b901e1de14793268b5",
+      "inputs": {
+        "packages/skill/skill/src/index.ts": "af4fad67fb086c3f5c93aed4604830718b4535e7e59a60d680404b07ea08477c"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-skill-filesystem",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "a956fb412d281fa2ee1031ec3fee1a84f301b08932f285d2f176acf3f522e70e",
+      "inputs": {
+        "packages/skill/skill-filesystem/src/index.ts": "4be3a8f4142b27e07093cff1757876a80a344dd6f664a38775069244b89f4ec4"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-spill",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "b58bb7cfc54ec1028668a389d75d5ce0ab38a2e681db41af157723e979b9471e",
+      "inputs": {
+        "packages/spill/spill/src/types.ts": "4e83450c7dc9736a2e9ea9a0528d09b2e3f7d8c5f380b9d493a0b66ab785b3cb",
+        "packages/spill/spill/src/index.ts": "4c3555aae98d69f14cd2d35e1c93c870ea15ba31c22d679a6d18cc881c555d70"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-storage",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "a535a040deca0ff4637e4b55044328b549c905f0bb8c32e1adc89e39aeaeb329",
+      "inputs": {
+        "packages/storage/storage/src/error.ts": "31b7dce58c9bae07413756d3079133f5bbf8e9f9944f69c256385f1092705ac8",
+        "packages/storage/storage/src/registry.ts": "c8f5005c8a8b3376743b0bac3f5ec8861df9a68da916b6064ce73246852e7fae",
+        "packages/storage/storage/src/backend.ts": "063881a34d9a375f2c38fa76b8192690b6dd7e62d37b68e18c055632007625ac",
+        "packages/storage/storage/src/index.ts": "007fd253361aba1f65b0e846a58ebf5f4ae29e5c834ccc3732b1977cc2c78c6b"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-storage-domain",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "33ffa804b7b7e59631898c07ec8a9705d073a9d8152fc529f3ae8642eb15b8ee",
+      "inputs": {
+        "packages/storage/storage-domain/src/error.ts": "1f285ff8b6aeba68b96f048fc1f427212b5f6e1938770915adf40ecff3f938da",
+        "packages/storage/storage-domain/src/spec.ts": "f08d0e7932b1bba40546d63f780359c12a81ebcba080d8b439a6eb960cf355cd",
+        "packages/storage/storage-domain/src/domain.ts": "e9801b98454e45c530ea90293e6aaf3cba2d532ddf751a7e869fbe2524b12958",
+        "packages/storage/storage-domain/src/index.ts": "12f9dc7a1ba7bf0d4721e60b03f08a2132e0a8576c328c0b4c179b1c7baedbd8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-storage-json",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6c902995a6abb0bd80d5d1f1464ae60171bd23ab408a741c63247dd8aa8e07cb",
+      "inputs": {
+        "packages/storage/storage-json/src/atomic.ts": "ccb2372d1b78fb7c5b00f688435519ea7a44a700e2a206c4df3fb58c1ac54d72",
+        "packages/storage/storage-json/src/format.ts": "398c5edbc96ccad21bd6ba788ed3b41d1799e6b77dd6c602affd29c8ccc83f89",
+        "packages/storage/storage-json/src/single-unit.ts": "db857ab80f6f77bb2e2ad4c7e798dc795417e4a34e753e613a7a2be0163e1f76",
+        "packages/storage/storage-json/src/per-record-unit.ts": "a41c8c459ee97a056c4497d90bf4915efa06fdbcfe803f8743a92f9f991465d9",
+        "packages/storage/storage-json/src/index.ts": "bae1a1c29859dea20d21c2730bbf3c5a30e31ed6cd7d872b8e1c726e65a33a63"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subagent",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "511808c323c10906ab23dde36eeaa7e315a4dd9bf9e59cba80b742818e9211d2",
+      "inputs": {
+        "packages/subagent/subagent/src/error.ts": "efdb67c6c6342c53775d817eebeb495c959892f95b2e00a1eda5a71d711fa4ce",
+        "packages/subagent/subagent/src/control.ts": "8a020fc4724159de7fb58d58e59e3f54250d2cff0b5695016ebf8d9ffc2c5aa1",
+        "packages/subagent/subagent/src/depth.ts": "52fe8c33e3becc3c5925ce4c63cfa097dc67158207e50db4622c7b9c15bc9b6f",
+        "packages/subagent/subagent/src/types.ts": "2f7e4ba049fea1804fb177c3c60bd795d7b47e51a507171ba2580f5bc17a9e28",
+        "packages/subagent/subagent/src/lifecycle.ts": "3f892ad12033aaf30a8c81b404eefaadb0974bd54d993631970a3c6509a13b92",
+        "packages/subagent/subagent/src/child-agent.ts": "57d8cc15bd763ba22eec33e32830c608cca85fef8533e2aea5167b1bcbe2676e",
+        "packages/subagent/subagent/src/continuation-messages.ts": "6faf0adce1af94da8b5d0dd03d2251b4ce1d2bcb29c15932a14dd4482ba5b76f",
+        "packages/subagent/subagent/src/descriptor.ts": "d8a11dbf4300b7b8e166ae232cb0b6fb8d764d19d745f0ffa0a36b910cac888f",
+        "packages/subagent/subagent/src/catalog.ts": "5251311ef24c4fb26d55661c0178cffdff6a36efcd61f47d279ac02b372eab7b",
+        "packages/subagent/subagent/src/internal.ts": "38b9421219f705408495666f13ae4238a23214a0117da45ead434840df16b7a1",
+        "packages/subagent/subagent/src/structured.ts": "04ed062bd322c39207f564fc092dcc157500d2fa5c08f5cecab2d3b7053bb4b2",
+        "packages/subagent/subagent/src/assistant-output.ts": "a789b82fe2238d4850be729205fb6512a526d7789a1083294178958ed09ea6e4",
+        "packages/subagent/subagent/src/activation.ts": "036c3a8e96434c0fda69bf7c6944b9ff1ed9d54d1921f85326825711cf93d23b",
+        "packages/subagent/subagent/src/manager.ts": "9ba766d51031fe30d8c67e07ddba163b109c405a5f0830d484992c6372bdcc43",
+        "packages/subagent/subagent/src/list-children.ts": "655b13693a3b6de9e1ba469dad22cb4e424a49b2eda81029794b10a994db90e6",
+        "packages/subagent/subagent/src/archive-admission.ts": "afdcdbe074aab668f06e9ca8bf9b1c9d8835355d16c6a94a9a1beeacdf02e070",
+        "packages/subagent/subagent/src/projection.ts": "33936ce7c4f16f0007162388324f6ff17ab3c9f96d5465173c9da6a936bde729",
+        "packages/subagent/subagent/src/out-of-process.ts": "33f913473f9d1d3953c0e5584f770ec4ef59c65f1add5d0335656618dd9b4e9a",
+        "packages/subagent/subagent/src/index.ts": "f693e0c171a4334d9cfc39dab60b4cf4655a2eddfa97f70ff747d4e4f950ec77",
+        "packages/subagent/subagent/src/client.ts": "f2858ddb71b639a6b53b11e627fbab40afc92bdd60fb8f7ac34a341e1e8d2c26"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subagent",
+      "version": "0.2.1-alpha.2",
+      "export": "./internal",
+      "source": "src/internal.ts",
+      "output": "./lib/types/internal.js",
+      "output_sha256": "7ec58fc269d27e46db796de290b322f43d997ef9d4b7cd6ef30d8fb353877fa2",
+      "inputs": {
+        "packages/subagent/subagent/src/error.ts": "efdb67c6c6342c53775d817eebeb495c959892f95b2e00a1eda5a71d711fa4ce",
+        "packages/subagent/subagent/src/control.ts": "8a020fc4724159de7fb58d58e59e3f54250d2cff0b5695016ebf8d9ffc2c5aa1",
+        "packages/subagent/subagent/src/depth.ts": "52fe8c33e3becc3c5925ce4c63cfa097dc67158207e50db4622c7b9c15bc9b6f",
+        "packages/subagent/subagent/src/types.ts": "2f7e4ba049fea1804fb177c3c60bd795d7b47e51a507171ba2580f5bc17a9e28",
+        "packages/subagent/subagent/src/lifecycle.ts": "3f892ad12033aaf30a8c81b404eefaadb0974bd54d993631970a3c6509a13b92",
+        "packages/subagent/subagent/src/child-agent.ts": "57d8cc15bd763ba22eec33e32830c608cca85fef8533e2aea5167b1bcbe2676e",
+        "packages/subagent/subagent/src/continuation-messages.ts": "6faf0adce1af94da8b5d0dd03d2251b4ce1d2bcb29c15932a14dd4482ba5b76f",
+        "packages/subagent/subagent/src/descriptor.ts": "d8a11dbf4300b7b8e166ae232cb0b6fb8d764d19d745f0ffa0a36b910cac888f",
+        "packages/subagent/subagent/src/catalog.ts": "5251311ef24c4fb26d55661c0178cffdff6a36efcd61f47d279ac02b372eab7b",
+        "packages/subagent/subagent/src/internal.ts": "38b9421219f705408495666f13ae4238a23214a0117da45ead434840df16b7a1",
+        "packages/subagent/subagent/src/structured.ts": "04ed062bd322c39207f564fc092dcc157500d2fa5c08f5cecab2d3b7053bb4b2",
+        "packages/subagent/subagent/src/assistant-output.ts": "a789b82fe2238d4850be729205fb6512a526d7789a1083294178958ed09ea6e4",
+        "packages/subagent/subagent/src/activation.ts": "036c3a8e96434c0fda69bf7c6944b9ff1ed9d54d1921f85326825711cf93d23b",
+        "packages/subagent/subagent/src/manager.ts": "9ba766d51031fe30d8c67e07ddba163b109c405a5f0830d484992c6372bdcc43",
+        "packages/subagent/subagent/src/list-children.ts": "655b13693a3b6de9e1ba469dad22cb4e424a49b2eda81029794b10a994db90e6",
+        "packages/subagent/subagent/src/archive-admission.ts": "afdcdbe074aab668f06e9ca8bf9b1c9d8835355d16c6a94a9a1beeacdf02e070",
+        "packages/subagent/subagent/src/projection.ts": "33936ce7c4f16f0007162388324f6ff17ab3c9f96d5465173c9da6a936bde729",
+        "packages/subagent/subagent/src/out-of-process.ts": "33f913473f9d1d3953c0e5584f770ec4ef59c65f1add5d0335656618dd9b4e9a",
+        "packages/subagent/subagent/src/index.ts": "f693e0c171a4334d9cfc39dab60b4cf4655a2eddfa97f70ff747d4e4f950ec77",
+        "packages/subagent/subagent/src/client.ts": "f2858ddb71b639a6b53b11e627fbab40afc92bdd60fb8f7ac34a341e1e8d2c26"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subagent",
+      "version": "0.2.1-alpha.2",
+      "export": "./client",
+      "source": "src/client.ts",
+      "output": "./lib/types/client.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/subagent/subagent/src/error.ts": "efdb67c6c6342c53775d817eebeb495c959892f95b2e00a1eda5a71d711fa4ce",
+        "packages/subagent/subagent/src/control.ts": "8a020fc4724159de7fb58d58e59e3f54250d2cff0b5695016ebf8d9ffc2c5aa1",
+        "packages/subagent/subagent/src/depth.ts": "52fe8c33e3becc3c5925ce4c63cfa097dc67158207e50db4622c7b9c15bc9b6f",
+        "packages/subagent/subagent/src/types.ts": "2f7e4ba049fea1804fb177c3c60bd795d7b47e51a507171ba2580f5bc17a9e28",
+        "packages/subagent/subagent/src/lifecycle.ts": "3f892ad12033aaf30a8c81b404eefaadb0974bd54d993631970a3c6509a13b92",
+        "packages/subagent/subagent/src/child-agent.ts": "57d8cc15bd763ba22eec33e32830c608cca85fef8533e2aea5167b1bcbe2676e",
+        "packages/subagent/subagent/src/continuation-messages.ts": "6faf0adce1af94da8b5d0dd03d2251b4ce1d2bcb29c15932a14dd4482ba5b76f",
+        "packages/subagent/subagent/src/descriptor.ts": "d8a11dbf4300b7b8e166ae232cb0b6fb8d764d19d745f0ffa0a36b910cac888f",
+        "packages/subagent/subagent/src/catalog.ts": "5251311ef24c4fb26d55661c0178cffdff6a36efcd61f47d279ac02b372eab7b",
+        "packages/subagent/subagent/src/internal.ts": "38b9421219f705408495666f13ae4238a23214a0117da45ead434840df16b7a1",
+        "packages/subagent/subagent/src/structured.ts": "04ed062bd322c39207f564fc092dcc157500d2fa5c08f5cecab2d3b7053bb4b2",
+        "packages/subagent/subagent/src/assistant-output.ts": "a789b82fe2238d4850be729205fb6512a526d7789a1083294178958ed09ea6e4",
+        "packages/subagent/subagent/src/activation.ts": "036c3a8e96434c0fda69bf7c6944b9ff1ed9d54d1921f85326825711cf93d23b",
+        "packages/subagent/subagent/src/manager.ts": "9ba766d51031fe30d8c67e07ddba163b109c405a5f0830d484992c6372bdcc43",
+        "packages/subagent/subagent/src/list-children.ts": "655b13693a3b6de9e1ba469dad22cb4e424a49b2eda81029794b10a994db90e6",
+        "packages/subagent/subagent/src/archive-admission.ts": "afdcdbe074aab668f06e9ca8bf9b1c9d8835355d16c6a94a9a1beeacdf02e070",
+        "packages/subagent/subagent/src/projection.ts": "33936ce7c4f16f0007162388324f6ff17ab3c9f96d5465173c9da6a936bde729",
+        "packages/subagent/subagent/src/out-of-process.ts": "33f913473f9d1d3953c0e5584f770ec4ef59c65f1add5d0335656618dd9b4e9a",
+        "packages/subagent/subagent/src/index.ts": "f693e0c171a4334d9cfc39dab60b4cf4655a2eddfa97f70ff747d4e4f950ec77",
+        "packages/subagent/subagent/src/client.ts": "f2858ddb71b639a6b53b11e627fbab40afc92bdd60fb8f7ac34a341e1e8d2c26"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subagent-spawn-in-process",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "3bb679e690a79cd211e9a506fbcb641bffc1db72aa5c22368ddf071e4386e265",
+      "inputs": {
+        "packages/subagent/subagent-spawn-in-process/src/index.ts": "f7704e2b26bd5530216ae8bc6cd8b95b7ec10f1100188dda4573f03e738cf29e"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subprocess",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "7f6e703d16f8cec654a054e03b08ce25c9170c0dceabe2aec0aea1ddd14ab059",
+      "inputs": {
+        "packages/subprocess/subprocess/src/types.ts": "e65166444ff791994a7198a86ac4a821e8329120bd551f342913623c87e5a715",
+        "packages/subprocess/subprocess/src/index.ts": "19e3fde571d0cd1f76e95696477a7d38677529aaf51b07c429965f2e4330065f",
+        "packages/subprocess/subprocess/src/control.ts": "50db21bb7ca66c69757333ac0b4e1ccf067afe40d9b451d74c71d51ea2445665"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subprocess",
+      "version": "0.2.1-alpha.2",
+      "export": "./control",
+      "source": "src/control.ts",
+      "output": "./lib/control.js",
+      "output_sha256": "63b26fba0a440346b5f5ae6f1f3fb79e24e0865bd723e11c703fb0eb6316f8a8",
+      "inputs": {
+        "packages/subprocess/subprocess/src/types.ts": "e65166444ff791994a7198a86ac4a821e8329120bd551f342913623c87e5a715",
+        "packages/subprocess/subprocess/src/index.ts": "19e3fde571d0cd1f76e95696477a7d38677529aaf51b07c429965f2e4330065f",
+        "packages/subprocess/subprocess/src/control.ts": "50db21bb7ca66c69757333ac0b4e1ccf067afe40d9b451d74c71d51ea2445665"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subprocess-local",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "33bccd0ebc10de52023a6bdae39a86bd20f70bc25bf99c5c8cf914fc208a8284",
+      "inputs": {
+        "packages/subprocess/subprocess-local/src/managed-owner.ts": "c8153bbb1093f2ed69b45170f59ebadc9ac770210fff23e4a99c6228522a286d",
+        "packages/subprocess/subprocess-local/src/control-spawn.ts": "cefa514393081def31a259ad69757336ca9ceeaf947409e9cd95633e067656c1",
+        "packages/subprocess/subprocess-local/src/windows-inspector.ts": "b11489dba93ec3747daa2e6812f99ce7e57829e68b3b5597af52d45039b6038b",
+        "packages/subprocess/subprocess-local/src/process-inspector.ts": "1e4ca66f18c2118c1336d198f265f994e3eaf9d450fd2c974ea207d31a58238d",
+        "packages/subprocess/subprocess-local/src/output.ts": "1151a91d7bc31ffcd6ea3db85af2ef8c19ac4bc2d3a41654da9feac29cae7433",
+        "packages/subprocess/subprocess-local/src/spawn.ts": "1087f9ed1704167865e1a35cea0604f335cc348ac17da9c83c542fc454d00ae0",
+        "packages/subprocess/subprocess-local/src/linux-execve.ts": "0b6857c340fc4f43e4a86544ea41af536e1552be5a69c5a53c91187ad205a2dc",
+        "packages/subprocess/subprocess-local/src/runner-protocol.ts": "0ada1f271cede3a0a0f04fa1c7df4fb76a3466dc239315b7332cd4e3630a306c",
+        "packages/subprocess/subprocess-local/src/runner-launch.ts": "5cac2782d724a12056f049e0275a1897c659b306db628aed86dbd72d502a5d7a",
+        "packages/subprocess/subprocess-local/src/linux-scope.ts": "eb5bc6960348050f133de7b72ecce7a8e601e2c2280e25bbd7c337e846601fad",
+        "packages/subprocess/subprocess-local/src/windows-job.ts": "220d210e72df9da21a313a70a400e6f5443b17b4a08188f0131bc09167067f63",
+        "packages/subprocess/subprocess-local/src/terminal.ts": "ab720272e6a3583c665f916b96d98654766acc872141026a120f95205863107c",
+        "packages/subprocess/subprocess-local/src/shell-activity.ts": "86c0fadc2f61d245ec0b17ef65c333f59d3614433701788504f27e7583181dcf",
+        "packages/subprocess/subprocess-local/src/index.ts": "f9df9fb70e1ec03c16803557c8b3b30af21327e8fe20c83d873026a1bc31242a",
+        "packages/subprocess/subprocess-local/src/spawn-runner.ts": "d4ba8aeec4427437cf4b7f23d2ea61c3a25becb43ee3944df190eef537a4679d",
+        "packages/subprocess/subprocess-local/src/bin.ts": "2f4ed2f5b9a08d8b828a73c81f82ed3a9416787e73c3d50acf6c50f71884010f"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subprocess-local",
+      "version": "0.2.1-alpha.2",
+      "export": "./runner",
+      "source": "src/bin.ts",
+      "output": "./lib/runner.js",
+      "output_sha256": "6b42817c84b64dd17548869e6b2fe9735ea777bbfe5b234d58089beecbdb34f7",
+      "inputs": {
+        "packages/subprocess/subprocess-local/src/managed-owner.ts": "c8153bbb1093f2ed69b45170f59ebadc9ac770210fff23e4a99c6228522a286d",
+        "packages/subprocess/subprocess-local/src/control-spawn.ts": "cefa514393081def31a259ad69757336ca9ceeaf947409e9cd95633e067656c1",
+        "packages/subprocess/subprocess-local/src/windows-inspector.ts": "b11489dba93ec3747daa2e6812f99ce7e57829e68b3b5597af52d45039b6038b",
+        "packages/subprocess/subprocess-local/src/process-inspector.ts": "1e4ca66f18c2118c1336d198f265f994e3eaf9d450fd2c974ea207d31a58238d",
+        "packages/subprocess/subprocess-local/src/output.ts": "1151a91d7bc31ffcd6ea3db85af2ef8c19ac4bc2d3a41654da9feac29cae7433",
+        "packages/subprocess/subprocess-local/src/spawn.ts": "1087f9ed1704167865e1a35cea0604f335cc348ac17da9c83c542fc454d00ae0",
+        "packages/subprocess/subprocess-local/src/linux-execve.ts": "0b6857c340fc4f43e4a86544ea41af536e1552be5a69c5a53c91187ad205a2dc",
+        "packages/subprocess/subprocess-local/src/runner-protocol.ts": "0ada1f271cede3a0a0f04fa1c7df4fb76a3466dc239315b7332cd4e3630a306c",
+        "packages/subprocess/subprocess-local/src/runner-launch.ts": "5cac2782d724a12056f049e0275a1897c659b306db628aed86dbd72d502a5d7a",
+        "packages/subprocess/subprocess-local/src/linux-scope.ts": "eb5bc6960348050f133de7b72ecce7a8e601e2c2280e25bbd7c337e846601fad",
+        "packages/subprocess/subprocess-local/src/windows-job.ts": "220d210e72df9da21a313a70a400e6f5443b17b4a08188f0131bc09167067f63",
+        "packages/subprocess/subprocess-local/src/terminal.ts": "ab720272e6a3583c665f916b96d98654766acc872141026a120f95205863107c",
+        "packages/subprocess/subprocess-local/src/shell-activity.ts": "86c0fadc2f61d245ec0b17ef65c333f59d3614433701788504f27e7583181dcf",
+        "packages/subprocess/subprocess-local/src/index.ts": "f9df9fb70e1ec03c16803557c8b3b30af21327e8fe20c83d873026a1bc31242a",
+        "packages/subprocess/subprocess-local/src/spawn-runner.ts": "d4ba8aeec4427437cf4b7f23d2ea61c3a25becb43ee3944df190eef537a4679d",
+        "packages/subprocess/subprocess-local/src/bin.ts": "2f4ed2f5b9a08d8b828a73c81f82ed3a9416787e73c3d50acf6c50f71884010f"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-subprocess-local",
+      "version": "0.2.1-alpha.2",
+      "export": "./output",
+      "source": "src/output.ts",
+      "output": "./lib/output.js",
+      "output_sha256": "ec27f79740a31dd807ef1295e94ff3f64b0d48467e8c3ab8c8df92755fc5a0c9",
+      "inputs": {
+        "packages/subprocess/subprocess-local/src/managed-owner.ts": "c8153bbb1093f2ed69b45170f59ebadc9ac770210fff23e4a99c6228522a286d",
+        "packages/subprocess/subprocess-local/src/control-spawn.ts": "cefa514393081def31a259ad69757336ca9ceeaf947409e9cd95633e067656c1",
+        "packages/subprocess/subprocess-local/src/windows-inspector.ts": "b11489dba93ec3747daa2e6812f99ce7e57829e68b3b5597af52d45039b6038b",
+        "packages/subprocess/subprocess-local/src/process-inspector.ts": "1e4ca66f18c2118c1336d198f265f994e3eaf9d450fd2c974ea207d31a58238d",
+        "packages/subprocess/subprocess-local/src/output.ts": "1151a91d7bc31ffcd6ea3db85af2ef8c19ac4bc2d3a41654da9feac29cae7433",
+        "packages/subprocess/subprocess-local/src/spawn.ts": "1087f9ed1704167865e1a35cea0604f335cc348ac17da9c83c542fc454d00ae0",
+        "packages/subprocess/subprocess-local/src/linux-execve.ts": "0b6857c340fc4f43e4a86544ea41af536e1552be5a69c5a53c91187ad205a2dc",
+        "packages/subprocess/subprocess-local/src/runner-protocol.ts": "0ada1f271cede3a0a0f04fa1c7df4fb76a3466dc239315b7332cd4e3630a306c",
+        "packages/subprocess/subprocess-local/src/runner-launch.ts": "5cac2782d724a12056f049e0275a1897c659b306db628aed86dbd72d502a5d7a",
+        "packages/subprocess/subprocess-local/src/linux-scope.ts": "eb5bc6960348050f133de7b72ecce7a8e601e2c2280e25bbd7c337e846601fad",
+        "packages/subprocess/subprocess-local/src/windows-job.ts": "220d210e72df9da21a313a70a400e6f5443b17b4a08188f0131bc09167067f63",
+        "packages/subprocess/subprocess-local/src/terminal.ts": "ab720272e6a3583c665f916b96d98654766acc872141026a120f95205863107c",
+        "packages/subprocess/subprocess-local/src/shell-activity.ts": "86c0fadc2f61d245ec0b17ef65c333f59d3614433701788504f27e7583181dcf",
+        "packages/subprocess/subprocess-local/src/index.ts": "f9df9fb70e1ec03c16803557c8b3b30af21327e8fe20c83d873026a1bc31242a",
+        "packages/subprocess/subprocess-local/src/spawn-runner.ts": "d4ba8aeec4427437cf4b7f23d2ea61c3a25becb43ee3944df190eef537a4679d",
+        "packages/subprocess/subprocess-local/src/bin.ts": "2f4ed2f5b9a08d8b828a73c81f82ed3a9416787e73c3d50acf6c50f71884010f"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-system-prompt",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6ba302aac39b932391bd480b5ed7a48d19cc2d073b68ff5a8fa28d9ba2188cce",
+      "inputs": {
+        "packages/core/system-prompt/src/index.ts": "989460e219ef1d54e295fd05729651b27e4b93688bca97caa57fb41a6b1f4378"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-timeout",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "f83276eec6046ab75ca5bfd9a9ddf96d5c3853bb578f5f191bc728fb2b047180",
+      "inputs": {
+        "packages/util/timeout/src/index.ts": "cadc1aea5b85854f59ca68cee8b7d08c4ebdd378d1c8e081e0031423c262e6b1"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-token-meter",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "85e36368260feb81f596fc8919f7e58c0d22eb30f8d662b2b1858be1d972d98c",
+      "inputs": {
+        "packages/llm/token-meter/src/estimate.ts": "30ecc576a77aa3a65fb8173c551e13d7651ddba2d7bbd907845a003f17ee189d",
+        "packages/llm/token-meter/src/surface-fold.ts": "ee5e0dbe6f6782f765b670ffeee09db3e6cf18808530db476621d12853cfc6f1",
+        "packages/llm/token-meter/src/breakdown-projection.ts": "7b2bee9b2d30ac128bddba1c1cd182180fcd7268a5bcef51381c8123876600dc",
+        "packages/llm/token-meter/src/surface-projection.ts": "1d1429b390a2b35247b481e7255f27b927db1878f02e1c3dd0ca1f07297cb6e9",
+        "packages/llm/token-meter/src/usage-projection.ts": "0126f8ee5c63c2ee848f732a28ed6c7e31f6adcdb43271d6cd0a6f260d0d3465",
+        "packages/llm/token-meter/src/route-pricing.ts": "4201c430b66e12fd40dcf264034bbc517cb73867f4b31a68b90c8a3ff3210840",
+        "packages/llm/token-meter/src/index.ts": "9d399314121785154296af650c6059bfd967a4ba6fc72299aadf8a2dce3f7ce1",
+        "packages/llm/token-meter/src/turn-usage.ts": "5fcf1d4099616a221f9368c3148ca8ea0121e9e50cd3ebc5daefa004137fb6bd",
+        "packages/llm/token-meter/src/client.ts": "7f011c9fe730aeb01013ce695132a1b1c7282c4208ec4a92a6b08dbd189473f8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-token-meter",
+      "version": "0.2.1-alpha.2",
+      "export": "./client",
+      "source": "src/client.ts",
+      "output": "./lib/types/client.js",
+      "output_sha256": "1956f6ca69553d211df5b553b82dfaa14a1134d08d5f1bb3bb986fedb1a29a49",
+      "inputs": {
+        "packages/llm/token-meter/src/estimate.ts": "30ecc576a77aa3a65fb8173c551e13d7651ddba2d7bbd907845a003f17ee189d",
+        "packages/llm/token-meter/src/surface-fold.ts": "ee5e0dbe6f6782f765b670ffeee09db3e6cf18808530db476621d12853cfc6f1",
+        "packages/llm/token-meter/src/breakdown-projection.ts": "7b2bee9b2d30ac128bddba1c1cd182180fcd7268a5bcef51381c8123876600dc",
+        "packages/llm/token-meter/src/surface-projection.ts": "1d1429b390a2b35247b481e7255f27b927db1878f02e1c3dd0ca1f07297cb6e9",
+        "packages/llm/token-meter/src/usage-projection.ts": "0126f8ee5c63c2ee848f732a28ed6c7e31f6adcdb43271d6cd0a6f260d0d3465",
+        "packages/llm/token-meter/src/route-pricing.ts": "4201c430b66e12fd40dcf264034bbc517cb73867f4b31a68b90c8a3ff3210840",
+        "packages/llm/token-meter/src/index.ts": "9d399314121785154296af650c6059bfd967a4ba6fc72299aadf8a2dce3f7ce1",
+        "packages/llm/token-meter/src/turn-usage.ts": "5fcf1d4099616a221f9368c3148ca8ea0121e9e50cd3ebc5daefa004137fb6bd",
+        "packages/llm/token-meter/src/client.ts": "7f011c9fe730aeb01013ce695132a1b1c7282c4208ec4a92a6b08dbd189473f8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-token-meter",
+      "version": "0.2.1-alpha.2",
+      "export": "./estimate",
+      "source": "src/estimate.ts",
+      "output": "./lib/types/estimate.js",
+      "output_sha256": "1681392440019163d361459beac040cd152f09f3a558f1f763340445a15685cc",
+      "inputs": {
+        "packages/llm/token-meter/src/estimate.ts": "30ecc576a77aa3a65fb8173c551e13d7651ddba2d7bbd907845a003f17ee189d",
+        "packages/llm/token-meter/src/surface-fold.ts": "ee5e0dbe6f6782f765b670ffeee09db3e6cf18808530db476621d12853cfc6f1",
+        "packages/llm/token-meter/src/breakdown-projection.ts": "7b2bee9b2d30ac128bddba1c1cd182180fcd7268a5bcef51381c8123876600dc",
+        "packages/llm/token-meter/src/surface-projection.ts": "1d1429b390a2b35247b481e7255f27b927db1878f02e1c3dd0ca1f07297cb6e9",
+        "packages/llm/token-meter/src/usage-projection.ts": "0126f8ee5c63c2ee848f732a28ed6c7e31f6adcdb43271d6cd0a6f260d0d3465",
+        "packages/llm/token-meter/src/route-pricing.ts": "4201c430b66e12fd40dcf264034bbc517cb73867f4b31a68b90c8a3ff3210840",
+        "packages/llm/token-meter/src/index.ts": "9d399314121785154296af650c6059bfd967a4ba6fc72299aadf8a2dce3f7ce1",
+        "packages/llm/token-meter/src/turn-usage.ts": "5fcf1d4099616a221f9368c3148ca8ea0121e9e50cd3ebc5daefa004137fb6bd",
+        "packages/llm/token-meter/src/client.ts": "7f011c9fe730aeb01013ce695132a1b1c7282c4208ec4a92a6b08dbd189473f8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-fs",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "b82fd95f6d86464214565183d94694bf90201d711d8f02f9415eb2624df2fa96",
+      "inputs": {
+        "packages/fs/tool-fs/src/read-render.ts": "72bcf4a70fd3e0908d4aa3869e0fbd6ee63b05ad790af65951af0c5db9edba84",
+        "packages/fs/tool-fs/src/session-cwd.ts": "591e67a95f1ed4d819ab76cf6f43e57c21ca7d7450a452e9b8e0c951c6790593",
+        "packages/fs/tool-fs/src/read-target.ts": "3e89ce59dae8d4d568ed0833d4c939ac9cd62eda380e1b4addf697a311b56d43",
+        "packages/fs/tool-fs/src/read.ts": "808d3018dbfb925dc223da25d5a7c7d30fd405b4aec121e895a35f374fee319d",
+        "packages/fs/tool-fs/src/diff.ts": "3443772143da321e07aa8f187e885e6008888b3a12f1202b9a47617330490d66",
+        "packages/fs/tool-fs/src/error.ts": "3513fda3e34b4802ed6c2bda384bbd65f3d999a90df0cde52511d01942af15cf",
+        "packages/fs/tool-fs/src/mutation-result.ts": "72c515dd48bf1b3408315ed110ad5ce299f289da0358a674a3d05e4d1f7501d6",
+        "packages/fs/tool-fs/src/write.ts": "87287ca7774af83f8c4841a78bfcfe213c684d172648c7b108a0539d5c674d47",
+        "packages/fs/tool-fs/src/edit.ts": "2602b2482f5234ab26cddf656cbe0020b53dc69a36bb8a835b57a55ed23a2055",
+        "packages/fs/tool-fs/src/read-image.ts": "36cef763f246effda50ad7e3a50de46380bb65eb6cd87f758f07d716f10f2f54",
+        "packages/fs/tool-fs/src/sandbox.ts": "08ee2682f222f044c1067b02d643875d020894ba7196eb808ee6c03516455122",
+        "packages/fs/tool-fs/src/index.ts": "3c3d36d8632eacefb81cdc10b9d9ad6fd32bef089ad78c9019ef95021b53e8e8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-fs-search",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "0f7c5b87edd839503803326af68dd2ac32522b947106ad98f448a2836f64814e",
+      "inputs": {
+        "packages/fs/tool-fs-search/src/search-core.ts": "d642c99286faff7cb6e70a24b0c4743184b3f83e8c6620bc9537c426987b198f",
+        "packages/fs/tool-fs-search/src/presentation.ts": "7d8029cff975c75f6874918af38dbc0a403135cdb3d1d72d10d05d363d2d413a",
+        "packages/fs/tool-fs-search/src/direct-call.ts": "e7275b4b2dfc84e754ecec204b3eb7398d3fea7fd18df3b0c824244d55e9b6ce",
+        "packages/fs/tool-fs-search/src/glob.ts": "37c85bc8f63e925cdab8c63e11e28b8420cbb4560a03efb87cf4a2a45b6dae6e",
+        "packages/fs/tool-fs-search/src/grep.ts": "ad5dc6b5b9a41d8290172aa8d8dd7d4ddc66aa6cf6dfceba7d130666fd29a019",
+        "packages/fs/tool-fs-search/src/index.ts": "5193d396dcc769e5e79b5a9a3bdbd81a6709df6988d7e3fffa020add75b401b5"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-goal",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6b8216c6589ffc2994f50a1d168ee2e1c48b68cd6453e33478d83b274a593054",
+      "inputs": {
+        "packages/goal/tool-goal/src/authority.ts": "c95bc97b84751a2320d456f5e3455912d14d4731944a0afa06bb63a538d39695",
+        "packages/goal/tool-goal/src/wrapup.ts": "714a2c8ad660e3b7c0aadfe7a8b8122a9329ab2bcff654e40708ff807d924179",
+        "packages/goal/tool-goal/src/index.ts": "f031e40594f72792a75f9a7c9ffdd1cf21d84493cd131023a879c07ef3b942b7"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-jobs",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "cb724b3ff01872fd9ec7d3fc69bfb3e5bf1dd2e0ca0839c483b7271403753810",
+      "inputs": {
+        "packages/jobs/tool-jobs/src/render.ts": "8dfdd40255e07299cb59e7a89f67eb19cb4d059fd773b9539a5cfaeaf0a604a3",
+        "packages/jobs/tool-jobs/src/index.ts": "902fcad47744028a06273ff0402fc3f5421903c6c3390c62fef78789f605dbb6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-pwsh",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "0c1755bb6c85c0d273224ff33b9a275a10c58a3a8969e4f7e0f3d85a00487139",
+      "inputs": {
+        "packages/shell/tool-pwsh/src/background.ts": "b3462424b9be7fff7b1d1e0eb9967e2fcd528092ec29d35fe6bdda29f0744c5f",
+        "packages/shell/tool-pwsh/src/render.ts": "1ecbb4aef0861427f24cd853753dee3d1119c09684bc5af616fffeb26746aaac",
+        "packages/shell/tool-pwsh/src/index.ts": "3b10e76d219c049a44d57ce895312d1e80b266521c10aed4d840eed4f46d184c"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-schedule",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "77814adf359c264b2073a7480c4b5a4dea1199a2b3566872d33f7a6a0370c2b7",
+      "inputs": {
+        "packages/schedule/tool-schedule/src/index.ts": "4f790c591571e4855d87382e0b908fd722d945ee366850e6bb76cf1594c39458"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-skill",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "20501840fc321ce1821ee474bdfd8b75bb2c61045cde6fcc4f0b7ee7ee78fa6f",
+      "inputs": {
+        "packages/skill/tool-skill/src/index.ts": "29f6cf10c7247379298d9a96a53aef9cb2b21dcf7266f57ab147860b27d7cc44"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-subagent",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "3e371d7fd9d1b2dba8eba71dd7d63d26bbcabfd038665bf2c23b3b8beb8a33aa",
+      "inputs": {
+        "packages/subagent/tool-subagent/src/model-selection.ts": "3e874dbca18bd6f672b4a0c6d2a2dfd514ede1b515ba9123d2b0c9a94b729724",
+        "packages/subagent/tool-subagent/src/list-models.ts": "90e8adaa3188aca4b1f1437b43094969a069324de84e44bdbb5dccaf96198067",
+        "packages/subagent/tool-subagent/src/model-selection-state.ts": "00468741a23e701fcee29c2a9c783e4c4c93fbc2e834c3d8f1667fabad5dd298",
+        "packages/subagent/tool-subagent/src/index.ts": "779326bfe85cbf5daf75a46a74bde8f4b4306e14e69d53d76d60eb19c764f746",
+        "packages/subagent/tool-subagent/src/model-selection-settings.ts": "1186417984f8018c68a5409a8fe5fda1e1cc454d43ec4a2542a2309b67e46fe6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-subagent",
+      "version": "0.2.1-alpha.2",
+      "export": "./model-selection-settings",
+      "source": "src/model-selection-settings.ts",
+      "output": "./lib/model-selection-settings.js",
+      "output_sha256": "bc030cab4fedab96305afe9ea76236373022cbfa36a9d1102cdd8a45ba7c796b",
+      "inputs": {
+        "packages/subagent/tool-subagent/src/model-selection.ts": "3e874dbca18bd6f672b4a0c6d2a2dfd514ede1b515ba9123d2b0c9a94b729724",
+        "packages/subagent/tool-subagent/src/list-models.ts": "90e8adaa3188aca4b1f1437b43094969a069324de84e44bdbb5dccaf96198067",
+        "packages/subagent/tool-subagent/src/model-selection-state.ts": "00468741a23e701fcee29c2a9c783e4c4c93fbc2e834c3d8f1667fabad5dd298",
+        "packages/subagent/tool-subagent/src/index.ts": "779326bfe85cbf5daf75a46a74bde8f4b4306e14e69d53d76d60eb19c764f746",
+        "packages/subagent/tool-subagent/src/model-selection-settings.ts": "1186417984f8018c68a5409a8fe5fda1e1cc454d43ec4a2542a2309b67e46fe6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-subagent-control",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "e13135fd7df3da6fa5b27ff9bc6769f7ecf950d5c1508a2d21c7a0ec0ff94e76",
+      "inputs": {
+        "packages/subagent/tool-subagent-control/src/index.ts": "6a76864666ebd859339380f19752d096962d3580e4f938133e1ccaf513911ea3",
+        "packages/subagent/tool-subagent-control/src/list-agents.ts": "dc4d2bc603dfb954ea0f90c8eb9655c767a4b4ab458fb70d359d9d2e066d7add"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-subagent-control",
+      "version": "0.2.1-alpha.2",
+      "export": "./list-agents",
+      "source": "src/list-agents.ts",
+      "output": "./lib/types/list-agents.js",
+      "output_sha256": "82a4ce502cfbdd61d3f1e9f8a4e020f8919516a77884b75eea6624a3f1ca9193",
+      "inputs": {
+        "packages/subagent/tool-subagent-control/src/index.ts": "6a76864666ebd859339380f19752d096962d3580e4f938133e1ccaf513911ea3",
+        "packages/subagent/tool-subagent-control/src/list-agents.ts": "dc4d2bc603dfb954ea0f90c8eb9655c767a4b4ab458fb70d359d9d2e066d7add"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-todo",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "e77e90fe1192670a73e590623d8d6917a9f057b3002fb71fc179134a67ff46e4",
+      "inputs": {
+        "packages/todo/tool-todo/src/index.ts": "74eed074d1b056cc0a029f9b8343bc9337c14f04696c528daaedcbebe9842a17",
+        "packages/todo/tool-todo/src/client.ts": "803e092ec67d96b6fceb351f1d1fec5713c40adaffd6528813e70cc4cd498822"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-todo",
+      "version": "0.2.1-alpha.2",
+      "export": "./client",
+      "source": "src/client.ts",
+      "output": "./lib/types/client.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/todo/tool-todo/src/index.ts": "74eed074d1b056cc0a029f9b8343bc9337c14f04696c528daaedcbebe9842a17",
+        "packages/todo/tool-todo/src/client.ts": "803e092ec67d96b6fceb351f1d1fec5713c40adaffd6528813e70cc4cd498822"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tools",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "831c4da1fa38099e967b3c89ca9ad31be8fe1d8572198b6eaa070e6300495497",
+      "inputs": {
+        "packages/core/tools/src/json-schema.ts": "13deffdfd34539e23706b0fde235991da45b2f07c5c18dbbf3ca734c1da0c788",
+        "packages/core/tools/src/schema.ts": "096f679e38626cc52536b8ecb9eef4c551c1a8a095c8e84f7a3b6156ee533653",
+        "packages/core/tools/src/ptc.ts": "3a8d22c0040d48d80f214b52a9d741fa63709acdb295467008b9024b2cd5dc77",
+        "packages/core/tools/src/ts-types.ts": "85205a23ed99597b12579fb2ac4f88ffb3c67ce30a0bd731237a85ba0a8e70b4",
+        "packages/core/tools/src/py-types.ts": "9c6886843ffef0fd99407902b8648b1b702ac761a1819ef9473faf23986deaa2",
+        "packages/core/tools/src/testing.ts": "8b7bf72750d885c1acb52e99ccac9e42542cc5efcb581098ad3507e83ca0a651",
+        "packages/core/tools/src/index.ts": "e7209f5ba63fff439f1462249c6de77f7a1be060c62d9fe1aa67e5a6ecceb5b9",
+        "packages/core/tools/src/types.ts": "26c2c9ac831526d9bcefe5ee3b9b1a6a8ca313d43efffe579670366790539bb6",
+        "packages/core/tools/src/presentation.ts": "2e729538403ef924430187df13ec5e140de95e0ea41a8225093dba644c1f2b6a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tools",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/core/tools/src/json-schema.ts": "13deffdfd34539e23706b0fde235991da45b2f07c5c18dbbf3ca734c1da0c788",
+        "packages/core/tools/src/schema.ts": "096f679e38626cc52536b8ecb9eef4c551c1a8a095c8e84f7a3b6156ee533653",
+        "packages/core/tools/src/ptc.ts": "3a8d22c0040d48d80f214b52a9d741fa63709acdb295467008b9024b2cd5dc77",
+        "packages/core/tools/src/ts-types.ts": "85205a23ed99597b12579fb2ac4f88ffb3c67ce30a0bd731237a85ba0a8e70b4",
+        "packages/core/tools/src/py-types.ts": "9c6886843ffef0fd99407902b8648b1b702ac761a1819ef9473faf23986deaa2",
+        "packages/core/tools/src/testing.ts": "8b7bf72750d885c1acb52e99ccac9e42542cc5efcb581098ad3507e83ca0a651",
+        "packages/core/tools/src/index.ts": "e7209f5ba63fff439f1462249c6de77f7a1be060c62d9fe1aa67e5a6ecceb5b9",
+        "packages/core/tools/src/types.ts": "26c2c9ac831526d9bcefe5ee3b9b1a6a8ca313d43efffe579670366790539bb6",
+        "packages/core/tools/src/presentation.ts": "2e729538403ef924430187df13ec5e140de95e0ea41a8225093dba644c1f2b6a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tools",
+      "version": "0.2.1-alpha.2",
+      "export": "./presentation",
+      "source": "src/presentation.ts",
+      "output": "./lib/types/presentation.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/core/tools/src/json-schema.ts": "13deffdfd34539e23706b0fde235991da45b2f07c5c18dbbf3ca734c1da0c788",
+        "packages/core/tools/src/schema.ts": "096f679e38626cc52536b8ecb9eef4c551c1a8a095c8e84f7a3b6156ee533653",
+        "packages/core/tools/src/ptc.ts": "3a8d22c0040d48d80f214b52a9d741fa63709acdb295467008b9024b2cd5dc77",
+        "packages/core/tools/src/ts-types.ts": "85205a23ed99597b12579fb2ac4f88ffb3c67ce30a0bd731237a85ba0a8e70b4",
+        "packages/core/tools/src/py-types.ts": "9c6886843ffef0fd99407902b8648b1b702ac761a1819ef9473faf23986deaa2",
+        "packages/core/tools/src/testing.ts": "8b7bf72750d885c1acb52e99ccac9e42542cc5efcb581098ad3507e83ca0a651",
+        "packages/core/tools/src/index.ts": "e7209f5ba63fff439f1462249c6de77f7a1be060c62d9fe1aa67e5a6ecceb5b9",
+        "packages/core/tools/src/types.ts": "26c2c9ac831526d9bcefe5ee3b9b1a6a8ca313d43efffe579670366790539bb6",
+        "packages/core/tools/src/presentation.ts": "2e729538403ef924430187df13ec5e140de95e0ea41a8225093dba644c1f2b6a"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-typert-protocol",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "4c91f7b2a194348cd58ef17107338f142b07c7d1336ffa6fbac5fc0cadc72d16",
+      "inputs": {
+        "packages/typert/protocol/src/remote-error.ts": "bb902ec537e1dfbc74885e77a01192e6532b50a959a5bc4cc55c1fbf52e0a368",
+        "packages/typert/protocol/src/owned-value.ts": "096c583e2093cd814d0cef5bc3f8161f6aabfe8cfe97eff78c3a340c0c95a44d",
+        "packages/typert/protocol/src/json-value.ts": "c5d58b60b7e085004041326055737f7e718e719f5df7b7df5b09d2fb147e57c0",
+        "packages/typert/protocol/src/index.ts": "d44d7bd7811f975dd7937e818f43360a6d683e465e688002dfc0aa25c3f65a33",
+        "packages/typert/protocol/src/types.ts": "5ffb787a9d0751c7296723de83a4ec54abaf814bc41dbc7dd62d2de30cb32e94"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-typert-protocol",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/typert/protocol/src/remote-error.ts": "bb902ec537e1dfbc74885e77a01192e6532b50a959a5bc4cc55c1fbf52e0a368",
+        "packages/typert/protocol/src/owned-value.ts": "096c583e2093cd814d0cef5bc3f8161f6aabfe8cfe97eff78c3a340c0c95a44d",
+        "packages/typert/protocol/src/json-value.ts": "c5d58b60b7e085004041326055737f7e718e719f5df7b7df5b09d2fb147e57c0",
+        "packages/typert/protocol/src/index.ts": "d44d7bd7811f975dd7937e818f43360a6d683e465e688002dfc0aa25c3f65a33",
+        "packages/typert/protocol/src/types.ts": "5ffb787a9d0751c7296723de83a4ec54abaf814bc41dbc7dd62d2de30cb32e94"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-typert-registry",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "9a53209d460fd827303a491289d3896f62d1a85aa7803d8a47c183f14b284116",
+      "inputs": {
+        "packages/typert/registry/src/service.ts": "87683b806fa779591b1d5b45c48813a9e53bef9a24ea5f40781dd647769a1038",
+        "packages/typert/registry/src/index.ts": "a6c1aa498660cb50d768c867411943d3760e2bbb8dcd016c950c6294ed626e2a",
+        "packages/typert/registry/src/types.ts": "462f577ca91f8b4807107b89ec3d58935f10053634e4dfe890dce762d8349c41"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-typert-registry",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/typert/registry/src/service.ts": "87683b806fa779591b1d5b45c48813a9e53bef9a24ea5f40781dd647769a1038",
+        "packages/typert/registry/src/index.ts": "a6c1aa498660cb50d768c867411943d3760e2bbb8dcd016c950c6294ed626e2a",
+        "packages/typert/registry/src/types.ts": "462f577ca91f8b4807107b89ec3d58935f10053634e4dfe890dce762d8349c41"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-user-approval",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "dd0d51b849d51839aa04afdf3e992cf2b9f271689418380f53ce4a1440c98556",
+      "inputs": {
+        "packages/interaction/user-approval/src/types.ts": "4413da55040e100e5700b5b89dccf387e08275587ac21876cba8cbab2df34037",
+        "packages/interaction/user-approval/src/index.ts": "6bba9feef5257063aa41d89ddd51c31a1a474b5920c256c65d5ec2857cff1ff6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-user-approval",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "c5c4a6776a9e494525956cdd476be52c6bbc30e23577bd8c79ba0a2b4df47f89",
+      "inputs": {
+        "packages/interaction/user-approval/src/types.ts": "4413da55040e100e5700b5b89dccf387e08275587ac21876cba8cbab2df34037",
+        "packages/interaction/user-approval/src/index.ts": "6bba9feef5257063aa41d89ddd51c31a1a474b5920c256c65d5ec2857cff1ff6"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-util-code-language",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "9e14a867ccb0accb306c3e4d9eda0b4c0af962ec85a8decd03bb6624c2f2189f",
+      "inputs": {
+        "packages/util/code-language/src/index.ts": "98edcfd8abd18ed277ba024a135a50b0d33c30e3a9786f88cceacbe523f48649"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-util-crypto",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "0c1367877cd9680f8665002605a19c4c12e7c81a77e60effa76a97cb5f359523",
+      "inputs": {
+        "packages/util/crypto/src/index.ts": "6d314b677a163808a732c53fc509eebea1f8b8cc34b67031644dcfa4a97e28f0"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-util-time",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6319b65a2e19387b892e9fdc4dab5976d5631c8d888089c5e8ffee3e5ea05359",
+      "inputs": {
+        "packages/util/time/src/index.ts": "45ef03b7a70234ff785921639e735d5c47f0401fa6cac2064dc6f1de8ddfb85f"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-util-values",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "58c69a17e43844ad1e153d7eb458a092a0de34eeb156472182471f7ecffa8d80",
+      "inputs": {
+        "packages/util/values/src/partial-json.ts": "d06228f26e0c670dc18615082b5be283f72a1562220c977c3c5d54edc0b5971e",
+        "packages/util/values/src/index.ts": "b550a5db58f714197e49c3a5bfb4c241f33b859c95f772957a50d89c3b917fd8"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-util-workspace-path",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "68f7d62f95e96bc4ad73a1df0c997b1f1e73f513ebfb23b377e83b3c034e655a",
+      "inputs": {
+        "packages/util/workspace-path/src/file-address.ts": "e54979d7970c09a777d9917a098ab0de8768c60dd198a97167480ffde9bc8f7c",
+        "packages/util/workspace-path/src/index.ts": "0e3c4a10337288f51459d3ef72f443424cef929ffb9507e1bdc51d67734c1392"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-win32-process",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "828afa1bd012e7169ee83468a38c0e60ff3610f0dca274000c026e2dd2d031a7",
+      "inputs": {
+        "packages/subprocess/win32-process/src/abi.ts": "02983fd084440c864300ab5c5c4c10bbbcf2e2b1575c01dc2589917b68721126",
+        "packages/subprocess/win32-process/src/errors.ts": "e0e7377a376ab5c16289d0c9d455ee0460efdcca5f45dd6bad99dfa39e313295",
+        "packages/subprocess/win32-process/src/koffi.ts": "13aa290917b636816e17a2656e01a776014b7ea4990bdf799de74d962ce4fec6",
+        "packages/subprocess/win32-process/src/ffi.ts": "988331864f460138336a29f9290b46e4cd6b46ba5042b39b74621bfb3f72f940",
+        "packages/subprocess/win32-process/src/control-stdio.ts": "8870419b7d48e58acef5e18f98cdfcdb4cc462ec549b3ed853d60a04c3a93c37",
+        "packages/subprocess/win32-process/src/process.ts": "2043f59d97f320f83d731fb2f81ec15c77065d4ff98f305be3a95cebb5e776be",
+        "packages/subprocess/win32-process/src/index.ts": "ef120e78e18da1f01fe27066d41eda6eca9ec214f2473e866c7e245b94b2d0bd"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-working-directory",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6bf45a32f31bc1a540dacc473d00f0e6b2d020efa7a08f3b9eac9daf34efb0a9",
+      "inputs": {
+        "packages/session/working-directory/src/index.ts": "5d8b57ba56fe96f73713f66805342ca5690df50fb530b41846abc7d3d4447fbd"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-workspace",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "8fb9f855069e1f054a68c667b0e8b40dd82c4267444ce1e7805c7d3b9c5db605",
+      "inputs": {
+        "packages/workspace/workspace/src/paths.ts": "6115d87d03514a15e5dd806c80d531286e8122d4e7c590d56407d4f581597098",
+        "packages/workspace/workspace/src/entity.ts": "38a7fbd44baf9bdd2b76b15a97f1cf4d36b4d55972efdae2be9f77694f2be7f4",
+        "packages/workspace/workspace/src/spec.ts": "5066b6bd70c579cd84c2e3bfc16e0262483d0bcffbb269ea0b1b1a3ca2ad6b41",
+        "packages/workspace/workspace/src/index.ts": "6130c03aee1809e193c278e69fdea37c2c840dbc1550f5ca9b183bf6319292df",
+        "packages/workspace/workspace/src/types.ts": "fe005dabf56078a3ff10267f8176e9f6bd93761f7ff8de942cd8ab96d9c881cc"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-workspace",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/workspace/workspace/src/paths.ts": "6115d87d03514a15e5dd806c80d531286e8122d4e7c590d56407d4f581597098",
+        "packages/workspace/workspace/src/entity.ts": "38a7fbd44baf9bdd2b76b15a97f1cf4d36b4d55972efdae2be9f77694f2be7f4",
+        "packages/workspace/workspace/src/spec.ts": "5066b6bd70c579cd84c2e3bfc16e0262483d0bcffbb269ea0b1b1a3ca2ad6b41",
+        "packages/workspace/workspace/src/index.ts": "6130c03aee1809e193c278e69fdea37c2c840dbc1550f5ca9b183bf6319292df",
+        "packages/workspace/workspace/src/types.ts": "fe005dabf56078a3ff10267f8176e9f6bd93761f7ff8de942cd8ab96d9c881cc"
+      }
+    },
+    {
+      "package": "@deepseek-ai/node-addon-system",
+      "version": "0.1.2",
+      "export": "./landlock-run",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "4a3ca92459a891e73f35982611b049a8871a48ab816483bf862527227f70660b",
+      "inputs": {
+        "native/system/packages/entry/src/index.ts": "d0c67bea62d4922dd9285a6bacdda680ab7ff5a8e89289022841d8fe23ec6ff9",
+        "native/system/packages/entry/src/flock.ts": "1e13f45a3d627f434098e7b21bf211c051f26d4e019102bf3bfd9f4d1c7614b7"
+      }
+    },
+    {
+      "package": "@deepseek-ai/node-addon-system",
+      "version": "0.1.2",
+      "export": "./flock",
+      "source": "src/flock.ts",
+      "output": "./lib/flock.js",
+      "output_sha256": "694261e4e64bb86b50c3992fa24c82870377e7862a36257a42ffafb7da9e0f1b",
+      "inputs": {
+        "native/system/packages/entry/src/index.ts": "d0c67bea62d4922dd9285a6bacdda680ab7ff5a8e89289022841d8fe23ec6ff9",
+        "native/system/packages/entry/src/flock.ts": "1e13f45a3d627f434098e7b21bf211c051f26d4e019102bf3bfd9f4d1c7614b7"
+      }
+    }
+  ],
+  "unusedGeneratedExports": [
+    {
+      "package": "dsh-agent-preset-registry",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-agent-preset-registry",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-api-gateway",
+      "export": "./client",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-api-session-controller",
+      "export": "./client",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-api-session-controller",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-api-session-controller",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-app-boot",
+      "export": "./worker/profile-resolution-bootstrap",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-client-connection",
+      "export": "./client",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-client-file-upload",
+      "export": "./client",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-client-file-upload",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-client-file-upload",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-commands",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-commands",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-goal",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-goal",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-llm",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-llm",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-schedule",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-schedule",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-subagent",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-subagent",
+      "export": "./remote",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-typert-registry",
+      "export": "./client",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    }
+  ]
+}

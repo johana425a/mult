@@ -1,0 +1,49 @@
+[
+  {
+    "file": "MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+    "bytes": 531066496,
+    "sha256": "3f3523429c880d675c0330cb3de78240452bc40a961d037e24f91ab8488f03e7",
+    "full_file_sha256_verified": true,
+    "header_bytes_read": 65536,
+    "header_sha256": "44da136b65d9f1027bf476656bbfc851dbaee004ff0c69bd4fd9fd7105766d3b",
+    "gguf_version": 3,
+    "metadata_until_license": {
+      "general.architecture": "qwen2vl",
+      "general.type": "model",
+      "general.sampling.top_k": 1,
+      "general.sampling.top_p": 0.0010000000474974513,
+      "general.sampling.temp": 0.009999999776482582,
+      "general.name": "MinerU2.5 Pro 2605 1.2B",
+      "general.finetune": "1.2b",
+      "general.basename": "MinerU2.5-Pro-2605",
+      "general.size_label": "494M",
+      "general.license": "apache-2.0"
+    },
+    "source_url": "https://huggingface.co/jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF/resolve/9185688a0495e1577d521a757c7c0b62dd38ca48/MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+    "conversion_revision_provided": false,
+    "quantization_reproduced": false
+  },
+  {
+    "file": "mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+    "bytes": 709409600,
+    "sha256": "b6c08ab50352677f7396af45ee60682f353f55488e26911d8154bfc37514d3f8",
+    "full_file_sha256_verified": true,
+    "header_bytes_read": 65536,
+    "header_sha256": "676d3fe604d9d0ccfacb1c7b5741c1d2702421ba81f926abeeeb74c300c08ad7",
+    "gguf_version": 3,
+    "metadata_until_license": {
+      "general.architecture": "clip",
+      "general.type": "mmproj",
+      "general.sampling.top_k": 1,
+      "general.sampling.top_p": 0.0010000000474974513,
+      "general.sampling.temp": 0.009999999776482582,
+      "general.name": "MinerU2.5 Pro 2605 1.2B",
+      "general.basename": "MinerU2.5-Pro-2605",
+      "general.size_label": "1.2B",
+      "general.license": "apache-2.0"
+    },
+    "source_url": "https://huggingface.co/jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF/resolve/9185688a0495e1577d521a757c7c0b62dd38ca48/mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+    "conversion_revision_provided": false,
+    "quantization_reproduced": false
+  }
+]

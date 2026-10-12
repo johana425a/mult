@@ -1,0 +1,50 @@
+[
+  {
+    "file": "MinerU-LICENSE.md",
+    "source": "https://raw.githubusercontent.com/opendatalab/MinerU/b7f3dd0c5f6e6d66a298239ffd02b328b873918e/LICENSE.md",
+    "bytes": 3301,
+    "sha256": "2d9aeb5d15159329a20dd804f251c64860ba954fbd26ec02f802220e6d71cf5c"
+  },
+  {
+    "file": "Apache-2.0.txt",
+    "source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "file": "original-vlm-model-card.md",
+    "source": "https://huggingface.co/opendatalab/MinerU2.5-Pro-2605-1.2B/raw/08aaea840498d49ce16247b6263196cf02814885/README.md",
+    "bytes": 15571,
+    "sha256": "8f829b69be518375b02023f795b3898adec98f5ac37208239884ad88e9a21cb7"
+  },
+  {
+    "file": "onnx-model-card.md",
+    "source": "https://huggingface.co/opendatalab/MinerU-4_models_onnx/raw/358310b4f64b95f9fefc372ad899356e4111f376/README.md",
+    "bytes": 1298,
+    "sha256": "bb03afa9a76c3ccec9ecf0c92e99129eca3e0049f0c9269e8ec63446768e2449"
+  },
+  {
+    "file": "onnx-upstream-manifest.json",
+    "source": "https://huggingface.co/opendatalab/MinerU-4_models_onnx/raw/358310b4f64b95f9fefc372ad899356e4111f376/manifest.json",
+    "bytes": 12920,
+    "sha256": "d1610c0de099706ad09a41121e3e495cb0c5acb220609963d53905b4e40623d0"
+  },
+  {
+    "file": "torch-source-model-card.md",
+    "source": "https://huggingface.co/opendatalab/MinerU-4_models_torch/raw/2b3afb86f4d23fa623f6b2f4b2279ed4ef93a89d/README.md",
+    "bytes": 28,
+    "sha256": "98b45ea81164d1e1a1dd82255207053b15cd6c69d922a1c5cf3387ce604d4b74"
+  },
+  {
+    "file": "model-registry.py.txt",
+    "source": "https://raw.githubusercontent.com/opendatalab/MinerU/b7f3dd0c5f6e6d66a298239ffd02b328b873918e/mineru/model/registry.py",
+    "bytes": 6384,
+    "sha256": "fdee44ee20f759c6ce775c40a0415f17327a974bfa3cbfd821ee5b83a52374b0"
+  },
+  {
+    "file": "official-llama-server-MIT.txt",
+    "source": "https://raw.githubusercontent.com/ggml-org/llama.cpp/f2918cabbffe8abf8e2a90c1c089085fa116c2cf/LICENSE",
+    "bytes": 1078,
+    "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d"
+  }
+]

@@ -1,0 +1,141 @@
+{
+  "scope": "Only two packaged OpenMAIC sharp/libvips DLLs and six public OpenAI tiktoken cache assets; no model calls or private content",
+  "package": {
+    "name": "@img/sharp-win32-x64",
+    "version": "0.35.4",
+    "registry_url": "https://registry.npmjs.org/@img%2Fsharp-win32-x64/0.35.4",
+    "gitHead": "7f1a0a22cc285fe180766f4935d50b55af6e8432",
+    "license": "Apache-2.0 AND LGPL-3.0-or-later"
+  },
+  "documents": [
+    {
+      "file": "licenses/sharp-libvips/sharp-Apache-2.0.txt",
+      "source_local": "upstream/OpenMAIC/node_modules/.pnpm/@img+sharp-win32-x64@0.35.4/node_modules/@img/sharp-win32-x64/LICENSE",
+      "bytes": 10464,
+      "sha256": "dc1f5d2d43c5531dfe0acaf4e950ea5dbe3e61e1850cf0e983bda7efc10d6693"
+    },
+    {
+      "file": "licenses/sharp-libvips/sharp-package-README.md",
+      "source_local": "upstream/OpenMAIC/node_modules/.pnpm/@img+sharp-win32-x64@0.35.4/node_modules/@img/sharp-win32-x64/README.md",
+      "bytes": 4913,
+      "sha256": "280e7d164420cfc1a1b192a582bf53e3dba97b86a5c3575f878b674ad1d41e13"
+    },
+    {
+      "file": "licenses/sharp-libvips/sharp-package-versions.json",
+      "source_local": "upstream/OpenMAIC/node_modules/.pnpm/@img+sharp-win32-x64@0.35.4/node_modules/@img/sharp-win32-x64/versions.json",
+      "bytes": 597,
+      "sha256": "d551c859958f06b8088957f679c29be1ff53760191f7401e8183460fc5f58cf4"
+    },
+    {
+      "file": "licenses/sharp-libvips/sharp-package.json",
+      "source_local": "upstream/OpenMAIC/node_modules/.pnpm/@img+sharp-win32-x64@0.35.4/node_modules/@img/sharp-win32-x64/package.json",
+      "bytes": 888,
+      "sha256": "b4fc98ec709b31a80e8450259c3d5ed2fc1e2b8f8355ced4bfd4d75db45f8a87"
+    },
+    {
+      "file": "licenses/sharp-libvips/LGPL-3.0.txt",
+      "source_url": "https://www.gnu.org/licenses/lgpl-3.0.txt",
+      "bytes": 7652,
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
+      "file": "licenses/sharp-libvips/GPL-3.0.txt",
+      "source_url": "https://www.gnu.org/licenses/gpl-3.0.txt",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "file": "licenses/sharp-libvips/libvips-LGPL-2.1.txt",
+      "source_url": "https://raw.githubusercontent.com/libvips/libvips/v8.18.6/LICENSE",
+      "bytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "file": "licenses/sharp-libvips/sharp-libvips-THIRD-PARTY-NOTICES.md",
+      "source_url": "https://raw.githubusercontent.com/lovell/sharp-libvips/v1.3.3-rc.0/THIRD-PARTY-NOTICES.md",
+      "bytes": 4230,
+      "sha256": "25ffcfa69e28b1913ced27ec778b90f24911a1bb3021253577e8b0af55db0d49"
+    },
+    {
+      "file": "licenses/tiktoken/tiktoken-MIT-LICENSE.txt",
+      "source_local": "runtime/tiktoken-cache/LICENSE.txt",
+      "bytes": 1078,
+      "sha256": "418cb499b436128d653d79941333a5437b7be2ea9213dcc2f04d15d5d2c51d86"
+    },
+    {
+      "file": "licenses/tiktoken/cache-manifest.json",
+      "source_local": "runtime/tiktoken-cache/manifest.json",
+      "bytes": 3292,
+      "sha256": "ee405c6fb505b6c3a5d8fd21a5b26b1de1b39bee05e32b0e7ff1dd744e135774"
+    },
+    {
+      "file": "licenses/tiktoken/GPT-2-LICENSE.txt",
+      "source_url": "https://raw.githubusercontent.com/openai/gpt-2/9b63575ef42771a015060c964af2c3da4cf7c8ab/LICENSE",
+      "bytes": 1403,
+      "sha256": "0dbeda4bc78823b1d67ec0ee414d8690ee4cad826bc9c147b215adc3af202436"
+    }
+  ],
+  "dlls": [
+    {
+      "name": "libvips-42.dll",
+      "bytes": 18614784,
+      "sha256": "e6cc51bbc763e7deda536c6f56ce96b4c51ea769690ce4f4ed07607527b81dae",
+      "modified": false
+    },
+    {
+      "name": "libvips-cpp-8.18.6.dll",
+      "bytes": 333312,
+      "sha256": "4f458afdb7b8a4290dbda3f287d7db037b239b8a9d21f0b87333f92192cdee76",
+      "modified": false
+    }
+  ],
+  "tiktoken_asset_checks": [
+    {
+      "name": "cl100k_base",
+      "sha256": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+      "expected_match": true
+    },
+    {
+      "name": "o200k_base",
+      "sha256": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d",
+      "expected_match": true
+    },
+    {
+      "name": "r50k_base",
+      "sha256": "306cd27f03c1a714eca7108e03d66b7dc042abe8c258b44c199a7ed9838dd930",
+      "expected_match": true
+    },
+    {
+      "name": "p50k_base",
+      "sha256": "94b5ca7dff4d00767bc256fdd1b27e5b17361d7b8a5f968547f9f23eb70d2069",
+      "expected_match": true
+    },
+    {
+      "name": "gpt2-vocab",
+      "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+      "expected_match": true
+    },
+    {
+      "name": "gpt2-encoder",
+      "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783",
+      "expected_match": true
+    }
+  ],
+  "private_application_cache_read": false,
+  "source_access": {
+    "windows_recipe_commit": "09cfccf20b91b441fbe97fa7a7ed8a597e55e830",
+    "windows_recipe_archive": "https://github.com/libvips/build-win64-mxe/archive/09cfccf20b91b441fbe97fa7a7ed8a597e55e830.tar.gz",
+    "libvips_source_url": "https://github.com/libvips/libvips/releases/download/v8.18.6/vips-8.18.6.tar.xz",
+    "libvips_source_expected_sha256": "3c41e1d5458081bfa4a5bc54e116c46259c75c6760a18027764555632b9dda3e",
+    "libvips_source_expected_checksum_matches_windows_recipe": true,
+    "mxe_recipe_branch": "llvm-mingw-20260605",
+    "mxe_recipe_pins_commit": false,
+    "mxe_branch_current_resolution": "d973945bb92c7783d5afa41bb2b8d2e1a04eaba3",
+    "mxe_snapshot_url": "https://github.com/kleisauke/mxe/archive/d973945bb92c7783d5afa41bb2b8d2e1a04eaba3.tar.gz",
+    "dependency_source_fetch_target": "download-vips-web",
+    "windows_binary_zip_url": "https://github.com/libvips/build-win64-mxe/releases/download/v8.18.6/vips-dev-x64-web-8.18.6-static.zip",
+    "windows_binary_zip_sha256": "42ceea0c2f53d1244f3cb54c059881487b37452ee46c1c98c0d4b47480b20588",
+    "libvips_42_matches_official_zip": true,
+    "all_dependency_source_archives_downloaded_or_rebuilt": false
+  }
+}

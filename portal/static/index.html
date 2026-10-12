@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#164f46">
+  <meta name="description" content="Connect course materials, interactive lessons, visual explanations, feedback, and lasting learning records.">
+  <title>DeepSteam · Interactive learning workbench</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="#workspace" aria-label="DeepSteam, return to the workbench">
+        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M5 6.5h8a4 4 0 0 1 4 4v16a6.6 6.6 0 0 0-5-2H5z" fill="currentColor" opacity=".35"/><path d="M27 5h-7a5 5 0 0 0-5 5v16a6.6 6.6 0 0 1 5-2h7z" fill="currentColor"/><path d="m20 11 3 3-3 3" stroke="#fbfaf6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="brand-wordmark">DeepSteam<span class="brand-caption">Interactive learning workbench</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-item active" href="#workspace" data-view="workspace" aria-current="page">Course workbench</a>
+        <a class="nav-item" href="#records" data-view="records">Learning records<span id="records-count" class="nav-count" hidden>0</span></a>
+        <a class="nav-item" href="#settings" data-view="settings">API settings</a>
+      </nav>
+      <div class="header-local"><span class="status-dot"></span>Local workspace</div>
+    </header>
+
+    <div class="service-bar" aria-label="Service status">
+      <span class="service-bar-label">Learning services</span>
+      <a class="service-chip" id="deeptutor-link" href="/open/learning" target="_blank" rel="noopener noreferrer"><span class="status-dot unknown" id="deeptutor-dot"></span><strong>Learning workbench</strong><span id="deeptutor-state">Checking</span><span aria-hidden="true">↗</span></a>
+      <a class="service-chip" id="openmaic-link" href="/open/classroom" target="_blank" rel="noopener noreferrer"><span class="status-dot unknown" id="openmaic-dot"></span><strong>Classroom center</strong><span id="openmaic-state">Checking</span><span aria-hidden="true">↗</span></a>
+      <button class="text-button service-refresh" id="refresh-status" type="button">Refresh status</button>
+      <span class="service-bar-note">Reading, classrooms, and learning records</span>
+    </div>
+
+    <main>
+      <div id="connection-alert" class="banner banner-error" role="alert" hidden></div>
+
+      <section id="view-workspace" class="app-view" aria-labelledby="workspace-title">
+        <div class="page-heading">
+          <div><div class="eyebrow">LEARN WITH CONTEXT</div><h1 id="workspace-title">Bring your materials to life.</h1><p>Understand a document, create an interactive explanation, and keep a record of what you learn.</p></div>
+          <div class="demo-actions"><div class="demo-action-buttons"><button id="import-demo" class="button button-secondary" type="button"><span data-icon="sparkles"></span>Import open demo materials</button><button id="open-demo-lesson" class="button button-primary" type="button"><span data-icon="play"></span>Open demo classroom</button><a id="watch-demo-video" class="button button-secondary" href="/api/demo-video" target="_blank" rel="noopener noreferrer"><span data-icon="presentation"></span>Watch demo video</a></div><span>Prepared demo · Video uses local speech synthesis · No cloud model call</span></div>
+        </div>
+
+        <div class="workflow-strip" aria-label="Learning workflow">
+          <div><span class="step-number">01</span><span>Choose course materials</span></div><span class="flow-line"></span>
+          <div><span class="step-number">02</span><span>Generate a classroom</span></div><span class="flow-line"></span>
+          <div><span class="step-number">03</span><span>Answer and receive feedback</span></div>
+          <span id="workspace-counts" class="workspace-counts">Loading workspace...</span>
+        </div>
+
+        <div class="workspace-grid">
+          <aside class="panel source-panel" aria-labelledby="sources-title">
+            <div class="panel-heading"><div class="section-title"><span data-icon="library"></span><h2 id="sources-title">Course materials</h2></div><span id="materials-count" class="count-badge">0</span></div>
+            <label class="upload-zone" id="upload-zone" for="material-file" tabindex="0">
+              <span class="upload-icon" data-icon="upload"></span><strong id="upload-title">Upload your materials</strong><span>Drop a file or click to choose</span><small id="upload-formats">PDF · Word · PowerPoint · Markdown · Spreadsheet</small>
+            </label>
+            <input id="material-file" type="file" accept=".pdf,.docx,.pptx,.md,.txt,.xlsx" class="visually-hidden">
+            <div id="upload-error" class="inline-error" role="alert" hidden></div>
+            <div class="list-label">Material library<span>Original files preserved</span></div>
+            <div id="materials-list" class="materials-list" aria-live="polite"><div class="empty-list">Loading materials...</div></div>
+            <div class="source-footnote"><span data-icon="shield"></span><p>Uploads are saved locally first. Content needed for generation or feedback is sent to the model service you select.</p></div>
+          </aside>
+
+          <div class="learning-column">
+            <section class="panel reading-panel" aria-labelledby="reading-title">
+              <div class="panel-heading"><div class="section-title"><span data-icon="book"></span><h2 id="reading-title">Read materials</h2></div><a id="material-original" class="text-button" href="#" target="_blank" rel="noopener noreferrer" hidden>View original file ↗</a><span id="material-format" class="tag" hidden></span></div>
+              <div id="reading-empty" class="reading-empty"><div class="empty-book" data-icon="book"></div><h3>A good lesson starts with a document</h3><p>Upload lecture notes or an article, or import the demo materials, <br>and see how a document becomes a learning experience.</p><button class="text-button" id="choose-file-empty" type="button">Choose materials <span aria-hidden="true">→</span></button></div>
+              <div id="reading-content" hidden><div class="reading-meta"><h3 id="material-title"></h3><p id="material-details"></p></div><div id="material-preview" class="material-preview" tabindex="0"></div><div id="material-text-note" class="reading-note"></div></div>
+            </section>
+
+            <section class="panel classroom-panel" aria-labelledby="classroom-title">
+              <div class="panel-heading"><div class="section-title"><span data-icon="presentation"></span><h2 id="classroom-title">Interactive classroom</h2></div><span class="powered-label">DEEPSTEAM</span></div>
+              <div id="model-setup-notice" class="model-setup-notice" hidden><span data-icon="sliders"></span><span>Connect your chosen model service before generating.</span><a href="#settings">Configure API →</a></div>
+              <form id="lesson-form" class="lesson-form">
+                <label class="field-label" for="lesson-title">Classroom name<span class="optional">Optional</span></label>
+                <input id="lesson-title" name="title" placeholder="Example: Understand Newton's second law" maxlength="160" autocomplete="off">
+                <label class="field-label" for="lesson-goal">What would you like to learn?</label>
+                <textarea id="lesson-goal" name="goal" rows="3" required maxlength="4000" placeholder="Describe your goal and prior knowledge. Example: I am new to mechanics and want to understand force, mass, and acceleration through examples in these notes."></textarea>
+                <div class="generation-footer"><p><span data-icon="info"></span>Generation uses the selected materials and learning goal through your configured model service.</p><button id="generate-lesson" class="button button-primary" type="submit" disabled><span data-icon="play"></span>Generate classroom</button></div>
+                <div id="lesson-error" class="inline-error" role="alert" hidden></div>
+              </form>
+              <div id="lesson-result" class="lesson-result" hidden aria-live="polite"></div>
+              <div id="recent-lessons-wrap" class="recent-lessons" hidden><div class="list-label">Classrooms for this material<button id="refresh-lessons" class="text-button" type="button">Refresh</button></div><div id="recent-lessons-list"></div></div>
+            </section>
+          </div>
+
+          <aside class="panel practice-panel" aria-labelledby="practice-title">
+            <div class="panel-heading"><div class="section-title"><span data-icon="pen"></span><h2 id="practice-title">Practice and feedback</h2></div><span class="small-label">Keep what you understand</span></div>
+            <div class="practice-intro"><span class="practice-illustration" data-icon="thought"></span><h3>Explain it in your own words.</h3><p>Record an answer after the lesson and receive feedback based on the materials.</p></div>
+            <form id="attempt-form">
+              <label class="field-label" for="practice-lesson">Related classroom</label><select id="practice-lesson" required><option value="">Generate or choose a classroom first</option></select>
+              <label class="field-label" for="attempt-question">Question or self-check</label><textarea id="attempt-question" rows="3" required maxlength="5000" placeholder="Enter a question from the lesson..."></textarea>
+              <label class="field-label" for="attempt-answer">My answer</label><textarea id="attempt-answer" rows="6" required maxlength="12000" placeholder="Start with your own understanding. The tutor will help you check it against the materials."></textarea>
+              <p class="privacy-note">Submitting saves your answer and sends the question, answer, and relevant materials to your configured model service.</p>
+              <button id="submit-attempt" class="button button-primary button-full" type="submit" disabled><span data-icon="check"></span>Save answer and get feedback</button>
+              <div id="attempt-error" class="inline-error" role="alert" hidden></div>
+            </form>
+            <div id="attempt-result" class="attempt-result" hidden aria-live="polite"></div>
+            <a class="practice-history-link" href="#records">View all learning records <span aria-hidden="true">→</span></a>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-records" class="app-view" aria-labelledby="records-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">YOUR LEARNING JOURNAL</div><h1 id="records-title">See how your understanding grows.</h1><p>Classrooms, original answers, and feedback are saved locally so you can return anytime.</p></div><button id="refresh-records" class="button button-secondary" type="button"><span data-icon="refresh"></span>Refresh records</button></div>
+        <div class="records-grid"><section class="panel records-panel"><div class="panel-heading"><div class="section-title"><span data-icon="pen"></span><h2>Answer records</h2></div><span id="attempts-count" class="count-badge">0</span></div><div id="attempts-list" class="attempts-list"></div></section><section class="panel course-history-panel"><div class="panel-heading"><div class="section-title"><span data-icon="presentation"></span><h2>Classroom records</h2></div><span id="lessons-count" class="count-badge">0</span></div><div id="all-lessons-list" class="all-lessons-list"></div></section></div>
+      </section>
+
+      <section id="view-settings" class="app-view" aria-labelledby="settings-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">CONNECT YOUR MODELS</div><h1 id="settings-title">Your models, your choice.</h1><p>Keep provider and custom API settings. Connect your own service before generating.</p></div><span id="settings-state" class="settings-state">Loading settings</span></div>
+        <div class="settings-grid">
+          <form id="settings-form" class="panel settings-form">
+            <div class="panel-heading"><div class="section-title"><span data-icon="sliders"></span><h2>Workbench connection</h2></div><span class="tag">OpenAI-compatible API</span></div>
+            <div class="settings-body"><p class="settings-description">Choose the classroom model and enable narration when needed.</p>
+              <label class="field-label" for="setting-model-mode">Model connection</label><select id="setting-model-mode"><option value="native">Follow global model</option><option value="current">Verified connection</option><option value="custom">Custom API</option><option value="unconfigured">Not configured</option></select>
+              <p class="field-help" id="local-model-note">Use the verified connection from Connect models. Custom API settings remain available.</p>
+              <label class="field-label" for="setting-base-url">API Base URL</label><input id="setting-base-url" name="base_url" type="url" placeholder="https://api.example.com/v1" autocomplete="url">
+              <p class="field-help">Enter the API address provided by your service, or the address of a local model service you operate.</p>
+              <label class="field-label" for="setting-model">Model name</label><input id="setting-model" name="model" placeholder="Enter a model ID supported by the provider" autocomplete="off">
+              <label class="field-label" for="setting-api-key">API Key<span id="api-key-status" class="optional">Not set</span></label><input id="setting-api-key" name="api_key" type="password" placeholder="Enter a key; leave blank to keep a saved key" autocomplete="new-password" spellcheck="false"><label class="checkbox-row"><input id="clear-api-key" type="checkbox">Clear saved model key</label>
+              <div class="settings-divider"></div>
+              <div class="tts-heading"><div><h3>Classroom narration</h3><p>Local speech needs no API. You can also use your own speech service.</p></div><label class="switch"><input id="setting-tts-enabled" type="checkbox" aria-label="Enable classroom narration"><span></span></label></div>
+              <label class="field-label" for="setting-tts-mode">Narration mode</label><select id="setting-tts-mode"><option value="local">Local speech</option><option value="api">Your speech API</option></select><p id="local-tts-note">Uses speech voices installed in Windows. If no compatible voice is available, the app prompts you to install one and does not automatically call a cloud service.</p>
+              <fieldset id="tts-fields" disabled><legend class="visually-hidden">Speech synthesis settings</legend><label class="field-label" for="setting-tts-url">TTS Base URL</label><input id="setting-tts-url" type="url" placeholder="https://api.example.com/v1" autocomplete="off"><div class="field-pair"><div><label class="field-label" for="setting-tts-model">Speech model</label><input id="setting-tts-model" placeholder="Provider speech model ID" autocomplete="off"></div><div><label class="field-label" for="setting-tts-voice">Voice</label><input id="setting-tts-voice" placeholder="Voice ID supported by the provider" autocomplete="off"></div></div><label class="field-label" for="setting-tts-key">TTS API Key<span id="tts-key-status" class="optional">Not set</span></label><input id="setting-tts-key" type="password" placeholder="Leave blank to keep the saved speech key" autocomplete="new-password" spellcheck="false"><label class="checkbox-row"><input id="clear-tts-key" type="checkbox">Clear saved speech key</label></fieldset>
+              <div class="settings-footer"><p><span data-icon="shield"></span>Keys are never shown again on the page or included in learning records.</p><button id="save-settings" class="button button-primary" type="submit">Save settings</button></div><div id="settings-error" class="inline-error" role="alert" hidden></div>
+            </div>
+          </form>
+          <aside class="settings-aside"><div class="panel native-settings"><div class="panel-heading"><div class="section-title"><span data-icon="grid"></span><h2>More settings</h2></div></div><p>Manage models, learning tools, and classroom playback.</p><a class="native-app-card" href="/open/settings" target="_blank" rel="noopener noreferrer"><span class="native-icon dt">D</span><div><strong>Model settings</strong><span>Models, tools, and the learning workbench</span><small>Open settings</small></div><span class="external-arrow">↗</span></a><a class="native-app-card" href="/open/classroom" target="_blank" rel="noopener noreferrer"><span class="native-icon maic">D</span><div><strong>Classroom settings</strong><span>Interactive classrooms, narration, and video export</span><small>Open classroom center</small></div><span class="external-arrow">↗</span></a></div><div class="settings-note"><span data-icon="info"></span><div><h3>Choose a model that fits your needs</h3><p>Model and speech service charges depend on the provider and your account plan.</p><p>Material reading and existing learning records remain local.</p></div></div></aside>
+        </div>
+      </section>
+    </main>
+    <footer class="app-footer"><span><strong>DeepSteam</strong> · Learn from sources. See your understanding grow.</span><span>Built with AI assistance · Primary tool: Codex</span></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

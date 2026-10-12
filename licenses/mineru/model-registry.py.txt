@@ -1,0 +1,179 @@
+# Copyright (c) Opendatalab. All rights reserved.
+"""Model repositories, named asset paths, and deployment-tier mappings."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from ..types import DEPLOYMENT_TIERS, DeploymentTier
+from .download import MODEL_COMPLETE_MARKER, DownloadMode, ModelPath, ModelRepo, model_path_exists
+
+if TYPE_CHECKING:
+    from ..config import VlmConfig
+
+
+MINERU_4_MODELS_TORCH = ModelRepo(
+    name="MinerU-4_models_torch",
+    download_mode="required_paths",
+    repos={
+        "huggingface": "opendatalab/MinerU-4_models_torch",
+        "modelscope": "OpenDataLab/MinerU-4_models_torch",
+    },
+    paths={
+        "pp_doclayout_v2": "Layout/PP-DocLayoutV2",
+        "pp_formulanet_plus_m_weights": "MFR/pp_formulanet_plus_m/PP-FormulaNet_plus-M.pth",
+        "pp_formulanet_plus_m_config": "MFR/pp_formulanet_plus_m/PP-FormulaNet_plus-M_inference.yml",
+        "pytorch_paddle": "OCR/paddleocr",
+        "slanet_plus": "Table/slanet-plus.onnx",
+        "unet_structure": "Table/unet.onnx",
+        "paddle_table_cls": "Table/PP-LCNet_x1_0_table_cls.onnx",
+    },
+)
+
+MINERU_2_5_PRO_2605_1_2B = ModelRepo(
+    name="MinerU2.5-Pro-2605-1.2B",
+    repos={
+        "huggingface": "opendatalab/MinerU2.5-Pro-2605-1.2B",
+        "modelscope": "OpenDataLab/MinerU2.5-Pro-2605-1.2B",
+    },
+)
+
+# ONNX assets share one repository; table files match the Torch bundle byte for byte.
+MINERU_4_MODELS_ONNX = ModelRepo(
+    name="MinerU-4_models_onnx",
+    download_mode="required_paths",
+    repos={
+        "huggingface": "opendatalab/MinerU-4_models_onnx",
+        "modelscope": "OpenDataLab/MinerU-4_models_onnx",
+    },
+    paths={
+        "pp_doclayout_v2": "Layout/PP-DocLayoutV2/inference.onnx",
+        "pp_doclayout_v2_config": "Layout/PP-DocLayoutV2/inference.yml",
+        "ocr_det": "OCR/paddleocr/ch_PP-OCRv6_tiny_det_infer.onnx",
+        "ocr_det_config": "OCR/paddleocr/ch_PP-OCRv6_tiny_det_inference.yml",
+        "ocr_rec": "OCR/paddleocr/ch_PP-OCRv6_small_rec_infer.onnx",
+        "ocr_rec_config": "OCR/paddleocr/ch_PP-OCRv6_small_rec_inference.yml",
+        "seal_det": "OCR/paddleocr/seal_PP-OCRv4_det_infer.onnx",
+        "seal_det_config": "OCR/paddleocr/seal_PP-OCRv4_det_inference.yml",
+        "pp_formulanet_plus_m_weights": "MFR/pp_formulanet_plus_m/PP-FormulaNet_plus-M.onnx",
+        "pp_formulanet_plus_m_config": "MFR/pp_formulanet_plus_m/PP-FormulaNet_plus-M_inference.yml",
+        "slanet_plus": "Table/slanet-plus.onnx",
+        "unet_structure": "Table/unet.onnx",
+        "paddle_table_cls": "Table/PP-LCNet_x1_0_table_cls.onnx",
+    },
+)
+
+# llama.cpp uses a GGUF main model and a multimodal projection file.
+MINERU_2_5_PRO_2605_1_2B_GGUF = ModelRepo(
+    name="MinerU2.5-Pro-2605-1.2B-GGUF",
+    repos={
+        "huggingface": "jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF",
+        "modelscope": "jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF",
+    },
+    paths={
+        "main": "MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+        "mmproj": "mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+    },
+)
+
+MODEL_REPOS: tuple[ModelRepo, ...] = (
+    MINERU_4_MODELS_TORCH,
+    MINERU_4_MODELS_ONNX,
+    MINERU_2_5_PRO_2605_1_2B,
+    MINERU_2_5_PRO_2605_1_2B_GGUF,
+)
+
+MODEL_REPOS_BY_NAME: dict[str, ModelRepo] = {repo.name: repo for repo in MODEL_REPOS}
+
+
+_SMALL_MODEL_REPOS: dict[str, ModelRepo] = {
+    "onnx": MINERU_4_MODELS_ONNX,
+    "torch": MINERU_4_MODELS_TORCH,
+}
+_VLM_MODEL_REPOS: dict[str, ModelRepo] = {
+    "llama-cpp": MINERU_2_5_PRO_2605_1_2B_GGUF,
+    "vllm": MINERU_2_5_PRO_2605_1_2B,
+    "lmdeploy": MINERU_2_5_PRO_2605_1_2B,
+    "mlx": MINERU_2_5_PRO_2605_1_2B,
+}
+
+
+def small_model_repo(backend: str | None = None) -> ModelRepo:
+    """Select the small-model repository independently of the VLM engine and weight format."""
+    from .runtime.device import resolve_small_model_backend
+
+    return _SMALL_MODEL_REPOS[resolve_small_model_backend(backend)]
+
+
+def vlm_model_repo(engine: str | None = None) -> ModelRepo:
+    """Select GGUF or original weights according to the resolved VLM engine."""
+    from .vlm.selector import resolve_vlm_engine
+
+    return _VLM_MODEL_REPOS[resolve_vlm_engine(engine)]
+
+
+def get_model_repo(name: str) -> ModelRepo:
+    """Resolve a registered public repository name and reject obsolete names explicitly."""
+    try:
+        return MODEL_REPOS_BY_NAME[name]
+    except KeyError as exc:
+        available = ", ".join(MODEL_REPOS_BY_NAME)
+        raise ValueError(f"Unsupported model repo '{name}'. Available repos: {available}.") from exc
+
+
+def validate_model_tier(tier: str) -> DeploymentTier:
+    """Validate the deployment tier and return its normalized name."""
+    normalized = tier.strip().lower()
+    if normalized in DEPLOYMENT_TIERS:
+        return normalized  # type: ignore[return-value]
+    supported = ", ".join(DEPLOYMENT_TIERS)
+    raise ValueError(f"Unsupported model tier '{tier}'. Supported model tiers: {supported}.")
+
+
+def model_repos_for_tier(
+    tier: str,
+    *,
+    small_backend: str | None = None,
+    vlm_engine: str | None = None,
+    vlm_config: VlmConfig | None = None,
+) -> tuple[ModelRepo, ...]:
+    """Combine tier assets; remote VLM needs no local weights, and an explicit engine overrides remote configuration."""
+    from ..config import config
+
+    resolved_tier = validate_model_tier(tier)
+    if vlm_engine is not None:
+        from .vlm.selector import resolve_vlm_engine
+
+        # Basic does not load a VLM, but model commands still reject invalid explicit engine names.
+        vlm_engine = resolve_vlm_engine(vlm_engine)
+    repos = (small_model_repo(small_backend),)
+    settings = vlm_config if vlm_config is not None else config.model.vlm
+    if resolved_tier == "standard" and (vlm_engine is not None or not settings.server_url):
+        repos += (vlm_model_repo(vlm_engine if vlm_engine is not None else settings.engine),)
+    return repos
+
+
+def model_repo_names() -> tuple[str, ...]:
+    """Return repository names available to the command-line interface."""
+    return tuple(MODEL_REPOS_BY_NAME)
+
+
+__all__ = [
+    "MINERU_2_5_PRO_2605_1_2B",
+    "MINERU_2_5_PRO_2605_1_2B_GGUF",
+    "MODEL_COMPLETE_MARKER",
+    "MODEL_REPOS",
+    "MODEL_REPOS_BY_NAME",
+    "DownloadMode",
+    "ModelPath",
+    "ModelRepo",
+    "MINERU_4_MODELS_TORCH",
+    "MINERU_4_MODELS_ONNX",
+    "small_model_repo",
+    "vlm_model_repo",
+    "get_model_repo",
+    "model_path_exists",
+    "model_repo_names",
+    "model_repos_for_tier",
+    "validate_model_tier",
+]

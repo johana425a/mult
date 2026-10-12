@@ -1,0 +1,29 @@
+# DeepSteam modification notice
+
+This is a modified integration of the pinned projects listed in `NOTICE.md`. Original license files, source ownership, and applicable third-party notices are retained.
+
+## Integration changes
+
+- `desktop/` adds the desktop shell, internal transport, managed startup and shutdown, storage migration, and uninstall entry point.
+- `integration/` adds the Harness host, shared model gateway, account-connection workflow, workspace document tools, read queues, cached extraction, source references, and persistent reading progress.
+- `portal/` associates materials, classrooms, and original answer records while preserving user-selected provider settings.
+- `scripts/` supplies component lifecycle management, storage selection, document workers, and runtime verification.
+- `installer/` stages compatible runtime assets and implements Windows installation, ownership-aware uninstall, progress reporting, and package validation.
+- Modified DeepTutor frontend and backend files add DeepSteam branding, the unified model selector, classroom access, workspace integration, content management, task recovery, and usage recording. File-level notices identify modified files where applicable.
+- Modified OpenMAIC files add shared model routing, document and image transfer, original-source retention, classroom storage integration, speech configuration, and desktop-compatible rendering.
+
+## English public edition
+
+The English public edition changes interface strings, prompts, comments, documentation, default locale settings, source examples, and machine-specific development paths. It uses English filenames and English default language settings. Generic internal transport remains an implementation detail inside the desktop application.
+
+Non-runtime upstream agent notes, historical snapshots, documentation media, duplicate translated documentation, personal configuration, installed runtimes, model weights, logs, databases, and user records are excluded from the public export. Required code, English notices, and applicable licenses are preserved.
+
+The source edition is distinct from previously produced binary packages. Its final file manifest is regenerated from the actual localized export, and no previous package hash is presented as a hash of an edited file.
+
+## Document-tool notices
+
+MinerU is integrated through an isolated document runtime and a structured worker. Added integration preserves original pages, asset references, extraction coverage, queue state, cache reuse, and recoverable workspace summaries. MinerU parsing code and document model artifacts retain their upstream attribution and licenses.
+
+The MinerU license retains the complete official English additional terms and the Apache License 2.0 base text. Duplicate translated license text is omitted from this English edition. The preserved model registry reference has English comments and unchanged repository and artifact identifiers.
+
+These modifications do not claim that every document can be perfectly recognized, that a language-model login provides every auxiliary model service, or that deterministic test fixtures establish live teaching quality.

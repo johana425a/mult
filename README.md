@@ -22,6 +22,8 @@ For a complete Windows distribution, keep its installer and matching payload fil
 
 This repository is source code. A source checkout requires the component dependencies and compatible runtime assets before it can be packaged. See [GUIDE.md](GUIDE.md) for the source layout, setup workflow, and operating notes. Runtime binaries and document-tool model weights are downloaded separately from their pinned official sources and are excluded from this repository.
 
+Run `python scripts/verify_public_source.py` to check the reviewed source files against [PUBLIC-SOURCE-MANIFEST.json](PUBLIC-SOURCE-MANIFEST.json). This check does not read account settings, contact a model provider, or modify learning records.
+
 ## Project layout
 
 | Directory | Purpose |

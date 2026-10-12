@@ -1,0 +1,40 @@
+/** Office preview copy and Host render configuration guidance. */
+export const zh = {
+  title: 'Office document',
+  loading: 'Rendering document...',
+  retry: 'Retry',
+  viewMissingFonts: 'Missing fonts: {count}. Click to view.',
+  missingFontsTitle: 'Missing fonts',
+  missingFontsDescription: 'These fonts are unavailable for this preview. Text and layout may differ from the original document.',
+  missingFontsCount: 'Fonts: {count}',
+  closeDetails: 'Close font details',
+  unavailable: 'Office previews are unavailable. Enable the document preview service on the computer running DeepSeek Harness.',
+  invalid: 'This Office file cannot be previewed. It may be damaged, password protected, or have the wrong extension.',
+  tooLarge: 'The Office file or converted PDF exceeds the preview size limit. Reduce the file size or adjust the preview configuration.',
+  failed: 'Office conversion did not produce a usable PDF. Check the file and try again.',
+  timeout: 'Office conversion timed out. Try again.',
+  busy: 'Office preview is busy. Try again shortly.',
+  changed: 'The file changed while being read. Reopen the preview.',
+} satisfies Record<string, string>
+
+/** Office preview locale keys. */
+export type OfficePreviewKey = keyof typeof zh
+
+/** English translations checked against the Chinese key set. */
+export const en = {
+  title: 'Office document',
+  loading: 'Rendering document...',
+  retry: 'Retry',
+  viewMissingFonts: 'Missing fonts: {count}. Click to view.',
+  missingFontsTitle: 'Missing fonts',
+  missingFontsDescription: 'These fonts are unavailable for this preview. Text and layout may differ from the original document.',
+  missingFontsCount: 'Fonts: {count}',
+  closeDetails: 'Close font details',
+  unavailable: 'Office previews are unavailable. Enable the document preview service on the computer running DeepSeek Harness.',
+  invalid: 'This Office file cannot be previewed. It may be damaged, password protected, or have the wrong extension.',
+  tooLarge: 'The Office file or converted PDF exceeds the preview size limit. Reduce the file size or adjust the preview configuration.',
+  failed: 'Office conversion did not produce a usable PDF. Check the file and try again.',
+  timeout: 'Office conversion timed out. Try again.',
+  busy: 'Office preview is busy. Try again shortly.',
+  changed: 'The file changed while being read. Reopen the preview.',
+} satisfies Record<OfficePreviewKey, string>

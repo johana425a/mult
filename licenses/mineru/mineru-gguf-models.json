@@ -1,0 +1,28 @@
+{
+  "schema": "deepsteam-mineru-model-provenance-v1",
+  "repository": "jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF",
+  "revision": "9185688a0495e1577d521a757c7c0b62dd38ca48",
+  "files": [
+    {
+      "path": "models/mineru/MinerU2.5-Pro-2605-1.2B-GGUF/MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+      "bytes": 531066496,
+      "sha256": "3f3523429c880d675c0330cb3de78240452bc40a961d037e24f91ab8488f03e7",
+      "source_url": "https://huggingface.co/jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF/resolve/9185688a0495e1577d521a757c7c0b62dd38ca48/MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+      "revision": "9185688a0495e1577d521a757c7c0b62dd38ca48",
+      "repository": "jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF"
+    },
+    {
+      "path": "models/mineru/MinerU2.5-Pro-2605-1.2B-GGUF/mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+      "bytes": 709409600,
+      "sha256": "b6c08ab50352677f7396af45ee60682f353f55488e26911d8154bfc37514d3f8",
+      "source_url": "https://huggingface.co/jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF/resolve/9185688a0495e1577d521a757c7c0b62dd38ca48/mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf",
+      "revision": "9185688a0495e1577d521a757c7c0b62dd38ca48",
+      "repository": "jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF"
+    }
+  ],
+  "bytes": 1240476096,
+  "license": "Apache-2.0 embedded in both GGUF files",
+  "conversion_revision": null,
+  "base_weight_revision": null,
+  "source_status": "Pinned artifact selected by official MinerU registry; not a locally reproduced conversion"
+}

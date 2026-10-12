@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>DeepSteam</title>
+  <defs><linearGradient id="ds" x1="8" y1="4" x2="57" y2="64" gradientUnits="userSpaceOnUse"><stop stop-color="#D98C6C"/><stop offset="1" stop-color="#BF6546"/></linearGradient></defs>
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#ds)"/>
+  <path d="M21 29c-5-5 5-7 0-12m11 11c-6-6 6-9 0-16m11 17c-5-5 5-7 0-12" stroke="#FFF6EA" stroke-width="3" stroke-linecap="round"/>
+  <path d="M14 36c6-2 12-1 18 3 6-4 12-5 18-3v13c-6-2-12-1-18 3-6-4-12-5-18-3V36Z" fill="#FFFAF2"/>
+  <path d="M32 39v13" stroke="#BC6345" stroke-width="2"/>
+</svg>

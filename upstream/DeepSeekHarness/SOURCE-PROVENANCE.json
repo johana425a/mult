@@ -1,0 +1,12 @@
+{
+  "upstream_repository": "https://github.com/deepseek-ai/deepseek-harness",
+  "upstream_commit": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+  "upstream_version": "0.2.1-alpha.2",
+  "modified_public_source": true,
+  "modifications": [
+    "DeepSteam integration and English-only presentation",
+    "English startup defaults and runtime regional settings",
+    "Publication excludes multilingual documentation and development fixtures"
+  ],
+  "source_integrity": "Verify the public file manifest. This modified tree is not byte-identical to the upstream commit."
+}

@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@/*": ["./*"],
+      "@openmaic/dsl": ["packages/@openmaic/dsl/src/index.ts"],
+      "@openmaic/dsl/*": ["packages/@openmaic/dsl/src/*"]
+    }
+  }
+}

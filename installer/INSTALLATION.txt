@@ -1,0 +1,59 @@
+DeepSteam for Windows
+
+Requirements
+Windows 10 or 11, 64-bit x64. Reserve the disk space requested by the installer.
+Document parsing performance depends on your processor, memory, and storage.
+The package includes document parsing tools, but no bundled chat model.
+
+Install and launch
+1. Keep the installation EXE and its matching .payload.dat in the same folder.
+   Both files are required. Send both files when sharing a binary release.
+2. Open the installation EXE and choose a dedicated folder on a fixed drive.
+   You do not need the developer's drive letters or directory structure.
+3. Wait for extraction, verification, and runtime initialization.
+4. Open DeepSteam from the desktop shortcut or DeepSteam.exe in its directory.
+5. Use learning, chat, workspaces, and classrooms in the desktop window.
+   Internal service addresses do not need to be entered in the interface.
+
+Connect a model
+Use Connect models in the sidebar. Log in through the official provider page
+or enter your API key in the dedicated input field. The app verifies a selected
+connection before applying it. Keys are not inserted into learning records.
+The learning and classroom language models follow the enabled connection.
+Embedding, speech, and other distinct capabilities retain their own settings.
+Provider authorization does not mean every capability is included or free.
+
+Open a workspace
+Use Open folder in the workspace selector. Existing folder registrations are
+reused. Manage a workspace through its context menu or visible more button.
+Removing it from the list does not delete the folder from your computer.
+File operations use the selected workspace and the displayed task permissions.
+
+Close and uninstall
+Background work may continue when the window is hidden to the system tray.
+Use Quit and pause to close the application and stop services it started.
+The Stop DeepSteam shortcut can stop this installation's services directly.
+Stop services before moving the program or disconnecting removable storage.
+
+Use Settings > General > Uninstall DeepSteam, the Start menu uninstall entry,
+Windows Installed apps, or Uninstall-DeepSteam.exe in the program directory.
+Learning records, model settings, imported files, and workspaces are preserved
+by default. See installer/UNINSTALL.md for optional data cleanup boundaries.
+
+Data and sharing
+Public releases exclude accounts, keys, private materials, learning databases,
+and developer machine storage paths. Installation creates its own identity.
+Never distribute an installation directory that has already been used privately.
+Share the verified EXE, payload, checksums, and documentation instead.
+For your own backup, close services and save your program and configured data
+directories. Windows-account-bound credentials may need to be entered again
+after changing computers or Windows accounts.
+
+Sources and verification
+DeepSteam integrates DeepTutor, OpenMAIC, DeepSeek Harness, and MinerU tools.
+Their licenses and required attribution remain in licenses/ and the source.
+Development and prepared examples used Codex assistance.
+Parsing tests verify supported document structures, queue behavior, original
+images, and runtime dependencies. They do not guarantee perfect transcription
+of every scan, formula, or diagram, or certify every external model's quality.
+Consult the acceptance report for the matching release and its test scope.
