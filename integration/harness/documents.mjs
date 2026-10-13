@@ -56,6 +56,29 @@ export function readDocument(python, helper, root, action, input, signal) {
   return runReaderProcess(python, argv, { ...request, action, root }, signal, 35000);
 }
 
+/**
+ * Model-facing view of a read result. The full result stays in the session log
+ * and task ledger; this view removes the duplicated top-level text and repeats
+ * the navigation block at both ends, so the official result pruner (which keeps
+ * a head and a tail of long tool output) can never cut away the next position.
+ */
+export function documentModelView(value) {
+  if (!value || typeof value !== 'object' || !Array.isArray(value.units)) return value;
+  const { text: _duplicate, units, navigation, ...rest } = value;
+  const nav = navigation ?? { next_cursor: value.next_cursor ?? null, next_start_unit: value.next_start_unit ?? null, done: !value.truncated };
+  const next = nav.done ? 'Reading of this document is complete.'
+    : `Continue with cursor="${nav.next_cursor}" or, equivalently, start_unit=${nav.next_start_unit}.`;
+  return { navigation: { ...nav, how_to_continue: next }, ...rest,
+    units: units.map(({ unit_text_sha256: _hash, ...unit }) => unit), navigation_end: { ...nav, how_to_continue: next } };
+}
+
+/** Local MinerU readiness: model, llama.cpp backend, default tier. No network. */
+export function documentEngineStatus(python, helper, verify, signal) {
+  if (!isAbsolute(helper ?? '')) return Promise.resolve(failure('document_runtime_unavailable', 'The packaged document reader is unavailable.'));
+  return runReaderProcess(python, [join(dirname(helper), 'document_job_worker.py')],
+    { action: 'engine_status', ...(verify ? { refresh: true } : {}) }, signal, verify ? 260000 : 100000);
+}
+
 export async function workspaceFileCatalog(root, input, checkPath, signal) {
   // Browsing a directory must not flatten descendants into the current level.
   // Callers performing a bounded recursive search choose depth explicitly.

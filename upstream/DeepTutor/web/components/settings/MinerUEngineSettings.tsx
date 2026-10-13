@@ -334,14 +334,15 @@ export function MinerUEngineSettings() {
           title={t("Mode")}
           description={
             isCloud
-              ? t("Documents are uploaded to mineru.net for parsing.")
+              ? t("The MinerU cloud API is disabled. Switch to Local; documents stay on this computer.")
               : t(
-                  "Parsing runs on this machine using the local MinerU install.",
+                  "Parsing runs on this computer with the installed MinerU2.5 VLM (llama.cpp, CPU). No API key or upload.",
                 )
           }
           control={
             <div className="inline-flex rounded-lg border border-[var(--border)] p-0.5">
-              {(["local", "cloud"] as MinerUMode[]).map((m) => (
+              {/* DeepSteam runs MinerU only as the bundled local VLM; the hosted API is not offered. */}
+              {(["local"] as MinerUMode[]).map((m) => (
                 <button
                   key={m}
                   type="button"

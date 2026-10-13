@@ -17,7 +17,7 @@ import {
   ALIDOCMIND_ENDPOINT_NOT_ALLOWED_MESSAGE,
   resolveSafeClientAliDocMindEndpoint,
 } from '@/lib/server/alidocmind-endpoint';
-import { MINERU_CLOUD_DEFAULT_BASE } from '@/lib/pdf/constants';
+import { MINERU_CLOUD_DEFAULT_BASE, isDisabledRemotePdfProvider } from '@/lib/pdf/constants';
 
 const log = createLogger('Verify PDF Provider');
 
@@ -47,6 +47,9 @@ export async function POST(req: NextRequest) {
 
     if (!providerId) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'Provider ID is required');
+    }
+    if (isDisabledRemotePdfProvider(providerId)) {
+      return apiError('INVALID_REQUEST', 422, 'Remote MinerU parsing is disabled in DeepSteam; documents are parsed locally.');
     }
 
     // Managed providers are admin-owned: ignore any client-sent key/baseUrl.

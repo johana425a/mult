@@ -27,6 +27,7 @@ class AdvancedBatchTests(unittest.TestCase):
         with self.jobs.connect() as db:
             self.row = db.execute('SELECT * FROM jobs WHERE id=?', (job['job_id'],)).fetchone()
         self.calls = []
+        self.tiers = []
 
     def engine(self, job_id, python, helper, request, timeout):
         import pymupdf
@@ -37,6 +38,7 @@ class AdvancedBatchTests(unittest.TestCase):
             self.assertLessEqual(len(pdf), 8)
             texts = [page.get_text().strip() for page in pdf]
         self.calls.append(texts)
+        self.tiers.append(request['engine_options']['tier'])
         return {'ok': True, 'status': 'ready', 'source_sha256': request['source_sha256'],
                 'units': [{'text': text, 'locator': {'kind': 'pdf_page', 'page': i + 1, 'page_idx': i},
                            'assets': [{'locator': {'page': i + 1}, 'id': f'subset-{i}'}]}
@@ -44,8 +46,12 @@ class AdvancedBatchTests(unittest.TestCase):
                 'warnings': [{'code': 'synthetic_review', 'message': 'Review original source image'}],
                 'coverage': {'full_document': True}}
 
-    def read(self, cursor=None, engine=None):
+    def read(self, cursor=None, engine=None, tier='basic'):
+        # These slicing tests pin the 8-page basic tier; the local VLM default
+        # is covered separately below.
         request = {'root': str(self.root), 'path': self.source.name, 'max_chars': 5000, 'max_units': 40, 'ocr': 'off'}
+        if tier:
+            request['tier'] = tier
         if cursor:
             request['cursor'] = cursor
         light = module.reader.handle_request(request)
@@ -119,6 +125,19 @@ class AdvancedBatchTests(unittest.TestCase):
         self.assertEqual(ledger['unread_units'], 0)
         self.assertEqual([len(call) for call in self.calls], [8, 8, 1])
         self.assertIsNone(final['next_cursor'])
+
+    def test_default_tier_is_the_local_vlm_in_smaller_batches(self):
+        pages, token = [], None
+        for _ in range(6):
+            result = self.read(token, tier=None)
+            self.assertTrue(result['ok'], result)
+            pages.extend(unit['locator']['page'] for unit in result['units'])
+            token = result['next_cursor']
+            if not token:
+                break
+        self.assertEqual(pages, list(range(1, 18)))
+        self.assertEqual(set(self.tiers), {'advanced'})
+        self.assertEqual([len(call) for call in self.calls], [4, 4, 4, 4, 1])
 
 
 if __name__ == '__main__':

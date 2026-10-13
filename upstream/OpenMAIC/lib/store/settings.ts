@@ -28,7 +28,7 @@ import {
   TTS_PROVIDERS,
 } from '@/lib/audio/constants';
 import { DEFAULT_VOXCPM_BACKEND, VOXCPM_MODEL_ID, VOXCPM_VLLM_MODEL_ID } from '@/lib/audio/voxcpm';
-import { PDF_PROVIDERS } from '@/lib/pdf/constants';
+import { PDF_PROVIDERS, isDisabledRemotePdfProvider } from '@/lib/pdf/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
 import {
   MODALITY_ORDER,
@@ -853,7 +853,7 @@ function ensureValidProviderSelections(state: Partial<SettingsState>): void {
   const defaultVideoConfig = getDefaultVideoConfig();
   const defaultWebSearchConfig = getDefaultWebSearchConfig();
 
-  if (!hasProviderId(PDF_PROVIDERS, state.pdfProviderId)) {
+  if (!hasProviderId(PDF_PROVIDERS, state.pdfProviderId) || isDisabledRemotePdfProvider(state.pdfProviderId)) {
     state.pdfProviderId = defaultPdfConfig.pdfProviderId;
   }
 
@@ -2146,14 +2146,7 @@ export const useSettingsStore = create<SettingsState>()(
               let autoTtsEnabled: boolean | undefined;
 
               if (!state.autoConfigApplied) {
-                // PDF: unpdf → mineru-cloud or mineru if server has it
-                if (state.pdfProviderId === 'unpdf') {
-                  if (newPDFConfig['mineru-cloud']?.isServerConfigured) {
-                    autoPdfProvider = 'mineru-cloud' as PDFProviderId;
-                  } else if (newPDFConfig.mineru?.isServerConfigured) {
-                    autoPdfProvider = 'mineru' as PDFProviderId;
-                  }
-                }
+                // PDF: DeepSteam keeps parsing local; remote MinerU is never auto-selected.
 
                 // TTS: select first server provider if current is not server-configured.
                 // Skip server-disabled entries — they are force-off, not selectable.

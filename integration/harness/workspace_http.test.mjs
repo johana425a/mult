@@ -95,3 +95,16 @@ test('image previews pass exact session and attachment identity as binary withou
   adapter.readAttachment = async () => ({ data: new Uint8Array([1]), media_type: 'text/html' });
   await assert.rejects(workspaceRequest(adapter, 'GET', '/sessions/session_fixture/attachments/attachment_fixture', query, {}));
 });
+
+test('access level routes validate values and turns carry an optional access level', async () => {
+  const calls = [];
+  const adapter = { access: () => ({ default_access: 'workspace', levels: ['workspace', 'full'] }),
+    setAccess: async input => { calls.push(['set', input]); return { default_access: input.default_access }; },
+    turn: async (...args) => { calls.push(['turn', ...args]); return { status: 'running' }; } };
+  assert.equal((await workspaceRequest(adapter, 'GET', '/workspace-access', new URLSearchParams(), undefined)).value.default_access, 'workspace');
+  assert.equal((await workspaceRequest(adapter, 'POST', '/workspace-access', new URLSearchParams(), { default_access: 'full' })).value.default_access, 'full');
+  await assert.rejects(workspaceRequest(adapter, 'POST', '/workspace-access', new URLSearchParams(), { default_access: 'full', extra: 1 }));
+  await workspaceRequest(adapter, 'POST', '/sessions/s1/turn', new URLSearchParams(), { text: 'Find my notes', access_level: 'full' });
+  assert.deepEqual(calls.at(-1).slice(0, 3), ['turn', 's1', { text: 'Find my notes', access_level: 'full' }]);
+  await assert.rejects(workspaceRequest(adapter, 'POST', '/sessions/s1/turn', new URLSearchParams(), { text: 'x', access_level: 'root' }), /Invalid access level/);
+});

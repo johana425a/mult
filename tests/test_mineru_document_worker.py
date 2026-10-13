@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("mineru_worker", ROOT / "scripts/mineru_document_worker.py")
@@ -106,6 +107,45 @@ class MinerUWorkerContract(unittest.TestCase):
             (output / ".worker-owner.json").write_text(json.dumps({"request_id": "other", "source_sha256": "0" * 64}))
             with self.assertRaisesRegex(ValueError, "another task"):
                 worker.run({"schema_version": 1, "action": "parse", "source_path": str(source), "output_dir": str(output), "source_sha256": "0" * 64, "request_id": "current"})
+
+    def test_vlm_tier_without_local_model_fails_explicitly_instead_of_downgrading(self):
+        with tempfile.TemporaryDirectory() as tmp, unittest.mock.patch.object(worker, "LLAMA_SERVER", Path(tmp) / "absent.exe"):
+            base = Path(tmp)
+            source = base / "scan.pdf"
+            source.write_bytes(b"%PDF-1.7 synthetic")
+            digest = worker.digest(source)
+            for tier in ("advanced", "standard", None):
+                with self.subTest(tier=tier), self.assertRaises(worker.VlmUnavailable):
+                    options = {} if tier is None else {"tier": tier}
+                    worker.run({"schema_version": 1, "action": "parse", "source_path": str(source),
+                                "output_dir": str(base / f"out-{tier}"), "source_sha256": digest,
+                                "request_id": "job", "engine_options": options})
+
+    def test_result_identity_names_local_model_backend_and_tier(self):
+        identity = worker.inference_identity("advanced", "advanced", ".pdf")
+        self.assertEqual(worker.DEFAULT_TIER, "advanced")
+        self.assertEqual(identity["mode"], "local")
+        self.assertFalse(identity["remote_api"])
+        self.assertTrue(identity["vlm_used"])
+        self.assertTrue(identity["image_analysis"])
+        self.assertEqual(identity["effort"], "xhigh")
+        self.assertEqual(identity["vlm"]["model"], "MinerU2.5-Pro-2605-1.2B")
+        self.assertTrue(identity["vlm"]["weights"].startswith("models/mineru/"))
+        self.assertIn("llama.cpp", identity["vlm"]["backend"])
+        basic = worker.inference_identity("basic", "basic", ".pdf")
+        self.assertFalse(basic["vlm_used"])
+        office = worker.inference_identity("flash", "advanced", ".docx")
+        self.assertFalse(office["vlm_used"])
+        self.assertIn("natively", office["vlm_not_applicable"])
+
+    @unittest.skipUnless(importlib.util.find_spec("mineru") is not None, "MinerU library not installed")
+    def test_vlm_config_only_addresses_loopback(self):
+        config = worker.loopback_vlm_config({"endpoint": "http://127.0.0.1:41234", "api_key": "k", "alias": worker.VLM_ALIAS})
+        self.assertEqual(config.engine, "llama-cpp")
+        self.assertEqual(config.model, worker.VLM_ALIAS)
+        for endpoint in ("https://mineru.net", "http://10.0.0.5:8000", "http://localhost.example:1", ""):
+            with self.subTest(endpoint=endpoint), self.assertRaises(worker.VlmUnavailable):
+                worker.loopback_vlm_config({"endpoint": endpoint, "api_key": "k", "alias": "x"})
 
 
 if __name__ == "__main__":

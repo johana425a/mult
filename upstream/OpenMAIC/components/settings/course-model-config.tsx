@@ -39,7 +39,7 @@ import { findModelById } from '@/lib/ai/model-aliases';
 import { getThinkingConfigKey } from '@/lib/ai/thinking-config';
 import type { ProviderId } from '@/lib/ai/providers';
 import type { ThinkingConfig } from '@/lib/types/provider';
-import { PDF_PROVIDERS } from '@/lib/pdf/constants';
+import { PDF_PROVIDERS, selectablePdfProviders } from '@/lib/pdf/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
 import { ASR_PROVIDERS, TTS_PROVIDERS } from '@/lib/audio/constants';
 import type {
@@ -1120,7 +1120,7 @@ function Inspector(props: {
                   <SelectValue placeholder={t(`${cm}.pickProvider`)} />
                 </SelectTrigger>
                 <SelectContent align="start">
-                  {Object.values(PDF_PROVIDERS)
+                  {selectablePdfProviders()
                     .filter((provider) => {
                       const cfg = props.pdf.providersConfig[provider.id];
                       const hasCredentials =

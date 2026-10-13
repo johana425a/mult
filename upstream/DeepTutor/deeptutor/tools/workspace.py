@@ -68,7 +68,8 @@ async def _read_document(kwargs: dict[str, Any], *, image=False) -> ToolResult:
     for unit in result.get('units') or ([{'locator': asset.get('locator', {})}] if asset else []):
         sources.append({'type': 'workspace_file', 'workspace_id': binding.workspace_id, 'path': path,
             'document_sha256': sha, 'locator': unit.get('locator', {}), 'title': path})
-    content = json.dumps(safe, ensure_ascii=False) if result.get('ok') else str(result.get('error', {}).get('message') or 'The material is still being read. Continue shortly.')
+    from integration.workspace_documents import model_view
+    content = json.dumps(model_view(safe), ensure_ascii=False) if result.get('ok') else str(result.get('error', {}).get('message') or 'The material is still being read. Continue shortly.')
     return ToolResult(content=content, success=bool(result.get('ok')),
         sources=sources, metadata={'workspace_document': safe}, model_message=message)
 
@@ -86,13 +87,13 @@ class WorkspaceDocumentReadTool(BaseTool):
                 ToolParameter(name='operation', type='string', description='read (default), coverage, status, or cancel. Cancel requires the exact job_id.', required=False),
                 ToolParameter(name='coverage_cursor', type='string', description='Opaque next_cursor from a coverage response; never a read cursor.', required=False),
                 ToolParameter(name='limit', type='integer', description='Coverage page size, 1 to 200.', required=False),
-                ToolParameter(name='cursor', type='string', description='Opaque next_cursor from the prior read.', required=False),
-                ToolParameter(name='start_unit', type='integer', description='One-based physical PDF page/PPT slide/text line; exclusive with cursor.', required=False),
+                ToolParameter(name='cursor', type='string', description='Exact navigation.next_cursor from the prior read. Omit it to start at the beginning.', required=False),
+                ToolParameter(name='start_unit', type='integer', description='One-based physical PDF page/PPT slide/text line; navigation.next_start_unit continues when no cursor is at hand.', required=False),
                 ToolParameter(name='max_chars', type='integer', description='Text budget, 256 to 100000; default 12000.', required=False),
                 ToolParameter(name='max_units', type='integer', description='Page/slide budget, 1 to 40; default 10.', required=False),
                 ToolParameter(name='ocr', type='string', description='auto (default) or off. Local OCR is bounded per request.', required=False),
-                ToolParameter(name='engine', type='string', description='auto (default), builtin for a quick local read, or mineru for local structure analysis. This is a document tool, not a chat model.', required=False),
-                ToolParameter(name='tier', type='string', description='Local document analysis: basic (default) or explicitly requested standard for complex structure; neither guarantees formula accuracy.', required=False),
+                ToolParameter(name='engine', type='string', description='auto (default), builtin for a quick local read, or mineru to run the locally installed MinerU VLM on this computer (no API, no upload). This is a document tool, not a chat model.', required=False),
+                ToolParameter(name='tier', type='string', description='MinerU tier: advanced (default, local VLM with image analysis), standard (local VLM, hybrid layout, faster) or basic (small local models, no VLM; only when asked). None guarantees formula accuracy.', required=False),
                 ToolParameter(name='job_id', type='string', description='Resume the exact pending local document job id returned previously.', required=False)])
 
     async def execute(self, **kwargs: Any) -> ToolResult:

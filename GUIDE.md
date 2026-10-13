@@ -8,6 +8,10 @@ Open **Connect model** to authorize a supported account or add an API connection
 
 Open a folder from the workspace selector to use local documents. The workspace list manages project entries without recursively deleting the selected folder. Document tools preserve source locations, extracted content, images, and reading progress. Original files remain separate from generated outputs.
 
+The Workspace agent page has an access switch. **Workspace only** (the default) keeps file and document tools inside the opened folder. **Full computer** lets agent tasks, including tasks delegated from learning chats, use other folders and drives and look for relevant material on their own. Password stores, browser profiles, and DeepSteam's own settings stay protected at both levels. A change applies from the next task, and each task records the level it ran with.
+
+Scanned pages, formulas, tables, and figures can be parsed by MinerU. It runs entirely on this computer: the MinerU 4.0.12 library, the MinerU2.5-Pro-2605-1.2B model weights, and the official llama.cpp server bound to a loopback address. No MinerU API key, upload, or hosted service is used. The default tier is `advanced` (local VLM with image analysis); `standard` is a faster hybrid VLM mode, and `basic` uses only the small models. If the local model cannot run, the error is reported rather than switching to another tier or service. Agents can call `document_engine_status` to confirm the model, weights, and backend in use.
+
 Language models, embedding services, speech services, and image-generation services are configured according to their capabilities. Document parsing can run locally when its runtime and model assets have been installed. There is no bundled chat model and no prepaid cloud API balance.
 
 ## Source checkout

@@ -2,7 +2,7 @@
   "product": "DeepSteam",
   "edition": "english-public-source",
   "base_version": "2026.10.12-r7-harness-tools",
-  "generated_at_utc": "2026-10-12T23:12:05.288058Z",
+  "generated_at_utc": "2026-10-13T00:24:52.536250Z",
   "default_interface_language": "en",
   "timezone_policy": "detect_at_runtime",
   "scope": "Source code and required notices; runtime assets and private data are excluded.",
@@ -40,9 +40,9 @@
   "files": [
     {
       "path": ".gitignore",
-      "bytes": 314,
-      "sha256": "878c7ace604b4bcaac3ca5789b0e0ea7d36896a3479255b2b05e109bb304f627",
-      "git_blob_sha": "4f3043adbb01a583967cc7a9a8290f896e9af65d"
+      "bytes": 322,
+      "sha256": "aba839247f8d0203d4d795bf521c527e5a819d1991a87bf34fd625fbc2e60ea3",
+      "git_blob_sha": "8379d9df85f71e46463e98e1a15a2dac1ffaa1c5"
     },
     {
       "path": "AGENTS.md",
@@ -112,9 +112,9 @@
     },
     {
       "path": "desktop/starting.html",
-      "bytes": 12377,
-      "sha256": "64dccbb029e250de0c975958ec5604c3805f9686c6806c03e4695872f0c0341f",
-      "git_blob_sha": "3ccf0a147e169dc7cdb25e25615704aab8917c3a"
+      "bytes": 17285,
+      "sha256": "0374ffe7389f2d326615d26ec298a5639e8f7d613903fb8feb150a745b1dcfbe",
+      "git_blob_sha": "599c6c81fa4bee5d97f0a0319cf795e79b4ad8f1"
     },
     {
       "path": "desktop/startup.test.cjs",
@@ -172,9 +172,9 @@
     },
     {
       "path": "GUIDE.md",
-      "bytes": 3549,
-      "sha256": "0202a7ce8c39b355e6cb6aaabcb4e24d3328f3ed596acc125bf4db32d9b4d8f7",
-      "git_blob_sha": "8e470b87635ff466ebce6ffe13ebe94f05ba3188"
+      "bytes": 4652,
+      "sha256": "3edbbaa1a2a039bc4d8e5e0bb151000915e2f38f3535efd23fc78d0764df86e5",
+      "git_blob_sha": "50d57b7bdc2d94953b95c52d9cefdbba0b3f72a4"
     },
     {
       "path": "installer/assemble_r5_spec.py",
@@ -220,15 +220,15 @@
     },
     {
       "path": "installer/DeepSteamSetup-r6.cs",
-      "bytes": 207064,
-      "sha256": "202f0cdfb4d7fe7f1540aed23d929e130de008f978464fe27444da7c97820693",
-      "git_blob_sha": "abcb6929487dd09d7692b771b52b44f67afaa839"
+      "bytes": 214050,
+      "sha256": "9d0d3b434b926199a0003b44c777c84067d5016984674fae73ab376dfce48070",
+      "git_blob_sha": "86e243739e473a6750dc2572dbfd301ed516a8a7"
     },
     {
       "path": "installer/DeepSteamSetup.cs",
-      "bytes": 207050,
-      "sha256": "28fc2d6fbbb41fb9d8743389948c37ed804463736d9637e79a0d7c9616736947",
-      "git_blob_sha": "d9bcca2c1ccdc043e32579201037515406222bf0"
+      "bytes": 214036,
+      "sha256": "d267fbe5baa2fb42de5e5637028e0640ea95f9da2e4d7fb878872eec9983285c",
+      "git_blob_sha": "c8da04dea16f964b651e491534cf811742aadcea"
     },
     {
       "path": "installer/deploy_harness_overlay.py",
@@ -448,9 +448,9 @@
     },
     {
       "path": "integration/document_jobs.py",
-      "bytes": 46379,
-      "sha256": "8215fdff17e9f191616fe88a1b6b18fe03b438c8e89b5a9f62fb3212d42453ba",
-      "git_blob_sha": "e3e315b3b50ad83d9f27e8dda10edcf46ce71c71"
+      "bytes": 50990,
+      "sha256": "3109a80090593eb286a264ce4b0ec0702d13f04b1b4c98c278c11a4edcf880c6",
+      "git_blob_sha": "0c77043481358e0a5c2499c4e1ccbe107f91df85"
     },
     {
       "path": "integration/embedding_route_guard.py",
@@ -502,9 +502,9 @@
     },
     {
       "path": "integration/harness/documents.mjs",
-      "bytes": 7825,
-      "sha256": "c7f00c44a80b186e68af9b839ff76448adc51cb20b7984c668ea4688b4b3c36d",
-      "git_blob_sha": "913e4d1b34c211f7c4136b8b541ae0d81cc56fdb"
+      "bytes": 9352,
+      "sha256": "81deae88a0065b3df79360ff015d4916180e44baeb2f93854a7566996cf19693",
+      "git_blob_sha": "9028ba04c7f08eaceb9a6998e0936e7db9ab2fa1"
     },
     {
       "path": "integration/harness/execution_tasks.mjs",
@@ -550,9 +550,9 @@
     },
     {
       "path": "integration/harness/README.md",
-      "bytes": 6849,
-      "sha256": "7cd0c6ef7c000ddaf8a54f9fc1de4190420b2cecc3f1bc4cdb7cd0696662e4b8",
-      "git_blob_sha": "8d06f3384967fe1153e9d616c582f5fa2c8fdf1c"
+      "bytes": 7976,
+      "sha256": "9c586ad008411a9988a5d4c17300c284b09bdd7b6390417c64dd2fae1fd28ea1",
+      "git_blob_sha": "89386cea68574947fa035e71129da363b8738de9"
     },
     {
       "path": "integration/harness/sidecar.mjs",
@@ -568,9 +568,9 @@
     },
     {
       "path": "integration/harness/test/documents.test.mjs",
-      "bytes": 6803,
-      "sha256": "1bb7e4e370ece77ff0a1d91ae13408f11ede7fa46a81ac934b15acb4ea4f316b",
-      "git_blob_sha": "25317897f5afe2807226469a4fdfe057aba50067"
+      "bytes": 8733,
+      "sha256": "258d2624baea27a85a104ab4871144cf98a3c8978e61c4c701d406667d2a69e8",
+      "git_blob_sha": "7a20975e3387c9f27e125102e838fe40e50122e8"
     },
     {
       "path": "integration/harness/test/execution_tasks.test.mjs",
@@ -592,21 +592,21 @@
     },
     {
       "path": "integration/harness/test/workspaces.test.mjs",
-      "bytes": 34184,
-      "sha256": "9bd2d6995884a6e7e23c7196dd031ff45d7d76ffd8afc9d8df7fd81d64c4fcb7",
-      "git_blob_sha": "c84d08221a88110952f1f7f33cb99dcc5e6b7b5e"
+      "bytes": 34797,
+      "sha256": "c605c827759946bc0ef04b17cdaefb9218aa39dc11aef8e765add3025536a00c",
+      "git_blob_sha": "0b132c51bf367ffd5e311ca1a43e37b75d90ed8a"
     },
     {
       "path": "integration/harness/workspace_http.mjs",
-      "bytes": 7375,
-      "sha256": "fc0704f81c2b6f1b2ac8c585d43e395528f41b6caa6a54c86c7b81610c202e92",
-      "git_blob_sha": "18355c3780370edde2c092baa5f3e581a8a7fa24"
+      "bytes": 7957,
+      "sha256": "f63dc8b983a124110ccc539a8b674ba7fb9e83541829643b2b763d80ab7f8434",
+      "git_blob_sha": "085f07586531e82b4586f6d814fa071891be4ee0"
     },
     {
       "path": "integration/harness/workspace_http.test.mjs",
-      "bytes": 6321,
-      "sha256": "ffd1a742b1ebfa6759b967c43678a7bfa2e82477a3ad44a41d0181d2230e2eec",
-      "git_blob_sha": "f29d50756b2c06335131d1fd795028aee9e3aaad"
+      "bytes": 7613,
+      "sha256": "64974472ab44c457236476dc586e8bcfd19f4ec0e1c842a79193b74023297575",
+      "git_blob_sha": "61b1dbaa7dd82723f478744c390b11441f533d21"
     },
     {
       "path": "integration/harness/workspace_management.mjs",
@@ -622,9 +622,9 @@
     },
     {
       "path": "integration/harness/workspaces.mjs",
-      "bytes": 50318,
-      "sha256": "ba7d7d59f52d8e689e07137cbab4b69a90562b6582811a395c1e7a4c8c8df135",
-      "git_blob_sha": "66f6d00cf47b6a6bd6113ca198213e09406db4df"
+      "bytes": 55063,
+      "sha256": "639b9843ae438a96be73213d78895e7f1c8844e86d0fede13f77aabbe6fe5c13",
+      "git_blob_sha": "1972bf72cf8ff0b88b0805c67f3bc46cab378b56"
     },
     {
       "path": "integration/harness_bridge.py",
@@ -688,9 +688,9 @@
     },
     {
       "path": "integration/workspace_documents.py",
-      "bytes": 10539,
-      "sha256": "dc36f1b1cd4998e6f4f006b6e9bf2ae26fa76f0c0bfed5b419eba5f2c8aa94b0",
-      "git_blob_sha": "e259b9f278553bef6baa5edbb77ecc2ab45f7c08"
+      "bytes": 11806,
+      "sha256": "fad4af852d6dd1b83374109bb42e32cdae0f795891d42f1c64db62aa935455a2",
+      "git_blob_sha": "49e7364852d08e347fc5cb6a191a830b560ea519"
     },
     {
       "path": "integration/workspace_management.py",
@@ -892,9 +892,9 @@
     },
     {
       "path": "licenses/MODIFICATIONS.md",
-      "bytes": 3167,
-      "sha256": "fa32aef637b6a75cc6769a2f930dec95f89a01cc22939047c82c40cea200cc24",
-      "git_blob_sha": "f3e6a705daa4f36ab307c33c12b5003d779740c3"
+      "bytes": 3971,
+      "sha256": "52c7faf32124c003ea9222ba55ae9d969d7df645c5c07eda9cfc689b15bf4082",
+      "git_blob_sha": "7e0c4ee4c0a6ebff92466f0f23dfc748f8978327"
     },
     {
       "path": "licenses/NOTICE.md",
@@ -1006,9 +1006,9 @@
     },
     {
       "path": "portal/app.py",
-      "bytes": 69538,
-      "sha256": "5a669ef280c2f454e24f5c218ea8731395f4edc99c4a5df5f0f4824c78b6d824",
-      "git_blob_sha": "b8506cefe54bb85929c66f87b29271cc08a9edbc"
+      "bytes": 70333,
+      "sha256": "f315e71eccd52dd78b0231418242297da998c31008ecaaef4b1adb86cba343ed",
+      "git_blob_sha": "c96f4abe563ab05a7ff79645c1735ea9ba956364"
     },
     {
       "path": "portal/content_deletion.py",
@@ -1042,9 +1042,9 @@
     },
     {
       "path": "portal/static/styles.css",
-      "bytes": 27152,
-      "sha256": "f0419ae0f66b9b2b2ab8a6072194c3335bc8370d5a9a21c5ce6555c0dd43437c",
-      "git_blob_sha": "f6aeac41c65e1e8625df783292cc7b531656ad85"
+      "bytes": 32028,
+      "sha256": "9f56e948fa0260f528659649e0ba9c10dca66e1d35a0d04c09b698e2e5955c34",
+      "git_blob_sha": "4b67b3695c9f8689d7c264c63ab8269e7c380b52"
     },
     {
       "path": "portal/storage.py",
@@ -1234,9 +1234,9 @@
     },
     {
       "path": "scripts/mineru_document_worker.py",
-      "bytes": 25320,
-      "sha256": "bc51bb9bc192fd494b309ce88e57c5a66f64c2df3364855707f00bd16f195d53",
-      "git_blob_sha": "275302dd2dc8fbc8c09fb6d327a3090f477bb9f3"
+      "bytes": 33481,
+      "sha256": "6202c1dc955d2d1d0d7da7b1557fd3a2b8cdb263eafa72cb1e398550be91fda8",
+      "git_blob_sha": "fbbbb4d9c94106449b51c0c1ea4ac0510c5cda4e"
     },
     {
       "path": "scripts/offline_tokenizer.py",
@@ -1324,9 +1324,9 @@
     },
     {
       "path": "scripts/workspace_document_reader.py",
-      "bytes": 52149,
-      "sha256": "f13fe54a02bedf789230c8daf279a5ac04ecd3e292142b3fa5f51d3f043e3232",
-      "git_blob_sha": "129a8a73f9bf894f625a33dd8d6d85ce69fbfe81"
+      "bytes": 61140,
+      "sha256": "5351ae0493b799e6e3508fd7910d8ce2cb3ed63676d4fac9c483aabc15bb51f9",
+      "git_blob_sha": "d0834d1b52b46eca0ad7d8a790320e03a72009d1"
     },
     {
       "path": "Start-DeepSteam.cmd",
@@ -1396,9 +1396,9 @@
     },
     {
       "path": "tests/test_document_advanced_batches.py",
-      "bytes": 6890,
-      "sha256": "e9f45a59de10ce20059d97d005f62b6c227cb088c53a71fb39b8661f7584bbbc",
-      "git_blob_sha": "e08ac255258f3af9a96dd92bb134376f11c06d07"
+      "bytes": 7741,
+      "sha256": "5c23986acf39764a82f9936c595e9dd24bb4e7edb4a55834c68a788df535a6d6",
+      "git_blob_sha": "0eec0aff78262095a6d3a11afb37e79fa071ae03"
     },
     {
       "path": "tests/test_document_content_coverage.py",
@@ -1516,9 +1516,9 @@
     },
     {
       "path": "tests/test_mineru_document_worker.py",
-      "bytes": 6069,
-      "sha256": "0cd7566810cbf6bb8cbb71125b22a0e26a63af315c12842b2f7793c4601f6332",
-      "git_blob_sha": "b7a195245ea5f9811a75842d3e96bb0ea67144d1"
+      "bytes": 8635,
+      "sha256": "1d008555bcfcf3fbb25b76bceeef8ae86dffd070744b1e68316f0627ab4011e2",
+      "git_blob_sha": "63539cd617110867a7691a074bd8241e2378edca"
     },
     {
       "path": "tests/test_native_shared_document_extraction.py",
@@ -38956,9 +38956,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/_shared/workspace_prompt.py",
-      "bytes": 2321,
-      "sha256": "8c420afcae58774811377a5c6ede3eb007ec0ef0a5e3a0e349bcd961159a2424",
-      "git_blob_sha": "d3e2e9211d42c0119921527ea168e22fa0485c8b"
+      "bytes": 2767,
+      "sha256": "9d436450d801f7d7aa8b29c639ea0847f3789007edf80ccbda01cefa48eab5c9",
+      "git_blob_sha": "39474bba31d9b6cac0f72ccf4a9b4b9af9bd17b2"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/base_agent.py",
@@ -43630,9 +43630,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/parsing/engines/mineru/backend.py",
-      "bytes": 11066,
-      "sha256": "96d77e6b61dd911d8c1dbda497b379a7a39188395f70ff74a90c7c09c9e443cc",
-      "git_blob_sha": "4f81dfb935a08cd3525679cbe0bf5e5be1445bb9"
+      "bytes": 12066,
+      "sha256": "5f7d1f537495f152788bec0ef8f9f9a42e0e16914facf5a23232c18cf8928316",
+      "git_blob_sha": "596e8d156b8e5c3c27b2fb755cc8a62e2e219652"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/parsing/engines/mineru/checkpoints.py",
@@ -43684,9 +43684,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/parsing/engines/mineru/readiness.py",
-      "bytes": 4561,
-      "sha256": "3a42d2927a90a71016f9cb1a0fb5afa6b71d28b8726940e2569d00814f2b59c6",
-      "git_blob_sha": "6c022b29048097f394aeb9df1ef76e96d727c9b1"
+      "bytes": 5412,
+      "sha256": "7aa69b43c7bf818a1e736e46d05e1e53940030503176d78c00a7315a0554f979",
+      "git_blob_sha": "42ec7ae0243253e63151682ed4a85a2ed0a96350"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/parsing/engines/pymupdf4llm/__init__.py",
@@ -46162,9 +46162,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/tools/workspace.py",
-      "bytes": 23547,
-      "sha256": "895a22d18b2cd7b1b66fab6791e83bb0205e4fb223d51747a4b75160b3ad829c",
-      "git_blob_sha": "069fba5b97c560b87262394df327bda48a6e1f06"
+      "bytes": 23816,
+      "sha256": "e79a48da0efed350028f83fb4d233f1daa9d8cfaf28ddbcc6f6fe2365a19b23a",
+      "git_blob_sha": "091e0d7efaa6d3323c0b1b5d2d69d6fb2a5947dc"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/tools/write_note.py",
@@ -47428,9 +47428,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/app/globals.css",
-      "bytes": 42117,
-      "sha256": "263847974bb18468e9f5c64cb687ac91e2e2ab0844a6501f69823b50bfb75d95",
-      "git_blob_sha": "3f5bd2b0f020e31f5688fe868d7a8d3b2f3e95bc"
+      "bytes": 46106,
+      "sha256": "afbbec9a65149d6ac290040228f1f53743911a59e952ea0aa0ea5469d66197a7",
+      "git_blob_sha": "8c7c680d57c9143a8c2091fc91b3596179f4d13d"
     },
     {
       "path": "upstream/DeepTutor/web/app/handoff/page.tsx",
@@ -48166,9 +48166,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/education/HarnessWorkspaceAgent.tsx",
-      "bytes": 28627,
-      "sha256": "4cf52902d4b21085d75146dce4ed35a9f1b75bdc941f2134dca21074dd3ee940",
-      "git_blob_sha": "440dfae1c91514fe0f9d07860a4278bad9a78383"
+      "bytes": 28833,
+      "sha256": "3c63c01e3916bdd5ad9e8d3588964ba7d87c336ba1e108e35b35ee6f9bf17897",
+      "git_blob_sha": "f6c97110650c1d017762c23126fa2960fb8da9d0"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/ModelConnectionChip.tsx",
@@ -48400,9 +48400,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/layout/FeaturePage.tsx",
-      "bytes": 4174,
-      "sha256": "a2c153bd10e7690adade738fbf0d54750f4a6973bb0f07af8e7987366a3eb2ec",
-      "git_blob_sha": "00dfaf6e7c79fdaf60090fa7deb91897d5e25059"
+      "bytes": 4156,
+      "sha256": "9ca8b8f1e489446793767406027bce686f1c411d5b00df2486facad58453bcc2",
+      "git_blob_sha": "1c5c0d6239bfa36eafae1a01f9dd6a2a32588621"
     },
     {
       "path": "upstream/DeepTutor/web/components/learning/ActivityLibrary.tsx",
@@ -49210,9 +49210,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/MinerUEngineSettings.tsx",
-      "bytes": 24609,
-      "sha256": "cfafa1d315a4bc41e5940001d9257c330eb4c5883ac5c659b75a7f6f6d2cd33d",
-      "git_blob_sha": "74c26097d31cb75fa9159ec50a630bce18f53679"
+      "bytes": 24783,
+      "sha256": "c88d55a4ce2ec6de091f24d795816050157f2acf44264093573160c601231613",
+      "git_blob_sha": "a44feb28c8fc33b837064180007e5d5197b5e9c4"
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/ModelCapabilityFields.tsx",
@@ -51262,9 +51262,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/lib/harness-workspace.ts",
-      "bytes": 3879,
-      "sha256": "929384e2682bb1f398aff1c48fa08a65399bf7b984fcccabef641df99b1bebfb",
-      "git_blob_sha": "ec8abae34fd6b15d39a05b7a1a75fe21e50ce819"
+      "bytes": 4347,
+      "sha256": "66a0996a990e57698415e630f20888a13a91ee16fff3d40471efd61d56861331",
+      "git_blob_sha": "cdc3b9e5a27a525689efba3593d7fb484ee634f4"
     },
     {
       "path": "upstream/DeepTutor/web/lib/iframe-html.ts",
@@ -52150,9 +52150,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/locales/en/app.json",
-      "bytes": 406016,
-      "sha256": "951d412e5037b3b78671dea902ec506692a26f52e46d9a70ab0f6bec269ccdb8",
-      "git_blob_sha": "075849dbcc6ecff750cf2794dd988f98cfab4ef8"
+      "bytes": 406406,
+      "sha256": "3b621161be17967e2ae9d9e31aa11eda45bdff98acc291aced27eaec1b40bbde",
+      "git_blob_sha": "a56425fc24aad2885bdf039ff27a0313955635dc"
     },
     {
       "path": "upstream/DeepTutor/web/locales/en/common.json",
@@ -52870,9 +52870,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/Dialog.tsx",
-      "bytes": 5126,
-      "sha256": "48b7db4c7cb809e5e17ef49f473425f2a6ec70af2f875cb18ccf2bf8a8ede344",
-      "git_blob_sha": "899a617a1e6a47e03a42ce1dbafb3a7bd618810b"
+      "bytes": 5148,
+      "sha256": "684e34fab3754b31ee70bc89d1dcefa31a65a38b94997c6d9c651d10ccf8318d",
+      "git_blob_sha": "cf04fbfd1486478b34d433169b30e85a5375d6bc"
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/EmptyState.tsx",
@@ -53410,9 +53410,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/design-token-parity.test.ts",
-      "bytes": 1441,
-      "sha256": "3e88cccc1415868a18852a701c63a64f30ff4dfc7de7089bb59e70b5d7d035ae",
-      "git_blob_sha": "2c9a5b5ce816f949e4c1752b656279351bd6fe50"
+      "bytes": 1638,
+      "sha256": "9db1f9e023d796c4734135e1af813cc0e526aaccbc8cba6d0cfea44c3bc9cd55",
+      "git_blob_sha": "dfc6a63ee00acccb9329ec83faff6a95fc4e5a45"
     },
     {
       "path": "upstream/DeepTutor/web/tests/dev-heap-ceiling.test.ts",
@@ -55240,9 +55240,9 @@
     },
     {
       "path": "upstream/OpenMAIC/app/api/extract-document/route.ts",
-      "bytes": 26829,
-      "sha256": "0899d33708e04cd21f246e3e97eb64ed5e5b863a579e96abbb230773ec05a098",
-      "git_blob_sha": "218e8b9f6c245c0715d9f76bd8e7126627dd3a76"
+      "bytes": 27266,
+      "sha256": "5e56b3796213b591894feaf187efbf991dc0a028a56d12192f16256cfe0f7b84",
+      "git_blob_sha": "a8ff598b95f8a6cd91bb4ff588c26045db55cbe2"
     },
     {
       "path": "upstream/OpenMAIC/app/api/folders/[id]/route.ts",
@@ -55504,9 +55504,9 @@
     },
     {
       "path": "upstream/OpenMAIC/app/api/verify-pdf-provider/route.ts",
-      "bytes": 7835,
-      "sha256": "2edb6810b3296850179ca091ee55807984eff6edb99f31bf6b1630428614dd6d",
-      "git_blob_sha": "18c3ff5338fce975067388476c4e56d62a3b9b3e"
+      "bytes": 8049,
+      "sha256": "559f409673b5d23d9c99ba76c709ec2358493db08e7425e91449d2e75205dd05",
+      "git_blob_sha": "c6c2ad7ce5339969121f740efc84f211e109e1e6"
     },
     {
       "path": "upstream/OpenMAIC/app/api/verify-video-provider/route.ts",
@@ -56362,9 +56362,9 @@
     },
     {
       "path": "upstream/OpenMAIC/components/generation/generation-toolbar.tsx",
-      "bytes": 16241,
-      "sha256": "451703fc238989ac6f967541714ddbe31e3294266e89a7ff45726f5a4f78dc68",
-      "git_blob_sha": "bedf54c6123429a562d51f1258802793a8b5af21"
+      "bytes": 16261,
+      "sha256": "2bbd22b9c55bd4262c2f2124cdbc2e904e1372c5056a9fa3fa8565446d9fe7b1",
+      "git_blob_sha": "5a824ea6033026f77492aeb81676c9ea62d3f834"
     },
     {
       "path": "upstream/OpenMAIC/components/generation/interactive-mode-button.tsx",
@@ -56644,9 +56644,9 @@
     },
     {
       "path": "upstream/OpenMAIC/components/settings/course-model-config.tsx",
-      "bytes": 49423,
-      "sha256": "0981da2e573b030ebee639cd4d0241d2a460687bdc43675836510797a1d15b80",
-      "git_blob_sha": "3467cf5305a44913094e0d7fe98905213e11eeaf"
+      "bytes": 49443,
+      "sha256": "36de327788eeec8f773f73ee9e4a365c83b471ecd92f658eb3bef52bb04f0945",
+      "git_blob_sha": "f0b9c863e094a36b332a738348cdccd30a637e1b"
     },
     {
       "path": "upstream/OpenMAIC/components/settings/general-settings.tsx",
@@ -56662,9 +56662,9 @@
     },
     {
       "path": "upstream/OpenMAIC/components/settings/index.tsx",
-      "bytes": 54847,
-      "sha256": "c867e7ff03e3f83d8e25622465d56091724ebb27181701efd7666470e5a4be36",
-      "git_blob_sha": "f979dd86b685a7a55e9d370ab92d9b4b6abcbe7c"
+      "bytes": 54867,
+      "sha256": "c0cd6e4d335d383c4209aa9e3cf811b8008a0b77ce07359a0e38586eebf1c489",
+      "git_blob_sha": "42e736969341ece5cc31919031ca601fac2ed5a1"
     },
     {
       "path": "upstream/OpenMAIC/components/settings/media-provider-names.ts",
@@ -60058,9 +60058,9 @@
     },
     {
       "path": "upstream/OpenMAIC/lib/pdf/constants.ts",
-      "bytes": 1697,
-      "sha256": "caa14e4ea0700949e12f40dc6860c6b15944bef56e8bea770dabe8bf34ba867a",
-      "git_blob_sha": "b997c83e94ce0b056c42868363de1a16fea5d5b1"
+      "bytes": 2477,
+      "sha256": "b403ef50f4aaf76b3a4d43602aa16e1979c97e5a41193233a24931c7329021c8",
+      "git_blob_sha": "4b8ef00685594f7af0db285a18f791a91ff1d6b6"
     },
     {
       "path": "upstream/OpenMAIC/lib/pdf/mineru-cloud.ts",
@@ -61348,9 +61348,9 @@
     },
     {
       "path": "upstream/OpenMAIC/lib/store/settings.ts",
-      "bytes": 108746,
-      "sha256": "20e78235fec59686f55428fe242bf18838a9396259a074f829061a016df65677",
-      "git_blob_sha": "c5b687922daa92ecbb6c2da1299fbb64d40eb51b"
+      "bytes": 108471,
+      "sha256": "5eb4ade6be6f91f557d6e499992291c9e6e81b7886065cc9427b1f7208a633eb",
+      "git_blob_sha": "17305f5a15f1469398b666c13d901028acca1fa0"
     },
     {
       "path": "upstream/OpenMAIC/lib/store/snapshot.ts",
@@ -66571,6 +66571,30 @@
       "bytes": 284,
       "sha256": "77d8c6a49eb8a86b2c71409a194e2c23d9c3f689ba1007b39278501a37ca6b3b",
       "git_blob_sha": "7f793bfb30bef2f7c81f3d7e9781c71420a87c00"
+    },
+    {
+      "path": "integration/mineru_local.py",
+      "bytes": 7313,
+      "sha256": "d97a435f90eab96153af5f91cf1edc6864a1fd63cb4f9259f187f30b6c20f9d3",
+      "git_blob_sha": "3d52d40f272d9b69a6f76dbd0a2e71080ac74514"
+    },
+    {
+      "path": "tests/test_document_cursor_recovery.py",
+      "bytes": 5765,
+      "sha256": "603c87dd6d2a2570577fac0a390784edae0e8c562ba690fea714214503808287",
+      "git_blob_sha": "459cd17933b9d0648e3e57564fe8fb8f06f83db5"
+    },
+    {
+      "path": "tests/test_mineru_local_policy.py",
+      "bytes": 5247,
+      "sha256": "862d85504241026196d96fabd82e27e5341e1f454763d0dbf3bb3d79a1246f64",
+      "git_blob_sha": "16d006647ccaf649b04983887cf8cc5f471d0580"
+    },
+    {
+      "path": "upstream/DeepTutor/web/components/education/AccessLevelControl.tsx",
+      "bytes": 4301,
+      "sha256": "1d5a425777f9c6e65d478ebb6d382c7420efa95b9b51d3daba7353ed9586dc9f",
+      "git_blob_sha": "f406494113591fd753bd7492240457d0adc006b0"
     }
   ]
 }

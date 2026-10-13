@@ -786,22 +786,169 @@ class Document:
             self.pdf.close()
 
 
-def cursor_decode(value: Any, digest: str) -> tuple[int, int]:
+# Placeholder values that models and form fields send for "no value". They mean
+# "start from the beginning", never a position, so they must not fail a read.
+NULL_TOKENS = {"", "null", "none", "undefined", "nil", "start", "begin", "beginning", "first", "0"}
+_POSITION_TEXT = re.compile(r"(?:start_unit|unit|page|slide|line|p)\s*[:=#]?\s*(\d{1,9})", re.IGNORECASE)
+_INT_LIMITS = {"start_unit": (1, MAX_UNITS), "max_chars": (256, 100000), "max_units": (1, 40), "max_dimension": (128, 2048)}
+_ENGINE_ALIASES = {"auto": "auto", "default": "auto", "builtin": "builtin", "native": "builtin", "fast": "builtin",
+                   "quick": "builtin", "text": "builtin", "pymupdf": "builtin", "local": "builtin",
+                   "mineru": "mineru", "structure": "mineru", "structured": "mineru", "advanced": "mineru", "layout": "mineru"}
+# MinerU tiers (verified in MinerU 4.0.12 parser/tier.py and backend/analysis):
+# basic = ONNX small models only, no VLM; standard = hybrid layout + local VLM;
+# advanced = full local VLM two-step extraction with image analysis.
+_TIER_ALIASES = {"basic": "basic", "pipeline": "basic", "flash": "basic", "fast": "basic", "low": "basic",
+                 "standard": "standard", "hybrid": "standard", "medium": "standard",
+                 "advanced": "advanced", "vlm": "advanced", "high": "advanced", "pro": "advanced",
+                 "full": "advanced", "enhanced": "advanced", "best": "advanced", "xhigh": "advanced"}
+
+
+def normalize_cursor(value: Any) -> str | None:
+    """Canonical cursor token, or None for "read from the beginning".
+
+    Tolerates the transport damage models commonly introduce when copying an
+    opaque token: surrounding quotes/whitespace, dropped ``=`` padding and the
+    standard (non-URL) base64 alphabet. The decoded content is still bound to
+    the document SHA-256, so a repaired token cannot address another source.
+    """
     if value is None:
+        return None
+    if not isinstance(value, str):
+        fail("INVALID_CURSOR", "The pagination cursor must be the exact next_cursor text. Omit it to start at the first unit, or pass start_unit to continue at a page.")
+    token = value.strip().strip("\"'` ")
+    if token.lower() in NULL_TOKENS:
+        return None
+    token = token.replace("+", "-").replace("/", "_").rstrip("=")
+    if len(token) > 1024 or not re.fullmatch(r"[A-Za-z0-9_-]+", token):
+        fail("INVALID_CURSOR", "The pagination cursor is damaged. Omit it to start at the first unit, or pass start_unit (one-based page/slide/line) to continue.")
+    return token + "=" * (-len(token) % 4)
+
+
+def cursor_payload(value: Any) -> dict[str, Any] | None:
+    """Decoded cursor object without the source check, or None if undecodable."""
+    try:
+        token = normalize_cursor(value)
+        if token is None:
+            return None
+        cursor = json.loads(base64.urlsafe_b64decode(token))
+        if not isinstance(cursor, dict) or cursor.get("v") != SCHEMA_VERSION or type(cursor.get("index")) is not int:
+            return None
+        return cursor
+    except (ReaderError, ValueError, TypeError):
+        return None
+
+
+def normalize_read_request(request: dict[str, Any]) -> dict[str, Any]:
+    """Repair harmless caller mistakes before they become reading failures.
+
+    Empty placeholders ("", null, 0) become defaults and numeric strings become
+    integers; explicit out-of-range values are still rejected with the allowed
+    range. A plain page number sent as a cursor becomes ``start_unit``, and a
+    valid cursor wins over a conflicting ``start_unit``. Unknown engines, tiers
+    and OCR modes (for example "cloud") are rejected: everything runs locally.
+    """
+    value = dict(request)
+    ocr = value.get("ocr")
+    if isinstance(ocr, bool):
+        value["ocr"] = "auto" if ocr else "off"
+    elif isinstance(ocr, str):
+        flag = ocr.strip().lower()
+        if flag in {"", "null", "undefined", "default", "auto", "on", "true", "yes", "1", "enabled", "local"}:
+            value["ocr"] = "auto"
+        elif flag in {"off", "false", "no", "0", "disabled", "none"}:
+            value["ocr"] = "off"
+        # Anything else (for example "cloud") stays as sent and is rejected:
+        # OCR only ever runs locally.
+    elif "ocr" in value and ocr is None:
+        value.pop("ocr")
+    for key in ("cursor", "job_id", "engine", "tier", "asset_id", "document_sha256", "coverage_cursor"):
+        item = value.get(key)
+        if key in value and (item is None or isinstance(item, str) and item.strip().strip("\"'` ").lower() in NULL_TOKENS):
+            value.pop(key)
+        elif isinstance(item, str) and key in {"job_id", "document_sha256", "asset_id"}:
+            value[key] = item.strip()
+    for key, (low, high) in _INT_LIMITS.items():
+        item = value.get(key)
+        if isinstance(item, str) and re.fullmatch(r"\s*\d{1,9}\s*", item):
+            item = int(item)
+        elif isinstance(item, float) and item.is_integer():
+            item = int(item)
+        if key not in value:
+            continue
+        if item is None or item == "" or item == 0 or (isinstance(item, str) and item.strip().lower() in NULL_TOKENS):
+            value.pop(key)  # A blank placeholder means the documented default.
+        elif isinstance(item, bool) or not isinstance(item, int) or item < low or item > high:
+            fail("INVALID_REQUEST", f"{key} must be an integer from {low} to {high}; omit it to use the default.")
+        else:
+            value[key] = item
+    cursor = value.get("cursor")
+    if isinstance(cursor, str):
+        text = cursor.strip().strip("\"'` ")
+        position = re.fullmatch(r"\d{1,9}", text) or _POSITION_TEXT.fullmatch(text)
+        if position:
+            # A page number is not an opaque cursor. Reading from that unit can
+            # repeat text already seen but can never skip unread content.
+            value.pop("cursor")
+            number = int(position.group(1) if position.lastindex else position.group(0))
+            if number >= 1 and "start_unit" not in value:
+                value["start_unit"] = min(number, MAX_UNITS)
+        elif "start_unit" in value:
+            if cursor_payload(cursor) is not None:
+                value.pop("start_unit")
+            else:
+                value.pop("cursor")
+    if isinstance(value.get("cursor"), str):
+        try:
+            value["cursor"] = normalize_cursor(value["cursor"])
+        except ReaderError:
+            pass  # Reported with recovery guidance when the cursor is used.
+        if value["cursor"] is None:
+            value.pop("cursor")
+    if isinstance(value.get("engine"), str):
+        engine = _ENGINE_ALIASES.get(value["engine"].strip().lower())
+        if engine is None:
+            fail("INVALID_REQUEST", "engine must be auto, builtin or mineru. All engines run locally; no parsing API is used.")
+        value["engine"] = engine
+    if isinstance(value.get("tier"), str):
+        tier = _TIER_ALIASES.get(value["tier"].strip().lower())
+        if tier is None and value["tier"].strip().lower() != "default":
+            fail("INVALID_REQUEST", "tier must be advanced (local VLM, default), standard (hybrid local VLM) or basic (small local models, no VLM).")
+        if tier is None:
+            value.pop("tier")
+        else:
+            value["tier"] = tier
+    return value
+
+
+def cursor_decode(value: Any, digest: str) -> tuple[int, int]:
+    token = normalize_cursor(value)
+    if token is None:
         return 0, 0
     try:
-        if not isinstance(value, str) or len(value) > 1024 or not re.fullmatch(r"[A-Za-z0-9_=-]+", value):
+        cursor = json.loads(base64.urlsafe_b64decode(token))
+        if not isinstance(cursor, dict) or cursor.get("v") != SCHEMA_VERSION or not isinstance(cursor.get("sha256"), str):
             raise ValueError
-        cursor = json.loads(base64.urlsafe_b64decode(value))
-        if cursor.get("sha256") != digest:
+        if cursor["sha256"] != digest:
             fail("SOURCE_CHANGED", "The document changed during pagination. Read it again from the beginning.")
-        if cursor.get("v") != SCHEMA_VERSION:
-            raise ValueError
         return bounded_int(cursor["index"], 0, 0, MAX_UNITS), bounded_int(cursor["offset"], 0, 0, MAX_UNIT_CHARS)
     except ReaderError:
         raise
     except Exception:
-        fail("INVALID_CURSOR", "The pagination position is invalid. Read again from the beginning.")
+        fail("INVALID_CURSOR", "The pagination cursor is not a next_cursor from this document. Omit it to start at the first unit, or pass start_unit (one-based page/slide/line) to continue.")
+
+
+def navigation(document_count: int, rows: list[dict[str, Any]], truncated: bool, index: int, offset: int, cursor: str | None) -> dict[str, Any]:
+    """Model-friendly position summary. ``next_start_unit`` is a plain integer
+    fallback for ``next_cursor``: it restarts the unit containing the cursor,
+    so it may repeat part of that unit but never skips unread text."""
+    returned = [row.get("unit_index") for row in rows if isinstance(row.get("unit_index"), int)]
+    return {"unit_count": document_count,
+            "returned_units": [returned[0], returned[-1]] if returned else [],
+            "complete_through_unit": index if truncated else document_count,
+            "next_cursor": cursor,
+            "next_start_unit": index + 1 if truncated else None,
+            "next_resumes_mid_unit": bool(truncated and offset),
+            "done": not truncated}
 
 
 def cursor_encode(digest: str, index: int, offset: int) -> str:
@@ -813,12 +960,13 @@ def handle_request(request: Any) -> dict[str, Any]:
     try:
         if not isinstance(request, dict):
             fail("INVALID_REQUEST", "The request must be a JSON object.")
+        request = normalize_read_request(request)
         action = request.get("action", "read")
         if action not in {"read", "asset"}:
             fail("INVALID_REQUEST", "This document operation is unsupported.")
         ocr = request.get("ocr", "auto")
         if ocr not in {"auto", "off"}:
-            fail("INVALID_REQUEST", "The OCR option is invalid.")
+            fail("INVALID_REQUEST", "ocr must be auto or off. OCR always runs locally; no OCR service is used.")
         if action == "asset" and not re.fullmatch(r"[0-9a-f]{64}", str(request.get("document_sha256", ""))):
             fail("SOURCE_VERSION_REQUIRED", "A document reading version is required before opening images.")
         relative, suffix, content, digest = source_bytes(request)
@@ -838,7 +986,7 @@ def handle_request(request: Any) -> dict[str, Any]:
                 fail("INVALID_REQUEST", "A starting position and pagination cursor cannot both be specified.")
             index = bounded_int(request["start_unit"], 1, 1, MAX_UNITS) - 1
         if index > document.count or index == document.count and offset:
-            fail("INVALID_CURSOR", "The pagination position is outside the document.")
+            fail("POSITION_OUT_OF_RANGE", f"The requested position is after the last unit. This document has {document.count} units; use start_unit between 1 and {max(1, document.count)}.")
         begins_document = index == 0 and offset == 0
         rows: list[dict[str, Any]] = []
         remaining = max_chars
@@ -859,7 +1007,12 @@ def handle_request(request: Any) -> dict[str, Any]:
             row["unit_index"] = index + 1
             row["unit_text_sha256"] = hashlib.sha256(text.encode('utf-8')).hexdigest()
             if offset > len(text):
-                fail("INVALID_CURSOR", "The pagination position is outside the current content.")
+                # The unit text can differ between requests (for example a page
+                # read with OCR, then continued with ocr=off). Restart this unit
+                # instead of failing: text may repeat, but none is skipped.
+                document.warn(f"Unit {index + 1} changed length since the previous page of results, so it is returned again from its beginning.")
+                offset = 0
+                begins_document = index == 0
             end = min(len(text), offset + remaining)
             row["text"] = text[offset:end]
             row["char_start"], row["char_end"], row["total_chars"] = offset, end, len(text)
@@ -897,7 +1050,8 @@ def handle_request(request: Any) -> dict[str, Any]:
             "pending_locators": [row.get("locator", {}) for row in rows if row.get("status") in {"partial", "needs_ocr"}],
             "text_extraction_complete": not truncated and not needs_ocr and not unresolved,
         }
-        return {**common, "status": status, "text": "\n\n".join(row["text"] for row in rows), "units": rows, "truncated": truncated, "next_cursor": cursor_encode(digest, index, offset) if truncated else None, "warnings": document.warnings, "coverage": coverage}
+        next_cursor = cursor_encode(digest, index, offset) if truncated else None
+        return {**common, "status": status, "navigation": navigation(document.count, rows, truncated, index, offset, next_cursor), "text": "\n\n".join(row["text"] for row in rows), "units": rows, "truncated": truncated, "next_cursor": next_cursor, "next_start_unit": index + 1 if truncated else None, "warnings": document.warnings, "coverage": coverage}
     except ReaderError as exc:
         return {"schema_version": SCHEMA_VERSION, "ok": False, "status": "error", "error": {"code": exc.code, "message": exc.message}}
     except FileNotFoundError:

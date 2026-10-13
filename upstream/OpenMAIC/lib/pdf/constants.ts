@@ -50,10 +50,29 @@ export const PDF_PROVIDERS: Record<PDFProviderId, PDFProviderConfig> = {
 };
 
 /**
+ * DeepSteam parses documents on the user's computer with the bundled local
+ * MinerU VLM. Hosted MinerU (mineru.net) and remote MinerU endpoints are not
+ * offered, never auto-selected and rejected by the server routes.
+ */
+export const DISABLED_REMOTE_PDF_PROVIDERS: ReadonlySet<PDFProviderId> = new Set<PDFProviderId>([
+  'mineru',
+  'mineru-cloud',
+]);
+
+export function isDisabledRemotePdfProvider(providerId: string | undefined | null): boolean {
+  return !!providerId && DISABLED_REMOTE_PDF_PROVIDERS.has(providerId as PDFProviderId);
+}
+
+/** PDF providers that may be shown and selected in DeepSteam. */
+export function selectablePdfProviders(): PDFProviderConfig[] {
+  return Object.values(PDF_PROVIDERS).filter((provider) => !isDisabledRemotePdfProvider(provider.id));
+}
+
+/**
  * Get all available PDF providers
  */
 export function getAllPDFProviders(): PDFProviderConfig[] {
-  return Object.values(PDF_PROVIDERS);
+  return selectablePdfProviders();
 }
 
 /**

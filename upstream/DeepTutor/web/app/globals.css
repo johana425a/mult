@@ -307,12 +307,18 @@
     overflow: hidden;
   }
 
+  /* Modified for DeepSteam on 2026-10-13: one iOS-style motion vocabulary.
+     --motion-ease is the critically damped curve iOS uses for sheets and
+     navigation; --motion-spring adds the small overshoot of a released spring
+     (presses, pops, toggles). Every existing animation shares these tokens. */
   html {
     -webkit-font-smoothing: antialiased;
-    --motion-fast: 120ms;
-    --motion-base: 180ms;
-    --motion-slow: 200ms;
-    --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --motion-fast: 160ms;
+    --motion-base: 280ms;
+    --motion-slow: 440ms;
+    --motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --motion-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+    --motion-press: 90ms;
   }
 
   html[data-scroll-behavior="smooth"] {
@@ -339,6 +345,22 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+
+  /* Colour feedback on every control, so no hover or selection snaps.
+     Utilities that set their own transition still take precedence. */
+  a,
+  button,
+  summary,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  [role="radio"],
+  [role="switch"] {
+    transition-property: background-color, color, border-color, box-shadow, opacity;
+    transition-duration: var(--motion-fast);
+    transition-timing-function: var(--motion-ease);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -374,14 +396,81 @@
   .dt-interactive,
   .dt-page-action {
     transition-property: background-color, color, border-color, box-shadow, filter, opacity, transform;
-    transition-duration: var(--motion-fast);
-    transition-timing-function: var(--motion-ease);
+    transition-duration: var(--motion-fast), var(--motion-fast), var(--motion-fast), var(--motion-base), var(--motion-fast), var(--motion-fast), var(--motion-base);
+    transition-timing-function: var(--motion-ease), var(--motion-ease), var(--motion-ease), var(--motion-ease), var(--motion-ease), var(--motion-ease), var(--motion-spring);
   }
 
+  /* iOS press: dip quickly, then spring back on release. */
   .dt-interactive:active:not(:disabled):not([aria-disabled="true"]),
   .dt-page-action:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: scale(0.98);
+    transform: scale(0.96);
+    transition-duration: var(--motion-press);
   }
+
+  .dt-page-action:hover:not(:disabled):not([aria-disabled="true"]) {
+    box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--foreground) 45%, transparent);
+  }
+
+  /* Page content arrives with a short rise, like an iOS navigation push.
+     Opacity and translate only; it settles to transform: none. */
+  [data-feature-page] > * {
+    animation: ds-page-in var(--motion-slow) var(--motion-ease) both;
+  }
+
+  .ds-rise {
+    animation: ds-rise var(--motion-slow) var(--motion-ease) both;
+  }
+
+  .ds-stagger > * {
+    animation: ds-rise var(--motion-slow) var(--motion-ease) both;
+  }
+  .ds-stagger > *:nth-child(2) { animation-delay: 40ms; }
+  .ds-stagger > *:nth-child(3) { animation-delay: 80ms; }
+  .ds-stagger > *:nth-child(4) { animation-delay: 120ms; }
+  .ds-stagger > *:nth-child(5) { animation-delay: 160ms; }
+  .ds-stagger > *:nth-child(n + 6) { animation-delay: 200ms; }
+
+  /* iOS segmented control: a raised thumb springs between options. */
+  .ds-segmented {
+    position: relative;
+    display: inline-grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    padding: 2px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--muted) 85%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 70%, transparent);
+    isolation: isolate;
+  }
+  .ds-segmented[data-disabled] { opacity: 0.6; }
+  .ds-segmented-thumb {
+    position: absolute;
+    z-index: -1;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: calc((100% - 4px) / 2);
+    border-radius: 8px;
+    background: var(--card);
+    box-shadow: 0 3px 8px -2px rgb(0 0 0 / 0.16), 0 0 0 0.5px rgb(0 0 0 / 0.06);
+    transition: transform var(--motion-slow) var(--motion-spring);
+  }
+  .ds-segmented-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--muted-foreground);
+    transition: color var(--motion-base) var(--motion-ease), transform var(--motion-base) var(--motion-spring);
+  }
+  .ds-segmented-option[aria-checked="true"] { color: var(--foreground); }
+  .ds-segmented-option:active:not(:disabled) { transform: scale(0.95); transition-duration: var(--motion-press); }
 
   /* Headers and feedback fade without moving their descendants. This keeps
      portaled menus, file readers and existing chat scroll positions stable. */
@@ -778,11 +867,33 @@
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes ds-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ds-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -813,10 +924,11 @@
 .animate-overlay-in {
   animation: dt-overlay-in var(--motion-fast) var(--motion-ease);
 }
+/* iOS alert/sheet entry: grows in from 94% with a released-spring settle. */
 @keyframes dt-pop-in {
   from {
     opacity: 0;
-    transform: translateY(4px) scale(0.99);
+    transform: translateY(8px) scale(0.94);
   }
   to {
     opacity: 1;
@@ -824,7 +936,7 @@
   }
 }
 .animate-pop-in {
-  animation: dt-pop-in var(--motion-base) var(--motion-ease);
+  animation: dt-pop-in var(--motion-slow) var(--motion-spring);
 }
 
 /* Streaming "breathing" label — used above the trace panel to surface that
@@ -938,7 +1050,7 @@ body[data-picker-open] .dt-breathing-text {
 @keyframes dt-popup-up {
   from {
     opacity: 0;
-    transform: translateY(4px) scale(0.99);
+    transform: translateY(6px) scale(0.96);
   }
   to {
     opacity: 1;

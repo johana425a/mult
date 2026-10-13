@@ -29,6 +29,15 @@ TERMINAL = {'ready', 'partial', 'empty', 'needs_ocr', 'failed', 'cancelled'}
 FIELDS = {'path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units',
           'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier'}
 MAX_RESULT = 24 * 1024 * 1024
+# Local MinerU tiers. advanced (default) and standard run the locally installed
+# MinerU2.5 VLM through llama.cpp on this computer; basic runs only the small
+# ONNX models and is used only when a caller asks for it explicitly.
+MINERU_TIERS = {'basic', 'standard', 'advanced'}
+DEFAULT_MINERU_TIER = 'advanced'
+# CPU VLM inference is slow, so VLM tiers parse smaller physical-page batches
+# (earlier first results) with a longer per-batch limit.
+MINERU_BATCH_PAGES = {'basic': 8, 'standard': 6, 'advanced': 4}
+MINERU_TIMEOUT_SECONDS = {'basic': 1800, 'standard': 3600, 'advanced': 3600}
 
 
 def failure(code, message, *, retryable=False, **extra):
@@ -126,7 +135,7 @@ class DocumentJobs:
         engine = payload.get('engine', 'auto')
         if engine not in {'auto', 'builtin', 'mineru'}:
             raise ValueError('document_engine_invalid')
-        if payload.get('tier', 'basic') not in {'basic', 'standard'}:
+        if payload.get('tier', DEFAULT_MINERU_TIER) not in MINERU_TIERS:
             raise ValueError('document_engine_tier_invalid')
         request = {k: v for k, v in payload.items() if k != 'job_id'}
         request.update(root=str(Path(root).resolve()), document_sha256=digest, engine=engine, action='read')
@@ -286,7 +295,7 @@ class DocumentJobs:
         token = payload.get('coverage_cursor')
         if token:
             try:
-                decoded = json.loads(base64.urlsafe_b64decode(token))
+                decoded = json.loads(base64.urlsafe_b64decode(reader.normalize_cursor(token) or ''))
                 if decoded['scope'] != hashlib.sha256(scope.encode()).hexdigest() or decoded['sha256'] != digest:
                     raise ValueError()
                 offset = int(decoded['offset'])
@@ -450,31 +459,35 @@ class DocumentJobs:
             return failure('document_reader_failed', 'Reading is incomplete. Retry to continue.', retryable=True)
         if isinstance(value, dict) and value.get('ok') is False and value.get('engine') == 'mineru':
             code = value.get('error', {}).get('code', 'parse_failed')
+            detail = str(value.get('error', {}).get('message') or '')[:600]
             message = ('The source changed. Read it again.' if code == 'source_changed' else
-                       'The advanced parser is not ready. Repair the installation; the original remains available.' if code in {'parser_not_configured', 'parser_asset_missing'} else
-                       'Advanced parsing is incomplete. Retry or view the original images.')
+                       'The local MinerU VLM cannot run on this computer: ' + detail + ' No remote service was used.' if code == 'vlm_unavailable' else
+                       'The local MinerU parser is not ready. Repair the installation; the original remains available. No remote service was used.' if code in {'parser_not_configured', 'parser_asset_missing'} else
+                       'Local MinerU parsing is incomplete. Retry or view the original images. No remote service was used.')
             return {**value, 'error': {'code': code, 'message': message, 'retryable': code == 'parse_failed'}}
         return value if isinstance(value, dict) else failure('document_result_invalid', 'The reading result is invalid. Retry.')
 
     def _upgrade(self, row, request, lightweight, *, required):
-        python = ROOT / 'runtime/mineru/python.exe'
-        helper = ROOT / 'scripts/mineru_document_worker.py'
+        python, helper = mineru_runtime()
         if not python.is_file() or not helper.is_file():
             if required:
-                return failure('document_engine_unavailable', 'The advanced document parser is not ready. Repair the installation.')
+                return failure('document_engine_unavailable', 'The local MinerU runtime is not installed. Repair the DeepSteam document runtime; no remote parsing service is used.')
             return {**lightweight, 'status': 'partial', 'upgrade_required': True,
+                    'structure_engine_status': {'engine': 'mineru', 'available': False, 'code': 'document_engine_unavailable',
+                                                'remote_fallback': False},
                     'coverage': {**lightweight.get('coverage', {}), 'text_extraction_complete': False,
                                  'unresolved': sorted(set(lightweight.get('coverage', {}).get('unresolved', [])) | {'structure_upgrade_unavailable'})},
                     'warnings': [*lightweight.get('warnings', []), 'Scans or complex layouts still need advanced parsing. Local extraction and original images are retained.']}
-        tier = request.get('tier', 'basic')
+        tier = request.get('tier', DEFAULT_MINERU_TIER)
+        pages = MINERU_BATCH_PAGES[tier]
         pdf_batch = lightweight.get('format') == 'pdf'
         first, _ = reader.cursor_decode(request.get('cursor'), row['source_hash'])
         if request.get('start_unit'):
             first = request['start_unit'] - 1
-        batch_start = first // 8 * 8 if pdf_batch else 0
-        batch_end = min(batch_start + 8, lightweight['document']['unit_count']) if pdf_batch else None
+        batch_start = first // pages * pages if pdf_batch else 0
+        batch_end = min(batch_start + pages, lightweight['document']['unit_count']) if pdf_batch else None
         cache_key = hashlib.sha256(_dump([row['scope'], row['source_hash'], tier, batch_start, batch_end,
-            'physical-pdf-batch-v1', hashlib.sha256(helper.read_bytes()).hexdigest()]).encode()).hexdigest()
+            'physical-pdf-batch-v2', hashlib.sha256(helper.read_bytes()).hexdigest()]).encode()).hexdigest()
         container = self.cache / ('mineru-' + cache_key)
         self.storage.prepare(container)
         manifest = container / 'normalized.json'
@@ -496,7 +509,7 @@ class DocumentJobs:
             parsed = self._run_child(row['id'], python, helper, {
                 'schema_version': 1, 'action': 'parse', 'source_path': str(source),
                 'output_dir': str(destination), 'source_sha256': engine_hash,
-                'engine_options': {'tier': tier}, 'request_id': row['id']}, 1800)
+                'engine_options': {'tier': tier}, 'request_id': row['id']}, MINERU_TIMEOUT_SECONDS[tier])
             if parsed.get('ok') and parsed.get('result_path'):
                 if parsed['result_path'] != 'result.json':
                     return failure('document_result_invalid', 'The advanced parser result location is invalid.')
@@ -515,6 +528,8 @@ class DocumentJobs:
             if required or parsed.get('error', {}).get('code') == 'document_cancelled':
                 return parsed
             return {**lightweight, 'status': 'partial', 'upgrade_required': True,
+                    'structure_engine_status': {'engine': 'mineru', 'available': True, 'code': parsed.get('error', {}).get('code'),
+                                                'remote_fallback': False},
                     'coverage': {**lightweight.get('coverage', {}), 'text_extraction_complete': False,
                                  'unresolved': sorted(set(lightweight.get('coverage', {}).get('unresolved', [])) | {'structure_upgrade_incomplete'})},
                     'warnings': [*lightweight.get('warnings', []), 'Advanced parsing is incomplete. This result contains local extraction only; check the original images.'],
@@ -522,7 +537,42 @@ class DocumentJobs:
         if pdf_batch:
             lightweight = {**lightweight, 'units': [unit for unit in lightweight.get('units', [])
                 if batch_start < unit.get('locator', {}).get('page', 0) <= batch_end]}
-        return located_window(parsed, request, lightweight, destination)
+        value = located_window(parsed, request, lightweight, destination)
+        if value.get('ok') and parsed.get('inference'):
+            value['inference'] = parsed['inference']
+        return value
+
+
+def mineru_runtime():
+    """Fixed installation paths of the local MinerU runtime; never PATH lookup."""
+    return ROOT / 'runtime/mineru/python.exe', ROOT / 'scripts/mineru_document_worker.py'
+
+
+def engine_status(*, verify=False):
+    """Report what local MinerU would run: model, backend, tier and readiness.
+
+    ``verify`` additionally starts the private llama.cpp server and reads back
+    the model it loaded (no document inference). Nothing contacts the network.
+    """
+    python, helper = mineru_runtime()
+    base = {'engine': 'mineru', 'remote_api': False, 'api_key_required': False,
+            'default_tier': DEFAULT_MINERU_TIER, 'tiers': {
+                'advanced': 'local MinerU2.5 VLM, two-step extraction with image analysis (default)',
+                'standard': 'local MinerU2.5 VLM with hybrid layout',
+                'basic': 'small local ONNX models only, no VLM (explicit request only)'}}
+    if not python.is_file() or not helper.is_file():
+        return {**base, 'ok': False, 'installed': False,
+                'error': {'code': 'document_engine_unavailable', 'message': 'The local MinerU runtime is not installed in this DeepSteam folder.'}}
+    try:
+        completed = subprocess.run([str(python), '-I', '-B', str(helper), '--verify-vlm' if verify else '--health'],
+                                   stdin=subprocess.DEVNULL, capture_output=True, env=child_environment(),
+                                   timeout=240 if verify else 90,
+                                   **({'creationflags': 0x08000000} if os.name == 'nt' else {}))
+        value = json.loads(completed.stdout.decode('utf-8') or '{}')
+    except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+        return {**base, 'ok': False, 'installed': True,
+                'error': {'code': 'document_engine_check_failed', 'message': type(exc).__name__}}
+    return {**base, 'installed': True, **(value if isinstance(value, dict) else {})}
 
 
 def pdf_subset(source, directory, first, end):
@@ -582,10 +632,20 @@ def needs_structure(value):
 
 
 def is_structured_cursor(token):
-    try:
-        return bool(token and json.loads(base64.urlsafe_b64decode(token)).get('engine') == 'mineru')
-    except Exception:
-        return False  # The ordinary cursor validator rejects malformed input.
+    # The ordinary cursor validator reports malformed input with guidance.
+    return (reader.cursor_payload(token) or {}).get('engine') == 'mineru'
+
+
+def structured_cursor(token):
+    return reader.cursor_payload(token) or {}
+
+
+def restart_failure(code, reason, index):
+    """Reject a stale cursor without serving misaligned text, and say exactly
+    how to continue: re-reading the unit from its start never skips content."""
+    unit = index + 1
+    return failure(code, f'{reason} Continue with start_unit={unit} (no cursor) to re-read unit {unit} from its beginning.',
+                   restart_start_unit=unit)
 
 
 def merge_spans(spans):
@@ -613,13 +673,13 @@ not by block index. Unsupported Office mappings remain explicit partial data.
         signature.update(_dump([unit.get('locator', {}), unit.get('text', '')]).encode())
     text_version = signature.hexdigest()
     if is_structured_cursor(request.get('cursor')):
-        previous_cursor = json.loads(base64.urlsafe_b64decode(request['cursor']))
+        previous_cursor = structured_cursor(request['cursor'])
         crossing_batch = (offset == 0 and start == previous_cursor.get('batch_end')
                           and start == parsed.get('source_page_start'))
         if previous_cursor.get('text_version') != text_version and not crossing_batch:
-            return failure('document_structure_changed', 'The advanced parser result changed. Read again from the beginning of this page.')
+            return restart_failure('document_structure_changed', 'The advanced parser result changed since this cursor was issued.', start)
     if offset and not is_structured_cursor(request.get('cursor')):
-        return failure('document_cursor_engine_changed', 'The parser changed. Read again from the beginning of this page.')
+        return restart_failure('document_cursor_engine_changed', 'This cursor came from the built-in reader, not the advanced parser.', start)
     if request.get('start_unit'):
         start = request['start_unit'] - 1
     index = start
@@ -637,7 +697,8 @@ not by block index. Unsupported Office mappings remain explicit partial data.
         # pages. Keep the proven builtin stream when no exact mapping exists.
         if not portable_pages or not matches:
             if is_structured_cursor(request.get('cursor')):
-                return failure('document_structure_mapping_missing', 'The structure location is not aligned. Use basic reading to inspect the source.')
+                return failure('document_structure_mapping_missing', f'The structured result has no verified mapping for unit {index + 1}. Continue with start_unit={index + 1} and engine=builtin.',
+                               restart_start_unit=index + 1)
             return {**original, 'engine': 'builtin', 'structure_engine': 'mineru', 'status': 'partial',
                     'coverage': {**original.get('coverage', {}), 'text_extraction_complete': False,
                                  'unresolved': sorted(set(original.get('coverage', {}).get('unresolved', [])) | {'structure_mapping_unverified'})},
@@ -646,7 +707,7 @@ not by block index. Unsupported Office mappings remain explicit partial data.
         if not text.strip():
             text = prior.get('text', '')
         if offset > len(text):
-            return failure('document_structure_cursor_invalid', 'The advanced pagination position changed. Read the source again.')
+            return restart_failure('document_structure_cursor_invalid', 'The advanced pagination position no longer fits this unit.', index)
         end = min(len(text), offset + remaining)
         equations = [item if item.get('format') else {'format': 'latex', 'text': item.get('content', ''),
             'status': 'partial', 'source_format': 'mineru'} for unit in matches for item in unit.get('equations', []) if isinstance(item, dict)]
@@ -688,7 +749,8 @@ not by block index. Unsupported Office mappings remain explicit partial data.
                                   'Advanced parsing retains original page images for checking formulas, tables, and figures.']))
     return {**original, 'engine': 'mineru', 'engine_version': parsed.get('engine_version'),
             'status': 'partial' if truncated or parsed.get('status') == 'partial' or any(r['status'] in {'partial', 'needs_ocr'} for r in units) else 'ready',
-            'truncated': truncated, 'next_cursor': cursor,
+            'navigation': reader.navigation(original['document']['unit_count'], units, truncated, index, offset, cursor),
+            'truncated': truncated, 'next_cursor': cursor, 'next_start_unit': index + 1 if truncated else None,
             'units': units, 'text': '\n\n'.join(row['text'] for row in units), 'warnings': warnings,
             'coverage': {**original.get('coverage', {}), 'structure_engine': 'mineru',
                          'document_fully_read': start == 0 and not request.get('cursor') and not truncated,
@@ -749,8 +811,15 @@ def handle(request, *, test_root=None, python=None):
         if not isinstance(request, dict) or set(request) - (FIELDS | {'root', 'action', 'wait_seconds', 'limit', 'refresh', 'coverage_cursor'}):
             raise ValueError('document_request_invalid')
         root = request.get('root')
-        payload = {k: v for k, v in request.items() if k in FIELDS}
         action = request.get('action', 'read')
+        if action == 'engine_status':
+            return engine_status(verify=request.get('refresh') is True)
+        if action != 'inventory':
+            # One shared repair point for the Harness tool, DeepTutor and Portal:
+            # placeholder cursors, numeric strings and page numbers sent as a
+            # cursor must not turn into a permanent "invalid position" loop.
+            request = reader.normalize_read_request(request)
+        payload = {k: v for k, v in request.items() if k in FIELDS}
         if action == 'inventory':
             from integration.workspace_document_inventory import InventoryStore
             return InventoryStore(test_root=test_root).page(root, {k: v for k, v in request.items() if k in {'path', 'cursor', 'limit', 'refresh'}})

@@ -16,7 +16,7 @@ import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
 import { getThinkingConfigKey } from '@/lib/ai/thinking-config';
 import type { SettingsSection } from '@/lib/types/settings';
-import { PDF_PROVIDERS } from '@/lib/pdf/constants';
+import { PDF_PROVIDERS, selectablePdfProviders } from '@/lib/pdf/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
 import { getAcceptStringForProviders, isMimeSupportedByProviders } from '@/lib/document/mime';
 import {
@@ -236,7 +236,7 @@ export function GenerationToolbar({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(PDF_PROVIDERS).map((provider) => {
+                {selectablePdfProviders().map((provider) => {
                   const cfg = pdfProvidersConfig[provider.id];
                   // AliDocMind authenticates with an AK/SK pair rather than a
                   // single apiKey — recognize either credential shape.

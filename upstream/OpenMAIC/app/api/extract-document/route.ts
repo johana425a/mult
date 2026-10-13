@@ -31,6 +31,7 @@ import { MAX_EXTRACT_DOCUMENT_FILE_SIZE_BYTES } from '@/lib/constants/generation
 import { withRequestOwnerId } from '@/lib/server/agent-runtime/with-owner';
 import { withOwnerResponseHeaders } from '@/lib/server/agent-runtime/route-response';
 import { DocumentExtractionError } from '@/lib/document/extractors/deepsteam-local';
+import { isDisabledRemotePdfProvider } from '@/lib/pdf/constants';
 
 // The asset-id path resolves bytes from the server asset store, which lives in
 // the PostgreSQL persistence backend; it needs the Node runtime, not the edge.
@@ -148,8 +149,9 @@ function isSelfHostedMinerUProvider(
  * it with `ALLOW_MINERU_CLOUD_FALLBACK=true`.
  */
 function isMinerUCloudFallbackEnabled(): boolean {
-  const value = process.env.ALLOW_MINERU_CLOUD_FALLBACK;
-  return value === 'true' || value === '1';
+  // DeepSteam: documents never leave the computer for MinerU parsing, even if
+  // ALLOW_MINERU_CLOUD_FALLBACK is set in the environment.
+  return false;
 }
 
 function requestedTypeLabel(mimeType: string): string {
@@ -357,6 +359,15 @@ async function runExtraction(
     );
   }
   logState.resolvedProviderId = provider.id;
+
+  if (isDisabledRemotePdfProvider(provider.id)) {
+    return apiError(
+      'INVALID_REQUEST',
+      422,
+      'Remote MinerU parsing is disabled in DeepSteam. Use the DeepSteam local reader; scans, formulas, ' +
+        'tables and figures are parsed on this computer by the installed MinerU model.',
+    );
+  }
 
   const local = provider.id === 'deepsteam-local';
   let managed = !local && isPdfProviderId(provider.id) && isServerConfiguredProvider('pdf', provider.id);

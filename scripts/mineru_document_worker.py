@@ -27,6 +27,21 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE_VERSION = "4.0.12"
 MODEL_ROOT = ROOT / "models/mineru"
+# The only VLM this worker runs: the open-source MinerU2.5-Pro model as GGUF,
+# served by the official llama.cpp server on this computer (loopback only).
+VLM_MODEL_NAME = "MinerU2.5-Pro-2605-1.2B"
+VLM_MODEL_DIR = MODEL_ROOT / "MinerU2.5-Pro-2605-1.2B-GGUF"
+VLM_WEIGHTS = VLM_MODEL_DIR / "MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"
+VLM_PROJECTOR = VLM_MODEL_DIR / "mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"
+LLAMA_SERVER = ROOT / "runtime/mineru/llama-server/llama-server.exe"
+LLAMA_RELEASE = "b11541"
+VLM_ALIAS = "mineru-document-tool"
+SMALL_MODEL_DIR = MODEL_ROOT / "MinerU-4_models_onnx"
+# MinerU 4.0.12 tier -> analysis effort (parser/tier.py). Only standard/high and
+# advanced/xhigh run the VLM; advanced also enables VLM image analysis.
+TIER_EFFORT = {"flash": "flash", "basic": "medium", "standard": "high", "advanced": "xhigh"}
+VLM_TIERS = {"standard", "advanced"}
+DEFAULT_TIER = "advanced"
 NATIVE_SUFFIXES = {".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".rtf", ".odt", ".ods", ".odp", ".epub", ".ofd", ".html", ".htm", ".mhtml", ".mht", ".csv", ".tsv"}
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 NETWORK_ATTEMPTS: list[str] = []
@@ -113,7 +128,15 @@ def configure(output: Path) -> None:
         "HF_HOME": str(home / "hf"), "TRANSFORMERS_OFFLINE": "1", "DO_NOT_TRACK": "1",
         "GRADIO_ANALYTICS_ENABLED": "false", "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1",
         "TEMP": str(home), "TMP": str(home), "OMP_NUM_THREADS": str(max(1, min(8, os.cpu_count() or 1))),
+        # The dispatcher passes a minimal environment. Libraries that expand
+        # "~" get this task's private folder, never the user's real profile.
+        "HOME": str(home), "USERPROFILE": str(home), "APPDATA": str(home / "appdata"),
+        "LOCALAPPDATA": str(home / "localappdata"), "XDG_CACHE_HOME": str(home / "cache"),
+        "MODELSCOPE_CACHE": str(home / "modelscope"), "TORCH_HOME": str(home / "torch"),
+        "MPLCONFIGDIR": str(home / "matplotlib"), "NUMBA_CACHE_DIR": str(home / "numba"),
     }
+    for key in ("appdata", "localappdata", "cache"):
+        (home / key).mkdir(exist_ok=True)
     os.environ.update(values)
     class ExcludedWrapper:
         def find_spec(self, fullname, path=None, target=None):
@@ -162,11 +185,11 @@ def portable_vlm_engine(tier: str, output: Path):
     policy = {"device": "cpu", "n_gpu_layers": 0, "n_parallel": 1,
               "n_threads": max(1, min(8, os.cpu_count() or 1)), "context": "model_training_default",
               "engine": "official-llama.cpp-b11541", "transport": "private_loopback_http"}
-    if tier not in {"standard", "advanced"}:
-        yield policy
+    if tier not in VLM_TIERS:
+        yield {**policy, "vlm": False}
         return
-    exe = ROOT / "runtime/mineru/llama-server/llama-server.exe"
-    models = MODEL_ROOT / "MinerU2.5-Pro-2605-1.2B-GGUF"
+    require_vlm_assets()
+    exe = LLAMA_SERVER
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         port = probe.getsockname()[1]
@@ -177,9 +200,9 @@ def portable_vlm_engine(tier: str, output: Path):
         if name.startswith("LLAMA_") or name.lower().endswith("_proxy"):
             environment.pop(name, None)
     environment["LLAMA_API_KEY"] = key
-    args = [str(exe), "--model", str(models / "MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"),
-            "--mmproj", str(models / "mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"),
-            "--host", "127.0.0.1", "--port", str(port), "--alias", "mineru-document-tool",
+    args = [str(exe), "--model", str(VLM_WEIGHTS),
+            "--mmproj", str(VLM_PROJECTOR),
+            "--host", "127.0.0.1", "--port", str(port), "--alias", VLM_ALIAS,
             "--n-gpu-layers", "0", "--no-mmproj-offload", "--parallel", "1", "--ctx-size", "0",
             "--threads", str(policy["n_threads"]), "--no-webui", "--no-warmup", "--jinja",
             "--special", "--skip-chat-parsing"]
@@ -205,9 +228,9 @@ def portable_vlm_engine(tier: str, output: Path):
             else:
                 raise TimeoutError("Local document engine startup timed out")
             os.environ.update({"MINERU_MODEL_VLM_SERVER_URL": endpoint,
-                               "MINERU_MODEL_VLM_API_KEY": key, "MINERU_MODEL_VLM_MODEL": "mineru-document-tool"})
+                               "MINERU_MODEL_VLM_API_KEY": key, "MINERU_MODEL_VLM_MODEL": VLM_ALIAS})
             progress("local_engine", device="cpu", engine=policy["engine"], process_id=process.pid)
-            yield policy
+            yield {**policy, "vlm": True, "endpoint": endpoint, "api_key": key, "alias": VLM_ALIAS}
     finally:
         os.environ.pop("MINERU_MODEL_VLM_API_KEY", None)
         os.environ.pop("MINERU_MODEL_VLM_SERVER_URL", None)
@@ -217,6 +240,84 @@ def portable_vlm_engine(tier: str, output: Path):
             process.kill()
         if process:
             process.wait(timeout=10)
+
+
+class VlmUnavailable(RuntimeError):
+    """The requested local VLM tier cannot run. Never downgrade silently."""
+
+
+def installation_relative(path: Path) -> str:
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.name
+
+
+def missing_vlm_assets() -> list[str]:
+    return [installation_relative(path) for path in (LLAMA_SERVER, VLM_WEIGHTS, VLM_PROJECTOR) if not path.is_file()]
+
+
+def require_vlm_assets() -> None:
+    missing = missing_vlm_assets()
+    if missing:
+        raise VlmUnavailable("The local MinerU VLM is not installed; missing " + ", ".join(missing)
+                             + ". Repair the DeepSteam document runtime. No remote parsing service is used.")
+
+
+def loopback_host(host: Any) -> bool:
+    try:
+        return ipaddress.ip_address(str(host)).is_loopback
+    except ValueError:
+        return False  # Host names are refused; the worker always uses 127.0.0.1.
+
+
+def loopback_vlm_config(policy: dict):
+    """Validated MinerU VlmConfig that can only address this computer's server."""
+    from urllib.parse import urlsplit
+    from mineru.config import VlmConfig
+    endpoint = policy.get("endpoint", "")
+    host = urlsplit(endpoint).hostname
+    if not endpoint or not loopback_host(host):
+        raise VlmUnavailable("Refusing a non-loopback VLM endpoint; MinerU inference must stay on this computer.")
+    return VlmConfig(engine="llama-cpp", server_url=endpoint, api_key=policy["api_key"], model=policy["alias"],
+                     max_concurrency=1, http_timeout=1800)
+
+
+def assert_offline_configuration() -> None:
+    """Fail closed if any configuration could route parsing to a remote service."""
+    from mineru.config import config
+    from urllib.parse import urlsplit
+    url = config.model.vlm.server_url
+    if url and not loopback_host(urlsplit(url).hostname):
+        raise VlmUnavailable("A remote MinerU VLM endpoint is configured; refusing to send documents off this computer.")
+    features = config.llm_aided.features
+    if features.title_leveling or features.cross_page_table_cell_merge:
+        raise VlmUnavailable("Remote LLM-aided post-processing is enabled; it is not allowed for local parsing.")
+    if str(config.model.source).lower() != "local":
+        raise VlmUnavailable("MinerU model downloads are not allowed; local model files are required.")
+
+
+def inference_identity(tier: str, requested_tier: str, suffix: str, runtime_policy: dict | None = None) -> dict:
+    """What actually ran, recorded in every result for verification."""
+    vlm = tier in VLM_TIERS
+    identity = {
+        "mode": "local", "remote_api": False, "api_key_required": False,
+        "engine": f"MinerU {ENGINE_VERSION} (local Python library)",
+        "requested_tier": requested_tier, "actual_tier": tier, "effort": TIER_EFFORT.get(tier),
+        "vlm_used": vlm, "image_analysis": tier == "advanced",
+        "small_models": {"backend": "onnxruntime (CPU)", "path": installation_relative(SMALL_MODEL_DIR)},
+    }
+    if vlm:
+        identity["vlm"] = {"model": VLM_MODEL_NAME, "format": "GGUF Q8_0",
+                           "weights": installation_relative(VLM_WEIGHTS),
+                           "projector": installation_relative(VLM_PROJECTOR),
+                           "backend": f"official llama.cpp llama-server {LLAMA_RELEASE}",
+                           "transport": "loopback HTTP (127.0.0.1) with a one-time key",
+                           "device": (runtime_policy or {}).get("device", "cpu")}
+    elif suffix in NATIVE_SUFFIXES:
+        identity["vlm_not_applicable"] = ("MinerU 4.0.12 parses Office, HTML, EPUB and table files natively for every tier; "
+                                          "its VLM only analyses PDF pages and images.")
+    return identity
 
 
 def health() -> dict:
@@ -254,10 +355,51 @@ def health() -> dict:
             path = safe_asset(native.parent, entry["file"])
             if not path.is_file() or path.stat().st_size != entry["bytes"]:
                 missing.append("official_llama_server_asset")
-    return {"ok": not missing and not model_missing, "engine": "mineru", "engine_version": ENGINE_VERSION,
-            "tool_only": True, "provider": False, "offline": True, "versions": versions,
+    vlm_missing = missing_vlm_assets()
+    ready = not missing and not model_missing
+    return {"ok": ready, "engine": "mineru", "engine_version": ENGINE_VERSION,
+            "tool_only": True, "provider": False, "offline": True, "remote_api": False, "versions": versions,
             "missing_dependencies": missing, "missing_models": model_missing,
-            "available_tiers": tiers, "python": sys.version.split()[0]}
+            "available_tiers": tiers, "default_tier": DEFAULT_TIER,
+            "vlm_ready": ready and not vlm_missing, "vlm_missing": vlm_missing,
+            "inference": inference_identity(DEFAULT_TIER, DEFAULT_TIER, ".pdf"),
+            "python": sys.version.split()[0]}
+
+
+def verify_vlm() -> dict:
+    """Start the private llama.cpp server and read back the model it loaded.
+
+    Proves the local weights load in the local backend; no document inference.
+    """
+    import shutil
+    output = Path(os.environ.get("TEMP") or ROOT / "runtime") / ("mineru-verify-" + secrets.token_hex(6))
+    output.mkdir(parents=True, exist_ok=False)
+    try:
+        return _verify_vlm(output)
+    finally:
+        shutil.rmtree(output, ignore_errors=True)  # Only this probe's own folder.
+
+
+def _verify_vlm(output: Path) -> dict:
+    configure(output)
+    with portable_vlm_engine(DEFAULT_TIER, output) as policy:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        headers = {"Authorization": "Bearer " + policy["api_key"]}
+        with opener.open(urllib.request.Request(policy["endpoint"] + "/v1/models", headers=headers), timeout=10) as response:
+            models = json.loads(response.read().decode("utf-8"))
+        try:
+            with opener.open(urllib.request.Request(policy["endpoint"] + "/props", headers=headers), timeout=10) as response:
+                props = json.loads(response.read().decode("utf-8"))
+        except (OSError, ValueError):
+            props = {}
+        loaded = str(props.get("model_path") or "")
+        config = loopback_vlm_config(policy)
+    return {"ok": True, "verified": "local_vlm_server_loaded_model", "served_models": [row.get("id") for row in models.get("data", [])],
+            "loaded_weights": Path(loaded).name if loaded else None,
+            "expected_weights": VLM_WEIGHTS.name, "weights_match": (Path(loaded).name == VLM_WEIGHTS.name) if loaded else None,
+            "vlm_config": {"engine": config.engine, "server": "loopback", "model": config.model},
+            "inference": inference_identity(DEFAULT_TIER, DEFAULT_TIER, ".pdf", policy),
+            "blocked_network_attempts": len(NETWORK_ATTEMPTS), "document_inference_requests": 0}
 
 
 def strings(value: Any):
@@ -413,13 +555,17 @@ def run(request: dict) -> dict:
     if actual_hash.lower() != owner["source_sha256"].lower():
         raise ValueError("source_changed")
     options = request.get("engine_options") or {}
-    requested_tier = options.get("tier", "basic")
-    if requested_tier not in {"flash", "basic", "standard", "advanced"}:
+    requested_tier = options.get("tier", DEFAULT_TIER)
+    if requested_tier not in TIER_EFFORT:
         raise ValueError("Unknown parsing tier")
     suffix = source.suffix.lower()
+    # Office/HTML/EPUB/CSV take MinerU's native path for every tier (the VLM is
+    # not applicable there); this is recorded in the result, not hidden.
     tier = "flash" if suffix in NATIVE_SUFFIXES else requested_tier
     if suffix not in NATIVE_SUFFIXES | IMAGE_SUFFIXES | {".pdf"}:
         raise ValueError("Unsupported document format")
+    if tier in VLM_TIERS:
+        require_vlm_assets()
     configure(output)
     started = time.monotonic()
     progress("loading", tier=tier)
@@ -431,14 +577,15 @@ def run(request: dict) -> dict:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(data)
 
-    progress("parsing", tier=tier)
+    assert_offline_configuration()
+    progress("parsing", tier=tier, effort=TIER_EFFORT[tier], vlm=tier in VLM_TIERS)
     with portable_vlm_engine(tier, output) as runtime_policy:
-        from mineru.config import config
-        config.model.vlm.server_url = os.environ.get("MINERU_MODEL_VLM_SERVER_URL") or ""
-        config.model.vlm.api_key = os.environ.get("MINERU_MODEL_VLM_API_KEY") or ""
-        config.model.vlm.model = "mineru-document-tool" if tier in {"standard", "advanced"} else ""
         from mineru.parser import parse
-        result = parse(source, tier=tier, ocr_mode="auto")
+        vlm_config = loopback_vlm_config(runtime_policy) if runtime_policy.get("vlm") else None
+        # Only the local library entry point is used; MinerU's hosted-API
+        # client (MinerUApiParser) is never constructed here.
+        result = parse(source, tier=tier, ocr_mode="auto", image_analysis=tier == "advanced", vlm_config=vlm_config)
+        runtime_policy = {key: value for key, value in runtime_policy.items() if key not in {"api_key", "endpoint"}}
     progress("saving")
     result.save(ConfinedWriter())
     structured = json.loads((output / "structured_content.json").read_text("utf-8"))
@@ -453,6 +600,7 @@ def run(request: dict) -> dict:
                        "middle_json_path": "middle_json.json", "artifact_dir": str(output), "asset_dir": "images",
                        "offline": True, "blocked_network_attempts": len(NETWORK_ATTEMPTS),
                        "runtime_policy": runtime_policy,
+                       "inference": inference_identity(tier, requested_tier, suffix, runtime_policy),
                        "elapsed_seconds": round(time.monotonic() - started, 3)})
     (output / "result.json").write_text(json.dumps(normalized, ensure_ascii=False, indent=2), encoding="utf-8")
     progress("completed", status=normalized["status"], units=len(normalized["units"]))
@@ -462,6 +610,7 @@ def run(request: dict) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--health", action="store_true")
+    parser.add_argument("--verify-vlm", action="store_true", help="load the local VLM in llama-server and report it; no document inference")
     args = parser.parse_args()
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
@@ -469,12 +618,14 @@ def main() -> int:
     output_stream = sys.stdout
     try:
         with contextlib.redirect_stdout(sys.stderr):
-            result = health() if args.health else run(json.load(sys.stdin))
+            result = health() if args.health else verify_vlm() if args.verify_vlm else run(json.load(sys.stdin))
     except Exception as exc:
         # Source content and keys are never copied into error messages by this wrapper.
         message = str(exc)
         code = "source_changed" if message.startswith("source_changed") else "parse_failed"
-        if isinstance(exc, (ModuleNotFoundError, importlib.metadata.PackageNotFoundError)):
+        if isinstance(exc, VlmUnavailable):
+            code = "vlm_unavailable"
+        elif isinstance(exc, (ModuleNotFoundError, importlib.metadata.PackageNotFoundError)):
             code = "parser_not_configured"
         elif isinstance(exc, FileNotFoundError):
             code = "parser_asset_missing"
@@ -483,7 +634,7 @@ def main() -> int:
                   "offline": True, "blocked_network_attempts": len(NETWORK_ATTEMPTS)}
     encoded = json.dumps(result, ensure_ascii=False)
     if not args.health and result.get("ok") and len(encoded.encode("utf-8")) > 4 * 1024 * 1024:
-        summary = {key: result[key] for key in ("schema_version", "ok", "status", "engine", "engine_version", "source_sha256", "coverage", "offline", "blocked_network_attempts")}
+        summary = {key: result[key] for key in ("schema_version", "ok", "status", "engine", "engine_version", "source_sha256", "coverage", "offline", "blocked_network_attempts", "inference") if key in result}
         summary.update({"result_path": "result.json", "warnings": result.get("warnings", [])[:100], "units_inline": False})
         encoded = json.dumps(summary, ensure_ascii=False)
     print(encoded, file=output_stream, flush=True)

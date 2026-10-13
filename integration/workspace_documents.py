@@ -120,6 +120,25 @@ async def document_request(workspace_id: str, action: str, **payload) -> dict:
                         retryable=True, stage='workspace_binding')
 
 
+def model_view(result: dict) -> dict:
+    """Model-facing read result: no duplicated text, navigation at both ends.
+
+    Tool-output trimming keeps a head and a tail of long results, so the next
+    position must be present at both ends. The full result stays in metadata.
+    """
+    if not isinstance(result, dict) or not isinstance(result.get('units'), list):
+        return result
+    navigation = result.get('navigation') or {'next_cursor': result.get('next_cursor'),
+                                              'next_start_unit': result.get('next_start_unit'),
+                                              'done': not result.get('truncated')}
+    hint = ('Reading of this document is complete.' if navigation.get('done') else
+            f'Continue with cursor="{navigation.get("next_cursor")}" or, equivalently, start_unit={navigation.get("next_start_unit")}.')
+    navigation = {**navigation, 'how_to_continue': hint}
+    body = {key: value for key, value in result.items() if key not in {'text', 'navigation', 'units'}}
+    units = [{key: value for key, value in unit.items() if key != 'unit_text_sha256'} for unit in result['units'] if isinstance(unit, dict)]
+    return {'navigation': navigation, **body, 'units': units, 'navigation_end': navigation}
+
+
 async def load_workspace_dependencies() -> dict:
     try:
         return await HarnessTransport(_ROOT).host('GET', '/workspace-dependencies', timeout=20)

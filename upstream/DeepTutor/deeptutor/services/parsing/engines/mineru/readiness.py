@@ -78,6 +78,21 @@ def mineru_models_ready(_source: str = "huggingface") -> bool:
 
 def mineru_readiness(config) -> ReadinessReport:
     """Whether a MinerU parse can run now under ``config``."""
+    try:
+        from integration import mineru_local
+    except ImportError:
+        mineru_local = None
+    if mineru_local is not None:
+        # DeepSteam: only the bundled local MinerU VLM worker is used.
+        if config.is_cloud:
+            return ReadinessReport(ready=False, reason="cloud_disabled", message=(
+                "The MinerU cloud API is disabled in DeepSteam. Documents are parsed on this "
+                "computer with the installed MinerU model; switch MinerU mode to Local."))
+        if not mineru_local.installed():
+            return ReadinessReport(ready=False, reason="local_runtime_missing", message=(
+                "The local MinerU runtime is not installed in this DeepSteam folder. Repair the "
+                "document runtime, or use the built-in local reader."))
+        return ReadinessReport(ready=True)
     if config.is_cloud:
         if not config.api_keys:
             return ReadinessReport(

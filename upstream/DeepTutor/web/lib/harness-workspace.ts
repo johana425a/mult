@@ -3,7 +3,9 @@ import type { LLMSelection } from '@/features/chat/model/protocol'
 import type { ResolvedModel } from './resolved-model'
 
 export interface HarnessWorkspace { id: string; path: string; title: string; created_at: string; updated_at: string; session_ids: string[]; archived?: boolean }
-export interface HarnessSession { id: string; workspace_id: string; status: string; cwd: string; title?: string; llm_selection?: LLMSelection | null; resolved_model?: ResolvedModel }
+export type HarnessAccessLevel = 'workspace' | 'full'
+export interface HarnessAccess { default_access: HarnessAccessLevel; levels: HarnessAccessLevel[]; locked?: boolean }
+export interface HarnessSession { id: string; workspace_id: string; status: string; cwd: string; title?: string; llm_selection?: LLMSelection | null; resolved_model?: ResolvedModel; access_level?: HarnessAccessLevel }
 export interface HarnessApproval {
   id: string; session_id: string; tool_name: string
   exact_action: { name: string; arguments: unknown; cwd: string }
@@ -40,12 +42,14 @@ export function harnessEventImages(event: HarnessEvent): HarnessImage[] {
 }
 
 export const harnessWorkspaceAPI = {
+  access: () => deepsteamRequest<HarnessAccess>('/harness/workspace-access'),
+  setAccess: (level: HarnessAccessLevel) => deepsteamRequest<HarnessAccess>('/harness/workspace-access', deepsteamJSON({ default_access: level })),
   list: () => deepsteamRequest<{ workspaces: HarnessWorkspace[] }>('/harness/workspaces'),
   create: (path: string, name: string) => deepsteamRequest<{ workspace: HarnessWorkspace }>('/harness/workspaces', deepsteamJSON({ path, name })),
   sessions: (id: string) => deepsteamRequest<{ sessions: HarnessSession[] }>(`/harness/workspaces/${encodeURIComponent(id)}/sessions`),
   newSession: (id: string) => deepsteamRequest<{ session: HarnessSession }>(`/harness/workspaces/${encodeURIComponent(id)}/sessions`, deepsteamJSON({})),
   events: (id: string, after: number) => deepsteamRequest<WorkspaceEvents>(`/harness/sessions/${encodeURIComponent(id)}/events?after_seq=${after}`),
-  turn: (id: string, text: string, llmSelection: LLMSelection | null = null) => deepsteamRequest<{ run_id: string; session_id: string; status: string; resolved_model?: ResolvedModel }>(`/harness/sessions/${encodeURIComponent(id)}/turn`, deepsteamJSON({ text, llm_selection: llmSelection })),
+  turn: (id: string, text: string, llmSelection: LLMSelection | null = null) => deepsteamRequest<{ run_id: string; session_id: string; status: string; resolved_model?: ResolvedModel; access_level?: HarnessAccessLevel }>(`/harness/sessions/${encodeURIComponent(id)}/turn`, deepsteamJSON({ text, llm_selection: llmSelection })),
   cancel: (id: string) => deepsteamRequest<{ cancelled: boolean }>(`/harness/sessions/${encodeURIComponent(id)}/cancel`, deepsteamJSON({})),
   approve: (approval: HarnessApproval, decision: 'allow' | 'deny') => deepsteamRequest<{ accepted: boolean }>(`/harness/approvals/${encodeURIComponent(approval.id)}`, deepsteamJSON({ session_id: approval.session_id, decision })),
 }

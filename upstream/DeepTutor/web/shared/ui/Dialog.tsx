@@ -120,7 +120,7 @@ export function Dialog({
 
   return (
     <div
-      className="animate-overlay-in fixed inset-0 z-[100] flex items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
+      className="animate-overlay-in fixed inset-0 z-[100] flex items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[6px] backdrop-saturate-150"
       onMouseDown={handleBackdrop}
     >
       <div

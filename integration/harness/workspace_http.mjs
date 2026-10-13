@@ -20,6 +20,11 @@ export async function workspaceRequest(adapter, method, path, query, body, signa
     if (['read', 'asset'].includes(action) && !body.path) throw Object.assign(new Error('Missing document path'), { code: 'document_path_invalid', status: 422 });
     return { value: await adapter.documents(id(documentMatch[1]), action, body, signal) };
   }
+  if (path === '/workspace-access' && method === 'GET') return { value: adapter.access() };
+  if (path === '/workspace-access' && method === 'POST') {
+    fields(body, ['default_access']);
+    return { value: await adapter.setAccess({ default_access: body.default_access }) };
+  }
   if (path === '/workspaces' && method === 'GET') return { value: await adapter.list() };
   if (path === '/workspaces' && method === 'POST') {
     fields(body, ['path', 'name']);
@@ -79,14 +84,16 @@ export async function workspaceRequest(adapter, method, path, query, body, signa
   }
   match = /^\/sessions\/([^/]+)\/turn$/.exec(path);
   if (match && method === 'POST') {
-    fields(body, ['text', 'llm_selection']);
+    fields(body, ['text', 'llm_selection', 'access_level']);
+    if (body.access_level !== undefined && !['workspace', 'full'].includes(body.access_level)) throw Object.assign(new Error('Invalid access level'), { code: 'INVALID_ACCESS_LEVEL', status: 400 });
     if (typeof body.text !== 'string' || !body.text.trim() || body.text.length > 24000) throw Object.assign(new Error('Invalid task'), { code: 'INVALID_TASK', status: 400 });
     const selection = body.llm_selection;
     if (selection !== undefined && selection !== null && (typeof selection !== 'object' || Array.isArray(selection)
       || Object.keys(selection).some(key => !['profile_id', 'model_id', 'reasoning_effort'].includes(key))
       || typeof selection.profile_id !== 'string' || !selection.profile_id || typeof selection.model_id !== 'string' || !selection.model_id
       || (selection.reasoning_effort !== undefined && typeof selection.reasoning_effort !== 'string'))) throw Object.assign(new Error('Invalid model selection'), { code: 'INVALID_MODEL_SELECTION', status: 400 });
-    return { value: await adapter.turn(id(match[1]), { text: body.text, ...(selection !== undefined ? { llm_selection: selection } : {}) }, signal) };
+    return { value: await adapter.turn(id(match[1]), { text: body.text, ...(selection !== undefined ? { llm_selection: selection } : {}),
+      ...(body.access_level !== undefined ? { access_level: body.access_level } : {}) }, signal) };
   }
   match = /^\/sessions\/([^/]+)\/cancel$/.exec(path);
   if (match && method === 'POST') { fields(body, []); return { value: await adapter.cancel(id(match[1])) }; }
