@@ -107,7 +107,14 @@ class PortalTests(unittest.TestCase):
         self.assertEqual(result.status_code, 422)
 
     def test_upload_round_trip_and_path_not_disclosed(self):
-        result = self.upload()
+        # The source checkout does not bundle the installed reader runtime.
+        # Exercise API persistence here; extraction has separate document tests.
+        parsed = {'ok': True, 'status': 'ready', 'text': '# Test\nAn original local fixture',
+                  'document': {'sha256': 'a' * 64, 'unit_count': 1},
+                  'units': [], 'truncated': False}
+        with patch.object(api.material_sources, 'managed_request', return_value=parsed) as reader:
+            result = self.upload()
+        reader.assert_awaited_once()
         self.assertNotIn('path', result)
         fetched = self.client.get('/api/materials/' + result['id']).json()
         self.assertIn('An original local fixture', fetched['text_preview'])
@@ -136,7 +143,12 @@ class PortalTests(unittest.TestCase):
         redirect = self.client.get('/', follow_redirects=False)
         self.assertEqual(redirect.status_code, 307)
         self.assertEqual(redirect.headers['location'], 'http://127.0.0.1:3792/chat')
-        self.assertEqual(self.client.get('/legacy').status_code, 200)
+        legacy = self.client.get('/legacy', follow_redirects=False)
+        self.assertEqual(legacy.status_code, 307)
+        self.assertEqual(legacy.headers['location'], redirect.headers['location'])
+        self.assertEqual(self.client.get('/static/index.html').status_code, 404)
+        for name in ('index.html', 'app.js', 'styles.css'):
+            self.assertFalse((Path(__file__).resolve().parents[1] / 'portal' / 'static' / name).exists())
 
     def test_selected_text_provider_and_lesson_identity(self):
         self.settings()

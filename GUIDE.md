@@ -6,6 +6,8 @@ Keep the installer executable and its matching payload file in the same director
 
 Open **Connect model** to authorize a supported account or add an API connection. Authorization is completed on the provider's official page. API secrets belong in the dedicated secure input, not in a chat message. A verified connection becomes available to learning and classroom features. Advanced model settings remain available.
 
+The desktop opens one product interface. The internal integration service supplies document, classroom, and learning-record APIs; it does not provide a second standalone workbench. Old portal bookmarks redirect to the main learning interface.
+
 Open a folder from the workspace selector to use local documents. The workspace list manages project entries without recursively deleting the selected folder. Document tools preserve source locations, extracted content, images, and reading progress. Original files remain separate from generated outputs.
 
 The Workspace agent page and the chat page have an access switch. **Full computer** (the default) lets agent tasks, including tasks delegated from learning chats, use other folders and drives and look for relevant material on their own. **Workspace only** keeps file and document tools inside the opened folder. Password stores, browser profiles, and DeepSteam's own settings stay protected at both levels. A change applies from the next task, and each task records the level it ran with.

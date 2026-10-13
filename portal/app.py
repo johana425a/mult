@@ -12,7 +12,6 @@ from urllib.parse import urlparse, urlencode
 import httpx
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -1303,8 +1302,5 @@ async def application_entry(entry: str):
 
 @app.get('/legacy')
 async def legacy_index():
-    # Retained for rollback. The complete native DeepTutor UI is the main entry.
-    return FileResponse(ROOT / 'portal' / 'static' / 'index.html')
-
-
-app.mount('/static', StaticFiles(directory=str(ROOT / 'portal' / 'static'), check_dir=False), name='static')
+    # Old bookmarks resolve to the single product interface.
+    return await index()
