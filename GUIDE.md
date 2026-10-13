@@ -6,6 +6,8 @@ Keep the installer executable and its matching payload file in the same director
 
 Open **Connect model** to authorize a supported account or add an API connection. Authorization is completed on the provider's official page. API secrets belong in the dedicated secure input, not in a chat message. A verified connection becomes available to learning and classroom features. Advanced model settings remain available.
 
+The desktop opens one product interface. The internal integration service supplies document, classroom, and learning-record APIs; it does not provide a second standalone workbench. Old portal bookmarks redirect to the main learning interface.
+
 Open a folder from the workspace selector to use local documents. The workspace list manages project entries without recursively deleting the selected folder. Document tools preserve source locations, extracted content, images, and reading progress. Original files remain separate from generated outputs.
 
 Language models, embedding services, speech services, and image-generation services are configured according to their capabilities. Document parsing can run locally when its runtime and model assets have been installed. There is no bundled chat model and no prepaid cloud API balance.

@@ -2,7 +2,7 @@
   "product": "DeepSteam",
   "edition": "english-public-source",
   "base_version": "2026.10.12-r7-harness-tools",
-  "generated_at_utc": "2026-10-12T23:12:05.288058Z",
+  "generated_at_utc": "2026-10-13T00:27:47.088696Z",
   "default_interface_language": "en",
   "timezone_policy": "detect_at_runtime",
   "scope": "Source code and required notices; runtime assets and private data are excluded.",
@@ -13,7 +13,7 @@
   ],
   "exclusions_by_reason": {
     "generated dependencies or caches": 5,
-    "private runtime root": 165,
+    "private runtime root": 172,
     "upstream development documentation": 95,
     "reviewed obsolete or nonruntime source": 1676,
     "nonruntime documentation translation catalog": 385,
@@ -35,7 +35,11 @@
     "deepseek_dsml_checks_passed": 16,
     "deeptutor_frontend_type_errors": 0,
     "openmaic_type_errors": 0,
-    "scope_note": "Source checks used existing read-only dependencies. A new English installer was not built or claimed."
+    "scope_note": "Source checks used existing read-only dependencies. A new English installer was not built or claimed.",
+    "full_offline_suite_is_baseline_validation": true,
+    "legacy_workbench_retirement_tests_passed": 22,
+    "legacy_workbench_retirement_test_failures": 0,
+    "retirement_scope": "Main-entry redirection, retired static UI, material API persistence with a simulated reader, workspace material APIs, and execution routing."
   },
   "files": [
     {
@@ -172,9 +176,9 @@
     },
     {
       "path": "GUIDE.md",
-      "bytes": 3549,
-      "sha256": "0202a7ce8c39b355e6cb6aaabcb4e24d3328f3ed596acc125bf4db32d9b4d8f7",
-      "git_blob_sha": "8e470b87635ff466ebce6ffe13ebe94f05ba3188"
+      "bytes": 3793,
+      "sha256": "67fc0f8dcb59e448e1e8f4a498495889949c84954e6495d27df92be684144484",
+      "git_blob_sha": "6cf9a9b332e8c09961da0c0610907205ce108545"
     },
     {
       "path": "installer/assemble_r5_spec.py",
@@ -1006,9 +1010,9 @@
     },
     {
       "path": "portal/app.py",
-      "bytes": 69538,
-      "sha256": "5a669ef280c2f454e24f5c218ea8731395f4edc99c4a5df5f0f4824c78b6d824",
-      "git_blob_sha": "b8506cefe54bb85929c66f87b29271cc08a9edbc"
+      "bytes": 69321,
+      "sha256": "2832cceda8e563359ca41cae4123c23b1f8831348c5eda879eb1fda759246bc3",
+      "git_blob_sha": "31866d4110e92763a214d7411ad38b461528f87e"
     },
     {
       "path": "portal/content_deletion.py",
@@ -1027,24 +1031,6 @@
       "bytes": 6599,
       "sha256": "27aa7e6fb036894137305acac4663bf1252b20c31d217cf325aca688c1ab12ac",
       "git_blob_sha": "305479c6453a723656b8349320b1b56cc4c3bbaa"
-    },
-    {
-      "path": "portal/static/app.js",
-      "bytes": 38355,
-      "sha256": "7b97ed48ac0f0a5d5ce0ff7f48e888f05bfa9a846a22ed3a9a2d245d93fbf17a",
-      "git_blob_sha": "2ea65dc35924c872fb9a1a49a159f42eb6874a0d"
-    },
-    {
-      "path": "portal/static/index.html",
-      "bytes": 17681,
-      "sha256": "f6619f4fec1c7da946af4601b00060faf9bddc447631c3b41f5b2b82ddfa2544",
-      "git_blob_sha": "45268565d7c4223d5d4d8480e22602a7d6f69d11"
-    },
-    {
-      "path": "portal/static/styles.css",
-      "bytes": 27152,
-      "sha256": "f0419ae0f66b9b2b2ab8a6072194c3335bc8370d5a9a21c5ce6555c0dd43437c",
-      "git_blob_sha": "f6aeac41c65e1e8625df783292cc7b531656ad85"
     },
     {
       "path": "portal/storage.py",
@@ -1540,9 +1526,9 @@
     },
     {
       "path": "tests/test_portal.py",
-      "bytes": 11697,
-      "sha256": "1f1e3663b0be4ab4194e1d6547e13a7ad6bec4d9c18fda15e28cc9a34a39b773",
-      "git_blob_sha": "1162a2ea5918449d9c3d1f7b6f7b9b9715f6329d"
+      "bytes": 12586,
+      "sha256": "3c7a8c7b49f9b6b216b83e63cdb757c496290a6f900db330506657e795c92fdb",
+      "git_blob_sha": "f02ba7f025fd0dc4cfdf58da5291f1aa408e9b79"
     },
     {
       "path": "tests/test_public_share_mineru_licenses.py",
