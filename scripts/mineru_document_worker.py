@@ -34,6 +34,12 @@ VLM_MODEL_DIR = MODEL_ROOT / "MinerU2.5-Pro-2605-1.2B-GGUF"
 VLM_WEIGHTS = VLM_MODEL_DIR / "MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"
 VLM_PROJECTOR = VLM_MODEL_DIR / "mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"
 LLAMA_SERVER = ROOT / "runtime/mineru/llama-server" / ("llama-server.exe" if os.name == "nt" else "llama-server")
+# The same official release built with the Vulkan backend: used when this
+# computer has a real GPU, otherwise the CPU build above runs the same model.
+LLAMA_SERVER_VULKAN = ROOT / "runtime/mineru/llama-server-vulkan" / ("llama-server.exe" if os.name == "nt" else "llama-server")
+SOFTWARE_RENDERERS = ("llvmpipe", "lavapipe", "swiftshader", "softpipe", "basic render")
+MIN_GPU_FREE_MIB = 1536  # weights, projector and KV cache of the 1.2B model
+GPU_RETRY_SECONDS = 24 * 3600  # after a GPU server failure, use the CPU build for a day
 LLAMA_RELEASE = "b11541"
 VLM_ALIAS = "mineru-document-tool"
 SMALL_MODEL_DIR = MODEL_ROOT / "MinerU-4_models_onnx"
@@ -57,6 +63,9 @@ CONFIGURED_HOME: Path | None = None
 CURRENT_REQUEST = ""
 # Decoding slots requested by the dispatcher (--vlm-parallel); None = default.
 VLM_PARALLEL: int | None = None
+# auto: a real GPU through Vulkan when present, else CPU; cpu: never the GPU;
+# vulkan: any Vulkan device, including software renderers (diagnostics only).
+VLM_DEVICE = "auto"
 
 
 def digest(path: Path) -> str:
@@ -221,11 +230,85 @@ def set_vlm_parallel(value: Any) -> None:
     VLM_PARALLEL = value
 
 
-def server_args(port: int, slots: int, threads: int) -> list[str]:
-    args = [str(LLAMA_SERVER), "--model", str(VLM_WEIGHTS),
+def set_vlm_device(value: Any) -> None:
+    global VLM_DEVICE
+    if value not in {"auto", "cpu", "vulkan"}:
+        raise ValueError("vlm_device must be auto, cpu or vulkan")
+    VLM_DEVICE = value
+
+
+def server_environment() -> dict:
+    environment = os.environ.copy()
+    for name in list(environment):
+        # Diagnostics mode may expose software Vulkan devices on purpose.
+        if VLM_DEVICE == "vulkan" and name == "GGML_VK_VISIBLE_DEVICES":
+            continue
+        if name.startswith(("LLAMA_", "GGML_")) or name.lower().endswith("_proxy"):
+            environment.pop(name, None)
+    return environment
+
+
+def vulkan_devices() -> list[dict]:
+    """Vulkan devices the bundled llama-server reports (no model is loaded)."""
+    if not LLAMA_SERVER_VULKAN.is_file():
+        return []
+    try:
+        completed = subprocess.run([str(LLAMA_SERVER_VULKAN), "--list-devices"], stdin=subprocess.DEVNULL,
+                                   capture_output=True, timeout=60, env=server_environment(),
+                                   **({"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}))
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    text = (completed.stdout + completed.stderr).decode("utf-8", "replace")
+    return [{"id": match[1], "name": match[2].strip(), "memory_mib": int(match[3]), "free_mib": int(match[4])}
+            for match in re.finditer(r"^\s*(Vulkan\d+):\s*(.+?)\s*\((\d+) MiB,\s*(\d+) MiB free\)", text, re.MULTILINE)]
+
+
+def gpu_failure_mark(home: Path | None) -> Path | None:
+    return home / "gpu-unavailable.json" if home is not None else None
+
+
+def mark_gpu_failed(home: Path | None, reason: str) -> None:
+    mark = gpu_failure_mark(home)
+    if mark is not None:
+        with contextlib.suppress(OSError):
+            mark.write_text(json.dumps({"at": time.time(), "reason": reason[:300]}), encoding="utf-8")
+
+
+def choose_device(home: Path | None) -> dict:
+    """Where the VLM runs: a real GPU through Vulkan when available, else CPU.
+
+    This is a device choice, never a tier change: both builds run the same
+    model, so results only differ in speed.
+    """
+    if VLM_DEVICE == "cpu":
+        return {"kind": "cpu", "reason": "configured for CPU"}
+    mark = gpu_failure_mark(home)
+    if VLM_DEVICE == "auto" and mark is not None and mark.is_file():
+        try:
+            failed = json.loads(mark.read_text("utf-8"))
+            if time.time() - float(failed.get("at", 0)) < GPU_RETRY_SECONDS:
+                return {"kind": "cpu", "reason": "GPU failed recently: " + str(failed.get("reason", ""))[:200]}
+        except (OSError, ValueError, TypeError):
+            pass
+    if not LLAMA_SERVER_VULKAN.is_file():
+        return {"kind": "cpu", "reason": "Vulkan build not installed"}
+    devices = vulkan_devices()
+    usable = [device for device in devices if VLM_DEVICE == "vulkan" or (
+        not any(word in device["name"].lower() for word in SOFTWARE_RENDERERS) and device["free_mib"] >= MIN_GPU_FREE_MIB)]
+    if not usable:
+        return {"kind": "cpu", "reason": "no usable GPU found" if not devices else
+                "only software or small GPUs found: " + ", ".join(device["name"] for device in devices)[:200]}
+    best = max(usable, key=lambda device: device["free_mib"])
+    return {"kind": "vulkan", **best}
+
+
+def server_args(port: int, slots: int, threads: int, device: dict | None = None) -> list[str]:
+    gpu = bool(device) and device.get("kind") == "vulkan"
+    args = [str(LLAMA_SERVER_VULKAN if gpu else LLAMA_SERVER), "--model", str(VLM_WEIGHTS),
             "--mmproj", str(VLM_PROJECTOR),
             "--host", "127.0.0.1", "--port", str(port), "--alias", VLM_ALIAS,
-            "--n-gpu-layers", "0", "--no-mmproj-offload", "--parallel", str(slots), "--ctx-size", "0",
+            *(["--device", device["id"], "--n-gpu-layers", "99"] if gpu else ["--n-gpu-layers", "0", "--no-mmproj-offload"]),
+            "--parallel", str(slots), "--ctx-size", "0",
             "--threads", str(threads), "--no-webui", "--no-warmup", "--jinja",
             "--special", "--skip-chat-parsing", "--metrics"]
     if slots > 1:
@@ -250,44 +333,57 @@ def portable_vlm_engine(tier: str, home: Path):
         yield {**policy, "vlm": False, "n_parallel": 0}
         return
     require_vlm_assets()
+    device = choose_device(home)
+    cpu = {"kind": "cpu"}
+    # GPU first when available; parallel slots are a scheduling choice. Each
+    # fallback runs the same model and tier, and is recorded in the result.
+    attempts = [(device, slots)] if device["kind"] == "vulkan" else []
+    attempts += [(cpu, slots)] + ([(cpu, 1)] if slots > 1 else [])
+    if device["kind"] != "vulkan":
+        policy["gpu_status"] = device.get("reason")
     key = secrets.token_urlsafe(32)
-    environment = os.environ.copy()
-    for name in list(environment):
-        if name.startswith("LLAMA_") or name.lower().endswith("_proxy"):
-            environment.pop(name, None)
+    environment = server_environment()
     environment["LLAMA_API_KEY"] = key
     process = None
     close_job = None
     try:
         with (home / "native-engine.log").open("wb") as log:
-            # Parallel decoding slots are a scheduling choice, not a quality
-            # tier: if this llama-server build refuses them, one slot runs the
-            # same model and tier.
-            for attempt in ([slots, 1] if slots > 1 else [1]):
+            for number, (target, attempt) in enumerate(attempts):
                 with socket.socket() as probe:
                     probe.bind(("127.0.0.1", 0))
                     port = probe.getsockname()[1]
                 endpoint = f"http://127.0.0.1:{port}"
-                process = subprocess.Popen(server_args(port, attempt, policy["n_threads"]), stdin=subprocess.DEVNULL,
+                process = subprocess.Popen(server_args(port, attempt, policy["n_threads"], target), stdin=subprocess.DEVNULL,
                                            stdout=log, stderr=log, env=environment,
                                            **({"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}))
                 close_job = windows_child_job(process) if os.name == "nt" else None
                 try:
                     wait_until_ready(process, endpoint, key)
                     break
-                except EngineStartupFailed:
+                except (EngineStartupFailed, TimeoutError) as exc:
                     if close_job:
                         close_job()
                         close_job = None
+                    if process.poll() is None:
+                        process.kill()
                     process.wait(timeout=10)
                     process = None
-                    if attempt == 1:
+                    if number == len(attempts) - 1 or (isinstance(exc, TimeoutError) and target["kind"] == "cpu"):
                         raise
-                    policy["parallel_fallback"] = f"llama-server did not start with {attempt} slots; using 1"
-            policy["n_parallel"] = attempt
+                    if target["kind"] == "vulkan":
+                        policy["gpu_status"] = f"{target['name']} did not start the local VLM; using the CPU build"
+                        mark_gpu_failed(home, policy["gpu_status"])
+                    else:
+                        policy["parallel_fallback"] = f"llama-server did not start with {attempt} slots; using 1"
+            gpu = target["kind"] == "vulkan"
+            policy.update(n_parallel=attempt, device="vulkan" if gpu else "cpu", n_gpu_layers=99 if gpu else 0,
+                          engine="official-llama.cpp-b11541" + ("-vulkan" if gpu else ""))
+            if gpu:
+                policy.update(gpu=target["name"], gpu_memory_mib=target["memory_mib"])
             os.environ.update({"MINERU_MODEL_VLM_SERVER_URL": endpoint,
                                "MINERU_MODEL_VLM_API_KEY": key, "MINERU_MODEL_VLM_MODEL": VLM_ALIAS})
-            progress("local_engine", device="cpu", engine=policy["engine"], process_id=process.pid, n_parallel=attempt)
+            progress("local_engine", device=policy["device"], gpu=policy.get("gpu"), engine=policy["engine"],
+                     process_id=process.pid, n_parallel=attempt)
             yield {**policy, "vlm": True, "endpoint": endpoint, "api_key": key, "alias": VLM_ALIAS, "_process": process}
     finally:
         os.environ.pop("MINERU_MODEL_VLM_API_KEY", None)
@@ -340,6 +436,8 @@ class SharedVlmEngine:
             return
         process = (self.policy or {}).get("_process")
         if process is not None and process.poll() is not None:
+            if self.policy.get("device") == "vulkan":
+                mark_gpu_failed(self.home, f"{self.policy.get('gpu')} stopped while serving the local VLM")
             self.close()
         if self.policy is None:
             stack = contextlib.ExitStack()
@@ -465,9 +563,11 @@ def inference_identity(tier: str, requested_tier: str, suffix: str, runtime_poli
         identity["vlm"] = {"model": VLM_MODEL_NAME, "format": "GGUF Q8_0",
                            "weights": installation_relative(VLM_WEIGHTS),
                            "projector": installation_relative(VLM_PROJECTOR),
-                           "backend": f"official llama.cpp llama-server {LLAMA_RELEASE}",
+                           "backend": f"official llama.cpp llama-server {LLAMA_RELEASE}" + (" (Vulkan)" if (runtime_policy or {}).get("device") == "vulkan" else ""),
                            "transport": "loopback HTTP (127.0.0.1) with a one-time key",
                            "device": (runtime_policy or {}).get("device", "cpu"),
+                           **({"gpu": runtime_policy["gpu"]} if (runtime_policy or {}).get("gpu") else {}),
+                           **({"gpu_status": runtime_policy["gpu_status"]} if (runtime_policy or {}).get("gpu_status") else {}),
                            "decoding_slots": (runtime_policy or {}).get("n_parallel", vlm_parallel())}
         if measured:
             identity["vlm_usage"] = usage
@@ -519,6 +619,7 @@ def health() -> dict:
             "missing_dependencies": missing, "missing_models": model_missing,
             "available_tiers": tiers, "default_tier": DEFAULT_TIER,
             "vlm_ready": ready and not vlm_missing, "vlm_missing": vlm_missing,
+            "vulkan_runtime": LLAMA_SERVER_VULKAN.is_file(), "vlm_device": choose_device(None),
             "inference": inference_identity("standard", DEFAULT_TIER, ".pdf"),
             "default_tier_policy": "basic first; pages with tables or display formulas use the standard local VLM",
             "python": sys.version.split()[0]}
@@ -716,6 +817,8 @@ def run(request: dict, shared: SharedVlmEngine | None = None) -> dict:
     requested_tier = options.get("tier", DEFAULT_TIER)
     if shared is None and options.get("vlm_parallel") is not None:
         set_vlm_parallel(options["vlm_parallel"])
+    if shared is None and options.get("vlm_device") is not None:
+        set_vlm_device(options["vlm_device"])
     if requested_tier not in TIER_EFFORT and requested_tier != ADAPTIVE:
         raise ValueError("Unknown parsing tier")
     suffix = source.suffix.lower()
@@ -989,9 +1092,12 @@ def main() -> int:
     parser.add_argument("--serve", action="store_true", help="parse many requests in one process (models load once)")
     parser.add_argument("--home", help="private worker home for --serve")
     parser.add_argument("--vlm-parallel", type=int, help="decoding slots for the private VLM server (1-4)")
+    parser.add_argument("--vlm-device", choices=["auto", "cpu", "vulkan"], help="where the private VLM server runs")
     args = parser.parse_args()
     if args.vlm_parallel is not None:
         set_vlm_parallel(args.vlm_parallel)
+    if args.vlm_device is not None:
+        set_vlm_device(args.vlm_device)
     if args.serve:
         return serve(Path(args.home or ""))
     for stream in (sys.stdout, sys.stderr):

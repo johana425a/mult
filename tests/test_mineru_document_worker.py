@@ -244,6 +244,7 @@ class MinerUWorkerContract(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp, \
                 unittest.mock.patch.object(worker, "require_vlm_assets"), \
+                unittest.mock.patch.object(worker, "choose_device", return_value={"kind": "cpu", "reason": "synthetic"}), \
                 unittest.mock.patch.object(worker.subprocess, "Popen", Process), \
                 unittest.mock.patch.object(worker, "wait_until_ready", ready), \
                 unittest.mock.patch.object(worker, "VLM_PARALLEL", 2):
@@ -319,6 +320,97 @@ class MinerUWorkerContract(unittest.TestCase):
         self.assertEqual(normalized["warnings"][0]["code"], "vlm_escalation_unavailable")
         self.assertEqual(normalized["warnings"][0]["pages"], [1])
         self.assertTrue(normalized["units"][0]["coverage"]["requires_vlm_review"])
+
+    def test_vulkan_device_list_is_parsed_from_llama_server(self):
+        output = (b"Available devices:\n  Vulkan0: NVIDIA GeForce RTX 3060 (12288 MiB, 11010 MiB free)\n"
+                  b"  Vulkan1: Intel(R) UHD Graphics 770 (8045 MiB, 7900 MiB free)\n")
+        completed = subprocess.CompletedProcess([], 0, stdout=output, stderr=b"")
+        with tempfile.TemporaryDirectory() as tmp:
+            exe = Path(tmp) / "llama-server"
+            exe.write_bytes(b"")
+            with unittest.mock.patch.object(worker, "LLAMA_SERVER_VULKAN", exe), \
+                    unittest.mock.patch.object(worker.subprocess, "run", return_value=completed):
+                devices = worker.vulkan_devices()
+        self.assertEqual([device["id"] for device in devices], ["Vulkan0", "Vulkan1"])
+        self.assertEqual(devices[0], {"id": "Vulkan0", "name": "NVIDIA GeForce RTX 3060", "memory_mib": 12288, "free_mib": 11010})
+
+    def test_gpu_is_chosen_only_when_real_and_large_enough(self):
+        rtx = {"id": "Vulkan0", "name": "NVIDIA GeForce RTX 3060", "memory_mib": 12288, "free_mib": 11010}
+        igpu = {"id": "Vulkan1", "name": "Intel(R) UHD Graphics 770", "memory_mib": 8045, "free_mib": 7900}
+        soft = {"id": "Vulkan0", "name": "llvmpipe (LLVM 20.1.2, 256 bits)", "memory_mib": 15000, "free_mib": 15000}
+        small = {"id": "Vulkan0", "name": "Old GPU", "memory_mib": 1024, "free_mib": 900}
+        with tempfile.TemporaryDirectory() as tmp:
+            home, exe = Path(tmp), Path(tmp) / "llama-server"
+            with unittest.mock.patch.object(worker, "LLAMA_SERVER_VULKAN", exe):
+                self.assertEqual(worker.choose_device(home)["reason"], "Vulkan build not installed")
+                exe.write_bytes(b"")
+                cases = [([rtx, igpu], "Vulkan0"), ([igpu], "Vulkan1"), ([soft], None), ([small], None), ([], None)]
+                for devices, expected in cases:
+                    with self.subTest(devices=[d["name"] for d in devices]), \
+                            unittest.mock.patch.object(worker, "vulkan_devices", return_value=devices):
+                        choice = worker.choose_device(home)
+                        self.assertEqual(choice.get("id"), expected)
+                        self.assertEqual(choice["kind"], "vulkan" if expected else "cpu")
+                with unittest.mock.patch.object(worker, "vulkan_devices", return_value=[soft]), \
+                        unittest.mock.patch.object(worker, "VLM_DEVICE", "vulkan"):
+                    self.assertEqual(worker.choose_device(home)["kind"], "vulkan")  # diagnostics only
+                with unittest.mock.patch.object(worker, "vulkan_devices", return_value=[rtx]):
+                    with unittest.mock.patch.object(worker, "VLM_DEVICE", "cpu"):
+                        self.assertEqual(worker.choose_device(home)["kind"], "cpu")
+                    worker.mark_gpu_failed(home, "synthetic crash")
+                    self.assertIn("GPU failed recently", worker.choose_device(home)["reason"])
+
+    def test_gpu_server_offloads_everything_and_cpu_server_offloads_nothing(self):
+        device = {"kind": "vulkan", "id": "Vulkan1", "name": "GPU", "memory_mib": 8000, "free_mib": 7000}
+        gpu = worker.server_args(1234, 1, 4, device)
+        self.assertEqual(gpu[0], str(worker.LLAMA_SERVER_VULKAN))
+        self.assertEqual(gpu[gpu.index("--device") + 1], "Vulkan1")
+        self.assertEqual(gpu[gpu.index("--n-gpu-layers") + 1], "99")
+        self.assertNotIn("--no-mmproj-offload", gpu)
+        cpu = worker.server_args(1234, 1, 4, {"kind": "cpu"})
+        self.assertEqual(cpu[0], str(worker.LLAMA_SERVER))
+        self.assertNotIn("--device", cpu)
+        self.assertIn("--no-mmproj-offload", cpu)
+        self.assertEqual(cpu, worker.server_args(1234, 1, 4))
+
+    def test_gpu_that_fails_to_start_falls_back_to_the_cpu_build(self):
+        launched = []
+
+        class Process:
+            pid = 7
+
+            def __init__(self, args, **kwargs):
+                launched.append(args)
+                self.code = None
+
+            def poll(self):
+                return self.code
+
+            def kill(self):
+                self.code = -9
+
+            def wait(self, timeout=None):
+                return self.code
+
+        def ready(process, endpoint, key):
+            if launched[-1][0] == str(worker.LLAMA_SERVER_VULKAN):
+                raise worker.EngineStartupFailed("synthetic: driver refused")
+
+        device = {"kind": "vulkan", "id": "Vulkan0", "name": "Synthetic GPU", "memory_mib": 8000, "free_mib": 7000}
+        with tempfile.TemporaryDirectory() as tmp, \
+                unittest.mock.patch.object(worker, "require_vlm_assets"), \
+                unittest.mock.patch.object(worker, "choose_device", return_value=device), \
+                unittest.mock.patch.object(worker.subprocess, "Popen", Process), \
+                unittest.mock.patch.object(worker, "wait_until_ready", ready), \
+                unittest.mock.patch.object(worker, "VLM_PARALLEL", 1):
+            with worker.portable_vlm_engine("standard", Path(tmp)) as policy:
+                self.assertEqual(policy["device"], "cpu")
+                self.assertIn("Synthetic GPU did not start", policy["gpu_status"])
+            self.assertTrue((Path(tmp) / "gpu-unavailable.json").is_file())
+        self.assertEqual([args[0] for args in launched], [str(worker.LLAMA_SERVER_VULKAN), str(worker.LLAMA_SERVER)])
+        identity = worker.inference_identity("standard", "standard", ".pdf", {"device": "vulkan", "gpu": "Synthetic GPU"})
+        self.assertIn("(Vulkan)", identity["vlm"]["backend"])
+        self.assertEqual(identity["vlm"]["gpu"], "Synthetic GPU")
 
 if __name__ == "__main__":
     unittest.main()

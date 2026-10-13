@@ -907,7 +907,8 @@ class DocumentJobs:
             raise OSError('document_engine_unavailable')
         home = self.cache / 'mineru-worker'
         self.storage.prepare(home)
-        return MinerUSession(python, helper, home, vlm_parallel=self.local_settings().get('vlm_parallel'))
+        settings = self.local_settings()
+        return MinerUSession(python, helper, home, vlm_parallel=settings.get('vlm_parallel'), vlm_device=settings.get('vlm_device'))
 
     def local_settings(self):
         """Optional per-computer MinerU settings (written by the local
@@ -917,8 +918,11 @@ class DocumentJobs:
             value = json.loads(assert_plain_path(path).read_text('utf-8')) if path.is_file() else {}
         except (OSError, ValueError):
             return {}
-        slots = value.get('vlm_parallel') if isinstance(value, dict) else None
-        return {'vlm_parallel': slots} if type(slots) is int and 1 <= slots <= 4 else {}
+        if not isinstance(value, dict):
+            return {}
+        slots, device = value.get('vlm_parallel'), value.get('vlm_device')
+        return {**({'vlm_parallel': slots} if type(slots) is int and 1 <= slots <= 4 else {}),
+                **({'vlm_device': device} if device in {'auto', 'cpu'} else {})}
 
     def _run_parse(self, row, session):
         key = row['key']
@@ -1407,11 +1411,12 @@ class MinerUSession:
     timed-out batch kills the worker tree; the next batch starts a fresh one.
     """
 
-    def __init__(self, python, helper, home, *, vlm_parallel=None):
+    def __init__(self, python, helper, home, *, vlm_parallel=None, vlm_device=None):
         self.home = Path(home)
         self.process = subprocess.Popen(
             [str(python), '-I', '-B', str(helper), '--serve', '--home', str(self.home),
-             *(['--vlm-parallel', str(vlm_parallel)] if vlm_parallel else [])],
+             *(['--vlm-parallel', str(vlm_parallel)] if vlm_parallel else []),
+             *(['--vlm-device', vlm_device] if vlm_device else [])],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=child_environment(),
             **({'creationflags': 0x08000000} if os.name == 'nt' else {'start_new_session': True}))
         self.guard = None

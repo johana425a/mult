@@ -5,7 +5,8 @@ persistent ``--serve`` worker, physical PDF batches) and reports:
 
 * cold start: the first batch in a fresh worker, including model loading;
 * warm batches: later batches in the same worker (models already loaded);
-* seconds per page for each number of VLM decoding slots you list;
+* seconds per page for each device (GPU through Vulkan, or CPU) and number of
+  VLM decoding slots you list;
 * how closely the text from each slot setting matches the first setting.
 
 Everything runs on this computer; no document leaves it. Results are real
@@ -15,7 +16,7 @@ installation or source tree).
 
 Example (Windows PowerShell)::
 
-    .\\runtime\\python\\python.exe -I -B scripts\\mineru_benchmark.py --pdf "D:\\Papers\\sample.pdf" --pages 8 --slots 1,2
+    .\\runtime\\python\\python.exe -I -B scripts\\mineru_benchmark.py --pdf "D:\\Papers\\sample.pdf" --pages 8 --devices auto,cpu --slots 1,2
 """
 from __future__ import annotations
 
@@ -62,12 +63,12 @@ def parse_batches(session, source: Path, work: Path, tier: str, pages: int, batc
     return rows
 
 
-def measure(source: Path, work: Path, tier: str, pages: int, batch: int, slots: int) -> dict:
+def measure(source: Path, work: Path, tier: str, pages: int, batch: int, slots: int, device: str = 'auto') -> dict:
     python, helper = jobs.mineru_runtime()
-    home = work / f'home-{slots}'
+    home = work / f'home-{device}-{slots}'
     home.mkdir(parents=True)
     started = time.monotonic()
-    session = jobs.MinerUSession(python, helper, home, vlm_parallel=slots)
+    session = jobs.MinerUSession(python, helper, home, vlm_parallel=slots, vlm_device=device)
     try:
         rows = parse_batches(session, source, work, tier, pages, batch)
     finally:
@@ -76,7 +77,8 @@ def measure(source: Path, work: Path, tier: str, pages: int, batch: int, slots: 
     warm = rows[1:]
     warm_pages = sum(row['pages'][1] - row['pages'][0] + 1 for row in warm)
     vlm = (rows[0]['inference'].get('vlm') or {}) if rows else {}
-    return {'requested_slots': slots, 'actual_slots': vlm.get('decoding_slots'), 'tier': tier,
+    return {'requested_device': device, 'device': vlm.get('device'), 'gpu': vlm.get('gpu'), 'gpu_status': vlm.get('gpu_status'),
+            'requested_slots': slots, 'actual_slots': vlm.get('decoding_slots'), 'tier': tier,
             'first_batch_seconds_including_model_load': rows[0]['seconds'] if rows else None,
             'warm_seconds_per_page': round(sum(row['seconds'] for row in warm) / warm_pages, 2) if warm_pages else None,
             'total_seconds': round(total, 2), 'pages': pages, 'batches': [{k: v for k, v in row.items() if k not in {'text', 'inference'}} for row in rows],
@@ -90,7 +92,8 @@ def main() -> int:
     parser.add_argument('--pages', type=int, default=8, help='pages from the start to parse (default 8)')
     parser.add_argument('--tier', default='advanced', choices=sorted(jobs.MINERU_TIERS))
     parser.add_argument('--slots', default='1,2', help='decoding slot settings to compare, e.g. 1,2,4')
-    parser.add_argument('--save', action='store_true', help='record the fastest slot setting for this computer')
+    parser.add_argument('--devices', default='auto', help='devices to compare: auto (GPU through Vulkan when present) and/or cpu, e.g. auto,cpu')
+    parser.add_argument('--save', action='store_true', help='record the fastest device and slot setting for this computer')
     args = parser.parse_args()
     source = Path(args.pdf).resolve(strict=True)
     if source.suffix.lower() != '.pdf':
@@ -109,7 +112,11 @@ def main() -> int:
     work = state.cache / ('mineru-benchmark-' + uuid.uuid4().hex[:8])
     work.mkdir(parents=True)
     try:
-        runs = [measure(source, work, args.tier, pages, jobs.MINERU_BATCH_PAGES[args.tier], slots) for slots in slot_values]
+        devices = [value.strip() for value in args.devices.split(',') if value.strip()]
+        if not devices or any(value not in {'auto', 'cpu'} for value in devices):
+            parser.error('--devices values must be auto or cpu')
+        runs = [measure(source, work, args.tier, pages, jobs.MINERU_BATCH_PAGES[args.tier], slots, device)
+                for device in devices for slots in slot_values]
     finally:
         shutil.rmtree(work, ignore_errors=True)  # Only this run's own folder.
     reference = runs[0].pop('_text')
@@ -119,10 +126,11 @@ def main() -> int:
     best = min(measured, key=lambda run: run['warm_seconds_per_page'] or run['total_seconds'])
     report = {'ok': True, 'kind': 'real local inference measurement', 'document_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
               'cpu_count': os.cpu_count(), 'batch_pages': jobs.MINERU_BATCH_PAGES[args.tier], 'runs': runs,
-              'fastest_slots': best['actual_slots'] or best['requested_slots']}
+              'fastest_slots': best['actual_slots'] or best['requested_slots'],
+              'fastest_device': 'cpu' if best['device'] != 'vulkan' else 'auto'}
     if args.save:
         target = state.directory / 'mineru-local.json'
-        target.write_text(json.dumps({'vlm_parallel': report['fastest_slots'], 'measured_at': time.time(),
+        target.write_text(json.dumps({'vlm_parallel': report['fastest_slots'], 'vlm_device': report['fastest_device'], 'measured_at': time.time(),
                                       'warm_seconds_per_page': best['warm_seconds_per_page'], 'tier': args.tier}), encoding='utf-8')
         report['saved'] = str(target)
     print(json.dumps(report, ensure_ascii=False, indent=2))

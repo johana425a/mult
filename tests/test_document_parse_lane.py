@@ -318,11 +318,14 @@ class ParseLaneTests(unittest.TestCase):
         self.assertGreaterEqual(len(self.starts()), 2)
 
     def test_local_decoding_slot_setting_reaches_the_worker(self):
-        (self.root / 'runtime/document-jobs/mineru-local.json').write_text(json.dumps({'vlm_parallel': 3}), encoding='utf-8')
+        (self.root / 'runtime/document-jobs/mineru-local.json').write_text(json.dumps({'vlm_parallel': 3, 'vlm_device': 'cpu'}), encoding='utf-8')
         result = self.read('other.pdf', wait=20, engine='mineru')
         self.assertTrue(result['ok'], result)
         arguments = json.loads(self.starts()[0])['arguments']
         self.assertEqual(arguments[arguments.index('--vlm-parallel') + 1], '3')
+        self.assertEqual(arguments[arguments.index('--vlm-device') + 1], 'cpu')
+        (self.root / 'runtime/document-jobs/mineru-local.json').write_text(json.dumps({'vlm_device': 'vulkan'}), encoding='utf-8')
+        self.assertEqual(self.jobs.local_settings(), {})  # diagnostics-only value is not a user setting
         (self.root / 'runtime/document-jobs/mineru-local.json').write_text(json.dumps({'vlm_parallel': 9}), encoding='utf-8')
         self.assertEqual(self.jobs.local_settings(), {})
 

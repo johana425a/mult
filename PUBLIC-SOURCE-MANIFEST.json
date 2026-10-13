@@ -172,9 +172,9 @@
     },
     {
       "path": "GUIDE.md",
-      "bytes": 5925,
-      "sha256": "6ef7a0b242c1532ce2761eff093acc4a3243cb390484fc74ff72535baeedffba",
-      "git_blob_sha": "5d2bec30bbb59f92529c9b5dfe752dcdd6a115a7"
+      "bytes": 6384,
+      "sha256": "a060f73c13b1ca6051244bcd5513d215e8b72e459af2547eb7474a32c16bc66f",
+      "git_blob_sha": "48f6982b3ed312a505e7f77aa436ddb118cad0e3"
     },
     {
       "path": "installer/assemble_r5_spec.py",
@@ -310,9 +310,9 @@
     },
     {
       "path": "installer/mineru_runtime.py",
-      "bytes": 26425,
-      "sha256": "0c89233d9e8d3548a695cb086470a34d9ce45ce0f819c22d851590e8edc134f1",
-      "git_blob_sha": "c40cb90560cc8fce1afc5781a98cee2e3b3a9dcf"
+      "bytes": 27127,
+      "sha256": "e87c06f7d890d4fde0bce82c951638b7be561753b1cda7fdfdcd2df7f2371cc3",
+      "git_blob_sha": "3837a7c343a4c7fbf06a29592f21fc0b10a899fe"
     },
     {
       "path": "installer/pack_desktop_asar.mjs",
@@ -448,9 +448,9 @@
     },
     {
       "path": "integration/document_jobs.py",
-      "bytes": 111242,
-      "sha256": "83e55fbb2f370284b9df7ae6253e08a3be461b542ae77a6bae720ceb73ce3363",
-      "git_blob_sha": "2e9636c05dbdcc25358ebdba502e65955ccf57c3"
+      "bytes": 111539,
+      "sha256": "6508ff0d292eab229038a40e904edc19e9b9ccd52735a3ab1254b3ab3e09b0cc",
+      "git_blob_sha": "6cb931e1be048d96f31a74fad21c5f63433bc3cd"
     },
     {
       "path": "integration/embedding_route_guard.py",
@@ -724,9 +724,9 @@
     },
     {
       "path": "licenses/llama.cpp-dependencies/provenance.json",
-      "bytes": 2164,
-      "sha256": "2ecc2217a588e73d60d5981857d841135f3a8498f1ed9cb6e08ce04be217de83",
-      "git_blob_sha": "b3e7cfc1365118e978dd54a0bd3097c557419660"
+      "bytes": 3514,
+      "sha256": "4342c0450cc1e5414576441635dde2de057e731981f6e8aee3f97f6f141fa497",
+      "git_blob_sha": "63449af200fe7869c4efaeda0c7c0637e1019b08"
     },
     {
       "path": "licenses/llama.cpp-dependencies/README.md",
@@ -769,6 +769,24 @@
       "bytes": 19741,
       "sha256": "fdad1758a9e1f9d5a81e18879b3406772115edc92c24bfa36b70c654f325e8e4",
       "git_blob_sha": "9907566382922012bef0c339f7b2b757c0f43e92"
+    },
+    {
+      "path": "licenses/llama.cpp-dependencies/vulkan-headers--LICENSE.md",
+      "bytes": 495,
+      "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903",
+      "git_blob_sha": "17cf4a17d6208dad41b88124d417e0af1d29736d"
+    },
+    {
+      "path": "licenses/llama.cpp-dependencies/vulkan-headers--LICENSES-Apache-2.0.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "git_blob_sha": "d645695673349e3947e8e5ae42332d0ac3164cd7"
+    },
+    {
+      "path": "licenses/llama.cpp-dependencies/vulkan-headers--LICENSES-MIT.txt",
+      "bytes": 1084,
+      "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227",
+      "git_blob_sha": "8495fe9e901b430947d54980af7c77c0bb8a6221"
     },
     {
       "path": "licenses/mineru/Apache-2.0.txt",
@@ -892,9 +910,9 @@
     },
     {
       "path": "licenses/MODIFICATIONS.md",
-      "bytes": 4524,
-      "sha256": "1a0398ac0aebd056d147bb3141217aebfe4003c5948ee6f379aae7152624e090",
-      "git_blob_sha": "0153e5e651bb507becc70e35c01d076014b7eb3c"
+      "bytes": 4951,
+      "sha256": "1018ebe332634b53016bf99568eb3c2a69613cb9ee63fb9162b791c7a5d22e21",
+      "git_blob_sha": "1add03b023c2babd616da2855a84aa76b6a7429d"
     },
     {
       "path": "licenses/NOTICE.md",
@@ -1234,15 +1252,15 @@
     },
     {
       "path": "scripts/mineru_benchmark.py",
-      "bytes": 6947,
-      "sha256": "20a99f447e2cbe8dc2025f9e73122deef43555b6db2460e57513039009c05eb7",
-      "git_blob_sha": "4ee8cd83aa1209776cbbe4636ef54ce1ac484e90"
+      "bytes": 7746,
+      "sha256": "a6d5c6f82b61afecef138f223a6438f7afe18426d60268a14d92a827adf77f71",
+      "git_blob_sha": "417a0daf69cff50307ec736ccff09ee5fee1f7ec"
     },
     {
       "path": "scripts/mineru_document_worker.py",
-      "bytes": 51354,
-      "sha256": "78abe826743c4692b2dfd4c0333784d68cc480607d02ed80346449f36f737bd1",
-      "git_blob_sha": "76dc254d68c417ff856f53b2fbdb3ad5f9c744b6"
+      "bytes": 57395,
+      "sha256": "e6c478c827b37576aa23fa8a8fa72fcd02f04a0c0c7310d86b7e9a2503386fb6",
+      "git_blob_sha": "5ea95b64c612be11f333f647fab61e20efdc8e3a"
     },
     {
       "path": "scripts/offline_tokenizer.py",
@@ -1438,9 +1456,9 @@
     },
     {
       "path": "tests/test_document_parse_lane.py",
-      "bytes": 21024,
-      "sha256": "47a60a9b1aa18dca2775dd2197ad3fd18485dfb9b689d5e6a8d46540d0f943b0",
-      "git_blob_sha": "2dc14af4b2f0cc6ede35b6be85f2c617efb0e847"
+      "bytes": 21361,
+      "sha256": "e414e0be0231092c3efd091e0223a8cb3f007adb7193c87084ee4d70d6679f1a",
+      "git_blob_sha": "0511b988d621e8debac1f756d50d2d2fa203e66b"
     },
     {
       "path": "tests/test_document_reader_pagination.py",
@@ -1528,9 +1546,9 @@
     },
     {
       "path": "tests/test_mineru_document_worker.py",
-      "bytes": 18744,
-      "sha256": "812f7cddf9b955391b8d4a1c97bcdf4c5ce6ad244a5b45d45fec7e7b62ee67bf",
-      "git_blob_sha": "3ab6e6aec4d2ee0cd9331615a51433f09d32108d"
+      "bytes": 24543,
+      "sha256": "026924ec6d896300407efe62c499e540ccb4b9077b49c9fa0e10f45f832955c4",
+      "git_blob_sha": "1a19fab83fba22a3ef925b7786ca1487d6cdae12"
     },
     {
       "path": "tests/test_native_shared_document_extraction.py",
