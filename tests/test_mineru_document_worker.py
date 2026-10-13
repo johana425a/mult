@@ -1,5 +1,7 @@
 """Boundary tests for the offline tool protocol (no inference downloads)."""
+import contextlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -114,7 +116,7 @@ class MinerUWorkerContract(unittest.TestCase):
             source = base / "scan.pdf"
             source.write_bytes(b"%PDF-1.7 synthetic")
             digest = worker.digest(source)
-            for tier in ("advanced", "standard", None):
+            for tier in ("advanced", "standard"):
                 with self.subTest(tier=tier), self.assertRaises(worker.VlmUnavailable):
                     options = {} if tier is None else {"tier": tier}
                     worker.run({"schema_version": 1, "action": "parse", "source_path": str(source),
@@ -123,7 +125,7 @@ class MinerUWorkerContract(unittest.TestCase):
 
     def test_result_identity_names_local_model_backend_and_tier(self):
         identity = worker.inference_identity("advanced", "advanced", ".pdf")
-        self.assertEqual(worker.DEFAULT_TIER, "advanced")
+        self.assertEqual(worker.DEFAULT_TIER, "adaptive")
         self.assertEqual(identity["mode"], "local")
         self.assertFalse(identity["remote_api"])
         self.assertTrue(identity["vlm_used"])
@@ -147,6 +149,176 @@ class MinerUWorkerContract(unittest.TestCase):
             with self.subTest(endpoint=endpoint), self.assertRaises(worker.VlmUnavailable):
                 worker.loopback_vlm_config({"endpoint": endpoint, "api_key": "k", "alias": "x"})
 
+
+    def test_serve_loop_answers_each_request_on_its_own_line(self):
+        lines = [json.dumps({"request_id": "a"}) + "\n", "\n", "not json\n", json.dumps(["list"]) + "\n",
+                 json.dumps({"request_id": "b"}) + "\n"]
+        protocol = io.StringIO()
+        worker.serve_loop(lines, protocol, lambda request: {"ok": True, "request_id": request["request_id"]})
+        replies = [json.loads(line) for line in protocol.getvalue().splitlines()]
+        self.assertEqual([reply.get("request_id") for reply in replies], ["a", "", "", "b"])
+        self.assertEqual([reply["ok"] for reply in replies], [True, False, False, True])
+
+    def test_serving_process_keeps_running_between_requests(self):
+        # Real --serve process; requests are invalid on purpose, so no model runs.
+        with tempfile.TemporaryDirectory() as tmp:
+            process = subprocess.Popen([sys.executable, "-I", "-B", str(ROOT / "scripts/mineru_document_worker.py"),
+                                        "--serve", "--home", str(Path(tmp) / "home")],
+                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            try:
+                replies = []
+                for request_id in ("first", "second"):
+                    process.stdin.write((json.dumps({"schema_version": 1, "action": "parse", "source_path": "relative.pdf",
+                                                     "output_dir": "relative", "request_id": request_id}) + "\n").encode())
+                    process.stdin.flush()
+                    replies.append(json.loads(process.stdout.readline()))
+                process.stdin.close()
+                self.assertEqual(process.wait(timeout=30), 0)
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                process.stdout.close()
+        self.assertEqual([reply["request_id"] for reply in replies], ["first", "second"])
+        self.assertTrue(all(reply["ok"] is False and reply["error"]["code"] == "parse_failed" for reply in replies))
+
+    def test_shared_engine_starts_the_vlm_server_once_and_restarts_after_exit(self):
+        started = []
+
+        class Process:
+            code = None
+
+            def poll(self):
+                return self.code
+
+        @contextlib.contextmanager
+        def engine(tier, home):
+            if tier not in worker.VLM_TIERS:
+                yield {"vlm": False}
+                return
+            process = Process()
+            started.append(process)
+            yield {"vlm": True, "n_parallel": 2, "_process": process}
+
+        with tempfile.TemporaryDirectory() as tmp, unittest.mock.patch.object(worker, "portable_vlm_engine", engine):
+            shared = worker.SharedVlmEngine(Path(tmp))
+            for tier in ("advanced", "advanced", "standard"):
+                with shared.lease(tier) as policy:
+                    self.assertTrue(policy["vlm"])
+            self.assertEqual(len(started), 1)  # one server for many batches and both VLM tiers
+            started[0].code = 1
+            with shared.lease("advanced"):
+                pass
+            self.assertEqual(len(started), 2)  # an exited server is replaced
+            with shared.lease("basic") as policy:
+                self.assertFalse(policy["vlm"])
+            shared.close()
+        self.assertEqual(len(started), 2)
+
+    def test_parallel_slots_share_one_kv_buffer_and_fall_back_to_one_slot(self):
+        args = worker.server_args(1234, 2, 4)
+        self.assertEqual(args[args.index("--parallel") + 1], "2")
+        self.assertIn("--kv-unified", args)
+        self.assertNotIn("--kv-unified", worker.server_args(1234, 1, 4))
+        launched = []
+
+        class Process:
+            pid = 4242
+
+            def __init__(self, args, **kwargs):
+                launched.append(args)
+                self.code = None
+
+            def poll(self):
+                return self.code
+
+            def kill(self):
+                self.code = -9
+
+            def wait(self, timeout=None):
+                return self.code
+
+        def ready(process, endpoint, key):
+            slots = launched[-1][launched[-1].index("--parallel") + 1]
+            if slots != "1":
+                raise worker.EngineStartupFailed("synthetic: this build refuses parallel slots")
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                unittest.mock.patch.object(worker, "require_vlm_assets"), \
+                unittest.mock.patch.object(worker.subprocess, "Popen", Process), \
+                unittest.mock.patch.object(worker, "wait_until_ready", ready), \
+                unittest.mock.patch.object(worker, "VLM_PARALLEL", 2):
+            with worker.portable_vlm_engine("advanced", Path(tmp)) as policy:
+                self.assertEqual(policy["n_parallel"], 1)
+                self.assertIn("parallel_fallback", policy)
+                self.assertEqual(policy["engine"], "official-llama.cpp-b11541")
+        self.assertEqual([args[args.index("--parallel") + 1] for args in launched], ["2", "1"])
+
+    def test_decoding_slots_are_bounded(self):
+        for value in (0, 5, True, "2"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                worker.set_vlm_parallel(value)
+        with unittest.mock.patch.object(worker, "VLM_PARALLEL", 3):
+            self.assertEqual(worker.vlm_parallel(), 3)
+
+    @unittest.skipUnless(importlib.util.find_spec("mineru") is not None, "MinerU library not installed")
+    def test_client_concurrency_matches_server_slots(self):
+        policy = {"endpoint": "http://127.0.0.1:41234", "api_key": "k", "alias": worker.VLM_ALIAS}
+        self.assertEqual(worker.loopback_vlm_config({**policy, "n_parallel": 2}).max_concurrency, 2)
+        self.assertEqual(worker.loopback_vlm_config(policy).max_concurrency, 1)
+
+    def test_measured_vlm_use_distinguishes_tier_from_actual_inference(self):
+        idle = {"prompt_tokens": 0, "generated_tokens": 0, "prompt_seconds": 0.0, "generation_seconds": 0.0}
+        identity = worker.inference_identity("standard", "standard", ".pdf", {"device": "cpu"}, idle)
+        self.assertTrue(identity["vlm_tier"])
+        self.assertFalse(identity["vlm_used"])  # text layer: the hybrid tier needed no VLM call
+        self.assertTrue(identity["vlm_use_measured"])
+        used = worker.inference_identity("standard", "standard", ".pdf", {}, {**idle, "prompt_tokens": 831, "generated_tokens": 738})
+        self.assertTrue(used["vlm_used"])
+        self.assertEqual(used["vlm_usage"]["generated_tokens"], 738)
+        self.assertEqual(worker.vlm_usage({"prompt_tokens_total": 10.0, "tokens_predicted_total": 5.0},
+                                          {"prompt_tokens_total": 40.0, "tokens_predicted_total": 25.0})["generated_tokens"], 20)
+        self.assertIsNone(worker.vlm_usage(None, {}))
+
+    def test_adaptive_escalates_only_tables_and_display_formulas(self):
+        structured = {"pages": [
+            {"page_idx": 0, "blocks": [{"type": "text"}, {"type": "header"}]},
+            {"page_idx": 1, "blocks": [{"type": "text"}, {"type": "equation"}]},
+            {"page_idx": 2, "blocks": [{"type": "table"}, {"type": "chart"}]},
+            {"page_idx": 3, "blocks": [{"type": "image"}, {"type": "text"}]}]}
+        pages, figures = worker.complex_layout_pages(structured)
+        self.assertEqual(pages, {1: ["equation"], 2: ["table"]})
+        self.assertEqual(figures, [2, 3])
+
+    def test_escalated_pages_replace_basic_units_with_original_locators(self):
+        def unit(page_idx, text, asset=None):
+            locator = {"kind": "pdf_page", "page": page_idx + 1, "page_idx": page_idx}
+            assets = [{"id": "x", "relative_path": asset, "locator": locator}] if asset else []
+            return {"index": page_idx, "locator": locator, "text": text, "assets": assets, "equations": [], "tables": [],
+                    "coverage": {"status": "processed"}}
+        normalized = {"units": [unit(0, "basic 1"), unit(1, "basic 2"), unit(2, "basic 3")], "assets": [], "warnings": [],
+                      "coverage": {"processed_units": 3}}
+        escalated = {"units": [unit(0, "vlm 2", "images/t.png"), unit(1, "vlm 3")],
+                     "warnings": [{"code": "recognized_region_without_text", "locator": {"page": 2, "page_idx": 1}}]}
+        replaced = worker.merge_escalated(normalized, escalated, [1, 2], {1: ["equation"], 2: ["table"]}, "vlm/")
+        self.assertEqual(replaced, [1, 2])
+        self.assertEqual([u["text"] for u in normalized["units"]], ["basic 1", "vlm 2", "vlm 3"])
+        self.assertEqual([u["coverage"]["parsed_with"] for u in normalized["units"]], ["basic", "standard", "standard"])
+        self.assertEqual(normalized["units"][1]["locator"], {"kind": "pdf_page", "page": 2, "page_idx": 1})
+        self.assertEqual(normalized["units"][1]["assets"][0]["relative_path"], "vlm/images/t.png")
+        self.assertEqual(normalized["units"][1]["assets"][0]["locator"]["page"], 2)
+        self.assertEqual(normalized["warnings"][0]["locator"], {"page": 3, "page_idx": 2})
+        self.assertEqual(normalized["units"][2]["coverage"]["escalation_reasons"], ["table"])
+
+    def test_complex_pages_without_local_vlm_stay_basic_with_a_visible_warning(self):
+        with tempfile.TemporaryDirectory() as tmp, unittest.mock.patch.object(worker, "LLAMA_SERVER", Path(tmp) / "absent.exe"):
+            normalized = {"units": [{"index": 0, "locator": {"page": 1, "page_idx": 0}, "text": "t", "coverage": {}}],
+                          "warnings": [], "assets": [], "coverage": {}}
+            record = worker.escalate_complex_pages(Path(tmp) / "x.pdf", Path(tmp), ".pdf",
+                                                   {"pages": [{"page_idx": 0, "blocks": [{"type": "table"}]}]}, normalized, None, None)
+        self.assertEqual(record["vlm_pages"], [])
+        self.assertEqual(normalized["warnings"][0]["code"], "vlm_escalation_unavailable")
+        self.assertEqual(normalized["warnings"][0]["pages"], [1])
+        self.assertTrue(normalized["units"][0]["coverage"]["requires_vlm_review"])
 
 if __name__ == "__main__":
     unittest.main()

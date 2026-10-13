@@ -94,6 +94,7 @@ BUILTIN_TOOL_SPECS: tuple[BuiltinToolSpec, ...] = (
             ("workspace_read", "WorkspaceReadTool"),
             ("workspace_document_read", "WorkspaceDocumentReadTool"),
             ("workspace_document_image", "WorkspaceDocumentImageTool"),
+            ("workspace_document_prepare", "WorkspaceDocumentPrepareTool"),
             ("load_workspace_dependencies", "WorkspaceDependenciesTool"),
             ("workspace_search", "WorkspaceSearchTool"),
             ("workspace_present", "WorkspacePresentTool"),

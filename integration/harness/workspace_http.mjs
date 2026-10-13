@@ -12,11 +12,18 @@ const fields = (body, names) => {
 
 export async function workspaceRequest(adapter, method, path, query, body, signal) {
   if (path === '/workspace-dependencies' && method === 'GET') return { value: await adapter.dependencies(signal) };
-  const documentMatch = /^\/workspaces\/([^/]+)\/documents\/(read|asset|list|search|status|cancel|inventory|coverage)$/.exec(path);
+  const documentMatch = /^\/workspaces\/([^/]+)\/documents\/(read|asset|list|search|status|cancel|inventory|coverage|prepare|queue)$/.exec(path);
   if (documentMatch && method === 'POST') {
     const action = documentMatch[2];
-    fields(body, ['list', 'search'].includes(action) ? ['path', 'depth', 'limit', 'query'] : ['path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier', 'coverage_cursor', 'limit', 'refresh']);
+    fields(body, ['list', 'search'].includes(action) ? ['path', 'depth', 'limit', 'query']
+      : ['prepare', 'queue'].includes(action) ? ['paths', 'engine', 'tier', 'cancel']
+        : ['path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier', 'coverage_cursor', 'limit', 'refresh', 'wait_seconds']);
     if (body.path !== undefined && (typeof body.path !== 'string' || body.path.length > 2048)) throw Object.assign(new Error('Invalid document path'), { code: 'document_path_invalid', status: 422 });
+    if (body.paths !== undefined && (!Array.isArray(body.paths) || body.paths.length > 50 || body.paths.some(item => typeof item !== 'string' || !item || item.length > 2048))) {
+      throw Object.assign(new Error('Invalid document paths'), { code: 'document_path_invalid', status: 422 });
+    }
+    if (action === 'prepare' && !body.paths?.length) throw Object.assign(new Error('Missing document paths'), { code: 'document_path_invalid', status: 422 });
+    if (body.cancel !== undefined && typeof body.cancel !== 'boolean') throw Object.assign(new Error('Invalid cancel flag'), { code: 'INVALID_FIELDS', status: 400 });
     if (['read', 'asset'].includes(action) && !body.path) throw Object.assign(new Error('Missing document path'), { code: 'document_path_invalid', status: 422 });
     return { value: await adapter.documents(id(documentMatch[1]), action, body, signal) };
   }

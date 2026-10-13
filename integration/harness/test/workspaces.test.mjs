@@ -111,9 +111,10 @@ test('shared document tools return PDF page evidence and model-visible image in 
 test('authorized task tools write explicit outside paths without per-action approval and load official tools lazily', { skip: !python, timeout: 60000 }, async () => {
   const f = await fixture('authorized-task');
   try {
-    // Workspace access is the default: outside paths are refused until the
-    // user switches on Full computer access.
-    assert.equal(f.host.workspaces.access().default_access, 'workspace');
+    // Full computer access is the default; a user who restricts access to the
+    // workspace gets outside paths refused until they switch back.
+    assert.equal(f.host.workspaces.access().default_access, 'full');
+    await f.host.workspaces.setAccess({ default_access: 'workspace' });
     const blocked = await f.command('write', { file_path: join(f.outside, 'blocked.txt'), content: 'NOT_WRITTEN' });
     assert.equal(blocked.result.is_error, true); assert.match(blocked.result.text, /Full computer/);
     await f.host.workspaces.setAccess({ default_access: 'full' });

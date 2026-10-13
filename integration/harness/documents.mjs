@@ -47,14 +47,20 @@ export function runReaderProcess(python, argv, payload, signal, timeoutMs = 9000
 
 export function readDocument(python, helper, root, action, input, signal) {
   if (!isAbsolute(helper ?? '')) return Promise.resolve(failure('document_runtime_unavailable', 'The packaged document reader is unavailable.'));
-  const allowed = ['path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier', 'limit', 'refresh', 'coverage_cursor'];
+  const allowed = ['path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier', 'limit', 'refresh', 'coverage_cursor', 'paths', 'cancel', 'wait_seconds'];
   const request = Object.fromEntries(Object.entries(input).filter(([key]) => allowed.includes(key)));
   // This short-lived process is only a waiter. The durable Python dispatcher
-  // owns the single heavy slot and outlives HTTP disconnects/aborted waiters.
+  // owns the read and parse lanes and outlives HTTP disconnects/aborted waiters.
   const argv = [join(dirname(helper), 'document_job_worker.py')];
   if (process.env.DEEPSTEAM_HARNESS_TEST_ROOT) argv.push('--test-root', process.env.DEEPSTEAM_HARNESS_TEST_ROOT);
-  return runReaderProcess(python, argv, { ...request, action, root }, signal, 35000);
+  const waitMs = action === 'read' ? Math.min(50, Math.max(0, Number(request.wait_seconds ?? 20) || 0)) * 1000 : 0;
+  // prepare hashes up to 50 documents to bind each plan to its exact version.
+  const timeoutMs = action === 'prepare' ? 120000 : Math.max(35000, waitMs + 15000);
+  return runReaderProcess(python, argv, { ...request, action, root }, signal, timeoutMs);
 }
+
+/** True while a read job is still queued, reading, or waiting on local MinerU. */
+export const documentPending = value => Boolean(value?.ok && ['queued', 'running'].includes(value.status) && value.job_id && !Array.isArray(value.units));
 
 /**
  * Model-facing view of a read result. The full result stays in the session log
@@ -63,6 +69,12 @@ export function readDocument(python, helper, root, action, input, signal) {
  * a head and a tail of long tool output) can never cut away the next position.
  */
 export function documentModelView(value) {
+  if (documentPending(value)) {
+    // Not an error: local work continues while the model does something else.
+    const { retry_after_ms: _retry, status: _status, ...rest } = value;
+    return { status: 'pending', ...rest, how_to_continue: `${value.message ?? 'The document is still being read on this computer.'} `
+      + `To continue, call read_document again with the same arguments (it resumes job ${value.job_id}); document_queue shows progress.` };
+  }
   if (!value || typeof value !== 'object' || !Array.isArray(value.units)) return value;
   const { text: _duplicate, units, navigation, ...rest } = value;
   const nav = navigation ?? { next_cursor: value.next_cursor ?? null, next_start_unit: value.next_start_unit ?? null, done: !value.truncated };

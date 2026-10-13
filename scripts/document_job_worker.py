@@ -13,6 +13,7 @@ from integration.document_jobs import DocumentJobs, handle
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--drain', action='store_true')
+    parser.add_argument('--drain-parses', action='store_true')
     parser.add_argument('--test-root')
     args = parser.parse_args()
     if args.test_root:
@@ -22,6 +23,9 @@ def main():
             raise ValueError('test_root_outside_fixture_area')
     if args.drain:
         DocumentJobs(test_root=args.test_root, python=sys.executable).drain()
+        return 0
+    if args.drain_parses:
+        DocumentJobs(test_root=args.test_root, python=sys.executable).drain_parses()
         return 0
     raw = sys.stdin.buffer.read(64 * 1024 + 1)
     if len(raw) > 64 * 1024:

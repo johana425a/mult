@@ -82,6 +82,33 @@ class BridgeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result['text'], 'finished')
 
 
+    async def test_bounded_wait_returns_progress_instead_of_blocking(self):
+        client = MagicMock(); client.__aenter__ = AsyncMock(return_value=client); client.__aexit__ = AsyncMock(return_value=None)
+        response = MagicMock(); response.json.return_value = {'workspace_id': 'w1', 'harness_workspace_id': 'h1'}
+        client.get = AsyncMock(return_value=response)
+        transport = MagicMock(); transport.token.return_value = 'fixture'
+        waiting = {'ok': True, 'status': 'running', 'job_status': 'waiting', 'job_id': 'b' * 32,
+                   'parse': {'state': 'parsing', 'pages': [1, 4]}, 'message': 'Local MinerU (advanced tier) is parsing pages 1-4.'}
+        transport.host = AsyncMock(return_value=waiting)
+        with patch.object(bridge.httpx, 'AsyncClient', return_value=client), patch.object(bridge, 'HarnessTransport', return_value=transport):
+            result = await bridge.document_request('w1', 'read', wait_seconds=0, path='scan.pdf', engine='mineru')
+        transport.host.assert_awaited_once()
+        self.assertEqual(transport.host.call_args.args[2]['wait_seconds'], 0)
+        view = bridge.model_view(result)
+        self.assertEqual(view['status'], 'pending')
+        self.assertIn('parsing pages 1-4', view['how_to_continue'])
+        self.assertIn('workspace_document_read again with the same arguments', view['how_to_continue'])
+
+    async def test_background_preparation_payloads_are_bounded_relative_paths(self):
+        self.assertEqual(bridge._payload('prepare', {'paths': ['a.pdf', 'b/c.pdf'], 'engine': 'mineru'}),
+                         {'paths': ['a.pdf', 'b/c.pdf'], 'engine': 'mineru'})
+        self.assertEqual(bridge._payload('queue', {}), {})
+        for action, value in [('prepare', {}), ('prepare', {'paths': []}), ('prepare', {'paths': ['C:/x.pdf']}),
+                              ('prepare', {'paths': ['../x.pdf']}), ('prepare', {'paths': 'a.pdf'}),
+                              ('queue', {'paths': ['a.pdf'] * 51}), ('prepare', {'paths': ['a.pdf'], 'path': 'a.pdf'})]:
+            with self.subTest(action=action, value=value), self.assertRaises(ValueError):
+                bridge._payload(action, value)
+
 class NativeToolTests(unittest.IsolatedAsyncioTestCase):
     async def test_pdf_auto_dispatch_preserves_locator_hash_and_no_text_read(self):
         from deeptutor.tools import workspace
@@ -114,9 +141,23 @@ class NativeToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(value.success); self.assertNotIn('cGl4ZWxz', value.content); self.assertNotIn('base64', str(value.metadata))
         self.assertIn('cGl4ZWxz', str(value.model_message)); self.assertEqual(value.sources[0]['locator']['page'], 1)
 
+    async def test_prepare_tool_queues_documents_and_reports_progress(self):
+        from deeptutor.tools import workspace
+        service = MagicMock(); binding = SimpleNamespace(workspace_id='w1')
+        accepted = {'ok': True, 'status': 'accepted', 'documents': [{'path': 'a.pdf', 'state': 'queued'}]}
+        with patch.object(workspace, '_binding', return_value=(service, binding)), patch.object(bridge, 'document_request', AsyncMock(return_value=accepted)) as request:
+            value = await workspace.WorkspaceDocumentPrepareTool().execute(paths=['a.pdf'], engine='mineru')
+            self.assertTrue(value.success); self.assertIn('queued', value.content)
+            request.assert_awaited_with('w1', 'prepare', paths=['a.pdf'], engine='mineru')
+            await workspace.WorkspaceDocumentPrepareTool().execute(paths=['a.pdf'], operation='cancel')
+            request.assert_awaited_with('w1', 'queue', paths=['a.pdf'], cancel=True)
+            missing = await workspace.WorkspaceDocumentPrepareTool().execute(operation='prepare')
+            self.assertFalse(missing.success)
+        service.resolve.assert_called_with(binding, 'a.pdf')
+
     async def test_baseline_includes_documents_for_chat_and_mastery(self):
         from deeptutor.agents._shared.tool_composition import WORKSPACE_BASELINE_TOOLS
-        self.assertTrue({'workspace_document_read', 'workspace_document_image', 'load_workspace_dependencies'}.issubset(WORKSPACE_BASELINE_TOOLS))
+        self.assertTrue({'workspace_document_read', 'workspace_document_image', 'workspace_document_prepare', 'load_workspace_dependencies'}.issubset(WORKSPACE_BASELINE_TOOLS))
 
 
 if __name__ == '__main__':

@@ -33,7 +33,7 @@ VLM_MODEL_NAME = "MinerU2.5-Pro-2605-1.2B"
 VLM_MODEL_DIR = MODEL_ROOT / "MinerU2.5-Pro-2605-1.2B-GGUF"
 VLM_WEIGHTS = VLM_MODEL_DIR / "MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"
 VLM_PROJECTOR = VLM_MODEL_DIR / "mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf"
-LLAMA_SERVER = ROOT / "runtime/mineru/llama-server/llama-server.exe"
+LLAMA_SERVER = ROOT / "runtime/mineru/llama-server" / ("llama-server.exe" if os.name == "nt" else "llama-server")
 LLAMA_RELEASE = "b11541"
 VLM_ALIAS = "mineru-document-tool"
 SMALL_MODEL_DIR = MODEL_ROOT / "MinerU-4_models_onnx"
@@ -41,10 +41,22 @@ SMALL_MODEL_DIR = MODEL_ROOT / "MinerU-4_models_onnx"
 # advanced/xhigh run the VLM; advanced also enables VLM image analysis.
 TIER_EFFORT = {"flash": "flash", "basic": "medium", "standard": "high", "advanced": "xhigh"}
 VLM_TIERS = {"standard", "advanced"}
-DEFAULT_TIER = "advanced"
+# Default: basic first (small local ONNX models, no VLM); only pages whose basic
+# layout shows tables or display formulas are parsed again with the standard
+# local VLM tier. Figures are flagged for an explicit advanced read.
+ADAPTIVE = "adaptive"
+DEFAULT_TIER = ADAPTIVE
+COMPLEX_LAYOUT = {"table", "equation", "interline_equation"}
+FIGURE_BLOCKS = {"image", "chart", "figure"}
 NATIVE_SUFFIXES = {".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".rtf", ".odt", ".ods", ".odp", ".epub", ".ofd", ".html", ".htm", ".mhtml", ".mht", ".csv", ".tsv"}
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 NETWORK_ATTEMPTS: list[str] = []
+# Set once per process by configure_home(); a --serve process configures its
+# private home a single time and then parses many documents.
+CONFIGURED_HOME: Path | None = None
+CURRENT_REQUEST = ""
+# Decoding slots requested by the dispatcher (--vlm-parallel); None = default.
+VLM_PARALLEL: int | None = None
 
 
 def digest(path: Path) -> str:
@@ -67,7 +79,10 @@ def safe_asset(root: Path, relative: str) -> Path:
 
 
 def progress(stage: str, **fields: Any) -> None:
-    print(json.dumps({"event": "progress", "stage": stage, **fields}, ensure_ascii=False), file=sys.stderr, flush=True)
+    event = {"event": "progress", "stage": stage, **fields}
+    if CURRENT_REQUEST:
+        event["request_id"] = CURRENT_REQUEST
+    print(json.dumps(event, ensure_ascii=False), file=sys.stderr, flush=True)
 
 
 def disable_network() -> None:
@@ -111,11 +126,18 @@ def disable_network() -> None:
 
 
 def configure(output: Path) -> None:
+    configure_home(output / ".worker")
+
+
+def configure_home(home: Path) -> None:
+    """Private, offline environment for this process (applied once)."""
+    global CONFIGURED_HOME
+    if CONFIGURED_HOME is not None:
+        return
     # Do not inherit API keys, remote MinerU settings or another app's HF profile.
     for key in list(os.environ):
         if key.startswith(("MINERU_", "HF_", "HUGGINGFACE_")) or key in {"OPENAI_API_KEY", "OPENAI_BASE_URL", "ANTHROPIC_API_KEY"}:
             os.environ.pop(key, None)
-    home = output / ".worker"
     home.mkdir(parents=True, exist_ok=True)
     values = {
         "MINERU_HOME": str(home), "MINERU_MODEL_BASE_DIR": str(MODEL_ROOT),
@@ -145,6 +167,7 @@ def configure(output: Path) -> None:
             return None
     sys.meta_path.insert(0, ExcludedWrapper())
     disable_network()
+    CONFIGURED_HOME = home
 
 
 def windows_child_job(process):
@@ -179,58 +202,93 @@ def windows_child_job(process):
     return lambda: kernel.CloseHandle(job)
 
 
+def vlm_parallel() -> int:
+    """Decoding slots for the private VLM server.
+
+    llama.cpp batches the token generation of concurrent requests, which on a
+    CPU (bound by memory bandwidth) yields more pages per minute than serving
+    MinerU's requests one by one. Machines with fewer cores keep one slot; a
+    local benchmark can record a different value for this computer.
+    """
+    configured = VLM_PARALLEL if VLM_PARALLEL is not None else (2 if (os.cpu_count() or 1) >= 8 else 1)
+    return max(1, min(4, int(configured)))
+
+
+def set_vlm_parallel(value: Any) -> None:
+    global VLM_PARALLEL
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 4:
+        raise ValueError("vlm_parallel must be an integer from 1 to 4")
+    VLM_PARALLEL = value
+
+
+def server_args(port: int, slots: int, threads: int) -> list[str]:
+    args = [str(LLAMA_SERVER), "--model", str(VLM_WEIGHTS),
+            "--mmproj", str(VLM_PROJECTOR),
+            "--host", "127.0.0.1", "--port", str(port), "--alias", VLM_ALIAS,
+            "--n-gpu-layers", "0", "--no-mmproj-offload", "--parallel", str(slots), "--ctx-size", "0",
+            "--threads", str(threads), "--no-webui", "--no-warmup", "--jinja",
+            "--special", "--skip-chat-parsing", "--metrics"]
+    if slots > 1:
+        # One KV buffer shared by all slots, so batching never shrinks the
+        # context available to a single page request.
+        args.append("--kv-unified")
+    return args
+
+
+class EngineStartupFailed(RuntimeError):
+    """llama-server exited before it was ready."""
+
+
 @contextlib.contextmanager
-def portable_vlm_engine(tier: str, output: Path):
+def portable_vlm_engine(tier: str, home: Path):
     """Official MIT llama.cpp is a private document subprocess, never a provider."""
-    policy = {"device": "cpu", "n_gpu_layers": 0, "n_parallel": 1,
+    slots = vlm_parallel()
+    policy = {"device": "cpu", "n_gpu_layers": 0, "n_parallel": slots,
               "n_threads": max(1, min(8, os.cpu_count() or 1)), "context": "model_training_default",
               "engine": "official-llama.cpp-b11541", "transport": "private_loopback_http"}
     if tier not in VLM_TIERS:
-        yield {**policy, "vlm": False}
+        yield {**policy, "vlm": False, "n_parallel": 0}
         return
     require_vlm_assets()
-    exe = LLAMA_SERVER
-    with socket.socket() as probe:
-        probe.bind(("127.0.0.1", 0))
-        port = probe.getsockname()[1]
     key = secrets.token_urlsafe(32)
-    endpoint = f"http://127.0.0.1:{port}"
     environment = os.environ.copy()
     for name in list(environment):
         if name.startswith("LLAMA_") or name.lower().endswith("_proxy"):
             environment.pop(name, None)
     environment["LLAMA_API_KEY"] = key
-    args = [str(exe), "--model", str(VLM_WEIGHTS),
-            "--mmproj", str(VLM_PROJECTOR),
-            "--host", "127.0.0.1", "--port", str(port), "--alias", VLM_ALIAS,
-            "--n-gpu-layers", "0", "--no-mmproj-offload", "--parallel", "1", "--ctx-size", "0",
-            "--threads", str(policy["n_threads"]), "--no-webui", "--no-warmup", "--jinja",
-            "--special", "--skip-chat-parsing"]
     process = None
     close_job = None
     try:
-        with (output / ".worker/native-engine.log").open("wb") as log:
-            process = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
-                                       env=environment, creationflags=subprocess.CREATE_NO_WINDOW)
-            close_job = windows_child_job(process)
-            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-            deadline = time.monotonic() + 180
-            while time.monotonic() < deadline:
-                if process.poll() is not None:
-                    raise RuntimeError("Local document engine stopped during startup")
+        with (home / "native-engine.log").open("wb") as log:
+            # Parallel decoding slots are a scheduling choice, not a quality
+            # tier: if this llama-server build refuses them, one slot runs the
+            # same model and tier.
+            for attempt in ([slots, 1] if slots > 1 else [1]):
+                with socket.socket() as probe:
+                    probe.bind(("127.0.0.1", 0))
+                    port = probe.getsockname()[1]
+                endpoint = f"http://127.0.0.1:{port}"
+                process = subprocess.Popen(server_args(port, attempt, policy["n_threads"]), stdin=subprocess.DEVNULL,
+                                           stdout=log, stderr=log, env=environment,
+                                           **({"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}))
+                close_job = windows_child_job(process) if os.name == "nt" else None
                 try:
-                    request = urllib.request.Request(endpoint + "/v1/models", headers={"Authorization": "Bearer " + key})
-                    with opener.open(request, timeout=1) as response:
-                        if response.status == 200:
-                            break
-                except (OSError, urllib.error.URLError):
-                    time.sleep(.2)
-            else:
-                raise TimeoutError("Local document engine startup timed out")
+                    wait_until_ready(process, endpoint, key)
+                    break
+                except EngineStartupFailed:
+                    if close_job:
+                        close_job()
+                        close_job = None
+                    process.wait(timeout=10)
+                    process = None
+                    if attempt == 1:
+                        raise
+                    policy["parallel_fallback"] = f"llama-server did not start with {attempt} slots; using 1"
+            policy["n_parallel"] = attempt
             os.environ.update({"MINERU_MODEL_VLM_SERVER_URL": endpoint,
                                "MINERU_MODEL_VLM_API_KEY": key, "MINERU_MODEL_VLM_MODEL": VLM_ALIAS})
-            progress("local_engine", device="cpu", engine=policy["engine"], process_id=process.pid)
-            yield {**policy, "vlm": True, "endpoint": endpoint, "api_key": key, "alias": VLM_ALIAS}
+            progress("local_engine", device="cpu", engine=policy["engine"], process_id=process.pid, n_parallel=attempt)
+            yield {**policy, "vlm": True, "endpoint": endpoint, "api_key": key, "alias": VLM_ALIAS, "_process": process}
     finally:
         os.environ.pop("MINERU_MODEL_VLM_API_KEY", None)
         os.environ.pop("MINERU_MODEL_VLM_SERVER_URL", None)
@@ -242,8 +300,61 @@ def portable_vlm_engine(tier: str, output: Path):
             process.wait(timeout=10)
 
 
+def wait_until_ready(process: subprocess.Popen, endpoint: str, key: str) -> None:
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    deadline = time.monotonic() + 180
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            raise EngineStartupFailed("Local document engine stopped during startup")
+        try:
+            request = urllib.request.Request(endpoint + "/v1/models", headers={"Authorization": "Bearer " + key})
+            with opener.open(request, timeout=1) as response:
+                if response.status == 200:
+                    return
+        except (OSError, urllib.error.URLError):
+            time.sleep(.2)
+    raise TimeoutError("Local document engine startup timed out")
+
+
 class VlmUnavailable(RuntimeError):
     """The requested local VLM tier cannot run. Never downgrade silently."""
+
+
+class SharedVlmEngine:
+    """One private llama.cpp server kept loaded across parses (--serve mode).
+
+    Loading the 1.2B model takes far longer than a single page batch, so a
+    serving worker starts it once and reuses it. It is restarted if it exits.
+    """
+
+    def __init__(self, home: Path):
+        self.home = home
+        self.stack: contextlib.ExitStack | None = None
+        self.policy: dict | None = None
+
+    @contextlib.contextmanager
+    def lease(self, tier: str):
+        if tier not in VLM_TIERS:
+            with portable_vlm_engine(tier, self.home) as policy:
+                yield policy
+            return
+        process = (self.policy or {}).get("_process")
+        if process is not None and process.poll() is not None:
+            self.close()
+        if self.policy is None:
+            stack = contextlib.ExitStack()
+            try:
+                self.policy = stack.enter_context(portable_vlm_engine(tier, self.home))
+            except BaseException:
+                stack.close()
+                raise
+            self.stack = stack
+        yield self.policy
+
+    def close(self) -> None:
+        stack, self.stack, self.policy = self.stack, None, None
+        if stack is not None:
+            stack.close()
 
 
 def installation_relative(path: Path) -> str:
@@ -279,8 +390,9 @@ def loopback_vlm_config(policy: dict):
     host = urlsplit(endpoint).hostname
     if not endpoint or not loopback_host(host):
         raise VlmUnavailable("Refusing a non-loopback VLM endpoint; MinerU inference must stay on this computer.")
+    # MinerU sends as many concurrent requests as the server has slots.
     return VlmConfig(engine="llama-cpp", server_url=endpoint, api_key=policy["api_key"], model=policy["alias"],
-                     max_concurrency=1, http_timeout=1800)
+                     max_concurrency=max(1, int(policy.get("n_parallel") or 1)), http_timeout=1800)
 
 
 def assert_offline_configuration() -> None:
@@ -297,14 +409,56 @@ def assert_offline_configuration() -> None:
         raise VlmUnavailable("MinerU model downloads are not allowed; local model files are required.")
 
 
-def inference_identity(tier: str, requested_tier: str, suffix: str, runtime_policy: dict | None = None) -> dict:
-    """What actually ran, recorded in every result for verification."""
+def vlm_counters(policy: dict) -> dict | None:
+    """Token counters of the private VLM server (its loopback /metrics)."""
+    if not policy.get("vlm"):
+        return None
+    try:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        request = urllib.request.Request(policy["endpoint"] + "/metrics", headers={"Authorization": "Bearer " + policy["api_key"]})
+        with opener.open(request, timeout=5) as response:
+            text = response.read(1024 * 1024).decode("utf-8", "replace")
+    except (OSError, ValueError):
+        return None
+    values = {}
+    for line in text.splitlines():
+        name, _, number = line.partition(" ")
+        if name.startswith("llamacpp:"):
+            try:
+                values[name.split(":", 1)[1]] = float(number)
+            except ValueError:
+                pass
+    return values
+
+
+def vlm_usage(before: dict | None, after: dict | None) -> dict | None:
+    """Work the local VLM actually did for one document (None if unknown)."""
+    if before is None or after is None:
+        return None
+    delta = {key: max(0.0, after.get(key, 0.0) - before.get(key, 0.0)) for key in after}
+    return {"prompt_tokens": int(delta.get("prompt_tokens_total", 0)),
+            "generated_tokens": int(delta.get("tokens_predicted_total", 0)),
+            "prompt_seconds": round(delta.get("prompt_seconds_total", 0.0), 1),
+            "generation_seconds": round(delta.get("tokens_predicted_seconds_total", 0.0), 1)}
+
+
+def inference_identity(tier: str, requested_tier: str, suffix: str, runtime_policy: dict | None = None,
+                       usage: dict | None = None) -> dict:
+    """What actually ran, recorded in every result for verification.
+
+    ``vlm_tier`` says the tier engages the local VLM; ``vlm_used`` is measured
+    from the VLM server's token counters when they are available: the hybrid
+    standard tier calls the VLM only for regions that need it, so a page with
+    a clean text layer may not need it at all.
+    """
     vlm = tier in VLM_TIERS
+    measured = usage is not None and vlm
     identity = {
         "mode": "local", "remote_api": False, "api_key_required": False,
         "engine": f"MinerU {ENGINE_VERSION} (local Python library)",
         "requested_tier": requested_tier, "actual_tier": tier, "effort": TIER_EFFORT.get(tier),
-        "vlm_used": vlm, "image_analysis": tier == "advanced",
+        "vlm_tier": vlm, "vlm_used": bool(usage["prompt_tokens"] or usage["generated_tokens"]) if measured else vlm,
+        "vlm_use_measured": measured, "image_analysis": tier == "advanced",
         "small_models": {"backend": "onnxruntime (CPU)", "path": installation_relative(SMALL_MODEL_DIR)},
     }
     if vlm:
@@ -313,7 +467,10 @@ def inference_identity(tier: str, requested_tier: str, suffix: str, runtime_poli
                            "projector": installation_relative(VLM_PROJECTOR),
                            "backend": f"official llama.cpp llama-server {LLAMA_RELEASE}",
                            "transport": "loopback HTTP (127.0.0.1) with a one-time key",
-                           "device": (runtime_policy or {}).get("device", "cpu")}
+                           "device": (runtime_policy or {}).get("device", "cpu"),
+                           "decoding_slots": (runtime_policy or {}).get("n_parallel", vlm_parallel())}
+        if measured:
+            identity["vlm_usage"] = usage
     elif suffix in NATIVE_SUFFIXES:
         identity["vlm_not_applicable"] = ("MinerU 4.0.12 parses Office, HTML, EPUB and table files natively for every tier; "
                                           "its VLM only analyses PDF pages and images.")
@@ -362,7 +519,8 @@ def health() -> dict:
             "missing_dependencies": missing, "missing_models": model_missing,
             "available_tiers": tiers, "default_tier": DEFAULT_TIER,
             "vlm_ready": ready and not vlm_missing, "vlm_missing": vlm_missing,
-            "inference": inference_identity(DEFAULT_TIER, DEFAULT_TIER, ".pdf"),
+            "inference": inference_identity("standard", DEFAULT_TIER, ".pdf"),
+            "default_tier_policy": "basic first; pages with tables or display formulas use the standard local VLM",
             "python": sys.version.split()[0]}
 
 
@@ -382,7 +540,7 @@ def verify_vlm() -> dict:
 
 def _verify_vlm(output: Path) -> dict:
     configure(output)
-    with portable_vlm_engine(DEFAULT_TIER, output) as policy:
+    with portable_vlm_engine("standard", CONFIGURED_HOME) as policy:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
         headers = {"Authorization": "Bearer " + policy["api_key"]}
         with opener.open(urllib.request.Request(policy["endpoint"] + "/v1/models", headers=headers), timeout=10) as response:
@@ -398,7 +556,7 @@ def _verify_vlm(output: Path) -> dict:
             "loaded_weights": Path(loaded).name if loaded else None,
             "expected_weights": VLM_WEIGHTS.name, "weights_match": (Path(loaded).name == VLM_WEIGHTS.name) if loaded else None,
             "vlm_config": {"engine": config.engine, "server": "loopback", "model": config.model},
-            "inference": inference_identity(DEFAULT_TIER, DEFAULT_TIER, ".pdf", policy),
+            "inference": inference_identity("standard", "standard", ".pdf", policy),
             "blocked_network_attempts": len(NETWORK_ATTEMPTS), "document_inference_requests": 0}
 
 
@@ -529,7 +687,7 @@ def add_page_previews(source: Path, output: Path, normalized: dict) -> None:
         normalized["coverage"]["asset_count"] = len(normalized["assets"])
 
 
-def run(request: dict) -> dict:
+def run(request: dict, shared: SharedVlmEngine | None = None) -> dict:
     if request.get("schema_version") != 1 or request.get("action") != "parse":
         raise ValueError("Expected schema_version=1 and action=parse")
     source = Path(request["source_path"])
@@ -556,12 +714,14 @@ def run(request: dict) -> dict:
         raise ValueError("source_changed")
     options = request.get("engine_options") or {}
     requested_tier = options.get("tier", DEFAULT_TIER)
-    if requested_tier not in TIER_EFFORT:
+    if shared is None and options.get("vlm_parallel") is not None:
+        set_vlm_parallel(options["vlm_parallel"])
+    if requested_tier not in TIER_EFFORT and requested_tier != ADAPTIVE:
         raise ValueError("Unknown parsing tier")
     suffix = source.suffix.lower()
     # Office/HTML/EPUB/CSV take MinerU's native path for every tier (the VLM is
     # not applicable there); this is recorded in the result, not hidden.
-    tier = "flash" if suffix in NATIVE_SUFFIXES else requested_tier
+    tier = "flash" if suffix in NATIVE_SUFFIXES else "basic" if requested_tier == ADAPTIVE else requested_tier
     if suffix not in NATIVE_SUFFIXES | IMAGE_SUFFIXES | {".pdf"}:
         raise ValueError("Unsupported document format")
     if tier in VLM_TIERS:
@@ -571,25 +731,42 @@ def run(request: dict) -> dict:
     progress("loading", tier=tier)
     from mineru.parser.writer import DataWriter
 
-    class ConfinedWriter(DataWriter):
-        def write(self, path: str, data: bytes) -> None:
-            target = safe_asset(output, path)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(data)
+    def writer(root: Path):
+        class ConfinedWriter(DataWriter):
+            def write(self, path: str, data: bytes) -> None:
+                target = safe_asset(root, path)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+        return ConfinedWriter()
 
     assert_offline_configuration()
     progress("parsing", tier=tier, effort=TIER_EFFORT[tier], vlm=tier in VLM_TIERS)
-    with portable_vlm_engine(tier, output) as runtime_policy:
+    lease = shared.lease(tier) if shared is not None else portable_vlm_engine(tier, CONFIGURED_HOME)
+    with lease as runtime_policy:
         from mineru.parser import parse
         vlm_config = loopback_vlm_config(runtime_policy) if runtime_policy.get("vlm") else None
         # Only the local library entry point is used; MinerU's hosted-API
         # client (MinerUApiParser) is never constructed here.
+        counters = vlm_counters(runtime_policy)
         result = parse(source, tier=tier, ocr_mode="auto", image_analysis=tier == "advanced", vlm_config=vlm_config)
-        runtime_policy = {key: value for key, value in runtime_policy.items() if key not in {"api_key", "endpoint"}}
+        usage = vlm_usage(counters, vlm_counters(runtime_policy))
+        runtime_policy = {key: value for key, value in runtime_policy.items()
+                          if key not in {"api_key", "endpoint"} and not key.startswith("_")}
     progress("saving")
-    result.save(ConfinedWriter())
+    result.save(writer(output))
     structured = json.loads((output / "structured_content.json").read_text("utf-8"))
     normalized = normalize(structured, output, suffix, tier)
+    escalation = None
+    inference = inference_identity(tier, requested_tier, suffix, runtime_policy, usage)
+    if requested_tier == ADAPTIVE and suffix not in NATIVE_SUFFIXES:
+        escalation = escalate_complex_pages(source, output, suffix, structured, normalized, shared, writer)
+        if escalation["vlm_pages"]:
+            runtime_policy = escalation.pop("runtime_policy")
+            inference = inference_identity("standard", requested_tier, suffix, runtime_policy, escalation["vlm_usage"])
+            tier = "basic+standard"
+            inference.update(actual_tier=tier, effort="medium+high")
+        escalation.pop("runtime_policy", None)
+        inference["adaptive"] = escalation
     add_page_previews(source, output, normalized)
     if digest(source) != actual_hash:
         raise ValueError("source_changed_during_parse")
@@ -600,18 +777,223 @@ def run(request: dict) -> dict:
                        "middle_json_path": "middle_json.json", "artifact_dir": str(output), "asset_dir": "images",
                        "offline": True, "blocked_network_attempts": len(NETWORK_ATTEMPTS),
                        "runtime_policy": runtime_policy,
-                       "inference": inference_identity(tier, requested_tier, suffix, runtime_policy),
+                       "inference": inference,
                        "elapsed_seconds": round(time.monotonic() - started, 3)})
     (output / "result.json").write_text(json.dumps(normalized, ensure_ascii=False, indent=2), encoding="utf-8")
     progress("completed", status=normalized["status"], units=len(normalized["units"]))
     return normalized
 
 
+def complex_layout_pages(structured: dict) -> tuple[dict[int, list[str]], list[int]]:
+    """Pages whose basic layout shows tables or display formulas (with the
+    block types found), and pages that contain figures."""
+    complex_pages, figures = {}, []
+    for ordinal, page in enumerate(structured.get("pages", [])):
+        index = page.get("page_idx", ordinal)
+        kinds = {str(block.get("type", "")) for block in page.get("blocks", []) if isinstance(block, dict)}
+        if kinds & COMPLEX_LAYOUT:
+            complex_pages[index] = sorted(kinds & COMPLEX_LAYOUT)
+        if kinds & FIGURE_BLOCKS:
+            figures.append(index)
+    return complex_pages, figures
+
+
+def merge_escalated(normalized: dict, escalated: dict, page_map: list[int], reasons: dict[int, list[str]], prefix: str) -> list[int]:
+    """Replace the basic units of escalated pages with their standard-tier
+    units; returns the original page indices that were replaced."""
+    def remap(value: Any) -> Any:
+        if isinstance(value, list):
+            return [remap(item) for item in value]
+        if not isinstance(value, dict):
+            return value
+        output = {key: remap(item) for key, item in value.items()}
+        locator = value.get("locator")
+        if isinstance(locator, dict) and isinstance(locator.get("page_idx"), int) and 0 <= locator["page_idx"] < len(page_map):
+            original = page_map[locator["page_idx"]]
+            output["locator"] = {**locator, "page": original + 1, "page_idx": original}
+        if isinstance(value.get("relative_path"), str):
+            output["relative_path"] = prefix + value["relative_path"]
+            output["id"] = hashlib.sha256(output["relative_path"].encode()).hexdigest()[:20]
+        return output
+
+    replacements = {}
+    for unit in escalated.get("units", []):
+        mapped = remap(unit)
+        index = mapped["locator"]["page_idx"]
+        mapped["coverage"] = {**mapped.get("coverage", {}), "parsed_with": "standard", "escalation_reasons": reasons.get(index, [])}
+        replacements[index] = mapped
+    units, replaced = [], []
+    for unit in normalized["units"]:
+        index = unit["locator"]["page_idx"]
+        if index in replacements:
+            mapped = replacements.pop(index)
+            mapped["index"] = unit["index"]
+            units.append(mapped)
+            replaced.append(index)
+        else:
+            unit["coverage"] = {**unit.get("coverage", {}), "parsed_with": "basic"}
+            units.append(unit)
+    normalized["units"] = units
+    normalized["warnings"].extend(remap(item) for item in escalated.get("warnings", [])
+                                  if not (isinstance(item, dict) and item.get("code") == "partial_document"))
+    normalized["assets"] = list({asset["relative_path"]: asset for unit in units for asset in unit.get("assets", [])}.values())
+    normalized["coverage"].update(text_units=sum(bool(unit["text"]) for unit in units), asset_count=len(normalized["assets"]),
+                                  formula_count=sum(len(unit.get("equations", [])) for unit in units),
+                                  table_count=sum(len(unit.get("tables", [])) for unit in units))
+    return replaced
+
+
+def keep_basic(normalized: dict, pages: list[int], code: str, message: str) -> None:
+    """Complex pages that could not get the VLM pass stay basic, visibly."""
+    normalized["warnings"].append({"code": code, "pages": [page + 1 for page in pages], "message": message})
+    for unit in normalized["units"]:
+        if unit["locator"]["page_idx"] in pages:
+            unit["coverage"] = {**unit.get("coverage", {}), "parsed_with": "basic", "requires_vlm_review": True}
+
+
+def escalate_complex_pages(source: Path, output: Path, suffix: str, structured: dict, normalized: dict,
+                           shared: "SharedVlmEngine | None", writer: Any) -> dict:
+    """Adaptive tier: parse only the complex pages again with the standard VLM."""
+    reasons, figures = complex_layout_pages(structured)
+    pages = sorted(reasons)
+    record = {"policy": "basic first; pages with tables or display formulas use the standard local VLM",
+              "vlm_pages": [], "basic_pages": sorted(unit["locator"]["page"] for unit in normalized["units"]),
+              "reasons": {str(page + 1): kinds for page, kinds in sorted(reasons.items())},
+              "figure_pages": [page + 1 for page in figures], "vlm_usage": None, "runtime_policy": None}
+    if figures:
+        record["figure_hint"] = "Figures are kept as images; read these pages with tier=advanced for local VLM image analysis."
+    if not pages:
+        return record
+    try:
+        require_vlm_assets()
+    except VlmUnavailable as exc:
+        keep_basic(normalized, pages, "vlm_escalation_unavailable",
+                   "These pages contain tables or display formulas, but the local VLM is not installed; they keep the basic result. " + str(exc)[:300])
+        return record
+    folder = output / "vlm"
+    folder.mkdir(exist_ok=True)
+    escalated_source = source
+    if suffix == ".pdf":
+        import pypdfium2
+        escalated_source = safe_asset(output, "vlm/complex-pages.pdf")
+        with pypdfium2.PdfDocument(source) as original:
+            subset = pypdfium2.PdfDocument.new()
+            try:
+                subset.import_pages(original, pages)
+                subset.save(escalated_source)
+            finally:
+                subset.close()
+    progress("escalating", pages=len(pages), tier="standard")
+    try:
+        lease = shared.lease("standard") if shared is not None else portable_vlm_engine("standard", CONFIGURED_HOME)
+        with lease as policy:
+            from mineru.parser import parse
+            counters = vlm_counters(policy)
+            result = parse(escalated_source, tier="standard", ocr_mode="auto", image_analysis=False, vlm_config=loopback_vlm_config(policy))
+            usage = vlm_usage(counters, vlm_counters(policy))
+            policy = {key: value for key, value in policy.items() if key not in {"api_key", "endpoint"} and not key.startswith("_")}
+        result.save(writer(folder))
+        escalated = normalize(json.loads((folder / "structured_content.json").read_text("utf-8")), folder, suffix, "standard")
+    except Exception as exc:
+        keep_basic(normalized, pages, "vlm_escalation_failed",
+                   "The standard local VLM pass for these complex pages failed; they keep the basic result. " + str(exc)[:300])
+        return record
+    replaced = merge_escalated(normalized, escalated, pages if suffix == ".pdf" else [0], reasons, "vlm/")
+    missing = [page for page in pages if page not in replaced]
+    if missing:
+        keep_basic(normalized, missing, "vlm_escalation_incomplete", "The standard local VLM pass returned no result for these pages; they keep the basic result.")
+    record.update(vlm_pages=[page + 1 for page in replaced], vlm_usage=usage, runtime_policy=policy,
+                  basic_pages=sorted(unit["locator"]["page"] for unit in normalized["units"] if unit["coverage"].get("parsed_with") == "basic"))
+    return record
+
+
+def error_result(exc: BaseException) -> dict:
+    # Source content and keys are never copied into error messages by this wrapper.
+    message = str(exc)
+    code = "source_changed" if message.startswith("source_changed") else "parse_failed"
+    if isinstance(exc, VlmUnavailable):
+        code = "vlm_unavailable"
+    elif isinstance(exc, (ModuleNotFoundError, importlib.metadata.PackageNotFoundError)):
+        code = "parser_not_configured"
+    elif isinstance(exc, FileNotFoundError):
+        code = "parser_asset_missing"
+    return {"schema_version": 1, "ok": False, "status": "error", "engine": "mineru",
+            "engine_version": ENGINE_VERSION, "error": {"code": code, "message": message[:1200]},
+            "offline": True, "blocked_network_attempts": len(NETWORK_ATTEMPTS)}
+
+
+SUMMARY_KEYS = ("schema_version", "ok", "status", "engine", "engine_version", "source_sha256", "coverage",
+                "offline", "blocked_network_attempts", "inference")
+
+
+def serve_request(request: dict, shared: SharedVlmEngine) -> dict:
+    """Parse one request inside a serving worker; the full result stays in result.json."""
+    global CURRENT_REQUEST
+    CURRENT_REQUEST = str(request.get("request_id", ""))
+    try:
+        result = run(request, shared)
+        summary = {key: result[key] for key in SUMMARY_KEYS if key in result}
+        summary.update({"result_path": "result.json", "units_inline": False, "warnings": result.get("warnings", [])[:100]})
+    except Exception as exc:
+        summary = error_result(exc)
+    finally:
+        CURRENT_REQUEST = ""
+    summary["request_id"] = str(request.get("request_id", ""))
+    return summary
+
+
+def serve_loop(lines: Any, protocol: Any, handle: Any) -> None:
+    """One JSON request per input line, one JSON response per output line."""
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            request = json.loads(line)
+            if not isinstance(request, dict):
+                raise ValueError("A parse request must be a JSON object")
+        except ValueError as exc:
+            response = {**error_result(exc), "request_id": ""}
+        else:
+            response = handle(request)
+        protocol.write(json.dumps(response, ensure_ascii=False) + "\n")
+        protocol.flush()
+
+
+def serve(home: Path) -> int:
+    """Long-lived worker: MinerU models and the local VLM server load once."""
+    if not home.is_absolute():
+        raise ValueError("Absolute worker home required")
+    # Responses use a private copy of stdout; anything a native library prints
+    # to file descriptor 1 is redirected to stderr so it cannot corrupt them.
+    protocol = os.fdopen(os.dup(1), "w", encoding="utf-8", buffering=1)
+    os.dup2(2, 1)
+    sys.stdout = sys.stderr
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8", errors="strict")
+    home.mkdir(parents=True, exist_ok=True)
+    configure_home(home)
+    shared = SharedVlmEngine(home)
+    try:
+        serve_loop(sys.stdin, protocol, lambda request: serve_request(request, shared))
+    finally:
+        shared.close()
+        protocol.close()
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--health", action="store_true")
     parser.add_argument("--verify-vlm", action="store_true", help="load the local VLM in llama-server and report it; no document inference")
+    parser.add_argument("--serve", action="store_true", help="parse many requests in one process (models load once)")
+    parser.add_argument("--home", help="private worker home for --serve")
+    parser.add_argument("--vlm-parallel", type=int, help="decoding slots for the private VLM server (1-4)")
     args = parser.parse_args()
+    if args.vlm_parallel is not None:
+        set_vlm_parallel(args.vlm_parallel)
+    if args.serve:
+        return serve(Path(args.home or ""))
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
@@ -620,21 +1002,10 @@ def main() -> int:
         with contextlib.redirect_stdout(sys.stderr):
             result = health() if args.health else verify_vlm() if args.verify_vlm else run(json.load(sys.stdin))
     except Exception as exc:
-        # Source content and keys are never copied into error messages by this wrapper.
-        message = str(exc)
-        code = "source_changed" if message.startswith("source_changed") else "parse_failed"
-        if isinstance(exc, VlmUnavailable):
-            code = "vlm_unavailable"
-        elif isinstance(exc, (ModuleNotFoundError, importlib.metadata.PackageNotFoundError)):
-            code = "parser_not_configured"
-        elif isinstance(exc, FileNotFoundError):
-            code = "parser_asset_missing"
-        result = {"schema_version": 1, "ok": False, "status": "error", "engine": "mineru",
-                  "engine_version": ENGINE_VERSION, "error": {"code": code, "message": message[:1200]},
-                  "offline": True, "blocked_network_attempts": len(NETWORK_ATTEMPTS)}
+        result = error_result(exc)
     encoded = json.dumps(result, ensure_ascii=False)
     if not args.health and result.get("ok") and len(encoded.encode("utf-8")) > 4 * 1024 * 1024:
-        summary = {key: result[key] for key in ("schema_version", "ok", "status", "engine", "engine_version", "source_sha256", "coverage", "offline", "blocked_network_attempts", "inference") if key in result}
+        summary = {key: result[key] for key in SUMMARY_KEYS if key in result}
         summary.update({"result_path": "result.json", "warnings": result.get("warnings", [])[:100], "units_inline": False})
         encoded = json.dumps(summary, ensure_ascii=False)
     print(encoded, file=output_stream, flush=True)

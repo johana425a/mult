@@ -797,7 +797,10 @@ _ENGINE_ALIASES = {"auto": "auto", "default": "auto", "builtin": "builtin", "nat
 # MinerU tiers (verified in MinerU 4.0.12 parser/tier.py and backend/analysis):
 # basic = ONNX small models only, no VLM; standard = hybrid layout + local VLM;
 # advanced = full local VLM two-step extraction with image analysis.
-_TIER_ALIASES = {"basic": "basic", "pipeline": "basic", "flash": "basic", "fast": "basic", "low": "basic",
+# adaptive (DeepSteam default) = basic first, standard only for pages whose
+# basic layout shows tables or display formulas.
+_TIER_ALIASES = {"adaptive": "adaptive", "auto": "adaptive", "smart": "adaptive", "mixed": "adaptive",
+                 "basic": "basic", "pipeline": "basic", "flash": "basic", "fast": "basic", "low": "basic",
                  "standard": "standard", "hybrid": "standard", "medium": "standard",
                  "advanced": "advanced", "vlm": "advanced", "high": "advanced", "pro": "advanced",
                  "full": "advanced", "enhanced": "advanced", "best": "advanced", "xhigh": "advanced"}
@@ -912,7 +915,7 @@ def normalize_read_request(request: dict[str, Any]) -> dict[str, Any]:
     if isinstance(value.get("tier"), str):
         tier = _TIER_ALIASES.get(value["tier"].strip().lower())
         if tier is None and value["tier"].strip().lower() != "default":
-            fail("INVALID_REQUEST", "tier must be advanced (local VLM with image analysis), standard (hybrid local VLM) or basic (small local models, no VLM).")
+            fail("INVALID_REQUEST", "tier must be adaptive (default: small local models, local VLM only for tables and formulas), standard (hybrid local VLM), advanced (local VLM with image analysis) or basic (small local models, no VLM).")
         if tier is None:
             value.pop("tier")
         else:

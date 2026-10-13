@@ -128,7 +128,7 @@ class AdvancedBatchTests(unittest.TestCase):
         self.assertEqual([len(call) for call in self.calls], [8, 8, 1])
         self.assertIsNone(final['next_cursor'])
 
-    def test_default_tier_is_the_local_vlm_in_smaller_batches(self):
+    def test_default_tier_is_adaptive_in_six_page_batches(self):
         pages, token = [], None
         for _ in range(6):
             result = self.read(token, tier=None)
@@ -138,10 +138,10 @@ class AdvancedBatchTests(unittest.TestCase):
             if not token:
                 break
         self.assertEqual(pages, list(range(1, 18)))
-        self.assertEqual(set(self.tiers), {'advanced'})
-        self.assertEqual([len(call) for call in self.calls], [4, 4, 4, 4, 1])
+        self.assertEqual(set(self.tiers), {'adaptive'})
+        self.assertEqual([len(call) for call in self.calls], [6, 6, 5])
 
-    def test_automatic_upgrade_defaults_to_the_faster_standard_vlm_tier(self):
+    def test_automatic_upgrade_uses_the_same_adaptive_tier(self):
         pages, token = [], None
         for _ in range(6):
             result = self.read(token, tier=None, mode='auto')
@@ -152,18 +152,19 @@ class AdvancedBatchTests(unittest.TestCase):
             if not token:
                 break
         self.assertEqual(pages, list(range(1, 18)))
-        self.assertEqual(set(self.tiers), {'standard'})
+        self.assertEqual(set(self.tiers), {'adaptive'})
         self.assertEqual([len(call) for call in self.calls], [6, 6, 5])
-        self.assertEqual(module.mineru_tier({}, 'auto'), 'standard')
-        self.assertEqual(module.mineru_tier({}, 'mineru'), 'advanced')
+        self.assertEqual(module.mineru_tier({}, 'auto'), 'adaptive')
+        self.assertEqual(module.mineru_tier({}, 'mineru'), 'adaptive')
+        self.assertEqual(module.mineru_tier({'tier': 'advanced'}, 'auto'), 'advanced')
         self.assertEqual(module.mineru_tier({'tier': 'basic'}, 'auto'), 'basic')
 
     def test_continuing_a_cursor_keeps_its_tier_when_the_engine_changes(self):
-        first = self.read(tier=None, mode='mineru')
+        first = self.read(tier='advanced', mode='mineru')
         self.assertTrue(first['ok'], first)
         self.assertEqual(module.structured_cursor(first['next_cursor'])['tier'], 'advanced')
         # The model continues without repeating engine/tier: auto must not switch
-        # to standard mid-document (that would change batches and text versions).
+        # to its adaptive default mid-document (that would change batches and text versions).
         second = self.read(first['next_cursor'], tier=None, mode='auto')
         self.assertTrue(second['ok'], second)
         self.assertEqual(set(self.tiers), {'advanced'})

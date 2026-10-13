@@ -21,3 +21,4 @@
 *.sqlite3-wal
 *.sqlite3-shm
 *.pyc
+/models/

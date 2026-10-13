@@ -336,7 +336,7 @@ export function MinerUEngineSettings() {
             isCloud
               ? t("The MinerU cloud API is disabled. Switch to Local; documents stay on this computer.")
               : t(
-                  "Parsing runs on this computer with the installed MinerU2.5 VLM (llama.cpp, CPU). No API key or upload.",
+                  "Parsing runs on this computer: fast small models first, and the installed MinerU2.5 VLM (llama.cpp, CPU) only for pages with tables or formulas. No API key or upload.",
                 )
           }
           control={

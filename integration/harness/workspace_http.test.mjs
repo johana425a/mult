@@ -108,3 +108,23 @@ test('access level routes validate values and turns carry an optional access lev
   assert.deepEqual(calls.at(-1).slice(0, 3), ['turn', 's1', { text: 'Find my notes', access_level: 'full' }]);
   await assert.rejects(workspaceRequest(adapter, 'POST', '/sessions/s1/turn', new URLSearchParams(), { text: 'x', access_level: 'root' }), /Invalid access level/);
 });
+
+test('background preparation routes accept bounded path lists only', async () => {
+  const calls = [];
+  const adapter = { documents: async (...args) => { calls.push(args); return { ok: true }; } };
+  const signal = new AbortController().signal;
+  await workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/prepare', query, { paths: ['a.pdf', 'b/c.pdf'], engine: 'mineru', tier: 'advanced' }, signal);
+  await workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/queue', query, {}, signal);
+  await workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/queue', query, { paths: ['a.pdf'], cancel: true }, signal);
+  assert.deepEqual(calls.map(call => call.slice(0, 3)), [
+    ['w1', 'prepare', { paths: ['a.pdf', 'b/c.pdf'], engine: 'mineru', tier: 'advanced' }],
+    ['w1', 'queue', {}], ['w1', 'queue', { paths: ['a.pdf'], cancel: true }]]);
+  for (const body of [{}, { paths: [] }, { paths: 'a.pdf' }, { paths: [''] }, { paths: Array(51).fill('a.pdf') },
+    { paths: ['a.pdf'], root: 'C:/' }, { paths: ['a.pdf'], path: 'a.pdf' }]) {
+    await assert.rejects(workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/prepare', query, body, signal));
+  }
+  await assert.rejects(workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/queue', query, { cancel: 'yes' }, signal));
+  await workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/read', query, { path: 'a.pdf', wait_seconds: 5 }, signal);
+  assert.deepEqual(calls.at(-1).slice(0, 3), ['w1', 'read', { path: 'a.pdf', wait_seconds: 5 }]);
+  assert.equal(calls.length, 4);
+});

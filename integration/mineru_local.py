@@ -42,7 +42,7 @@ def parse_to_directory(source: Path | str, output: Path | str, *, tier: str = DE
                        on_output: Callable[[str], None] | None = None, timeout: int | None = None) -> dict[str, Any]:
     """Parse one local file into a fresh owned directory; return the result."""
     if tier not in TIERS:
-        raise LocalMinerUError('tier_invalid', 'Use the advanced, standard or basic local MinerU tier.')
+        raise LocalMinerUError('tier_invalid', 'Use the adaptive, standard, advanced or basic local MinerU tier.')
     python, helper = jobs.mineru_runtime()
     if not python.is_file() or not helper.is_file():
         raise LocalMinerUError('document_engine_unavailable',

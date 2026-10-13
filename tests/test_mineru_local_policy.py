@@ -15,11 +15,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class LocalMinerUPolicyTests(unittest.TestCase):
-    def test_default_tier_is_the_local_vlm(self):
-        self.assertEqual(jobs.DEFAULT_MINERU_TIER, 'advanced')
-        self.assertEqual(jobs.DEFAULT_AUTO_TIER, 'standard')  # automatic upgrades still use the local VLM
-        self.assertEqual(mineru_local.DEFAULT_TIER, 'advanced')
-        self.assertIn('advanced', jobs.MINERU_TIERS)
+    def test_default_tier_is_basic_first_with_local_vlm_for_complex_pages(self):
+        self.assertEqual(jobs.DEFAULT_MINERU_TIER, 'adaptive')
+        self.assertEqual(jobs.DEFAULT_AUTO_TIER, 'adaptive')
+        self.assertEqual(mineru_local.DEFAULT_TIER, 'adaptive')
+        self.assertEqual(jobs.MINERU_TIERS, {'adaptive', 'basic', 'standard', 'advanced'})
         python, helper = jobs.mineru_runtime()
         self.assertEqual(python, ROOT / 'runtime/mineru/python.exe')  # fixed path, never PATH lookup
         self.assertEqual(helper, ROOT / 'scripts/mineru_document_worker.py')
@@ -41,7 +41,8 @@ class LocalMinerUPolicyTests(unittest.TestCase):
     def test_engine_status_action_needs_no_workspace(self):
         result = jobs.handle({'action': 'engine_status'})
         self.assertIn('default_tier', result)
-        self.assertEqual(result['default_tier'], 'advanced')
+        self.assertEqual(result['default_tier'], 'adaptive')
+        self.assertIn('tables or display formulas', result['tiers']['adaptive'])
         self.assertFalse(result['remote_api'])
 
     def test_mineru4_blocks_map_to_deeptutor_content_list(self):

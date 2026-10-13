@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, symlink } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readDocument, workspaceFileCatalog, runReaderProcess, packagedDependencies, documentModelView } from '../documents.mjs';
+import { readDocument, workspaceFileCatalog, runReaderProcess, packagedDependencies, documentModelView, documentPending } from '../documents.mjs';
 import { checkedWorkspacePath } from '../workspaces.mjs';
 import { workspaceRequest } from '../workspace_http.mjs';
 
@@ -28,6 +28,19 @@ test('model view keeps the next position at both ends and drops duplicated text'
   assert.match(rendered.slice(0, 4096), /"next_cursor":"abc"/); assert.match(rendered.slice(-1024), /start_unit=2/);
   assert.equal(view.text, undefined); assert.equal(view.units[0].unit_text_sha256, undefined); assert.equal(view.units[0].text.length, 9000);
   assert.deepEqual(documentModelView({ ok: true, asset: {} }), { ok: true, asset: {} });
+});
+
+test('a read still waiting on local MinerU is shown as pending with how to come back', () => {
+  const waiting = { ok: true, status: 'running', job_status: 'waiting', job_id: 'a'.repeat(32), retry_after_ms: 2000,
+    parse: { state: 'parsing', pages: [5, 8], tier: 'advanced', eta_seconds: 240 }, message: 'Local MinerU (advanced tier) is parsing pages 5-8; about 4 min left.' };
+  assert.equal(documentPending(waiting), true);
+  const view = documentModelView(waiting);
+  assert.equal(view.status, 'pending'); assert.equal(view.retry_after_ms, undefined);
+  assert.deepEqual(view.parse.pages, [5, 8]);
+  assert.match(view.how_to_continue, /parsing pages 5-8/); assert.match(view.how_to_continue, /read_document again with the same arguments/);
+  assert.match(view.how_to_continue, new RegExp('a'.repeat(32)));
+  assert.equal(documentPending({ ok: true, status: 'ready', units: [] }), false);
+  assert.equal(documentPending({ ok: false, status: 'running', job_id: 'x' }), false);
 });
 
 test('placeholder cursors from a model start at the beginning instead of failing', { skip: !python || !testRoot }, async () => {

@@ -68,6 +68,7 @@ import ComposerResources, {
 } from "./ComposerResources";
 import KnowledgeSelector from "./KnowledgeSelector";
 import ModelSelector from "./ModelSelector";
+import { AccessLevelControl } from "@/components/education/AccessLevelControl";
 import styles from "./ChatComposer.module.css";
 import PersonaSelector from "./PersonaSelector";
 import ResourceSelector from "./ResourceSelector";
@@ -1373,6 +1374,8 @@ export default memo(function ChatComposer({
                   />
                 }
 
+                {/* DeepSteam: agent access level for delegated workspace tasks. */}
+                <AccessLevelControl compact disabled={isStreaming} />
               </div>
 
               <div className={styles.actions}>
