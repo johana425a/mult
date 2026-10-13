@@ -1,7 +1,7 @@
 {
   "product": "DeepSteam",
   "edition": "english-public-source",
-  "base_version": "2026.10.12-r7-harness-tools",
+  "base_version": "2026.10.13-r8-adaptive-vlm",
   "generated_at_utc": "2026-10-13T00:27:47.088696Z",
   "default_interface_language": "en",
   "timezone_policy": "detect_at_runtime",
@@ -224,9 +224,9 @@
     },
     {
       "path": "installer/DeepSteamSetup-r6.cs",
-      "bytes": 214050,
-      "sha256": "9d0d3b434b926199a0003b44c777c84067d5016984674fae73ab376dfce48070",
-      "git_blob_sha": "86e243739e473a6750dc2572dbfd301ed516a8a7"
+      "bytes": 214049,
+      "sha256": "03958e71cb8c6bb4a045c903324dab8196dbd98d9eecd19ead8e8031dfe73ba6",
+      "git_blob_sha": "de812315f082785a9a7c7d72a96a1946fea1c3a0"
     },
     {
       "path": "installer/DeepSteamSetup.cs",
@@ -1064,21 +1064,21 @@
     },
     {
       "path": "README.md",
-      "bytes": 5059,
-      "sha256": "8fa2cb239d99fef4e8ac31f84371d45b5fda6827c64202b73189d5b242d5cefb",
-      "git_blob_sha": "9e68c81a7f3f73477298c0534d7fd1feba0da32c"
+      "bytes": 5058,
+      "sha256": "99ed6dc2a64aa10101406e2291a77d5ccd85af7962ec84dd493ac9a2c50b9947",
+      "git_blob_sha": "3566cd33d4a3f842a618592f40e22b98e3577a91"
     },
     {
       "path": "RELEASE-IDENTITY.json",
-      "bytes": 818,
-      "sha256": "f30849cf55717c4815a31724d5936cd4288024aa59b48d69f74986f668e8d8ce",
-      "git_blob_sha": "60daa265520a9b786ed436e6898be09640a81088"
+      "bytes": 990,
+      "sha256": "473e68bb5891dbfe4e6d5e37de2b972e811c4a62bb9ab5f776339060c0b364dc",
+      "git_blob_sha": "9916cc669ee89b39a78830f475ff7144df55a525"
     },
     {
       "path": "RELEASE.md",
-      "bytes": 1435,
-      "sha256": "a7f73d68470f3d3023ed06fc5d97da5ea31941f43c7a586b568d1c751d8256c5",
-      "git_blob_sha": "c2b3f6b5bf9acd560dfe4415f0c9de3926010387"
+      "bytes": 2707,
+      "sha256": "fc0b3300c43ca259d1a5ba61c3f5588de30933921605d838cdaeeca4686be45f",
+      "git_blob_sha": "52d761f45121218c26544dc8c557f7b0c949376d"
     },
     {
       "path": "reports/assemble_unified_r5_spec.py",

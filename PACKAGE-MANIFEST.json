@@ -1,7 +1,7 @@
 {
   "product": "DeepSteam",
   "edition": "english-public-source",
-  "base_version": "2026.10.12-r7-harness-tools",
+  "base_version": "2026.10.13-r8-adaptive-vlm",
   "default_language": "en",
   "default_timezone": "runtime_local",
   "scope": "source_and_required_notices",

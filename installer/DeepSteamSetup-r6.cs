@@ -22,7 +22,7 @@ namespace DeepSteamInstaller
 {
     internal static class Program
     {
-        internal const string Version = "2026.10.12-r7-harness-tools";
+        internal const string Version = "2026.10.13-r8-adaptive-vlm";
         internal const string InstallingMarker = ".deepsteam-installing";
         internal const string InstalledMarker = ".deepsteam-installed";
 
