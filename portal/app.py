@@ -674,6 +674,19 @@ async def workspace_input(request, allowed):
         raise HarnessError('workspace_input_invalid', 'Invalid workspace request. Check the selected folder or input.', 422) from None
 
 
+@app.get('/api/harness/workspace-access')
+async def harness_workspace_access():
+    return await harness_bridge().transport.host('GET', '/workspace-access')
+
+
+@app.post('/api/harness/workspace-access')
+async def harness_workspace_access_update(request: Request):
+    body = await workspace_input(request, {'default_access'})
+    if body.get('default_access') not in {'workspace', 'full'}:
+        raise HarnessError('workspace_access_invalid', 'Choose Workspace only or Full computer access.', 422)
+    return await harness_bridge().transport.host('POST', '/workspace-access', body)
+
+
 @app.get('/api/harness/workspaces')
 async def harness_workspaces():
     return await workspace_manager().harness_catalog()
@@ -723,9 +736,11 @@ async def harness_workspace_events(session_id: str, after_seq: int = -1):
 
 @app.post('/api/harness/sessions/{session_id}/turn')
 async def harness_workspace_turn(session_id: str, request: Request):
-    body = await workspace_input(request, {'text', 'llm_selection'})
+    body = await workspace_input(request, {'text', 'llm_selection', 'access_level'})
     if not isinstance(body.get('text'), str) or not 1 <= len(body['text'].strip()) <= 24000:
         raise HarnessError('workspace_input_invalid', 'Enter the task to execute.', 422)
+    if 'access_level' in body and body['access_level'] not in {'workspace', 'full'}:
+        raise HarnessError('workspace_input_invalid', 'Choose Workspace only or Full computer access.', 422)
     return await harness_bridge().transport.host('POST', '/sessions/' + workspace_identifier(session_id) + '/turn', body)
 
 

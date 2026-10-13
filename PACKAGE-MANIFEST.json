@@ -1,7 +1,7 @@
 {
   "product": "DeepSteam",
   "edition": "english-public-source",
-  "base_version": "2026.10.12-r7-harness-tools",
+  "base_version": "2026.10.13-r8-adaptive-vlm",
   "default_language": "en",
   "default_timezone": "runtime_local",
   "scope": "source_and_required_notices",
@@ -11,6 +11,6 @@
   "credentials_included": false,
   "machine_configuration_included": false,
   "file_manifest": "PUBLIC-SOURCE-MANIFEST.json",
-  "source_files_hashed": 11086,
+  "source_files_hashed": 11095,
   "installed_application_included": false
 }

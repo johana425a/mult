@@ -57,7 +57,7 @@ import { ProviderList } from './provider-list';
 import { PINNED_PROVIDER_ID } from './provider-links';
 import { ProviderConfigPanel } from './provider-config-panel';
 import { PDFSettings } from './pdf-settings';
-import { PDF_PROVIDERS } from '@/lib/pdf/constants';
+import { PDF_PROVIDERS, selectablePdfProviders } from '@/lib/pdf/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
 import { ImageSettings } from './image-settings';
 import { IMAGE_PROVIDERS } from '@/lib/media/image-providers';
@@ -1047,7 +1047,7 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
                       )}
                       {serviceTab === 'pdf' && (
                         <ProviderListColumn
-                          providers={Object.values(PDF_PROVIDERS)}
+                          providers={selectablePdfProviders()}
                           configs={pdfProvidersConfig}
                           selectedId={selectedPdfProviderId}
                           onSelect={setSelectedPdfProviderId}

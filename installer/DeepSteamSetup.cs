@@ -547,6 +547,23 @@ namespace DeepSteamInstaller
             return SystemParametersInfo(0x1042, 0, out enabled, 0) && enabled != 0;
         }
 
+        // iOS-style motion helpers. Colour/position values approach their
+        // target exponentially; scale uses a damped spring with a slight
+        // overshoot on release. All motion is skipped when Windows animation
+        // effects are off (SetupTheme.Motion).
+        internal static Color Mix(Color from, Color to, double amount)
+        {
+            double t = Math.Max(0, Math.Min(1, amount));
+            return Color.FromArgb((int)Math.Round(from.A + (to.A - from.A) * t), (int)Math.Round(from.R + (to.R - from.R) * t),
+                (int)Math.Round(from.G + (to.G - from.G) * t), (int)Math.Round(from.B + (to.B - from.B) * t));
+        }
+        internal static double Approach(double current, double target, double rate)
+        {
+            double next = current + (target - current) * rate;
+            return Math.Abs(target - next) < 0.003 ? target : next;
+        }
+        internal static double EaseOutCubic(double t) { t = Math.Max(0, Math.Min(1, t)); return 1 - Math.Pow(1 - t, 3); }
+
         internal static GraphicsPath Round(RectangleF bounds, float radius)
         {
             GraphicsPath path = new GraphicsPath();
@@ -557,6 +574,40 @@ namespace DeepSteamInstaller
             path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
             path.CloseFigure();
             return path;
+        }
+    }
+
+    /// <summary>Per-control 60 fps ticker that stops itself once settled.</summary>
+    internal sealed class SetupMotion : IDisposable
+    {
+        private readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer { Interval = 15 };
+        private readonly Func<bool> step;
+        internal SetupMotion(Func<bool> stepValue)
+        {
+            step = stepValue;
+            timer.Tick += delegate { if (!step()) timer.Stop(); };
+        }
+        internal void Kick() { if (!timer.Enabled) timer.Start(); }
+        public void Dispose() { timer.Stop(); timer.Dispose(); }
+    }
+
+    /// <summary>Fades a top-level window in on first show, like an iOS app opening.</summary>
+    internal static class SetupWindowMotion
+    {
+        internal static void Prepare(Form form)
+        {
+            if (!SetupTheme.Motion) return;
+            form.Opacity = 0;
+            Stopwatch clock = new Stopwatch();
+            System.Windows.Forms.Timer fade = new System.Windows.Forms.Timer { Interval = 15 };
+            fade.Tick += delegate
+            {
+                double t = clock.Elapsed.TotalMilliseconds / 280.0;
+                if (form.IsDisposed || t >= 1) { fade.Stop(); fade.Dispose(); if (!form.IsDisposed) form.Opacity = 1; return; }
+                form.Opacity = SetupTheme.EaseOutCubic(t);
+            };
+            form.Shown += delegate { clock.Start(); fade.Start(); };
+            form.FormClosed += delegate { fade.Stop(); };
         }
     }
 
@@ -581,8 +632,11 @@ namespace DeepSteamInstaller
         internal bool Primary;
         private bool hovered;
         private bool pressed;
+        private double hover, press, scale = 1, velocity;
+        private readonly SetupMotion motion;
         internal SetupButton()
         {
+            motion = new SetupMotion(Step);
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
             FlatStyle = FlatStyle.Flat;
             FlatAppearance.BorderSize = 0;
@@ -592,10 +646,29 @@ namespace DeepSteamInstaller
             Padding = new Padding(15, 9, 15, 9);
             UseVisualStyleBackColor = false;
         }
-        protected override void OnMouseEnter(EventArgs e) { hovered = true; Invalidate(); base.OnMouseEnter(e); }
-        protected override void OnMouseLeave(EventArgs e) { hovered = pressed = false; Invalidate(); base.OnMouseLeave(e); }
-        protected override void OnMouseDown(MouseEventArgs e) { pressed = true; Invalidate(); base.OnMouseDown(e); }
-        protected override void OnMouseUp(MouseEventArgs e) { pressed = false; Invalidate(); base.OnMouseUp(e); }
+        protected override void OnMouseEnter(EventArgs e) { hovered = true; Animate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hovered = pressed = false; Animate(); base.OnMouseLeave(e); }
+        protected override void OnMouseDown(MouseEventArgs e) { pressed = true; Animate(); base.OnMouseDown(e); }
+        protected override void OnMouseUp(MouseEventArgs e) { pressed = false; Animate(); base.OnMouseUp(e); }
+        private void Animate()
+        {
+            if (!SetupTheme.Motion) { hover = hovered ? 1 : 0; press = pressed ? 1 : 0; scale = pressed ? 0.965 : 1; velocity = 0; Invalidate(); return; }
+            motion.Kick();
+        }
+        private bool Step()
+        {
+            hover = SetupTheme.Approach(hover, hovered ? 1 : 0, 0.22);
+            press = SetupTheme.Approach(press, pressed ? 1 : 0, pressed ? 0.55 : 0.2);
+            // Damped spring: a quick dip on press, a soft overshoot on release.
+            double target = pressed ? 0.965 : 1;
+            velocity = (velocity + (target - scale) * 0.3) * 0.62;
+            scale += velocity;
+            bool springing = Math.Abs(velocity) > 0.0002 || Math.Abs(target - scale) > 0.0002;
+            if (!springing) { scale = target; velocity = 0; }
+            Invalidate();
+            return springing || hover != (hovered ? 1 : 0) || press != (pressed ? 1 : 0);
+        }
+        protected override void Dispose(bool disposing) { if (disposing) motion.Dispose(); base.Dispose(disposing); }
         protected override void OnGotFocus(EventArgs e) { Invalidate(); base.OnGotFocus(e); }
         protected override void OnLostFocus(EventArgs e) { Invalidate(); base.OnLostFocus(e); }
         protected override void OnPaint(PaintEventArgs e)
@@ -604,11 +677,18 @@ namespace DeepSteamInstaller
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             Color fill = Primary ? SetupTheme.Accent : SetupTheme.Paper;
             if (!Enabled) fill = SetupTheme.Panel;
-            else if (pressed) fill = Primary ? Color.FromArgb(186, 91, 48) : Color.FromArgb(52, 48, 43);
-            else if (hovered) fill = Primary ? Color.FromArgb(229, 133, 84) : SetupTheme.Panel;
-            using (GraphicsPath path = SetupTheme.Round(new RectangleF(0.5F, 0.5F, Width - 1, Height - 1), 9 * e.Graphics.DpiX / 96))
+            else
+            {
+                fill = SetupTheme.Mix(fill, Primary ? Color.FromArgb(229, 133, 84) : SetupTheme.Panel, hover);
+                fill = SetupTheme.Mix(fill, Primary ? Color.FromArgb(186, 91, 48) : Color.FromArgb(52, 48, 43), press);
+            }
+            // The rounded pill springs; the label stays crisp (GDI text ignores transforms).
+            float s = Enabled ? (float)scale : 1F;
+            float inset = (1 - s) / 2;
+            RectangleF pill = new RectangleF(0.5F + Width * inset, 0.5F + Height * inset, (Width - 1) * s, (Height - 1) * s);
+            using (GraphicsPath path = SetupTheme.Round(pill, 9 * e.Graphics.DpiX / 96))
             using (Brush brush = new SolidBrush(fill))
-            using (Pen pen = new Pen(Primary && Enabled ? fill : SetupTheme.Line))
+            using (Pen pen = new Pen(Primary && Enabled ? fill : SetupTheme.Mix(SetupTheme.Line, Color.FromArgb(88, 80, 72), hover)))
             { e.Graphics.FillPath(brush, path); e.Graphics.DrawPath(pen, path); }
             Color text = !Enabled ? Color.FromArgb(112, 106, 98) : Primary ? Color.FromArgb(28, 22, 18) : SetupTheme.Ink;
             TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, text, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
@@ -619,13 +699,28 @@ namespace DeepSteamInstaller
     internal sealed class SetupProgress : Control
     {
         private int value;
+        private double shown;
         private ProgressBarStyle style;
+        private readonly SetupMotion motion;
         internal double Phase;
         internal bool Failed;
-        internal int Value { get { return value; } set { this.value = value; Invalidate(); } }
+        internal int Value
+        {
+            get { return value; }
+            set
+            {
+                this.value = value;
+                // Forward progress glides; a reset or a non-animated system snaps.
+                if (!SetupTheme.Motion || value < shown || style == ProgressBarStyle.Marquee) { shown = value; Invalidate(); }
+                else motion.Kick();
+            }
+        }
         internal ProgressBarStyle Style { get { return style; } set { style = value; Invalidate(); } }
+        private bool Step() { shown = SetupTheme.Approach(shown, value, 0.14); Invalidate(); return shown != value; }
+        protected override void Dispose(bool disposing) { if (disposing) motion.Dispose(); base.Dispose(disposing); }
         internal SetupProgress()
         {
+            motion = new SetupMotion(Step);
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
             AccessibleName = "Operation progress";
             AccessibleRole = AccessibleRole.ProgressBar;
@@ -640,16 +735,26 @@ namespace DeepSteamInstaller
             {
                 e.Graphics.FillPath(brush, path);
                 e.Graphics.SetClip(path);
-                float left = 0, width = Width * value / 100F;
+                float left = 0, width = (float)(Width * shown / 100.0);
                 if (style == ProgressBarStyle.Marquee)
                 {
                     width = Width * 0.30F;
                     left = SetupTheme.Motion ? (float)((Math.Sin(Phase * 1.45 - Math.PI / 2) + 1) / 2 * (Width - width)) : (Width - width) / 2;
                 }
                 if (width > 0)
-                    using (GraphicsPath bar = SetupTheme.Round(new RectangleF(left, 0, Math.Max(1, width), Height), Height / 2F))
-                    using (Brush accent = new SolidBrush(Failed ? Color.FromArgb(173, 69, 59) : SetupTheme.Accent))
+                {
+                    RectangleF area = new RectangleF(left, 0, Math.Max(1, width), Height);
+                    Color tail = Failed ? Color.FromArgb(140, 56, 48) : Color.FromArgb(150, 90, 60);
+                    Color head = Failed ? Color.FromArgb(173, 69, 59) : Color.FromArgb(240, 163, 125);
+                    using (GraphicsPath bar = SetupTheme.Round(area, Height / 2F))
+                    using (LinearGradientBrush accent = new LinearGradientBrush(new RectangleF(area.X - 1, 0, area.Width + 2, Height), tail, head, LinearGradientMode.Horizontal))
+                    {
+                        if (!Failed) accent.InterpolationColors = new ColorBlend { Colors = new[] { tail, SetupTheme.Accent, head }, Positions = new[] { 0F, 0.65F, 1F } };
                         e.Graphics.FillPath(accent, bar);
+                        using (Brush gloss = new SolidBrush(Color.FromArgb(38, 255, 255, 255)))
+                            e.Graphics.FillRectangle(gloss, area.X, 0, area.Width, Height / 2F);
+                    }
+                }
                 e.Graphics.ResetClip();
             }
         }
@@ -657,8 +762,11 @@ namespace DeepSteamInstaller
 
     internal sealed class SetupCheckBox : CheckBox
     {
+        private double check = -1;
+        private readonly SetupMotion motion;
         internal SetupCheckBox()
         {
+            motion = new SetupMotion(Step);
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
             Cursor = Cursors.Hand;
             UseVisualStyleBackColor = false;
@@ -668,7 +776,14 @@ namespace DeepSteamInstaller
             Size text = TextRenderer.MeasureText(Text, Font);
             return new Size(text.Width + text.Height + (int)Math.Ceiling(text.Height * 0.55), text.Height + 6);
         }
-        protected override void OnCheckedChanged(EventArgs e) { Invalidate(); base.OnCheckedChanged(e); }
+        protected override void OnCheckedChanged(EventArgs e)
+        {
+            if (!SetupTheme.Motion || check < 0) { check = Checked ? 1 : 0; Invalidate(); }
+            else motion.Kick();
+            base.OnCheckedChanged(e);
+        }
+        private bool Step() { check = SetupTheme.Approach(check, Checked ? 1 : 0, 0.2); Invalidate(); return check != (Checked ? 1 : 0); }
+        protected override void Dispose(bool disposing) { if (disposing) motion.Dispose(); base.Dispose(disposing); }
         protected override void OnGotFocus(EventArgs e) { Invalidate(); base.OnGotFocus(e); }
         protected override void OnLostFocus(EventArgs e) { Invalidate(); base.OnLostFocus(e); }
         protected override void OnPaint(PaintEventArgs e)
@@ -677,20 +792,30 @@ namespace DeepSteamInstaller
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             float scale = e.Graphics.DpiX / 96;
             float size = Math.Min(16 * scale, Height - 4);
-            RectangleF box = new RectangleF(0.5F, (Height - size) / 2, size, size);
+            if (check < 0) check = Checked ? 1 : 0;
+            double amount = Enabled ? check : 0;
+            // A small pop while the state changes, settling back to full size.
+            float pop = 1 + 0.12F * (float)Math.Sin(Math.PI * check);
+            float drawn = size * pop;
+            RectangleF box = new RectangleF(0.5F + (size - drawn) / 2, (Height - drawn) / 2, drawn, drawn);
             using (GraphicsPath path = SetupTheme.Round(box, 4 * scale))
-            using (Brush fill = new SolidBrush(Checked && Enabled ? SetupTheme.Accent : SetupTheme.Paper))
-            using (Pen border = new Pen(Checked && Enabled ? SetupTheme.Accent : SetupTheme.Line))
+            using (Brush fill = new SolidBrush(SetupTheme.Mix(SetupTheme.Paper, SetupTheme.Accent, amount)))
+            using (Pen border = new Pen(SetupTheme.Mix(SetupTheme.Line, SetupTheme.Accent, amount)))
             {
                 e.Graphics.FillPath(fill, path);
                 e.Graphics.DrawPath(border, path);
             }
-            if (Checked)
+            if (check > 0.02)
             {
                 using (Pen tick = new Pen(Enabled ? SetupTheme.Paper : SetupTheme.Muted, 1.8F * scale))
                 {
                     tick.StartCap = tick.EndCap = LineCap.Round;
-                    e.Graphics.DrawLines(tick, new PointF[] { new PointF(box.X + size * 0.24F, box.Y + size * 0.52F), new PointF(box.X + size * 0.44F, box.Y + size * 0.71F), new PointF(box.X + size * 0.78F, box.Y + size * 0.3F) });
+                    PointF a = new PointF(box.X + drawn * 0.24F, box.Y + drawn * 0.52F), b = new PointF(box.X + drawn * 0.44F, box.Y + drawn * 0.71F), c = new PointF(box.X + drawn * 0.78F, box.Y + drawn * 0.3F);
+                    // The tick draws itself: short stroke first, then the long one.
+                    float first = (float)Math.Min(1, check / 0.4), second = (float)Math.Max(0, (check - 0.4) / 0.6);
+                    PointF midpoint = new PointF(a.X + (b.X - a.X) * first, a.Y + (b.Y - a.Y) * first);
+                    if (second <= 0) e.Graphics.DrawLine(tick, a, midpoint);
+                    else e.Graphics.DrawLines(tick, new PointF[] { a, b, new PointF(b.X + (c.X - b.X) * second, b.Y + (c.Y - b.Y) * second) });
                 }
             }
             Rectangle text = new Rectangle((int)(size + 8 * scale), 0, Math.Max(0, Width - (int)(size + 8 * scale)), Height);
@@ -787,6 +912,7 @@ namespace DeepSteamInstaller
         {
             SuspendLayout();
             startupAction = action;
+            SetupWindowMotion.Prepare(this);
             Text = "DeepSteam · Install and launch";
             StartPosition = FormStartPosition.CenterScreen;
             AutoScaleDimensions = new SizeF(96F, 96F);
@@ -1002,7 +1128,7 @@ namespace DeepSteamInstaller
             version.Margin = new Padding(0, 16, 0, 0);
             layout.Controls.Add(version, 0, 5);
 
-            animation.Interval = 40;
+            animation.Interval = 16;
             animation.Tick += delegate
             {
                 if (!Visible || WindowState == FormWindowState.Minimized) return;
@@ -2183,11 +2309,11 @@ namespace DeepSteamInstaller
     internal sealed class UninstallForm : Form
     {
         private readonly UninstallContext context;
-        private readonly CheckBox removeData = new CheckBox();
+        private readonly CheckBox removeData = new SetupCheckBox();
         private readonly SetupButton start = new SetupButton { Primary = true };
         private readonly SetupButton cancel = new SetupButton();
         private readonly SetupProgress progress = new SetupProgress();
-        private readonly System.Windows.Forms.Timer progressAnimation = new System.Windows.Forms.Timer { Interval = 30 };
+        private readonly System.Windows.Forms.Timer progressAnimation = new System.Windows.Forms.Timer { Interval = 16 };
         private readonly Label status = new Label();
         private readonly Label progressDetails = new Label();
         private readonly System.Windows.Forms.Timer progressRefresh = new System.Windows.Forms.Timer { Interval = 200 };
@@ -2206,6 +2332,7 @@ namespace DeepSteamInstaller
         {
             SuspendLayout();
             testNoDialog = testNoDialogValue; context = value; Text = "Uninstall DeepSteam";
+            if (!testNoDialog) SetupWindowMotion.Prepare(this);
             AutoScaleDimensions = new SizeF(96F, 96F); AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = SetupTheme.Paper; ForeColor = SetupTheme.Ink; Font = new Font("Microsoft YaHei UI", 10);
             ClientSize = new Size(720, 510); MinimumSize = new Size(560, 400); StartPosition = FormStartPosition.CenterScreen;
@@ -2239,7 +2366,7 @@ namespace DeepSteamInstaller
             footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             progress.Dock = DockStyle.Top; progress.Height = 6; progress.Margin = new Padding(0, 0, 0, 12); progress.Style = ProgressBarStyle.Marquee;
             progress.Visible = false;
-            progressAnimation.Tick += delegate { if (progress.Style == ProgressBarStyle.Marquee) { progress.Phase += 0.03; progress.Invalidate(); } };
+            progressAnimation.Tick += delegate { if (progress.Style == ProgressBarStyle.Marquee) { progress.Phase += 0.016; progress.Invalidate(); } };
             progressDetails.AutoSize = true; progressDetails.Dock = DockStyle.Top; progressDetails.ForeColor = SetupTheme.Muted;
             progressDetails.Margin = new Padding(0, 0, 0, 12); progressDetails.UseMnemonic = false;
             progressRefresh.Tick += delegate { FlushLatestProgress(); };

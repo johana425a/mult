@@ -1,5 +1,5 @@
 {
-  "version": "2026.10.12-r7-harness-tools",
+  "version": "2026.10.13-r8-adaptive-vlm",
   "native_build_id": "20261012-230020",
   "openmaic_next_build_id": "a94MyhgoL4M-F9FiHIuP9",
   "upstream": {
@@ -25,5 +25,7 @@
     "production_uninstall"
   ],
   "user_data_copied": false,
-  "credentials_copied": false
+  "credentials_copied": false,
+  "previous_version": "2026.10.12-r7-harness-tools",
+  "binary_build": "not yet built from this revision; native_build_id and openmaic_next_build_id refer to the r7 build"
 }

@@ -93,7 +93,7 @@ export function PageHeader({
 }
 
 export function pageActionClass(variant: 'primary' | 'secondary' = 'primary') {
-  return `dt-page-action inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-[12.5px] font-medium leading-[18px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] disabled:opacity-60 ${
+  return `dt-page-action inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-[12.5px] font-medium leading-[18px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] disabled:opacity-60 ${
     variant === 'primary'
       ? 'bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90'
       : 'border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]'

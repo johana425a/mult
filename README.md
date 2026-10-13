@@ -2,7 +2,7 @@
 
 DeepSteam is a desktop education assistant that combines document reading, guided learning, workspace tools, and interactive classrooms in one application.
 
-This repository contains the English public source edition of `2026.10.12-r7-harness-tools`. It includes modified upstream source and DeepSteam integration code. It does not include an installed application, private documents, personal learning records, saved accounts, API credentials, or machine-specific runtime configuration.
+This repository contains the English public source edition of `2026.10.13-r8-adaptive-vlm`. It includes modified upstream source and DeepSteam integration code. It does not include an installed application, private documents, personal learning records, saved accounts, API credentials, or machine-specific runtime configuration.
 
 ## What it provides
 

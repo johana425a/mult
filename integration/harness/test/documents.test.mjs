@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, symlink } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readDocument, workspaceFileCatalog, runReaderProcess, packagedDependencies } from '../documents.mjs';
+import { readDocument, workspaceFileCatalog, runReaderProcess, packagedDependencies, documentModelView, documentPending } from '../documents.mjs';
 import { checkedWorkspacePath } from '../workspaces.mjs';
 import { workspaceRequest } from '../workspace_http.mjs';
 
@@ -17,6 +17,42 @@ test('document HTTP boundary rejects arbitrary roots and carries cancellation', 
   await assert.rejects(workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/read', new URLSearchParams(), { root: 'C:/', path: 'x.pdf' }, signal));
   const result = await workspaceRequest(adapter, 'POST', '/workspaces/w1/documents/read', new URLSearchParams(), { path: 'x.pdf', start_unit: 2, ocr: 'off' }, signal);
   assert.equal(result.value.ok, true); assert.deepEqual(calls[0].slice(0, 3), ['w1', 'read', { path: 'x.pdf', start_unit: 2, ocr: 'off' }]); assert.equal(calls[0][3], signal);
+});
+
+test('model view keeps the next position at both ends and drops duplicated text', () => {
+  const units = [{ unit_index: 1, locator: { page: 1 }, text: 'A'.repeat(9000), unit_text_sha256: 'x' }];
+  const view = documentModelView({ ok: true, text: 'A'.repeat(9000), units, truncated: true, next_cursor: 'abc', next_start_unit: 2,
+    navigation: { next_cursor: 'abc', next_start_unit: 2, done: false } });
+  const rendered = JSON.stringify(view);
+  assert.equal(Object.keys(view)[0], 'navigation'); assert.equal(Object.keys(view).at(-1), 'navigation_end');
+  assert.match(rendered.slice(0, 4096), /"next_cursor":"abc"/); assert.match(rendered.slice(-1024), /start_unit=2/);
+  assert.equal(view.text, undefined); assert.equal(view.units[0].unit_text_sha256, undefined); assert.equal(view.units[0].text.length, 9000);
+  assert.deepEqual(documentModelView({ ok: true, asset: {} }), { ok: true, asset: {} });
+});
+
+test('a read still waiting on local MinerU is shown as pending with how to come back', () => {
+  const waiting = { ok: true, status: 'running', job_status: 'waiting', job_id: 'a'.repeat(32), retry_after_ms: 2000,
+    parse: { state: 'parsing', pages: [5, 8], tier: 'advanced', eta_seconds: 240 }, message: 'Local MinerU (advanced tier) is parsing pages 5-8; about 4 min left.' };
+  assert.equal(documentPending(waiting), true);
+  const view = documentModelView(waiting);
+  assert.equal(view.status, 'pending'); assert.equal(view.retry_after_ms, undefined);
+  assert.deepEqual(view.parse.pages, [5, 8]);
+  assert.match(view.how_to_continue, /parsing pages 5-8/); assert.match(view.how_to_continue, /read_document again with the same arguments/);
+  assert.match(view.how_to_continue, new RegExp('a'.repeat(32)));
+  assert.equal(documentPending({ ok: true, status: 'ready', units: [] }), false);
+  assert.equal(documentPending({ ok: false, status: 'running', job_id: 'x' }), false);
+});
+
+test('placeholder cursors from a model start at the beginning instead of failing', { skip: !python || !testRoot }, async () => {
+  const root = await mkdtemp(join(testRoot, 'document-cursor-'));
+  await writeFile(join(root, 'notes.md'), 'Line\n'.repeat(4000));
+  for (const cursor of ['', 'null', '0']) {
+    const value = await readDocument(python, helper, root, 'read', { path: 'notes.md', cursor, start_unit: 0, max_chars: 300, engine: 'builtin' });
+    assert.equal(value.ok, true, JSON.stringify(value.error)); assert.equal(value.units[0].unit_index, 1); assert.equal(value.navigation.next_start_unit, value.next_start_unit);
+  }
+  const first = await readDocument(python, helper, root, 'read', { path: 'notes.md', max_chars: 300, engine: 'builtin' });
+  const repaired = await readDocument(python, helper, root, 'read', { path: 'notes.md', cursor: first.next_cursor.replace(/=+$/, ''), engine: 'builtin', max_chars: 300 });
+  assert.equal(repaired.ok, true, JSON.stringify(repaired.error));
 });
 
 test('fixed isolated reader preserves Unicode, rejects outside paths and checks document versions', { skip: !python || !testRoot }, async () => {

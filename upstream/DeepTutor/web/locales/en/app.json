@@ -5527,5 +5527,7 @@
   "No durable indexing run recorded yet.": "No durable indexing run recorded yet.",
   "Approve this MCP origin for private-network connections": "Approve this MCP origin for private-network connections",
   "Use an administrator-approved private MCP origin": "Use an administrator-approved private MCP origin",
-  "Only this scheme, host and port can use private Docker or LAN addresses. Metadata addresses remain blocked.": "Only this scheme, host and port can use private Docker or LAN addresses. Metadata addresses remain blocked."
+  "Only this scheme, host and port can use private Docker or LAN addresses. Metadata addresses remain blocked.": "Only this scheme, host and port can use private Docker or LAN addresses. Metadata addresses remain blocked.",
+  "The MinerU cloud API is disabled. Switch to Local; documents stay on this computer.": "The MinerU cloud API is disabled. Switch to Local; documents stay on this computer.",
+  "Parsing runs on this computer: fast small models first, and the installed MinerU2.5 VLM (llama.cpp, CPU) only for pages with tables or formulas. No API key or upload.": "Parsing runs on this computer: fast small models first, and the installed MinerU2.5 VLM (llama.cpp, CPU) only for pages with tables or formulas. No API key or upload."
 }

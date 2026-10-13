@@ -12,13 +12,25 @@ const fields = (body, names) => {
 
 export async function workspaceRequest(adapter, method, path, query, body, signal) {
   if (path === '/workspace-dependencies' && method === 'GET') return { value: await adapter.dependencies(signal) };
-  const documentMatch = /^\/workspaces\/([^/]+)\/documents\/(read|asset|list|search|status|cancel|inventory|coverage)$/.exec(path);
+  const documentMatch = /^\/workspaces\/([^/]+)\/documents\/(read|asset|list|search|status|cancel|inventory|coverage|prepare|queue)$/.exec(path);
   if (documentMatch && method === 'POST') {
     const action = documentMatch[2];
-    fields(body, ['list', 'search'].includes(action) ? ['path', 'depth', 'limit', 'query'] : ['path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier', 'coverage_cursor', 'limit', 'refresh']);
+    fields(body, ['list', 'search'].includes(action) ? ['path', 'depth', 'limit', 'query']
+      : ['prepare', 'queue'].includes(action) ? ['paths', 'engine', 'tier', 'cancel']
+        : ['path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier', 'coverage_cursor', 'limit', 'refresh', 'wait_seconds']);
     if (body.path !== undefined && (typeof body.path !== 'string' || body.path.length > 2048)) throw Object.assign(new Error('Invalid document path'), { code: 'document_path_invalid', status: 422 });
+    if (body.paths !== undefined && (!Array.isArray(body.paths) || body.paths.length > 50 || body.paths.some(item => typeof item !== 'string' || !item || item.length > 2048))) {
+      throw Object.assign(new Error('Invalid document paths'), { code: 'document_path_invalid', status: 422 });
+    }
+    if (action === 'prepare' && !body.paths?.length) throw Object.assign(new Error('Missing document paths'), { code: 'document_path_invalid', status: 422 });
+    if (body.cancel !== undefined && typeof body.cancel !== 'boolean') throw Object.assign(new Error('Invalid cancel flag'), { code: 'INVALID_FIELDS', status: 400 });
     if (['read', 'asset'].includes(action) && !body.path) throw Object.assign(new Error('Missing document path'), { code: 'document_path_invalid', status: 422 });
     return { value: await adapter.documents(id(documentMatch[1]), action, body, signal) };
+  }
+  if (path === '/workspace-access' && method === 'GET') return { value: adapter.access() };
+  if (path === '/workspace-access' && method === 'POST') {
+    fields(body, ['default_access']);
+    return { value: await adapter.setAccess({ default_access: body.default_access }) };
   }
   if (path === '/workspaces' && method === 'GET') return { value: await adapter.list() };
   if (path === '/workspaces' && method === 'POST') {
@@ -79,14 +91,16 @@ export async function workspaceRequest(adapter, method, path, query, body, signa
   }
   match = /^\/sessions\/([^/]+)\/turn$/.exec(path);
   if (match && method === 'POST') {
-    fields(body, ['text', 'llm_selection']);
+    fields(body, ['text', 'llm_selection', 'access_level']);
+    if (body.access_level !== undefined && !['workspace', 'full'].includes(body.access_level)) throw Object.assign(new Error('Invalid access level'), { code: 'INVALID_ACCESS_LEVEL', status: 400 });
     if (typeof body.text !== 'string' || !body.text.trim() || body.text.length > 24000) throw Object.assign(new Error('Invalid task'), { code: 'INVALID_TASK', status: 400 });
     const selection = body.llm_selection;
     if (selection !== undefined && selection !== null && (typeof selection !== 'object' || Array.isArray(selection)
       || Object.keys(selection).some(key => !['profile_id', 'model_id', 'reasoning_effort'].includes(key))
       || typeof selection.profile_id !== 'string' || !selection.profile_id || typeof selection.model_id !== 'string' || !selection.model_id
       || (selection.reasoning_effort !== undefined && typeof selection.reasoning_effort !== 'string'))) throw Object.assign(new Error('Invalid model selection'), { code: 'INVALID_MODEL_SELECTION', status: 400 });
-    return { value: await adapter.turn(id(match[1]), { text: body.text, ...(selection !== undefined ? { llm_selection: selection } : {}) }, signal) };
+    return { value: await adapter.turn(id(match[1]), { text: body.text, ...(selection !== undefined ? { llm_selection: selection } : {}),
+      ...(body.access_level !== undefined ? { access_level: body.access_level } : {}) }, signal) };
   }
   match = /^\/sessions\/([^/]+)\/cancel$/.exec(path);
   if (match && method === 'POST') { fields(body, []); return { value: await adapter.cancel(id(match[1])) }; }

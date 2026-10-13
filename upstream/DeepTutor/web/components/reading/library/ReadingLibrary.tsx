@@ -421,7 +421,7 @@ function FolderTile({
           <div className="fixed inset-0 z-10" onClick={onCloseMenu} />
           <div
             role="menu"
-            className="absolute right-1.5 top-9 z-20 w-44 rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 text-[12px] shadow-md dark:bg-[var(--popover)]"
+            className="ds-menu-down absolute right-1.5 top-9 z-20 w-44 rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 text-[12px] shadow-md dark:bg-[var(--popover)]"
           >
             <Link
               role="menuitem"

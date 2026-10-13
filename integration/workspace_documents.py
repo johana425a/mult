@@ -16,11 +16,12 @@ import httpx
 from integration.harness_bridge import HarnessError, HarnessTransport
 
 _ROOT = Path(__file__).resolve().parents[1]
-_ACTIONS = {'list', 'search', 'inventory', 'coverage', 'read', 'asset', 'status', 'cancel'}
+_ACTIONS = {'list', 'search', 'inventory', 'coverage', 'read', 'asset', 'status', 'cancel', 'prepare', 'queue'}
 _READ_FIELDS = {'path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier'}
 _CATALOG_FIELDS = {'path', 'depth', 'limit', 'query'}
 _INVENTORY_FIELDS = {'path', 'cursor', 'limit', 'refresh'}
 _COVERAGE_FIELDS = {'path', 'coverage_cursor', 'limit', 'document_sha256'}
+_BATCH_FIELDS = {'paths', 'engine', 'tier', 'cancel'}
 
 
 def _failure(code, message, *, retryable=False, stage=None):
@@ -32,24 +33,42 @@ def _payload(action, payload):
     if action in {'list', 'search', 'inventory'} and payload.get('path') == '':
         payload = {**payload, 'path': '.'}
     allowed = (_CATALOG_FIELDS if action in {'list', 'search'} else _INVENTORY_FIELDS if action == 'inventory'
-               else _COVERAGE_FIELDS if action == 'coverage' else _READ_FIELDS)
+               else _COVERAGE_FIELDS if action == 'coverage' else _BATCH_FIELDS if action in {'prepare', 'queue'}
+               else _READ_FIELDS)
     if action not in _ACTIONS or set(payload) - allowed:
         raise ValueError('document_request_invalid')
-    path = payload.get('path', '.')
+    if action in {'prepare', 'queue'}:
+        paths = payload.get('paths', [])
+        if not isinstance(paths, list) or len(paths) > 50 or (action == 'prepare' and not paths):
+            raise ValueError('document_path_invalid')
+        for path in paths:
+            _relative_path(path)
+        return dict(payload)
+    _relative_path(payload.get('path', '.'))
+    return dict(payload)
+
+
+def _relative_path(path):
     if not isinstance(path, str) or not path or len(path) > 2048 or '\x00' in path:
         raise ValueError('document_path_invalid')
     windows = PureWindowsPath(path)
     if windows.drive or windows.root or '..' in windows.parts:
         raise ValueError('document_path_invalid')
-    return dict(payload)
 
 
-async def document_request(workspace_id: str, action: str, **payload) -> dict:
-    """Resolve a native workspace id through its existing authenticated binding."""
+async def document_request(workspace_id: str, action: str, *, wait_seconds: float | None = None, **payload) -> dict:
+    """Resolve a native workspace id through its existing authenticated binding.
+
+    A read waits until its job finishes unless ``wait_seconds`` is given; then
+    a job still running after that budget is returned as pending (with its
+    progress) so a model can continue other work and read again later.
+    """
     try:
         if not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', workspace_id or ''):
             raise ValueError('workspace_identity_invalid')
         request = _payload(action, payload)
+        loop = asyncio.get_running_loop()
+        deadline = None if wait_seconds is None else loop.time() + max(0.0, min(300.0, float(wait_seconds)))
         transport = HarnessTransport(_ROOT)
         binding_params = {}
         try:
@@ -79,6 +98,9 @@ async def document_request(workspace_id: str, action: str, **payload) -> dict:
             raise ValueError('workspace_binding_invalid')
         connection_failures = 0
         while True:
+            if deadline is not None and action == 'read':
+                # Each call waits inside the dispatcher for at most the time left.
+                request['wait_seconds'] = int(max(0, min(20, deadline - loop.time())))
             try:
                 result = await transport.host('POST', f'/workspaces/{harness_id}/documents/{action}', request, timeout=65)
                 connection_failures = 0
@@ -89,6 +111,8 @@ async def document_request(workspace_id: str, action: str, **payload) -> dict:
                 await asyncio.sleep(min(2, .5 * connection_failures))
                 continue  # The same request/job id deduplicates after reconnect.
             if action != 'read' or result.get('status') not in {'queued', 'running'}:
+                return {**result, 'workspace_id': workspace_id}
+            if deadline is not None and loop.time() >= deadline:
                 return {**result, 'workspace_id': workspace_id}
             request['job_id'] = result['job_id']
             await asyncio.sleep(min(2, max(.1, result.get('retry_after_ms', 500) / 1000)))
@@ -118,6 +142,33 @@ async def document_request(workspace_id: str, action: str, **payload) -> dict:
     except httpx.HTTPError:
         return _failure('workspace_connection_interrupted', 'The document connection was interrupted. The task is retained; continue shortly.',
                         retryable=True, stage='workspace_binding')
+
+
+def model_view(result: dict) -> dict:
+    """Model-facing read result: no duplicated text, navigation at both ends.
+
+    Tool-output trimming keeps a head and a tail of long results, so the next
+    position must be present at both ends. The full result stays in metadata.
+    """
+    if isinstance(result, dict) and result.get('ok') and result.get('status') in {'queued', 'running'} and result.get('job_id') \
+            and not isinstance(result.get('units'), list):
+        # Not an error: local work continues while the model does other work.
+        body = {key: value for key, value in result.items() if key not in {'status', 'retry_after_ms'}}
+        return {'status': 'pending', **body, 'how_to_continue': (
+            f"{result.get('message') or 'The document is still being read on this computer.'} To continue, call "
+            f"workspace_document_read again with the same arguments (it resumes job {result['job_id']}); "
+            'workspace_document_prepare with operation=status shows progress.')}
+    if not isinstance(result, dict) or not isinstance(result.get('units'), list):
+        return result
+    navigation = result.get('navigation') or {'next_cursor': result.get('next_cursor'),
+                                              'next_start_unit': result.get('next_start_unit'),
+                                              'done': not result.get('truncated')}
+    hint = ('Reading of this document is complete.' if navigation.get('done') else
+            f'Continue with cursor="{navigation.get("next_cursor")}" or, equivalently, start_unit={navigation.get("next_start_unit")}.')
+    navigation = {**navigation, 'how_to_continue': hint}
+    body = {key: value for key, value in result.items() if key not in {'text', 'navigation', 'units'}}
+    units = [{key: value for key, value in unit.items() if key != 'unit_text_sha256'} for unit in result['units'] if isinstance(unit, dict)]
+    return {'navigation': navigation, **body, 'units': units, 'navigation_end': navigation}
 
 
 async def load_workspace_dependencies() -> dict:

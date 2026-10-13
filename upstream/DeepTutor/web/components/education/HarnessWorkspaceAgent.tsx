@@ -16,6 +16,7 @@ import { WorkspaceContextMenu } from '@/components/ui/WorkspaceContextMenu'
 import { Dialog } from '@/shared/ui/Dialog'
 import { manageWorkspace } from '@/lib/workspace-management'
 import { subscribeSessionChanges } from '@/lib/session-events'
+import { AccessLevelControl } from './AccessLevelControl'
 
 const panel = 'rounded-xl border border-[var(--border)] bg-[var(--card)] p-4'
 const input = 'w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2.5 text-sm outline-none focus:border-[var(--ring)] disabled:opacity-50'
@@ -266,7 +267,7 @@ export function HarnessWorkspaceAgent() {
 
   return <FeaturePage>
     <PageHeader title="Workspace agent" description="Select a local folder for the agent to read, search and process files. Sessions and tool execution records are saved." action={<><button className={secondary} disabled={Boolean(busy)} onClick={() => void act('refresh', refresh)}><RefreshCw size={14} />Refresh</button><Link className={secondary} href="/settings/workspace">Learning workspace</Link></>} />
-    <div className={`${panel} mb-5 flex flex-wrap items-center justify-between gap-3`}><UnifiedModelControl value={modelSelection} onChange={setModelSelection} surface="workspace" placement="bottom" label="Model for this session" disabled={Boolean(busy)} /><Link href="/settings" className="text-xs underline">Full model and API settings</Link></div>
+    <div className={`${panel} ds-rise mb-5 flex flex-wrap items-start justify-between gap-4`}><UnifiedModelControl value={modelSelection} onChange={setModelSelection} surface="workspace" placement="bottom" label="Model for this session" disabled={Boolean(busy)} /><AccessLevelControl disabled={Boolean(busy) || running} /><Link href="/settings" className="text-xs underline">Full model and API settings</Link></div>
     {error && <p role="alert" className="mb-4 rounded-lg border border-[var(--destructive)]/30 p-3 text-sm">{safeServiceError(error)}</p>}
     {notice && <p role="status" className="mb-4 break-all text-xs text-[var(--muted-foreground)]">{notice}</p>}
     <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
@@ -293,7 +294,7 @@ export function HarnessWorkspaceAgent() {
       </aside>
       <section className={`${panel} min-w-0`}>
         <h2 className="flex items-center gap-2 text-sm font-semibold"><Bot size={18} />{selected?.title || 'Select a folder first'}</h2>
-        {selected && <><p className="mt-2 break-all font-mono text-xs text-[var(--muted-foreground)]">Workspace location: {session?.cwd || selected.path}</p>{canPickWorkspaceDirectory() && <button className={`${secondary} mt-2`} disabled={Boolean(busy)} onClick={() => void act('explorer', async () => { if (!(await openWorkspaceDirectory(session?.cwd || selected.path, selected.id))) setNotice('Opening was cancelled.') })}><FolderOpen size={13} />Show in folder</button>}</>}
+        {selected && <><p className="mt-2 break-all font-mono text-xs text-[var(--muted-foreground)]">Workspace location: {session?.cwd || selected.path}{session?.access_level === 'full' ? ' · last task used full computer access' : ''}</p>{canPickWorkspaceDirectory() && <button className={`${secondary} mt-2`} disabled={Boolean(busy)} onClick={() => void act('explorer', async () => { if (!(await openWorkspaceDirectory(session?.cwd || selected.path, selected.id))) setNotice('Opening was cancelled.') })}><FolderOpen size={13} />Show in folder</button>}</>}
         <div className="my-5 max-h-[56vh] min-h-48 space-y-3 overflow-y-auto" aria-live="polite" aria-relevant="additions text">
           {events.map(event => <EventCard key={event.seq} event={event} sessionId={session?.id || ''} pending={Boolean(event.approval && approvals.some(item => item.id === event.approval!.id))} decision={event.approval ? events.findLast(item => item.approval_id === event.approval!.id && item.type === 'approval/decided')?.outcome : undefined} />)}
           {!events.length && <div className="py-8 text-sm leading-relaxed text-[var(--muted-foreground)]"><p>{!selected ? 'Open a local folder to start working there.' : !session ? 'Select New agent session to start working in this folder.' : 'Ask the agent to read materials, search files, edit content or run commands. Terminal commands are shown for your approval before execution.'}</p>{!selected && canPickWorkspaceDirectory() && <button className={`${primary} mt-4`} disabled={Boolean(busy)} onClick={() => void openFolder()}><FolderOpen size={14} />Open folder</button>}</div>}

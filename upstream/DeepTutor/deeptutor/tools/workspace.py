@@ -47,7 +47,10 @@ async def _read_document(kwargs: dict[str, Any], *, image=False) -> ToolResult:
                   ('coverage_cursor', 'limit', 'document_sha256') if operation == 'coverage' else
                   ('job_id',) if operation in {'status', 'cancel'} else
                   ('cursor', 'start_unit', 'ocr', 'max_chars', 'max_units', 'engine', 'job_id', 'tier'))
-        result = await document_request(binding.workspace_id, operation, path=path,
+        # A read returns progress after a bounded wait instead of blocking the
+        # turn while local MinerU parses; reading again resumes the same job.
+        waiting = {'wait_seconds': _wait_seconds(kwargs.get('wait_seconds'))} if operation == 'read' else {}
+        result = await document_request(binding.workspace_id, operation, path=path, **waiting,
             **{name: kwargs[name] for name in fields if kwargs.get(name) is not None})
     except WorkspaceError as exc:
         return _failure(exc)
@@ -68,9 +71,17 @@ async def _read_document(kwargs: dict[str, Any], *, image=False) -> ToolResult:
     for unit in result.get('units') or ([{'locator': asset.get('locator', {})}] if asset else []):
         sources.append({'type': 'workspace_file', 'workspace_id': binding.workspace_id, 'path': path,
             'document_sha256': sha, 'locator': unit.get('locator', {}), 'title': path})
-    content = json.dumps(safe, ensure_ascii=False) if result.get('ok') else str(result.get('error', {}).get('message') or 'The material is still being read. Continue shortly.')
+    from integration.workspace_documents import model_view
+    content = json.dumps(model_view(safe), ensure_ascii=False) if result.get('ok') else str(result.get('error', {}).get('message') or 'The material is still being read. Continue shortly.')
     return ToolResult(content=content, success=bool(result.get('ok')),
         sources=sources, metadata={'workspace_document': safe}, model_message=message)
+
+
+def _wait_seconds(value: Any) -> int:
+    try:
+        return max(0, min(300, int(value)))
+    except (TypeError, ValueError):
+        return 25
 
 
 class WorkspaceDocumentReadTool(BaseTool):
@@ -86,17 +97,59 @@ class WorkspaceDocumentReadTool(BaseTool):
                 ToolParameter(name='operation', type='string', description='read (default), coverage, status, or cancel. Cancel requires the exact job_id.', required=False),
                 ToolParameter(name='coverage_cursor', type='string', description='Opaque next_cursor from a coverage response; never a read cursor.', required=False),
                 ToolParameter(name='limit', type='integer', description='Coverage page size, 1 to 200.', required=False),
-                ToolParameter(name='cursor', type='string', description='Opaque next_cursor from the prior read.', required=False),
-                ToolParameter(name='start_unit', type='integer', description='One-based physical PDF page/PPT slide/text line; exclusive with cursor.', required=False),
+                ToolParameter(name='cursor', type='string', description='Exact navigation.next_cursor from the prior read. Omit it to start at the beginning.', required=False),
+                ToolParameter(name='start_unit', type='integer', description='One-based physical PDF page/PPT slide/text line; navigation.next_start_unit continues when no cursor is at hand.', required=False),
                 ToolParameter(name='max_chars', type='integer', description='Text budget, 256 to 100000; default 12000.', required=False),
                 ToolParameter(name='max_units', type='integer', description='Page/slide budget, 1 to 40; default 10.', required=False),
                 ToolParameter(name='ocr', type='string', description='auto (default) or off. Local OCR is bounded per request.', required=False),
-                ToolParameter(name='engine', type='string', description='auto (default), builtin for a quick local read, or mineru for local structure analysis. This is a document tool, not a chat model.', required=False),
-                ToolParameter(name='tier', type='string', description='Local document analysis: basic (default) or explicitly requested standard for complex structure; neither guarantees formula accuracy.', required=False),
-                ToolParameter(name='job_id', type='string', description='Resume the exact pending local document job id returned previously.', required=False)])
+                ToolParameter(name='engine', type='string', description='auto (default), builtin for a quick local read, or mineru to run the locally installed MinerU VLM on this computer (no API, no upload). This is a document tool, not a chat model.', required=False),
+                ToolParameter(name='tier', type='string', description='MinerU tier, all local: adaptive (default; fast small models, local VLM only for pages with tables or display formulas), standard (local VLM on every page; slow for scans), advanced (local VLM with image analysis; slowest, for figures whose meaning matters) or basic (small models only). None guarantees formula accuracy.', required=False),
+                ToolParameter(name='job_id', type='string', description='Resume the exact pending local document job id returned previously.', required=False),
+                ToolParameter(name='wait_seconds', type='integer', description='Seconds to wait for local parsing before returning progress, 0 to 300 (default 25). A pending result is not an error: do other work, then read again with the same arguments.', required=False)])
 
     async def execute(self, **kwargs: Any) -> ToolResult:
         return await _read_document(kwargs)
+
+
+class WorkspaceDocumentPrepareTool(BaseTool):
+    """Background local MinerU parsing for many documents (no waiting)."""
+
+    def get_definition(self) -> ToolDefinition:
+        return ToolDefinition(name='workspace_document_prepare', description=(
+            'Queue background parsing with the locally installed MinerU engine for up to 50 workspace PDFs, Word/PowerPoint files or images, '
+            'and return at once. Use it before working through many scanned, formula-heavy or image-rich documents: parsing runs on this computer '
+            'one batch at a time while you continue, and workspace_document_read later returns prepared pages at once. engine=auto (default) queues '
+            'only documents with pages that need structure; engine=mineru queues every page; both use the adaptive tier unless tier is set. Read later '
+            'with the same engine and tier. operation=status reports progress and estimated time from speeds measured on this computer; '
+            'operation=cancel stops background parsing of the listed paths. Nothing is uploaded.'),
+            parameters=[ToolParameter(name='paths', type='array', items={'type': 'string'}, description='Exact workspace-relative document paths (up to 50). Optional for status.', required=False),
+                ToolParameter(name='operation', type='string', description='prepare (default), status, or cancel.', required=False),
+                ToolParameter(name='engine', type='string', description='auto (default) or mineru.', required=False),
+                ToolParameter(name='tier', type='string', description='advanced, standard or basic; defaults follow engine.', required=False)])
+
+    async def execute(self, **kwargs: Any) -> ToolResult:
+        from integration.workspace_documents import document_request
+        try:
+            service, binding = _binding(kwargs)
+            raw = kwargs.get('paths') or []
+            paths = [raw] if isinstance(raw, str) else [str(path) for path in raw] if isinstance(raw, list) else []
+            for path in paths:
+                service.resolve(binding, path)
+            operation = str(kwargs.get('operation') or 'prepare')
+            if operation not in {'prepare', 'status', 'cancel'}:
+                return ToolResult(content='Use operation prepare, status or cancel.', success=False)
+            if operation == 'prepare':
+                if not paths:
+                    return ToolResult(content='List the documents to prepare in paths.', success=False)
+                options = {name: kwargs[name] for name in ('engine', 'tier') if kwargs.get(name)}
+                result = await document_request(binding.workspace_id, 'prepare', paths=paths, **options)
+            else:
+                result = await document_request(binding.workspace_id, 'queue', paths=paths,
+                                                **({'cancel': True} if operation == 'cancel' else {}))
+        except WorkspaceError as exc:
+            return _failure(exc)
+        content = json.dumps(result, ensure_ascii=False) if result.get('ok') else str(result.get('error', {}).get('message') or 'Background preparation is unavailable.')
+        return ToolResult(content=content, success=bool(result.get('ok')), metadata={'workspace_document_queue': result})
 
 
 class WorkspaceDocumentImageTool(BaseTool):
@@ -443,6 +496,7 @@ class WorkspaceExportTool(BaseTool):
 
 
 __all__ = [
+    "WorkspaceDocumentPrepareTool",
     "WorkspaceDocumentReadTool",
     "WorkspaceDocumentImageTool",
     "WorkspaceDependenciesTool",

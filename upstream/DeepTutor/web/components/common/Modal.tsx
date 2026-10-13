@@ -130,7 +130,7 @@ export default function Modal({
       // mousedown rather than click so dragging out of an input doesn't
       // accidentally close on mouseup.
       onMouseDown={handleBackdropMouseDown}
-      className="fixed inset-0 bg-[var(--overlay)] backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in"
+      className="fixed inset-0 bg-[var(--overlay)] backdrop-blur-sm flex items-center justify-center z-50 animate-overlay-in"
     >
       <div
         ref={dialogRef}
@@ -140,7 +140,7 @@ export default function Modal({
         aria-label={hasTitle ? undefined : (title ?? t("Dialog"))}
         onKeyDown={handleKeyDown}
         onMouseDown={(e) => e.stopPropagation()}
-        className={`bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl ${widthClasses[width]} max-h-[90vh] flex flex-col animate-in zoom-in-95`}
+        className={`bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl ${widthClasses[width]} max-h-[90vh] flex flex-col animate-pop-in`}
       >
         {/* Header */}
         {(hasTitle || showCloseButton) && (

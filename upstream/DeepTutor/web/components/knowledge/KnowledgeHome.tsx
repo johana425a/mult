@@ -292,7 +292,7 @@ export default function KnowledgeHome({
                   </span>
                 </span>
                 {active && (
-                  <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-[var(--primary)]" />
+                  <span className="ds-tab-indicator absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-[var(--primary)]" />
                 )}
               </button>
             );

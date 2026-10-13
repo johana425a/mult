@@ -47,7 +47,7 @@ export default function ToastViewport() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-md ${toneClass(
+          className={`ds-toast-in pointer-events-auto flex max-w-sm items-start gap-3 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-md ${toneClass(
             toast.tone,
           )}`}
         >

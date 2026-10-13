@@ -34,6 +34,11 @@ GGUF_REPO = "jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF"
 GGUF_REVISION = "9185688a0495e1577d521a757c7c0b62dd38ca48"
 LLAMA_URL = "https://github.com/ggml-org/llama.cpp/releases/download/b11541/llama-b11541-bin-win-cpu-x64.zip"
 LLAMA_SHA = "cdc0535d11038bb337dfba3c15682050eaa9c07aedd0f915b4c09e8a8e8c0a5c"
+# Same official release built with the Vulkan backend (adds ggml-vulkan.dll).
+# The worker uses it only when a real GPU is present and falls back to the CPU
+# build above otherwise; both run the same model and tier.
+LLAMA_VULKAN_URL = "https://github.com/ggml-org/llama.cpp/releases/download/b11541/llama-b11541-bin-win-vulkan-x64.zip"
+LLAMA_VULKAN_SHA = "37bba511d120222f13c3d520dd875f739a530cc124e78f7cbce0026de0173d8a"
 GGUF_FILES = {
     "MinerU2.5-Pro-2605-1.2B-Q8_0.gguf": (531066496, "3f3523429c880d675c0330cb3de78240452bc40a961d037e24f91ab8488f03e7"),
     "mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf": (709409600, "b6c08ab50352677f7396af45ee60682f353f55488e26911d8154bfc37514d3f8"),
@@ -167,9 +172,14 @@ def install_resolved() -> None:
 
 
 def llama_server() -> dict:
-    archive = DOWNLOADS / "llama-b11541-bin-win-cpu-x64.zip"
-    download(LLAMA_URL, archive, LLAMA_SHA, 19518702)
-    destination = RUNTIME / "llama-server"
+    cpu = install_llama_package(LLAMA_URL, LLAMA_SHA, 19518702, RUNTIME / "llama-server", "cpu")
+    vulkan = install_llama_package(LLAMA_VULKAN_URL, LLAMA_VULKAN_SHA, 33464528, RUNTIME / "llama-server-vulkan", "vulkan")
+    return {"cpu": cpu, "vulkan": vulkan}
+
+
+def install_llama_package(url: str, sha: str, size: int, destination: Path, device: str) -> dict:
+    archive = DOWNLOADS / url.rsplit("/", 1)[1]
+    download(url, archive, sha, size)
     rows = []
     with zipfile.ZipFile(archive) as bundle:
         for entry in bundle.infolist():
@@ -182,9 +192,9 @@ def llama_server() -> dict:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(bundle.read(entry))
             rows.append({"file": name, "bytes": target.stat().st_size, "sha256": digest(target)})
-    result = {"release": "b11541", "commit": "f2918cabbffe8abf8e2a90c1c089085fa116c2cf", "source": LLAMA_URL,
-              "archive_sha256": LLAMA_SHA, "license": "MIT plus bundled dependency notices", "files": rows,
-              "tool_only": True, "provider": False, "device": "cpu"}
+    result = {"release": "b11541", "commit": "f2918cabbffe8abf8e2a90c1c089085fa116c2cf", "source": url,
+              "archive_sha256": sha, "license": "MIT plus bundled dependency notices", "files": rows,
+              "tool_only": True, "provider": False, "device": device}
     (destination / "runtime-manifest.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     notice_directory = ROOT / "licenses/mineru/llama-server-dependencies"
     # These checked-in notices already record fixed official source URLs/hashes.

@@ -78,6 +78,7 @@ WORKSPACE_BASELINE_TOOLS: tuple[str, ...] = (
     "workspace_read",
     "workspace_document_read",
     "workspace_document_image",
+    "workspace_document_prepare",
     "load_workspace_dependencies",
     "workspace_search",
     "workspace_present",

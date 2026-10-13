@@ -213,7 +213,7 @@ export function ReadingFolderPage({ folderId }: { folderId: string }) {
               />
               <div
                 role="menu"
-                className="absolute right-0 top-11 z-20 w-44 rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 text-[12px] shadow-md dark:bg-[var(--popover)]"
+                className="ds-menu-down absolute right-0 top-11 z-20 w-44 rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 text-[12px] shadow-md dark:bg-[var(--popover)]"
               >
                 <button
                   type="button"

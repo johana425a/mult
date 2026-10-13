@@ -1,6 +1,7 @@
 /runtime/
 /data/
 /logs/
+/cache/
 **/__pycache__/
 **/.env
 **/.env.local
@@ -20,3 +21,4 @@
 *.sqlite3-wal
 *.sqlite3-shm
 *.pyc
+/models/

@@ -42,6 +42,32 @@
       "file": "README.md",
       "bytes": 7470,
       "sha256": "dc2d34687c844ecf929d9e9a9c9c78e8023b52abf3b2b3d039600c79016673b6"
+    },
+    {
+      "source": "KhronosGroup/Vulkan-Headers/LICENSE.md",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v1.4.357/LICENSE.md",
+      "file": "vulkan-headers--LICENSE.md",
+      "bytes": 495,
+      "sha256": "95ad366d23fadf701d355bc45fb8b82ae2d700239471d35d41286ac3b08ff903"
+    },
+    {
+      "source": "KhronosGroup/Vulkan-Headers/LICENSES/Apache-2.0.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v1.4.357/LICENSES/Apache-2.0.txt",
+      "file": "vulkan-headers--LICENSES-Apache-2.0.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "source": "KhronosGroup/Vulkan-Headers/LICENSES/MIT.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/v1.4.357/LICENSES/MIT.txt",
+      "file": "vulkan-headers--LICENSES-MIT.txt",
+      "bytes": 1084,
+      "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227"
     }
-  ]
+  ],
+  "vulkan_build": {
+    "release_archive": "llama-b11541-bin-win-vulkan-x64.zip",
+    "vulkan_sdk": "1.4.357.0 (llama.cpp release workflow at this commit)",
+    "note": "The Vulkan build compiles Khronos Vulkan-Headers (Apache-2.0 OR MIT); the Vulkan loader comes from the GPU driver and is not redistributed."
+  }
 }

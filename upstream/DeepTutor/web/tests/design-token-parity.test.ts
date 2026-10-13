@@ -44,7 +44,10 @@ test("every visual theme publishes the complete semantic token contract", () => 
 test("reduced-motion and keyboard focus policies are global", () => {
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /:focus-visible/);
-  assert.match(css, /--motion-fast:\s*120ms/);
-  assert.match(css, /--motion-base:\s*180ms/);
-  assert.match(css, /--motion-slow:\s*240ms/);
+  // iOS-style motion vocabulary shared by every animation.
+  assert.match(css, /--motion-fast:\s*160ms/);
+  assert.match(css, /--motion-base:\s*280ms/);
+  assert.match(css, /--motion-slow:\s*440ms/);
+  assert.match(css, /--motion-ease:\s*cubic-bezier\(0\.32, 0\.72, 0, 1\)/);
+  assert.match(css, /--motion-spring:\s*cubic-bezier\(/);
 });

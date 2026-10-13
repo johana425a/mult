@@ -93,6 +93,21 @@ def parse_document_to_workdir(
     output_base = Path(output_base)
     output_base.mkdir(parents=True, exist_ok=True)
 
+    local_runtime = _deepsteam_local_runtime()
+    if local_runtime is not None:
+        # DeepSteam: MinerU runs only as the installation's local VLM worker.
+        # The hosted mineru.net API, PATH CLIs and model downloads are not used.
+        if cfg.is_cloud:
+            raise MinerUError(
+                "The MinerU cloud API is disabled in DeepSteam. Documents are parsed on this computer "
+                "with the installed MinerU model; switch MinerU mode to Local.",
+                code="cloud_disabled",
+            )
+        try:
+            return local_runtime.parse_to_workdir(source_path, output_base, on_output=on_output)
+        except local_runtime.LocalMinerUError as exc:
+            raise MinerUError(str(exc), code=exc.code) from exc
+
     if cfg.is_cloud:
         from .cloud import parse_cloud
         from .normalization import working_copy
@@ -102,6 +117,15 @@ def parse_document_to_workdir(
             return parse_cloud(upload_path, output_base, cfg, on_progress=on_output)
 
     return _parse_local(source_path, output_base, config=cfg, on_output=on_output)
+
+
+def _deepsteam_local_runtime():
+    """DeepSteam's bundled local MinerU entry, or ``None`` outside DeepSteam."""
+    try:
+        from integration import mineru_local
+    except ImportError:
+        return None
+    return mineru_local
 
 
 def parse_pdf_to_workdir(
