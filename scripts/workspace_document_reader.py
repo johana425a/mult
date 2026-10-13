@@ -912,7 +912,7 @@ def normalize_read_request(request: dict[str, Any]) -> dict[str, Any]:
     if isinstance(value.get("tier"), str):
         tier = _TIER_ALIASES.get(value["tier"].strip().lower())
         if tier is None and value["tier"].strip().lower() != "default":
-            fail("INVALID_REQUEST", "tier must be advanced (local VLM, default), standard (hybrid local VLM) or basic (small local models, no VLM).")
+            fail("INVALID_REQUEST", "tier must be advanced (local VLM with image analysis), standard (hybrid local VLM) or basic (small local models, no VLM).")
         if tier is None:
             value.pop("tier")
         else:

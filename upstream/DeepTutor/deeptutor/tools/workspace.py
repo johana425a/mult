@@ -93,7 +93,7 @@ class WorkspaceDocumentReadTool(BaseTool):
                 ToolParameter(name='max_units', type='integer', description='Page/slide budget, 1 to 40; default 10.', required=False),
                 ToolParameter(name='ocr', type='string', description='auto (default) or off. Local OCR is bounded per request.', required=False),
                 ToolParameter(name='engine', type='string', description='auto (default), builtin for a quick local read, or mineru to run the locally installed MinerU VLM on this computer (no API, no upload). This is a document tool, not a chat model.', required=False),
-                ToolParameter(name='tier', type='string', description='MinerU tier: advanced (default, local VLM with image analysis), standard (local VLM, hybrid layout, faster) or basic (small local models, no VLM; only when asked). None guarantees formula accuracy.', required=False),
+                ToolParameter(name='tier', type='string', description='MinerU tier: advanced (local VLM with image analysis; default for engine=mineru), standard (local VLM, hybrid layout, faster; default for automatic upgrades) or basic (small local models, no VLM; only when asked). None guarantees formula accuracy.', required=False),
                 ToolParameter(name='job_id', type='string', description='Resume the exact pending local document job id returned previously.', required=False)])
 
     async def execute(self, **kwargs: Any) -> ToolResult:

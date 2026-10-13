@@ -29,11 +29,14 @@ TERMINAL = {'ready', 'partial', 'empty', 'needs_ocr', 'failed', 'cancelled'}
 FIELDS = {'path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units',
           'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier'}
 MAX_RESULT = 24 * 1024 * 1024
-# Local MinerU tiers. advanced (default) and standard run the locally installed
-# MinerU2.5 VLM through llama.cpp on this computer; basic runs only the small
-# ONNX models and is used only when a caller asks for it explicitly.
+# Local MinerU tiers. advanced and standard run the locally installed MinerU2.5
+# VLM through llama.cpp on this computer; basic runs only the small ONNX models
+# and is used only when a caller asks for it explicitly. An explicit
+# engine=mineru request defaults to advanced; an automatic upgrade from
+# engine=auto defaults to the faster standard tier.
 MINERU_TIERS = {'basic', 'standard', 'advanced'}
 DEFAULT_MINERU_TIER = 'advanced'
+DEFAULT_AUTO_TIER = 'standard'
 # CPU VLM inference is slow, so VLM tiers parse smaller physical-page batches
 # (earlier first results) with a longer per-batch limit.
 MINERU_BATCH_PAGES = {'basic': 8, 'standard': 6, 'advanced': 4}
@@ -416,7 +419,7 @@ class DocumentJobs:
         value['engine'] = 'builtin'
         requires = structured_cursor or engine == 'mineru' or engine == 'auto' and needs_structure(value)
         if requires:
-            value = self._upgrade(row, request, value, required=structured_cursor or engine == 'mineru')
+            value = self._upgrade(row, request, value, required=structured_cursor or engine == 'mineru', engine=engine)
         # Revalidate the original after the child exits, before committing.
         self._source(request['root'], {k: v for k, v in request.items() if k in FIELDS})
         return value
@@ -467,7 +470,7 @@ class DocumentJobs:
             return {**value, 'error': {'code': code, 'message': message, 'retryable': code == 'parse_failed'}}
         return value if isinstance(value, dict) else failure('document_result_invalid', 'The reading result is invalid. Retry.')
 
-    def _upgrade(self, row, request, lightweight, *, required):
+    def _upgrade(self, row, request, lightweight, *, required, engine='mineru'):
         python, helper = mineru_runtime()
         if not python.is_file() or not helper.is_file():
             if required:
@@ -478,7 +481,7 @@ class DocumentJobs:
                     'coverage': {**lightweight.get('coverage', {}), 'text_extraction_complete': False,
                                  'unresolved': sorted(set(lightweight.get('coverage', {}).get('unresolved', [])) | {'structure_upgrade_unavailable'})},
                     'warnings': [*lightweight.get('warnings', []), 'Scans or complex layouts still need advanced parsing. Local extraction and original images are retained.']}
-        tier = request.get('tier', DEFAULT_MINERU_TIER)
+        tier = mineru_tier(request, engine)
         pages = MINERU_BATCH_PAGES[tier]
         pdf_batch = lightweight.get('format') == 'pdf'
         first, _ = reader.cursor_decode(request.get('cursor'), row['source_hash'])
@@ -537,10 +540,22 @@ class DocumentJobs:
         if pdf_batch:
             lightweight = {**lightweight, 'units': [unit for unit in lightweight.get('units', [])
                 if batch_start < unit.get('locator', {}).get('page', 0) <= batch_end]}
-        value = located_window(parsed, request, lightweight, destination)
+        value = located_window(parsed, {**request, 'tier': tier}, lightweight, destination)
         if value.get('ok') and parsed.get('inference'):
             value['inference'] = parsed['inference']
         return value
+
+
+def mineru_tier(request, engine):
+    """Tier for this read. An explicit tier wins; a structured cursor keeps the
+    tier its pages were parsed with, so later pages never switch mode (or batch
+    size) mid-document; otherwise the default depends on how MinerU was asked."""
+    if request.get('tier') in MINERU_TIERS:
+        return request['tier']
+    cursor_tier = structured_cursor(request.get('cursor')).get('tier')
+    if cursor_tier in MINERU_TIERS:
+        return cursor_tier
+    return DEFAULT_AUTO_TIER if engine == 'auto' else DEFAULT_MINERU_TIER
 
 
 def mineru_runtime():
@@ -556,9 +571,9 @@ def engine_status(*, verify=False):
     """
     python, helper = mineru_runtime()
     base = {'engine': 'mineru', 'remote_api': False, 'api_key_required': False,
-            'default_tier': DEFAULT_MINERU_TIER, 'tiers': {
-                'advanced': 'local MinerU2.5 VLM, two-step extraction with image analysis (default)',
-                'standard': 'local MinerU2.5 VLM with hybrid layout',
+            'default_tier': DEFAULT_MINERU_TIER, 'default_auto_tier': DEFAULT_AUTO_TIER, 'tiers': {
+                'advanced': 'local MinerU2.5 VLM, two-step extraction with image analysis (default for engine=mineru)',
+                'standard': 'local MinerU2.5 VLM with hybrid layout (default for automatic upgrades from engine=auto)',
                 'basic': 'small local ONNX models only, no VLM (explicit request only)'}}
     if not python.is_file() or not helper.is_file():
         return {**base, 'ok': False, 'installed': False,
@@ -742,7 +757,8 @@ not by block index. Unsupported Office mappings remain explicit partial data.
     truncated = index < original['document']['unit_count']
     cursor = base64.urlsafe_b64encode(_dump({'v': reader.SCHEMA_VERSION, 'sha256': parsed['source_sha256'],
         'index': index, 'offset': offset, 'engine': 'mineru', 'text_version': text_version,
-        'batch_end': parsed.get('source_page_end')}).encode()).decode() if truncated else None
+        'batch_end': parsed.get('source_page_end'),
+        **({'tier': request['tier']} if request.get('tier') in MINERU_TIERS else {})}).encode()).decode() if truncated else None
     advanced_warnings = [item if isinstance(item, str) else str(item.get('message') or 'Some advanced parsing regions need verification. View the original images.')
                          for item in parsed.get('warnings', []) if isinstance(item, (str, dict))]
     warnings = list(dict.fromkeys([*original.get('warnings', []), *advanced_warnings,

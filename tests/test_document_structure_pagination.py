@@ -88,7 +88,7 @@ class StructurePaginationTests(unittest.TestCase):
             return original([original_page(number, f'native {number}')
                              for number in range(first, min(13, first + 4))], 12)
 
-        def upgrade(row, request, lightweight, *, required):
+        def upgrade(row, request, lightweight, *, required, engine='mineru'):
             self.assertTrue(required)
             return jobs.located_window(structured, request, lightweight, DESTINATION)
 

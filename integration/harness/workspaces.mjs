@@ -305,7 +305,7 @@ export async function createWorkspaceAdapter(ctx, options) {
     max_chars: { type: 'integer', description: 'Bounded text budget, normally 12000 characters.' },
     max_units: { type: 'integer', description: 'Bounded page/slide budget, normally 10.' },
     engine: { type: 'string', description: 'auto (default), builtin, or mineru. mineru runs the locally installed MinerU VLM on this computer (no API, no upload); use it for scans, formulas, tables, charts and images whose content matters.' },
-    tier: { type: 'string', enum: ['advanced', 'standard', 'basic'], description: 'MinerU tier. advanced (default): local VLM with image analysis. standard: local VLM with hybrid layout, faster. basic: small local models only, no VLM; use only when asked.' },
+    tier: { type: 'string', enum: ['advanced', 'standard', 'basic'], description: 'MinerU tier. advanced: local VLM with image analysis (default for engine=mineru). standard: local VLM with hybrid layout, faster (default when engine=auto upgrades automatically). basic: small local models only, no VLM; use only when asked.' },
   };
   for (const imageTool of [false, true]) {
     ctx.effect(() => ctx.tools.register(defineTool({

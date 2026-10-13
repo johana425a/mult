@@ -46,7 +46,7 @@ class AdvancedBatchTests(unittest.TestCase):
                 'warnings': [{'code': 'synthetic_review', 'message': 'Review original source image'}],
                 'coverage': {'full_document': True}}
 
-    def read(self, cursor=None, engine=None, tier='basic'):
+    def read(self, cursor=None, engine=None, tier='basic', mode='mineru'):
         # These slicing tests pin the 8-page basic tier; the local VLM default
         # is covered separately below.
         request = {'root': str(self.root), 'path': self.source.name, 'max_chars': 5000, 'max_units': 40, 'ocr': 'off'}
@@ -57,7 +57,9 @@ class AdvancedBatchTests(unittest.TestCase):
         light = module.reader.handle_request(request)
         self.assertTrue(light['ok'], light)
         with patch.object(self.jobs, '_run_child', side_effect=engine or self.engine), patch.object(Path, 'is_file', autospec=True, side_effect=lambda p: True if str(p).replace('\\', '/').endswith('runtime/mineru/python.exe') else Path.exists(p)):
-            return self.jobs._upgrade(self.row, request, light, required=True)
+            # Mirrors _execute: a structured cursor or engine=mineru requires MinerU.
+            required = mode == 'mineru' or module.is_structured_cursor(cursor)
+            return self.jobs._upgrade(self.row, request, light, required=required, engine=mode)
 
     def test_seventeen_pages_cross_three_batches_preserve_source_and_reuse_completed_cache(self):
         pages, texts, token = [], [], None
@@ -138,6 +140,34 @@ class AdvancedBatchTests(unittest.TestCase):
         self.assertEqual(pages, list(range(1, 18)))
         self.assertEqual(set(self.tiers), {'advanced'})
         self.assertEqual([len(call) for call in self.calls], [4, 4, 4, 4, 1])
+
+    def test_automatic_upgrade_defaults_to_the_faster_standard_vlm_tier(self):
+        pages, token = [], None
+        for _ in range(6):
+            result = self.read(token, tier=None, mode='auto')
+            self.assertTrue(result['ok'], result)
+            self.assertEqual(result['engine'], 'mineru')
+            pages.extend(unit['locator']['page'] for unit in result['units'])
+            token = result['next_cursor']
+            if not token:
+                break
+        self.assertEqual(pages, list(range(1, 18)))
+        self.assertEqual(set(self.tiers), {'standard'})
+        self.assertEqual([len(call) for call in self.calls], [6, 6, 5])
+        self.assertEqual(module.mineru_tier({}, 'auto'), 'standard')
+        self.assertEqual(module.mineru_tier({}, 'mineru'), 'advanced')
+        self.assertEqual(module.mineru_tier({'tier': 'basic'}, 'auto'), 'basic')
+
+    def test_continuing_a_cursor_keeps_its_tier_when_the_engine_changes(self):
+        first = self.read(tier=None, mode='mineru')
+        self.assertTrue(first['ok'], first)
+        self.assertEqual(module.structured_cursor(first['next_cursor'])['tier'], 'advanced')
+        # The model continues without repeating engine/tier: auto must not switch
+        # to standard mid-document (that would change batches and text versions).
+        second = self.read(first['next_cursor'], tier=None, mode='auto')
+        self.assertTrue(second['ok'], second)
+        self.assertEqual(set(self.tiers), {'advanced'})
+        self.assertEqual(second['units'][0]['locator']['page'], first['units'][-1]['locator']['page'] + 1)
 
 
 if __name__ == '__main__':

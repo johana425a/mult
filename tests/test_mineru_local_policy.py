@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class LocalMinerUPolicyTests(unittest.TestCase):
     def test_default_tier_is_the_local_vlm(self):
         self.assertEqual(jobs.DEFAULT_MINERU_TIER, 'advanced')
+        self.assertEqual(jobs.DEFAULT_AUTO_TIER, 'standard')  # automatic upgrades still use the local VLM
         self.assertEqual(mineru_local.DEFAULT_TIER, 'advanced')
         self.assertIn('advanced', jobs.MINERU_TIERS)
         python, helper = jobs.mineru_runtime()

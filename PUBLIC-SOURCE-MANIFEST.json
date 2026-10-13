@@ -172,9 +172,9 @@
     },
     {
       "path": "GUIDE.md",
-      "bytes": 4652,
-      "sha256": "3edbbaa1a2a039bc4d8e5e0bb151000915e2f38f3535efd23fc78d0764df86e5",
-      "git_blob_sha": "50d57b7bdc2d94953b95c52d9cefdbba0b3f72a4"
+      "bytes": 4835,
+      "sha256": "0a12f2554e1c5ab9e3910d7c7d487f057003fc4a675492aaf232126e7699e698",
+      "git_blob_sha": "4c9cac768d0836991ba4a28dca102df999b21704"
     },
     {
       "path": "installer/assemble_r5_spec.py",
@@ -448,9 +448,9 @@
     },
     {
       "path": "integration/document_jobs.py",
-      "bytes": 50990,
-      "sha256": "3109a80090593eb286a264ce4b0ec0702d13f04b1b4c98c278c11a4edcf880c6",
-      "git_blob_sha": "0c77043481358e0a5c2499c4e1ccbe107f91df85"
+      "bytes": 51940,
+      "sha256": "3d7af2be0d92a02da20832b801cf0e45b082f4318b3d8d0d48b8f62f36f851f2",
+      "git_blob_sha": "c3679d2a3bd5ce74caca3ec8026f976c261e8640"
     },
     {
       "path": "integration/embedding_route_guard.py",
@@ -622,9 +622,9 @@
     },
     {
       "path": "integration/harness/workspaces.mjs",
-      "bytes": 55063,
-      "sha256": "639b9843ae438a96be73213d78895e7f1c8844e86d0fede13f77aabbe6fe5c13",
-      "git_blob_sha": "1972bf72cf8ff0b88b0805c67f3bc46cab378b56"
+      "bytes": 55131,
+      "sha256": "161ae8018500ffc5e680516986779e017230621ce545a12c07f778986a2cea91",
+      "git_blob_sha": "15aa96dee6725ad0e15bcbb6f690b35c137a7d5c"
     },
     {
       "path": "integration/harness_bridge.py",
@@ -892,9 +892,9 @@
     },
     {
       "path": "licenses/MODIFICATIONS.md",
-      "bytes": 3971,
-      "sha256": "52c7faf32124c003ea9222ba55ae9d969d7df645c5c07eda9cfc689b15bf4082",
-      "git_blob_sha": "7e0c4ee4c0a6ebff92466f0f23dfc748f8978327"
+      "bytes": 4064,
+      "sha256": "76ba777d25a404cda2c44402eea31eaf369c004745756bd3230b224817e0ea6e",
+      "git_blob_sha": "6decee99800c7e3e89f0887595a351aad9276d74"
     },
     {
       "path": "licenses/NOTICE.md",
@@ -1324,9 +1324,9 @@
     },
     {
       "path": "scripts/workspace_document_reader.py",
-      "bytes": 61140,
-      "sha256": "5351ae0493b799e6e3508fd7910d8ce2cb3ed63676d4fac9c483aabc15bb51f9",
-      "git_blob_sha": "d0834d1b52b46eca0ad7d8a790320e03a72009d1"
+      "bytes": 61151,
+      "sha256": "360eab07c7dcff53252b6015b36d45a80c0509cc2fd26ef56aa8a4eafaf86349",
+      "git_blob_sha": "7d8e58d0c2caf7f5f2d8c17a2f199725bc3c55e2"
     },
     {
       "path": "Start-DeepSteam.cmd",
@@ -1396,9 +1396,9 @@
     },
     {
       "path": "tests/test_document_advanced_batches.py",
-      "bytes": 7741,
-      "sha256": "5c23986acf39764a82f9936c595e9dd24bb4e7edb4a55834c68a788df535a6d6",
-      "git_blob_sha": "0eec0aff78262095a6d3a11afb37e79fa071ae03"
+      "bytes": 9530,
+      "sha256": "0d62ff710e3a2b69b152b1eb44bb4ea68d8651e09f2e08750f89654c66726871",
+      "git_blob_sha": "93a1be4b584734df1a3107ad0d90775851c8247a"
     },
     {
       "path": "tests/test_document_content_coverage.py",
@@ -1444,9 +1444,9 @@
     },
     {
       "path": "tests/test_document_structure_pagination.py",
-      "bytes": 14271,
-      "sha256": "be2860719fb24ab42c5356b2dd92190bea8324e811cd3a10b4b75b039843f985",
-      "git_blob_sha": "f579cb857facae90096bdcaf4bc6dd866215dcd0"
+      "bytes": 14288,
+      "sha256": "2386228cee18c3e7053ab221eec5da8974c25d2f18f0c4a892e1ed1dcac9622f",
+      "git_blob_sha": "db61122331c7bcf34fe16fa515cc809de6c29092"
     },
     {
       "path": "tests/test_embedding_route_guard.py",
@@ -46162,9 +46162,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/tools/workspace.py",
-      "bytes": 23816,
-      "sha256": "e79a48da0efed350028f83fb4d233f1daa9d8cfaf28ddbcc6f6fe2365a19b23a",
-      "git_blob_sha": "091e0d7efaa6d3323c0b1b5d2d69d6fb2a5947dc"
+      "bytes": 23866,
+      "sha256": "fcbb132fb1000b2d62a00a1cfaae290a8e4d7c8991a7dac344be8dead6604692",
+      "git_blob_sha": "e94f4bdfe2b17739dc4ce01132518d36f56a8cf3"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/tools/write_note.py",
@@ -66586,9 +66586,9 @@
     },
     {
       "path": "tests/test_mineru_local_policy.py",
-      "bytes": 5247,
-      "sha256": "862d85504241026196d96fabd82e27e5341e1f454763d0dbf3bb3d79a1246f64",
-      "git_blob_sha": "16d006647ccaf649b04983887cf8cc5f471d0580"
+      "bytes": 5354,
+      "sha256": "979888a1184b6c3aba0d5c328e75827aafdded30ea8a17ccd266781dd3e41f28",
+      "git_blob_sha": "ee28958d113906981fb033256d84ddf63483ea29"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/AccessLevelControl.tsx",
