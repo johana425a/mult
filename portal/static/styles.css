@@ -49,3 +49,4 @@
 @keyframes ios-breathe{0%,100%{opacity:.45}50%{opacity:1}}
 @keyframes ios-toast{from{opacity:0;transform:translate(-50%,16px) scale(.94);filter:blur(4px)}to{opacity:1;transform:translate(-50%,0) scale(1);filter:blur(0)}}
 @keyframes ios-shimmer{from{background-position:120% 0}to{background-position:-80% 0}}
+.toast.leaving{animation:ios-toast-out .26s var(--ios-ease) both}@keyframes ios-toast-out{to{opacity:0;transform:translate(-50%,10px) scale(.96);filter:blur(2px)}}summary{list-style:none;display:inline-flex;align-items:center;gap:6px;transition:color var(--ios-fast) var(--ios-ease)}summary::-webkit-details-marker{display:none}summary::before{content:'';width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform var(--ios-base) var(--ios-spring)}details[open]>summary::before{transform:rotate(45deg)}details[open]>summary~*{animation:ios-rise var(--ios-base) var(--ios-ease) both}

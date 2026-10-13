@@ -153,7 +153,7 @@ export function PracticeInsights({ courseId, revision, workspaceId }: { courseId
             </span>
             {metric.key === item.key && (
               <span
-                className="absolute inset-x-2 bottom-0 h-0.5 rounded-t"
+                className="ds-tab-indicator absolute inset-x-2 bottom-0 h-0.5 rounded-t"
                 style={{ background: item.color }}
               />
             )}

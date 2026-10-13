@@ -21,7 +21,7 @@ export function EmptyState({
   return (
     <section
       className={cn(
-        "flex flex-col items-center justify-center text-center",
+        "ds-rise flex flex-col items-center justify-center text-center",
         compact ? "gap-2 px-4 py-6" : "gap-3 px-6 py-12",
         className,
       )}

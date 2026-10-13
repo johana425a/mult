@@ -578,3 +578,62 @@ body[data-maic-editor='true'] .editable-element-text li,
     -webkit-text-fill-color: var(--muted-foreground);
   }
 }
+
+/* DeepSteam: iOS-style motion tokens shared with the DeepTutor and Portal
+   surfaces. Overlays open on a released-spring curve and close quickly. These
+   rules are unlayered, so they adjust the tw-animate defaults (150ms, ease). */
+:root {
+  --motion-fast: 160ms;
+  --motion-base: 280ms;
+  --motion-slow: 440ms;
+  --motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+[data-slot$='-content'][data-state='open'],
+[data-slot$='-content'][data-open] {
+  --tw-animation-duration: var(--motion-base);
+  --tw-ease: var(--motion-spring);
+}
+[data-slot$='-content'][data-state='closed'],
+[data-slot$='-content'][data-closed] {
+  --tw-animation-duration: var(--motion-fast);
+  --tw-ease: var(--motion-ease);
+}
+[data-slot$='-overlay'] {
+  --tw-animation-duration: var(--motion-base);
+  --tw-ease: var(--motion-ease);
+}
+[data-slot='button']:not(:disabled):active {
+  transform: scale(0.97);
+  transition-duration: 90ms;
+}
+.ds-switch-thumb {
+  transition: transform var(--motion-slow) var(--motion-spring);
+}
+.ds-check-indicator {
+  animation: ds-check-pop var(--motion-base) var(--motion-spring);
+}
+@keyframes ds-check-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot$='-content'],
+  [data-slot$='-overlay'] {
+    --tw-animation-duration: 1ms;
+  }
+  [data-slot='button']:active {
+    transform: none;
+  }
+  .ds-switch-thumb,
+  .ds-check-indicator {
+    transition: none;
+    animation: none;
+  }
+}

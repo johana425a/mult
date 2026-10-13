@@ -1030,9 +1030,9 @@
     },
     {
       "path": "portal/static/app.js",
-      "bytes": 38355,
-      "sha256": "7b97ed48ac0f0a5d5ce0ff7f48e888f05bfa9a846a22ed3a9a2d245d93fbf17a",
-      "git_blob_sha": "2ea65dc35924c872fb9a1a49a159f42eb6874a0d"
+      "bytes": 38513,
+      "sha256": "a2192e9e0067c29b61157d5da95a8aa71d67430f4997f038f92942f643707f1d",
+      "git_blob_sha": "54ed6da0ef5fd489d13c3674929e977790a8ead3"
     },
     {
       "path": "portal/static/index.html",
@@ -1042,9 +1042,9 @@
     },
     {
       "path": "portal/static/styles.css",
-      "bytes": 32028,
-      "sha256": "9f56e948fa0260f528659649e0ba9c10dca66e1d35a0d04c09b698e2e5955c34",
-      "git_blob_sha": "4b67b3695c9f8689d7c264c63ab8269e7c380b52"
+      "bytes": 32696,
+      "sha256": "6ee13198919baa39c3390bd86b1c9ce81ae9ceb4cf01fdbd8554dfb632b03415",
+      "git_blob_sha": "6cdc73a73fac05036f1450973b9264aed66cb39b"
     },
     {
       "path": "portal/storage.py",
@@ -47440,9 +47440,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/app/globals.css",
-      "bytes": 46501,
-      "sha256": "e027052dccca494d6663fdffe5203b9a1ad9853b541df8fac58d4b4aa3ce62fd",
-      "git_blob_sha": "da1d25542b8b960c421ae418ac990c855957069a"
+      "bytes": 49009,
+      "sha256": "70dd0a598e219d34d6749b2b0b723a7f7c07611bb5170c1d730db3d3b66e66b0",
+      "git_blob_sha": "e57f586c34f72ebd262b093555cc3f4d9901f983"
     },
     {
       "path": "upstream/DeepTutor/web/app/handoff/page.tsx",
@@ -47944,9 +47944,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/cli-apps/CliAppsSection.tsx",
-      "bytes": 34427,
-      "sha256": "9468046cdb4a3e34f5362bfc02e41aaa3fc889b131bde92eb11f65d79b108ff2",
-      "git_blob_sha": "1f83d656dd18212a4ffb63aed41d522fe88fe465"
+      "bytes": 34422,
+      "sha256": "5a46a688fce19332d47154a19ff7e6198c97973818d7988e85a50bc0634d5477",
+      "git_blob_sha": "06d72687e8f32489c3243ccda11f2d08b442f424"
     },
     {
       "path": "upstream/DeepTutor/web/components/common/AssistantResponse.tsx",
@@ -48010,9 +48010,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/common/Modal.tsx",
-      "bytes": 5999,
-      "sha256": "208525a4cbcf33a8d0466338a66e1c2f9272020f913d63fd8985de9de5c712e1",
-      "git_blob_sha": "fc3bc633c06d959825dc3de2ce0e2fbffc7d24b2"
+      "bytes": 5992,
+      "sha256": "7abcbb29acf443fdb9504c85a131513c7c7754835d66d0b9ba63f766bf306f68",
+      "git_blob_sha": "9073c763461354658f65f96b51824d49adc643e3"
     },
     {
       "path": "upstream/DeepTutor/web/components/common/ModelThinkingCard.tsx",
@@ -48029,8 +48029,8 @@
     {
       "path": "upstream/DeepTutor/web/components/common/MotionProvider.tsx",
       "bytes": 501,
-      "sha256": "b9d47e26c3729b152c405765591b12f6a14d2abf2dafd3e3bc130ee4c28fba31",
-      "git_blob_sha": "8bd3458ef5f88e73d9e16531703e740b90e0b183"
+      "sha256": "5459c130a6d2f8c7cf2610f527f3ea3464b4953089b99f469d6296cb4bfb45a4",
+      "git_blob_sha": "5676f1fdc32b0f711878cb387f29d8e7bfa3dd78"
     },
     {
       "path": "upstream/DeepTutor/web/components/common/PickerHeader.tsx",
@@ -48094,9 +48094,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/common/ToastViewport.tsx",
-      "bytes": 2766,
-      "sha256": "625f66813c6950686bb916960f2205ce56a946a424c3247d29f94e5933b674d0",
-      "git_blob_sha": "f41f2de003df800bdbffbd1210a3d37753330806"
+      "bytes": 2778,
+      "sha256": "27df4312a570758f1c6c35eea25db0db6380fde478152464dbdd3b47e4a56975",
+      "git_blob_sha": "ab1ee47fce76064354d1009fdc107bf48b04a7d4"
     },
     {
       "path": "upstream/DeepTutor/web/components/common/UnifiedModelControl.tsx",
@@ -48358,9 +48358,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/knowledge/KnowledgeHome.tsx",
-      "bytes": 19691,
-      "sha256": "ee2edb23383e626b8fbad5d4c6ea1effff4a9676671f504304f8ea4608a7ff75",
-      "git_blob_sha": "6335048831c5ae7c64cf7e838c442f8a4957129d"
+      "bytes": 19708,
+      "sha256": "8f6af0af8e4ec85c87cf4e9098a3f0ed90f06cf86a39c56f177f8b70cac71455",
+      "git_blob_sha": "39b6257f21c989af4ac223208173f44dabbbe6cf"
     },
     {
       "path": "upstream/DeepTutor/web/components/knowledge/KnowledgePage.tsx",
@@ -48406,9 +48406,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/layout/AppShell.tsx",
-      "bytes": 5496,
-      "sha256": "6751043ed8c1a7efc1f4696bee233e386fd4bdf8214936fc3ac71b4de87d5354",
-      "git_blob_sha": "b4005b79cdebf568e09258e3cdd820ea90f225f8"
+      "bytes": 5526,
+      "sha256": "cf1f751aeb1afd0155c1a8b653992c6949c7aac4dbc71abcd32fa79fbf76724d",
+      "git_blob_sha": "f646066ad2950e09abdd8edaa6b63cd8cb86909f"
     },
     {
       "path": "upstream/DeepTutor/web/components/layout/FeaturePage.tsx",
@@ -48460,9 +48460,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/learning/practice/PracticeInsights.tsx",
-      "bytes": 17770,
-      "sha256": "040296d779fa48f80e05787c432477b2b198731f81c93b94666ada6edbb8a5d0",
-      "git_blob_sha": "30f21a93f872dc01df41347e6189822fa013cfb5"
+      "bytes": 17787,
+      "sha256": "f5b50953e978657a5db352fda663ad67cf11220d35dbe508bb2a05bbceada726",
+      "git_blob_sha": "30712462b374497c0cec14723352f7ce8f190287"
     },
     {
       "path": "upstream/DeepTutor/web/components/learning/practice/PracticePage.tsx",
@@ -48532,9 +48532,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/mcp/McpServerRow.tsx",
-      "bytes": 8449,
-      "sha256": "b269938623149112310194eb3c01987abe292f1b4c5c7305bce24eeb0c54617c",
-      "git_blob_sha": "48544bd7cdfbd9448738ead164a6ab35d32227a4"
+      "bytes": 8444,
+      "sha256": "cc6778909fed15b51301ffe8df9cb10c1fe12ab12f7368ad3e86eb9d458f3102",
+      "git_blob_sha": "bc339e4daa688d05670139eaff69a347d7d56077"
     },
     {
       "path": "upstream/DeepTutor/web/components/mcp/McpStatusBadge.tsx",
@@ -48952,15 +48952,15 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/library/ReadingFolder.tsx",
-      "bytes": 15728,
-      "sha256": "729d4f33cf98a8adecb621b4394b8e77b23a019edcb3d8ff1f0bb1319f2eaf22",
-      "git_blob_sha": "0aca558dca02f67d11a7395acda3e1f7d600071c"
+      "bytes": 15741,
+      "sha256": "087db2038412105aad50912cb3a318cab6c835b28d5defd7c958b8ef0b936504",
+      "git_blob_sha": "799963518420a2ac9e11159951ed7e5d7bf15c25"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/library/ReadingLibrary.tsx",
-      "bytes": 22380,
-      "sha256": "21792a1ffd0c855aa334fd0053f01d347e97b0e772f917dedb4bae7220a56620",
-      "git_blob_sha": "2c094e58569b84e07ddf6de171e756a3ed35b380"
+      "bytes": 22393,
+      "sha256": "410849210a8c248bff545038d7456cc1312ee29b94b192046a7f3645cacafd66",
+      "git_blob_sha": "79ac9412f855f9bb11952d7cc412afccee28b8b0"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/library/shared.tsx",
@@ -49120,9 +49120,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/WorkspaceMenu.tsx",
-      "bytes": 4457,
-      "sha256": "8f38bba4350177542e7ec7ea06fd36abf0d4ac9cde74c5f4d25212e8227e10f2",
-      "git_blob_sha": "a64f466194a75e838ac3365fcf2e638d7ace3346"
+      "bytes": 4470,
+      "sha256": "e17415a37c22e99aadc97aeec02a30b1cc061d9591930b6cd487adc131dbf19a",
+      "git_blob_sha": "b9844e38ae8cb8dc95b7f59a70fcb91353bca49b"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/YouTubeReadingPlayer.tsx",
@@ -49402,9 +49402,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/Toggle.tsx",
-      "bytes": 765,
-      "sha256": "a36f54992550fb98428af4b48fa3922ee4d7c70b268b410d1c779b037ef7cc83",
-      "git_blob_sha": "9eabf70412263cee6f2fdfb60a3546d5b906a14c"
+      "bytes": 758,
+      "sha256": "8b48a42dda4a6e9bc2b676622bfad935241fbe3c90a335359fb9e350995f2c22",
+      "git_blob_sha": "a7ddfefad0b4317c14ec495b6c87c777f232ed8e"
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/VoiceDiscoveryField.tsx",
@@ -49774,9 +49774,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/tasks/TaskColorPicker.tsx",
-      "bytes": 9582,
-      "sha256": "c184db049074ca93be5bea0ec6f69b430a68eb35de8506593c2765f942d98bd4",
-      "git_blob_sha": "ec5babfe7e28a1c166e87d2df5c39a065ae829b7"
+      "bytes": 9595,
+      "sha256": "374ddb61c26397042ea2d249dcfc13502825fff2554f6126afbdd417c4c96b81",
+      "git_blob_sha": "1c226b07108a332c074d2eff638308563694907e"
     },
     {
       "path": "upstream/DeepTutor/web/components/tasks/TaskLinkSelector.tsx",
@@ -52888,9 +52888,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/EmptyState.tsx",
-      "bytes": 1131,
-      "sha256": "d91d6437d7d0104192f913088838742cddd7fd62b64746c4e5005c33bb3444b0",
-      "git_blob_sha": "54794027126491431f5ec76e0b326f620ca46f7b"
+      "bytes": 1139,
+      "sha256": "81dae07b516705a961f42aacdbb3489f5b08b39baaeeee5a872074dde93c9a12",
+      "git_blob_sha": "38ca9b39e9f8f743fa1718315dca86440e0fd25a"
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/Field.tsx",
@@ -52918,15 +52918,15 @@
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/Skeleton.tsx",
-      "bytes": 325,
-      "sha256": "7792eace8fe3864fd9103db9e3d3aa68a511031ef92f25c259b6e2314cc71ff9",
-      "git_blob_sha": "10c48bb9c8ebceed8ef70f3bb964a4df2733018a"
+      "bytes": 322,
+      "sha256": "3d2049da7b9c56c68e354ff17b0f5140dd5a2198b37b83be840841ecd4783b08",
+      "git_blob_sha": "541ef930d423799b4058a6f9517d671fa1fcaa29"
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/StatusChip.tsx",
-      "bytes": 1018,
-      "sha256": "76e927cd272ebbbad7a34325745a5d86921ef7e2a241a0fe9b5102f1d8d6715c",
-      "git_blob_sha": "6eff82bd43431d5bbe2c102d45e003999a9bf80a"
+      "bytes": 1084,
+      "sha256": "a90043e092876ff146b4a0074cdfe1dd6360260ff8f61fb0d28e533ec6f48357",
+      "git_blob_sha": "354c9a76d371116aa580a6a2a3533240bfdee782"
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/styles.ts",
@@ -52948,9 +52948,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/shared/ui/TooltipLayer.tsx",
-      "bytes": 2115,
-      "sha256": "0b1f286590fda72bb57c32ec814e2d4ae978051e947ba9fc24ecfabde1cce1b2",
-      "git_blob_sha": "27398aef97285bb6a0edfc56e7c31ebc201cb7ed"
+      "bytes": 2144,
+      "sha256": "5c0689d1f970cde99fbe8f23257ba2818ba4793c0d65a087690818a697fe0ed7",
+      "git_blob_sha": "ae83eab71e5a13d8535e739001c44c2f3e78af19"
     },
     {
       "path": "upstream/DeepTutor/web/tailwind.config.js",
@@ -55600,9 +55600,9 @@
     },
     {
       "path": "upstream/OpenMAIC/app/globals.css",
-      "bytes": 20032,
-      "sha256": "513b879db37f67854c2bcfb1cc97785950f0a95ea3a7849b0ad1ee11d73d3736",
-      "git_blob_sha": "468b88e009e37e7cb7766944ec06a053e1b90bef"
+      "bytes": 21589,
+      "sha256": "f7d91f3388855c5348a44062c951de5564e561a86fc17ab2790dfe3281ba81cd",
+      "git_blob_sha": "5a1173be677cc532ee06d0b08371a9f7270b1a47"
     },
     {
       "path": "upstream/OpenMAIC/app/layout.tsx",
@@ -57376,9 +57376,9 @@
     },
     {
       "path": "upstream/OpenMAIC/components/ui/checkbox.tsx",
-      "bytes": 1068,
-      "sha256": "bf2dec81522c912cfabc2433bbf644e562cf91367edfed50295ec5b099a9d209",
-      "git_blob_sha": "9c342e9cfcfa63176ec8c07c392a7141b5e722cd"
+      "bytes": 1087,
+      "sha256": "189cd53ff5913217cbd1d7e5de63e95fe76c145d67736395cef485a702bd5b68",
+      "git_blob_sha": "6ed0a46f8fb2c3029ede21e93a82876f01b63df1"
     },
     {
       "path": "upstream/OpenMAIC/components/ui/circular-progress.tsx",
@@ -57502,9 +57502,9 @@
     },
     {
       "path": "upstream/OpenMAIC/components/ui/switch.tsx",
-      "bytes": 1171,
-      "sha256": "53987661d2b9e361cb3a720145c94b44e41a8ff9bae5f2e8a3e0b84673b68ae3",
-      "git_blob_sha": "fc54c41b643b3666861eda23674c8beb55d136f7"
+      "bytes": 1166,
+      "sha256": "eb04afe0723a51eeebda213345cfaa2adb835a646336fe88f8cdf0e8446be4dd",
+      "git_blob_sha": "9ac2d868f4053b5466da2681f1ff79b26c2cc715"
     },
     {
       "path": "upstream/OpenMAIC/components/ui/tabs.tsx",

@@ -205,7 +205,7 @@ function Toggle({
         } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
       >
         <span
-          className={`inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow transition-transform ${
+          className={`inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ds-switch-thumb ${
             checked ? "translate-x-[16px]" : "translate-x-[2px]"
           }`}
         />

@@ -93,7 +93,7 @@ export default function AppShell({ sidebar, children }: AppShellProps) {
             half `max-md:` cannot express, hence useDevice(). */}
         <div
           inert={isMobile && !drawerOpen ? true : undefined}
-          className={`max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:shadow-xl max-md:transition-transform max-md:duration-200 max-md:ease-out ${
+          className={`max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:shadow-xl max-md:transition-transform max-md:duration-[440ms] max-md:ease-[cubic-bezier(0.32,0.72,0,1)] ${
             drawerOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full"
           }`}
         >

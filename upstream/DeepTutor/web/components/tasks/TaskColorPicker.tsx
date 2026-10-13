@@ -116,7 +116,7 @@ function ColorPanel({
       role="dialog"
       aria-label={t('tasks.colors')}
       style={{ boxShadow: 'var(--shadow-raised)' }}
-      className="absolute left-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-48px))] overflow-hidden rounded-2xl border border-border/70 bg-popover text-foreground backdrop-blur-xl md:left-auto md:right-0"
+      className="ds-menu-down absolute left-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-48px))] overflow-hidden rounded-2xl border border-border/70 bg-popover text-foreground backdrop-blur-xl md:left-auto md:right-0"
     >
       <div className="flex items-center justify-between px-4 pb-3 pt-4">
         <h2 className="text-[13px] font-semibold">{t('tasks.colors')}</h2>

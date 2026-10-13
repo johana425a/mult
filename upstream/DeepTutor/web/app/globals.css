@@ -897,6 +897,113 @@
   }
 }
 
+/* iOS-style motion for leaf controls (tokens above; reduced motion is
+   handled globally at the end of this file). */
+.ds-toast-in {
+  animation: ds-toast-in var(--motion-slow) var(--motion-spring) both;
+  transform-origin: bottom right;
+}
+
+@keyframes ds-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ds-tooltip {
+  transform-origin: center bottom;
+  transition: opacity var(--motion-fast) var(--motion-ease), transform var(--motion-base) var(--motion-spring);
+}
+
+.ds-tooltip-hidden {
+  transform: scale(0.94);
+}
+
+.ds-switch-track {
+  transition: background-color var(--motion-base) var(--motion-ease);
+}
+
+.ds-switch-thumb {
+  transition: transform var(--motion-slow) var(--motion-spring), box-shadow var(--motion-base) var(--motion-ease);
+}
+
+/* Menus that open downward from their trigger. */
+.ds-menu-down {
+  animation: ds-menu-down var(--motion-base) var(--motion-spring) both;
+  transform-origin: top right;
+}
+
+@keyframes ds-menu-down {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A selected tab's underline grows from its centre when it appears. */
+.ds-tab-indicator {
+  animation: ds-tab-in var(--motion-base) var(--motion-spring) both;
+  transform-origin: center;
+}
+
+@keyframes ds-tab-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Disclosure chevrons rotate on the spring curve everywhere. */
+svg.lucide-chevron-down,
+svg.lucide-chevron-right,
+svg.lucide-chevron-up {
+  transition: transform var(--motion-base) var(--motion-spring);
+}
+
+/* Native checkboxes pop when ticked. */
+input[type="checkbox"]:checked {
+  animation: ds-check-pop var(--motion-base) var(--motion-spring);
+}
+
+@keyframes ds-check-pop {
+  0% {
+    transform: scale(0.82);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Loading placeholders shimmer instead of pulsing. */
+.ds-shimmer {
+  background-image: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--background) 55%, transparent) 50%, transparent 80%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: ds-shimmer 1.4s var(--motion-ease) infinite;
+}
+
+@keyframes ds-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
 /* Icon swap with a released-spring pop, like an iOS control changing state
    (the element is keyed by its state, so each change replays it). */
 .ds-pop-icon {
@@ -1472,6 +1579,7 @@ a[href^="#dt-locator-"]:hover {
   .dt-detail-in,
   .dt-dot-live,
   .dt-breathing-text,
+  .ds-shimmer,
   .animate-spin {
     animation: none !important;
   }
