@@ -22,7 +22,7 @@ namespace DeepSteamInstaller
 {
     internal static class Program
     {
-        internal const string Version = "2026.10.13-r9-selected-model-vision";
+        internal const string Version = "2026.10.16-r10-standalone";
         internal const string InstallingMarker = ".deepsteam-installing";
         internal const string InstalledMarker = ".deepsteam-installed";
 
