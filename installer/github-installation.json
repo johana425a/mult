@@ -1,0 +1,22 @@
+{
+  "version": "2026.10.13-r9-selected-model-vision",
+  "repository": "https://github.com/johana425a/mult",
+  "commit": "2b436c74c49f6affc9c1f8c4d0e2d3cd2c226d75",
+  "program_only": true,
+  "runtime_binaries_reused": true,
+  "user_data_copied": false,
+  "credentials_copied": false,
+  "written_to_e": false,
+  "local_build_adjustments": [
+    "Pinned Canvas N-API binary and native DLL tracing",
+    "External native Canvas and LinkeDOM packages",
+    "Node-only instrumentation import; retain all startup work",
+    "Browser-safe persistence package entry; server exports preserved",
+    "Six Next routes wrap unchanged handlers without exporting non-route helpers",
+    "Chinese local interface and first-run defaults",
+    "Generated Next image-cache storage policy and semantic installer diagnostic",
+    "Program-only updater ownership for guides and renderer",
+    "Direct original-image input to a verified selected vision model; local MinerU is opt-in",
+    "Pinned official Harness web, questions, plan, present and workspace change capabilities"
+  ]
+}

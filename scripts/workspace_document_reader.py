@@ -5,7 +5,7 @@ One JSON request on stdin, one JSON response on stdout. The caller authorizes
 relative ``path`` to that root. No shell commands, network, original-file writes,
 user-content logging, or disk cache. Run in the packaged Python with ``-I``.
 
-read: {action, root, path, cursor?, max_chars?, max_units?, ocr?: auto|off}
+read: {action, root, path, cursor?, max_chars?, max_units?, ocr?: off (default)|auto}
 asset: {action, root, path, asset_id, document_sha256, max_dimension?}
 Pagination cursors and image reads are bound to the original document SHA256.
 PDF page numbers are physical PDF pages, never asserted printed-book pages.
@@ -26,6 +26,7 @@ import posixpath
 import re
 import stat
 import sys
+import time
 from typing import Any
 import warnings
 import zipfile
@@ -47,6 +48,42 @@ MAX_UNIT_CHARS = 2_000_000
 MAX_ASSET_BYTES = 8 * 1024 * 1024
 MAX_IMAGE_PIXELS = 16_000_000
 MAX_IMAGES_PER_UNIT = 32
+
+
+def _bounded_env_int(name: str, default: int, low: int, high: int) -> int:
+    try:
+        return min(high, max(low, int(os.environ.get(name, "") or default)))
+    except (TypeError, ValueError):
+        return default
+
+
+# Bundled offline scan OCR. Several pages are read per request, bounded by both a
+# page count and a wall-clock budget, so one read stays responsive and the next
+# pages are simply picked up from the cursor. Threads follow the machine: OCR is
+# CPU-bound and the bundled detector/recognizer models are small.
+MAX_OCR_PAGES = _bounded_env_int("EDUAGENT_DOCUMENT_OCR_PAGES", 40, 1, 500)
+MAX_OCR_SECONDS = _bounded_env_int("EDUAGENT_DOCUMENT_OCR_SECONDS", 90, 5, 600)
+OCR_RENDER_PIXELS = _bounded_env_int("EDUAGENT_DOCUMENT_OCR_PIXELS", 2000, 512, 4096)
+OCR_THREADS = _bounded_env_int("EDUAGENT_DOCUMENT_OCR_THREADS", min(8, max(2, (os.cpu_count() or 4) // 2)), 1, 16)
+# A scanned page carries almost no text layer underneath an image that fills the
+# page. A digital page with a figure does carry its text, and must not be OCR'd
+# wholesale on top of it.
+SCAN_NATIVE_TEXT_LIMIT = _bounded_env_int("EDUAGENT_DOCUMENT_SCAN_TEXT_LIMIT", 120, 0, 5000)
+SCAN_IMAGE_COVERAGE = 0.5
+# Screen captures carry the viewer's own furniture: a clock, a document title
+# bar, a page counter and a deep link. Recognition keeps them as ordinary lines,
+# but no lesson can ever teach a timestamp or a URL, so they are dropped from
+# recognized scan text only. Original page images remain untouched.
+_OCR_URL_LINE = re.compile(r"(?:https?://|www\.|[\w-]+\.(?:com|cn|net|org|edu|gov|io)(?:[/?#]|$))", re.IGNORECASE)
+_OCR_CLOCK_LINE = re.compile(r"^\d{2,4}\s*[/\-.]\s*\d{1,2}\s*[/\-.]\s*\d{1,2}[\s:：\d]*$")
+_OCR_COUNTER_LINE = re.compile(r"^\d{1,4}\s*/\s*\d{1,4}$")
+_OCR_BARE_NUMBER_LINE = re.compile(r"^\d{1,4}$")
+_OCR_LABEL_LINES = frozenset(("文档", "分享", "收藏", "评论", "点赞", "下载", "全屏", "目录", "笔记",
+                              "上一页", "下一页", "返回", "更多", "帮助", "设置", "搜索",
+                              "严禁网上传播", "严禁盗版", "版权所有", "未经许可不得转载"))
+# A slide-deck watermark is recognized in fragments. A short line drawn only from
+# these characters is that watermark, never lesson content.
+_OCR_WATERMARK_CHARS = frozenset("严禁网上传播盗版版权所有未经许可不得转载")
 TEXT_FORMATS = {".md", ".markdown", ".txt", ".csv", ".tsv", ".json", ".rst", ".log"}
 OFFICE_FORMATS = {".docx": "word/document.xml", ".pptx": "ppt/presentation.xml", ".xlsx": "xl/workbook.xml"}
 IMAGE_FORMATS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
@@ -323,16 +360,24 @@ def asset_metadata(asset_id: str, locator: dict[str, Any]) -> dict[str, Any]:
 
 
 class Document:
-    def __init__(self, content: bytes, suffix: str, ocr: str, root: str = "", relative: str = ""):
+    def __init__(self, content: bytes, suffix: str, ocr: str, root: str = "", relative: str = "", vision: str = "optional"):
         self.content, self.suffix, self.ocr = content, suffix, ocr
         self.root, self.relative = root, relative
+        # "required" keeps the older contract: every page image of a read unit
+        # must still be consumed by the selected vision model. "optional" (the
+        # default) treats successful local OCR text as the page's text layer and
+        # leaves the originals available for checking formulas and figures.
+        self.vision = vision
         self.warnings: list[str] = []
         self.assets: dict[str, bytes] = {}
         self.markdown_images: dict[str, dict[str, Any]] = {}
         self.rows: list[dict[str, Any]] = []
         self.pdf: Any = None
         self.ocr_engine: Any = None
-        self.ocr_attempts = 0
+        self.ocr_pages = 0
+        self.ocr_filtered = 0
+        self.ocr_watermark_lines = 0
+        self.ocr_started: float | None = None
         self.ocr_deferred = False
         self.unresolved: set[str] = set()
         if suffix == ".pdf":
@@ -594,11 +639,13 @@ class Document:
     def local_ocr(self, page: Any = None, image_bytes: bytes | None = None) -> str:
         if self.ocr == "off":
             return ""
-        if self.ocr_attempts >= 2:
+        if self.ocr_started is None:
+            self.ocr_started = time.monotonic()
+        if self.ocr_pages >= MAX_OCR_PAGES or time.monotonic() - self.ocr_started >= MAX_OCR_SECONDS:
             self.ocr_deferred = True
-            self.warn("Scan OCR is limited to two pages per batch. Use the cursor to read other pages or view page images.")
+            self.warn(f"Local scan OCR stopped after {self.ocr_pages} page(s) in this request so one read stays bounded and responsive. Continue with the cursor for the next pages; every original page image stays viewable.")
             return ""
-        self.ocr_attempts += 1
+        self.ocr_pages += 1
         try:
             try:
                 import rapidocr as ocr_module
@@ -619,17 +666,113 @@ class Document:
                 if self.ocr_engine is None:
                     paths = {key: str(value) for key, value in files.items()}
                     if modern:
-                        self.ocr_engine = ocr_module.RapidOCR(params={**paths, "Global.log_level": "critical", "EngineConfig.onnxruntime.intra_op_num_threads": 2, "EngineConfig.onnxruntime.inter_op_num_threads": 1})
+                        self.ocr_engine = ocr_module.RapidOCR(params={**paths, "Global.log_level": "critical", "EngineConfig.onnxruntime.intra_op_num_threads": OCR_THREADS, "EngineConfig.onnxruntime.inter_op_num_threads": 1})
                     else:
                         self.ocr_engine = ocr_module.RapidOCR(print_verbose=False, **paths)
-                pixels = self.pdf_pixels(page, 1600) if image_bytes is None else image_bytes
+                pixels = self.pdf_pixels(page, OCR_RENDER_PIXELS) if image_bytes is None else image_bytes
                 results = self.ocr_engine(pixels)
             if modern:
-                return "\n".join(str(text) for text in getattr(results, "txts", None) or [])
-            return "\n".join(str(item[1]) for item in results[0] or [] if len(item) >= 2)
+                recognized = "\n".join(str(text) for text in getattr(results, "txts", None) or [])
+            else:
+                recognized = "\n".join(str(item[1]) for item in results[0] or [] if len(item) >= 2)
+            return self.clean_recognized_text(recognized)
         except Exception:
             self.warn("Local OCR is unavailable or recognition failed. No model was downloaded; original scan images remain viewable.")
             return ""
+
+    def clean_recognized_text(self, text: str) -> str:
+        """Drop viewer furniture from recognized scan text.
+
+        Only recognition output is filtered; the page's real content is kept and
+        every original page image stays viewable. Without this, a clock, a title
+        bar, a page counter or a deep link becomes a required teaching unit that
+        no lesson can legitimately cover.
+        """
+        kept: list[str] = []
+        for line in text.splitlines():
+            value = line.strip()
+            if not value:
+                continue
+            if len(value) == 1 and not re.match(r"[\u3400-\u9fff]", value):
+                continue
+            if value in _OCR_LABEL_LINES:
+                continue
+            if len(value) <= 6 and all(character in _OCR_WATERMARK_CHARS for character in value if not character.isspace()):
+                continue
+            if (_OCR_URL_LINE.search(value) or _OCR_COUNTER_LINE.match(value)
+                    or _OCR_BARE_NUMBER_LINE.match(value) or _OCR_CLOCK_LINE.match(value)):
+                continue
+            if not re.search(r"[\w\u3400-\u9fff]", value):
+                continue
+            kept.append(value)
+        dropped = sum(1 for line in text.splitlines() if line.strip()) - len(kept)
+        if dropped > 0:
+            self.ocr_filtered += dropped
+        return "\n".join(kept)
+
+    @staticmethod
+    def line_key(line: str) -> str:
+        return re.sub(r"[^0-9a-z\u3400-\u9fff]+", "", line.lower())
+
+    @classmethod
+    def boilerplate_lines(cls, pages: list[str]) -> set[str]:
+        """Recognized lines repeated across most pages: viewer chrome and watermarks.
+
+        A slide watermark is re-recognized slightly differently on every page
+        ("chemical Technology", "nical Technology", "shnology"), so ASCII lines
+        also group by a shared five-character run. Only a line that still appears
+        on most pages of this window is treated as furniture, so a page-specific
+        sentence can never be removed for resembling another one.
+        """
+        if len(pages) < 2:
+            return set()
+        per_page: list[set[str]] = []
+        for text in pages:
+            keys = {cls.line_key(line) for line in text.splitlines()}
+            per_page.append({key for key in keys if len(key) >= 2})
+        threshold = max(2, (len(pages) * 3 + 4) // 5)
+        parent: dict[str, str] = {}
+        for keys in per_page:
+            for key in keys:
+                parent.setdefault(key, key)
+
+        def find(key: str) -> str:
+            while parent[key] != key:
+                parent[key] = parent[parent[key]]
+                key = parent[key]
+            return key
+
+        def union(first: str, second: str) -> None:
+            left, right = find(first), find(second)
+            if left != right:
+                parent[right] = left
+
+        ordered = sorted(parent)
+        # Containment and five-character runs are meaningful only for the Latin
+        # furniture of a slide template. Two Chinese clauses that merely share a
+        # topic word ("发酵工程") are content, so they must repeat verbatim.
+        if len(ordered) <= 1200:
+            ascii_keys = [key for key in ordered if len(key) >= 4 and key.isascii()]
+            for index, key in enumerate(ascii_keys):
+                for other in ascii_keys[index + 1:]:
+                    if key in other or other in key:
+                        union(key, other)
+        shingles: dict[str, str] = {}
+        for key in ordered:
+            if len(key) >= 5 and key.isascii():
+                for start in range(len(key) - 4):
+                    shingle = key[start:start + 5]
+                    owner = shingles.setdefault(shingle, key)
+                    if owner != key:
+                        union(key, owner)
+        groups: dict[str, set[str]] = {}
+        for key in ordered:
+            groups.setdefault(find(key), set()).add(key)
+        boilerplate: set[str] = set()
+        for members in groups.values():
+            if sum(1 for keys in per_page if keys & members) >= threshold:
+                boilerplate |= members
+        return boilerplate
 
     @staticmethod
     def pdf_pixels(page: Any, max_dimension: int) -> bytes:
@@ -640,6 +783,23 @@ class Document:
         scale = min(2.0, max_dimension / edge)
         image = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False)
         return image.tobytes("png")
+
+    @staticmethod
+    def image_coverage(page: Any) -> float:
+        """Share of the page covered by embedded images; a scan approaches one."""
+        try:
+            total = float(page.rect.width) * float(page.rect.height)
+            if total <= 0:
+                return 0.0
+            covered = 0.0
+            for info in page.get_image_info():
+                box = info.get("bbox")
+                if not box or len(box) != 4:
+                    continue
+                covered += max(0.0, float(box[2]) - float(box[0])) * max(0.0, float(box[3]) - float(box[1]))
+            return min(1.0, covered / total)
+        except Exception:
+            return 0.0
 
     def get(self, index: int) -> dict[str, Any]:
         if self.pdf is None:
@@ -657,7 +817,7 @@ class Document:
                 except (OSError, ValueError):
                     row.setdefault("unresolved", []).append("image_reference_unavailable")
                     self.warn("A local Markdown image is unavailable. Check its file and relative path.")
-            if self.suffix in IMAGE_FORMATS or self.suffix == ".docx":
+            if self.ocr != "off" and (self.suffix in IMAGE_FORMATS or self.suffix == ".docx"):
                 additions = []
                 for asset in row["assets"]:
                     try:
@@ -692,9 +852,13 @@ class Document:
         has_images = bool(page.get_images(full=False))
         has_visual = has_images or bool(page.get_drawings())
         # Native PDF text may coexist with an image-only scan. A page number
-        # or header must not prevent OCR of the substantive scanned content.
-        if has_images or (not text.strip() and has_visual):
-            recognized = self.local_ocr(page)
+        # or header must not prevent OCR of the substantive scanned content,
+        # while a digital page that merely carries figures keeps its own text
+        # layer instead of a duplicate, error-prone page transcription.
+        scan_like = (has_images and len(text.strip()) <= SCAN_NATIVE_TEXT_LIMIT
+                     and self.image_coverage(page) >= SCAN_IMAGE_COVERAGE)
+        if scan_like or (not text.strip() and has_visual):
+            recognized = self.local_ocr(page) if self.ocr != "off" else ""
             if len(recognized) > MAX_UNIT_CHARS:
                 fail("DOCUMENT_LIMIT", "The recognized scan text is too long. Split the document.")
             if recognized.strip():
@@ -712,7 +876,7 @@ class Document:
             result["extraction"] = "none"
         if has_visual or text.strip():
             self.warn("Original images are retained for every read physical PDF page. Text extraction or basic OCR does not guarantee formula, table, chart, or reading-order reconstruction.")
-            result["visual_review_required"] = True
+            result["visual_review_required"] = has_visual
         return self.with_coverage(result)
 
     def with_coverage(self, row: dict[str, Any]) -> dict[str, Any]:
@@ -721,19 +885,39 @@ class Document:
         unresolved = set(row.get("unresolved", []))
         for equation in row.get("equations", []):
             unresolved.update(equation.get("unresolved", []))
-        if row.get("status") == "needs_ocr":
-            unresolved.add("text_not_recognized")
+        pending = bool(row["assets"] and (row.get("kind") != "page" or row.get("visual_review_required")
+                                          or not row["text"].strip() and row.get("status") != "empty"))
+        # A page image that local OCR already turned into text does not have to be
+        # consumed page by page by the selected model. Its original stays
+        # addressable for formulas and figures, and vision="required" restores
+        # the older strict contract.
+        ocr_text = bool(row.get("ocr_applied")) and bool(row["text"].strip()) and row.get("kind") == "page"
+        if pending and ocr_text and self.vision != "required":
+            pending = False
+            row["visual_verification"] = "optional"
+        if pending:
+            unresolved.add("visual_content_requires_model")
+            row["visual_pending"] = True
+            row["image_reading"] = "selected_model"
+            row["status"] = "partial"
+            if not row["text"].strip():
+                row["extraction"] = "visual_only"
+                row["visual_only"] = True
         row["coverage"] = {
             "text_method": row.get("extraction", "text"),
             "visual_assets": len(row["assets"]),
             "formulas_extracted": len(row.get("equations", [])),
             "table_structure": "extracted" if row.get("table") else "not_evaluated",
             "visual_review_required": bool(row.get("visual_review_required") or row["assets"] or unresolved),
+            "visual_status": "pending" if pending else "ocr_text_available" if ocr_text else "not_requested",
+            "visual_verification": "required" if pending else "optional" if ocr_text and self.vision != "required" else "not_required",
+            "pending_visual_assets": [asset["id"] for asset in row["assets"]] if pending else [],
+            "text_layer_complete": True,
             "unresolved": sorted(unresolved),
         }
         if not row["text"].strip() and row["assets"] and row.get("status") != "empty":
-            row["status"] = "needs_ocr"
-            row["coverage"]["unresolved"] = sorted(unresolved | {"text_not_recognized"})
+            row["status"] = "partial"
+            row["coverage"]["unresolved"] = sorted(unresolved | {"visual_content_requires_model"})
         return row
 
     def asset(self, asset_id: str, max_dimension: int) -> dict[str, Any]:
@@ -851,6 +1035,19 @@ def normalize_read_request(request: dict[str, Any]) -> dict[str, Any]:
     and OCR modes (for example "cloud") are rejected: everything runs locally.
     """
     value = dict(request)
+    vision = value.get("vision")
+    if isinstance(vision, bool):
+        value["vision"] = "required" if vision else "optional"
+    elif isinstance(vision, str):
+        flag = vision.strip().lower()
+        if flag in {"", "null", "undefined", "default", "optional", "auto", "recommended", "recommend", "preferred", "ocr", "text"}:
+            value["vision"] = "optional"
+        elif flag in {"required", "require", "strict", "always", "model", "image", "images"}:
+            value["vision"] = "required"
+        # Anything else stays as sent and is rejected: the mode is a documented
+        # choice between local OCR text and mandatory model image review.
+    elif "vision" in value and vision is None:
+        value.pop("vision")
     ocr = value.get("ocr")
     if isinstance(ocr, bool):
         value["ocr"] = "auto" if ocr else "off"
@@ -967,13 +1164,17 @@ def handle_request(request: Any) -> dict[str, Any]:
         action = request.get("action", "read")
         if action not in {"read", "asset"}:
             fail("INVALID_REQUEST", "This document operation is unsupported.")
-        ocr = request.get("ocr", "auto")
+        ocr = request.get("ocr", "off")
         if ocr not in {"auto", "off"}:
             fail("INVALID_REQUEST", "ocr must be auto or off. OCR always runs locally; no OCR service is used.")
+        vision = request.get("vision", "optional")
+        if vision not in {"optional", "required"}:
+            fail("INVALID_REQUEST", "vision must be optional (original page images stay available for checking) or required (every page image of a read unit must be consumed by the selected model).")
         if action == "asset" and not re.fullmatch(r"[0-9a-f]{64}", str(request.get("document_sha256", ""))):
             fail("SOURCE_VERSION_REQUIRED", "A document reading version is required before opening images.")
         relative, suffix, content, digest = source_bytes(request)
-        document = Document(content, suffix, ocr if action == "read" else "off", request["root"], relative)
+        document = Document(content, suffix, ocr if action == "read" else "off", request["root"], relative,
+                            vision=vision if action == "read" else "optional")
         common = {"schema_version": SCHEMA_VERSION, "ok": True, "path": relative, "format": suffix.lstrip("."), "document": {"sha256": digest, "bytes": len(content), "unit_count": document.count}, "document_sha256": digest}
         if action == "asset":
             asset_id = request.get("asset_id")
@@ -1032,18 +1233,44 @@ def handle_request(request: Any) -> dict[str, Any]:
                 offset = end
                 break
             index, offset = index + 1, 0
+        # Cross-page furniture (watermarks, viewer chrome) repeats on nearly
+        # every recognized page; a page-specific sentence does not. Removing it
+        # here keeps every source unit teachable, and the original page images
+        # still show the untouched artwork.
+        ocr_rows = [row for row in rows if row.get("ocr_applied") and not row.get("truncated_unit")]
+        if len(ocr_rows) >= 2:
+            boilerplate = document.boilerplate_lines([row["text"] for row in ocr_rows])
+            if boilerplate:
+                for row in ocr_rows:
+                    lines = row["text"].splitlines()
+                    kept = [line for line in lines if document.line_key(line) not in boilerplate]
+                    if len(kept) == len(lines):
+                        continue
+                    document.ocr_watermark_lines += len(lines) - len(kept)
+                    text = "\n".join(kept)
+                    row["text"] = text
+                    row["char_end"] = row["total_chars"] = len(text)
+                    row["unit_text_sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
         truncated = index < document.count
         has_text = any(row["text"].strip() for row in rows)
         needs_ocr = any(row.get("status") == "needs_ocr" or (not row["text"].strip() and row["assets"] and row.get("status") != "empty") for row in rows)
         unresolved = document.unresolved | {code for row in rows for code in row.get("coverage", {}).get("unresolved", [])}
         status = "partial" if has_text and (truncated or needs_ocr or unresolved) else "ready" if has_text else "needs_ocr" if needs_ocr else "partial" if unresolved else "empty"
-        if needs_ocr:
-            document.warn("Some content has no extractable text. View its images or enable available local OCR.")
+        vision_pending = [{"unit_index": row["unit_index"], "locator": row.get("locator", {}),
+                           "asset_ids": list(row.get("coverage", {}).get("pending_visual_assets", [])),
+                           "reason": "visual_content_requires_model"}
+                          for row in rows if row.get("visual_pending")]
+        if needs_ocr or vision_pending:
+            document.warn("Image content is pending. Use read_document_image with the selected model; local MinerU is an optional Settings choice, never an automatic fallback.")
+        elif document.ocr_pages:
+            document.warn(f"Local OCR supplied the text of {document.ocr_pages} scanned page(s) in this result. Recognition can contain errors and formulas, tables or figures were not checked by the model; every original page image stays available to read_document_image.")
+        ocr_units = sum(row.get("extraction") in {"ocr", "text+ocr"} for row in rows)
         coverage = {
-            "scope": "returned_units", "document_fully_read": begins_document and not truncated,
+            "scope": "returned_units", "document_fully_read": begins_document and not truncated and not vision_pending,
+            "source_units_enumerated": begins_document and not truncated,
             "semantic_completeness": "not_guaranteed", "returned_unit_count": len(rows),
             "text_units": sum(bool(row["text"].strip()) for row in rows),
-            "ocr_units": sum(row.get("extraction") in {"ocr", "text+ocr"} for row in rows),
+            "ocr_units": ocr_units,
             "visual_units": sum(bool(row["assets"]) for row in rows),
             "formula_count": sum(len(row.get("equations", [])) for row in rows),
             "table_count": sum(bool(row.get("table")) for row in rows),
@@ -1052,9 +1279,21 @@ def handle_request(request: Any) -> dict[str, Any]:
             "returned_locators": [row.get("locator", {}) for row in rows],
             "pending_locators": [row.get("locator", {}) for row in rows if row.get("status") in {"partial", "needs_ocr"}],
             "text_extraction_complete": not truncated and not needs_ocr and not unresolved,
+            "text_layer_complete": not truncated,
+            "visual_status": "pending" if vision_pending else "ocr_text_available" if ocr_units else "not_requested",
+            "visual_fully_read": False if vision_pending else None,
+            "vision_verification": document.vision,
+            "ocr_pages": document.ocr_pages,
+            "ocr_filtered_lines": document.ocr_filtered,
+            "ocr_watermark_lines": document.ocr_watermark_lines,
+            "ocr_deferred": bool(document.ocr_deferred),
         }
         next_cursor = cursor_encode(digest, index, offset) if truncated else None
-        return {**common, "status": status, "navigation": navigation(document.count, rows, truncated, index, offset, next_cursor), "text": "\n\n".join(row["text"] for row in rows), "units": rows, "truncated": truncated, "next_cursor": next_cursor, "next_start_unit": index + 1 if truncated else None, "warnings": document.warnings, "coverage": coverage}
+        if vision_pending:
+            status = "partial"
+        return {**common, "status": status, "navigation": navigation(document.count, rows, truncated, index, offset, next_cursor), "text": "\n\n".join(row["text"] for row in rows), "units": rows, "truncated": truncated, "next_cursor": next_cursor, "next_start_unit": index + 1 if truncated else None, "warnings": document.warnings, "coverage": coverage,
+                "visual_pending": bool(vision_pending), "vision_pending": vision_pending,
+                "image_reading": "selected_model", "next_tool": "read_document_image" if vision_pending else None}
     except ReaderError as exc:
         return {"schema_version": SCHEMA_VERSION, "ok": False, "status": "error", "error": {"code": exc.code, "message": exc.message}}
     except FileNotFoundError:

@@ -2,7 +2,7 @@
 
 DeepSteam is a desktop education assistant that combines document reading, guided learning, workspace tools, and interactive classrooms in one application.
 
-This repository contains the English public source edition of `2026.10.13-r8-adaptive-vlm`. It includes modified upstream source and DeepSteam integration code. It does not include an installed application, private documents, personal learning records, saved accounts, API credentials, or machine-specific runtime configuration.
+This repository contains the English public source edition of `2026.10.13-r9-selected-model-vision`. It includes modified upstream source and DeepSteam integration code, with English documentation and ASCII file names. It does not include an installed application, private documents, personal learning records, saved accounts, API credentials, or machine-specific runtime configuration.
 
 ## What it provides
 
@@ -14,7 +14,7 @@ This repository contains the English public source edition of `2026.10.13-r8-ada
 - Interactive classroom creation, source-material references, local speech options, and video export integration.
 - Content management, model-use records, installation lifecycle management, and an explicit uninstall entry point.
 
-The public edition defaults to English and detects local regional settings at runtime. No personal timezone is fixed in the source. Each user selects their own models, storage location, credentials, and regional preferences. It has no preconfigured cloud account or bundled conversational model.
+The public source defaults to English; the paired local Windows installer retains the Chinese interface. Both detect local regional settings at runtime. No personal timezone is fixed in the source. Each user selects their own models, storage location, credentials, and regional preferences. This source companion contains no preconfigured cloud account or conversational model weights.
 
 ## Getting started
 

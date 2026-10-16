@@ -38,7 +38,7 @@ def runtime_paths() -> tuple[Path, Path]:
 def reader_signature() -> str:
     """Invalidate old plain-text caches and subsequent reader revisions."""
     _, helper = runtime_paths()
-    paths = [helper, ROOT / 'integration/document_jobs.py', ROOT / 'scripts/mineru_document_worker.py']
+    paths = [helper, ROOT / 'integration/document_jobs.py', ROOT / 'integration/document_reading_policy.py', ROOT / 'scripts/mineru_document_worker.py']
     return hashlib.sha256(b''.join(path.read_bytes() for path in paths if path.is_file())).hexdigest() if helper.is_file() else 'missing-reader'
 
 
@@ -49,16 +49,8 @@ def runtime_ready() -> bool:
         return False
     runtime = python.parent.parent if python.parent.name.lower() == 'scripts' else python.parent
     packages = runtime / 'Lib/site-packages'
-    required = ('pymupdf', 'docx', 'pptx', 'openpyxl', 'PIL', 'onnxruntime', 'numpy', 'cv2', 'yaml')
-    if not all((packages / name / '__init__.py').is_file() for name in required):
-        return False
-    modern = packages / 'rapidocr'
-    if (modern / '__init__.py').is_file():
-        return all((modern / 'models' / name).is_file() for name in (
-            'PP-OCRv6_det_small.onnx', 'PP-OCRv6_rec_small.onnx', 'ch_ppocr_mobile_v2.0_cls_mobile.onnx'))
-    legacy = packages / 'rapidocr_onnxruntime'
-    return (legacy / '__init__.py').is_file() and all((legacy / 'models' / name).is_file() for name in (
-        'ch_PP-OCRv3_det_infer.onnx', 'ch_PP-OCRv3_rec_infer.onnx', 'ch_ppocr_mobile_v2.0_cls_infer.onnx'))
+    required = ('pymupdf', 'docx', 'pptx', 'openpyxl', 'PIL')
+    return all((packages / name / '__init__.py').is_file() for name in required)
 
 
 def _request(source: Path, payload: dict[str, Any], timeout: float, *, cancelled=None) -> dict[str, Any]:
@@ -119,7 +111,7 @@ def warning_note(warnings: list[str]) -> str:
 def extract_document(source: Path | str, *, include_assets: bool = True,
                      on_output: Callable[[str], None] | None = None,
                      cancelled: Callable[[], bool] | None = None) -> dict[str, Any]:
-    """Return complete located units or raise; preserve nonfatal fidelity notes.
+    """Return continuously located text and pending original visual assets.
 
 The bridge receives only trusted server-owned source paths. The subprocess
 independently verifies canonical paths and reparse points. Assets are bounded
@@ -142,9 +134,11 @@ def _extract(source: Path, *, include_assets: bool, on_output, cancelled=None) -
     cursor = None
     seen_cursors: set[str] = set()
     document_unresolved: set[str] = set()
+    reading_policy = {'local_mineru_enabled': False, 'default_engine': 'builtin',
+                      'image_reading': 'selected_model'}
 
     def request(payload):
-        nonlocal calls, digest, document
+        nonlocal calls, digest, document, reading_policy
         remaining = MAX_SECONDS - (time.monotonic() - started)
         calls += 1
         if calls > MAX_CALLS or remaining <= 0:
@@ -154,6 +148,13 @@ def _extract(source: Path, *, include_assets: bool, on_output, cancelled=None) -
         if cancelled and cancelled():
             raise SharedDocumentError('Reading stopped. The original file is retained.')
         value = _request(source, payload, remaining, **({'cancelled': cancelled} if cancelled else {}))
+        if isinstance(value.get('reading_policy'), dict):
+            candidate = value['reading_policy']
+            # Keep only harmless Settings references; no resolved transport or
+            # credentials ever enter the imported document's metadata.
+            reading_policy = {'local_mineru_enabled': candidate.get('local_mineru_enabled') is True,
+                              'default_engine': 'mineru' if candidate.get('local_mineru_enabled') is True else 'builtin',
+                              'image_reading': 'selected_model'}
         identity = value.get('document') or {}
         if not isinstance(identity.get('unit_count'), int) or not isinstance(identity.get('sha256'), str):
             raise SharedDocumentError('The reading result has no completeness metadata.')
@@ -171,7 +172,7 @@ def _extract(source: Path, *, include_assets: bool, on_output, cancelled=None) -
         return value
 
     while True:
-        value = request({'action': 'read', 'ocr': 'auto', 'max_units': 40, 'max_chars': 100000,
+        value = request({'action': 'read', 'ocr': 'off', 'max_units': 40, 'max_chars': 100000,
                          **({'cursor': cursor} if cursor else {})})
         for fragment in value.get('units') or []:
             if not isinstance(fragment, dict) or not isinstance(fragment.get('text'), str):
@@ -200,25 +201,21 @@ def _extract(source: Path, *, include_assets: bool, on_output, cancelled=None) -
     if len(rows) != document['unit_count'] or any(row.get('truncated_unit') for row in rows):
         raise SharedDocumentError('Some document content has not been read. Import is incomplete.')
 
-    # A batch permits only two local OCR pages. Retry later affected units with
-    # their own budget rather than accepting a partly scanned file as complete.
+    # Retain every visual location without retrying it through local OCR. The
+    # chosen model receives images only when the Agent/user requests image reading.
     for index, row in enumerate(rows):
-        if row.get('status') in {'needs_ocr', 'partial'} and row.get('assets'):
-            value = request({'action': 'read', 'ocr': 'auto', 'start_unit': index + 1, 'max_units': 1, 'max_chars': 100000})
-            retry = value.get('units') or []
-            if len(retry) != 1 or retry[0].get('locator') != row.get('locator') or retry[0].get('truncated_unit'):
-                raise SharedDocumentError('Scan recognition is incomplete. Split the affected pages and retry.')
-            rows[index] = row = retry[0]
-        if row.get('status') == 'needs_ocr':
+        if row.get('status') == 'needs_ocr' or not row.get('text', '').strip() and row.get('assets') and row.get('status') != 'empty':
             if not row.get('assets'):
                 raise SharedDocumentError(f"{locator_label(row)} contains no recognized text or retained original image.")
-            # Empty OCR can mean a diagram with no writing. Keep its verified
-            # pixels as partial visual evidence, never as recognized prose.
+            # Keep pixels as pending visual evidence, never recognized prose.
             row.update(status='partial', extraction='visual_only', visual_only=True,
-                       text_is_placeholder=True, text='[Source image: no text was recognized. View the original image; its meaning has not been verified.]')
+                       visual_pending=True, image_reading='selected_model',
+                       text_is_placeholder=True, text='[Source image pending: use read_document_image with the selected model. No image text or meaning has been verified.]')
             prior = row.get('coverage') or {}
             row['coverage'] = {**prior, 'text_method': 'visual_only', 'visual_review_required': True,
-                               'unresolved': sorted(set(prior.get('unresolved') or []) | {'text_not_recognized'})}
+                               'visual_status': 'pending',
+                               'pending_visual_assets': [asset['id'] for asset in row['assets']],
+                               'unresolved': sorted(set(prior.get('unresolved') or []) | {'visual_content_requires_model'})}
         if row.get('status') == 'partial':
             warnings.append(f"{locator_label(row)} contains incomplete extraction. Check the original image at this location.")
     if sum(len(row['text']) for row in rows) > MAX_CHARS:
@@ -278,12 +275,23 @@ def _extract(source: Path, *, include_assets: bool, on_output, cancelled=None) -
     if any((row.get('coverage') or {}).get('structured_content') == 'fragmented' for row in rows):
         unresolved.add('structured_content_fragmented')
         warnings.append('Long text units were read continuously. Table and formula metadata are segmented; check the source.')
-    coverage = {'scope': 'complete_document', 'document_fully_read': True,
+    pending = [{'unit_index': index + 1, 'locator': row.get('locator') or {},
+                'asset_ids': [asset['id'] for asset in row.get('assets') or []],
+                'reason': 'visual_content_requires_model'} for index, row in enumerate(rows) if row.get('visual_pending')]
+    coverage = {'scope': 'complete_document', 'document_fully_read': not pending,
+                'text_layer_complete': True, 'source_units_enumerated': True,
+                'text_extraction_complete': not unresolved,
+                'visual_status': 'pending' if pending else 'not_requested',
+                'visual_fully_read': False if pending else None,
                 'semantic_completeness': 'not_guaranteed', 'unresolved': sorted(unresolved),
                 'visual_review_required': any((row.get('coverage') or {}).get('visual_review_required') for row in rows)}
     if unresolved:
         warnings.append('Reading status: some structure or image content remains unverified. Check it against the source.')
     return {'document': document, 'units': rows, 'images': images, 'coverage': coverage,
+            'reading_policy': reading_policy,
+            'visual_pending': bool(pending), 'vision_pending': pending,
+            'requires_image_reading': bool(pending), 'image_reading': 'selected_model',
+            'next_tool': 'read_document_image' if pending else None,
             'warnings': list(dict.fromkeys(warnings)),
             'status': 'partial' if unresolved or any(r.get('status') == 'partial' for r in rows) else 'ready'}
 

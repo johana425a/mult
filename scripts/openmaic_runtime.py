@@ -44,6 +44,9 @@ def environment() -> dict[str, str]:
         "npm_config_cache": str(cache / "npm"), "PNPM_HOME": str(cache / "pnpm"),
         "COREPACK_HOME": str(cache / "corepack"),
         "OPENMAIC_DATA_DIR": str(STORAGE.openmaic_data),
+        # Prompt templates travel with the package; resolve them from this
+        # installation so the folder can live at any path.
+        "OPENMAIC_PROMPTS_DIR": str(STANDALONE / "packages" / "@openmaic" / "generation"),
         "DEEPSTEAM_APP_ROOT": str(ROOT),
         "OPENMAIC_CLASSROOMS_DIR": str(STORAGE.openmaic_classrooms),
         "ALLOWED_FRAME_ANCESTORS": "deepsteam://portal deepsteam://app http://127.0.0.1:3791 http://127.0.0.1:3792",

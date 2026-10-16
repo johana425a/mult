@@ -1,0 +1,84 @@
+    internal sealed class SetupHero : Control
+    {
+        // DeepSteam 2026-10-16 mark: the phyllotaxis dot mark replaces the orbit rings.
+        // It blooms out of its center point on open; while setup works the
+        // divergence angle drifts, so the spiral turns into a slow kaleidoscope.
+        internal double Phase;
+        internal bool Busy;
+        private double morph;
+        private const int Dots = 170;
+        private const double Golden = 137.50776405;
+        internal bool Settled { get { return morph <= 0.0001 && (!SetupTheme.Motion || Phase >= 1.9); } }
+        internal SetupHero()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            AccessibleName = "DeepSteam · Keep curiosity growing.";
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Graphics g = e.Graphics;
+            float scale = g.DpiX / 96F;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (Font eyebrow = new Font("Segoe UI", 8.5F, FontStyle.Bold))
+            using (Font wordmark = new Font("Georgia", 34F, FontStyle.Regular))
+            using (Font tagline = new Font("Microsoft YaHei UI", 11F))
+            {
+                TextRenderer.DrawText(g, "D E E P S T E A M   /   D E S K T O P", eyebrow, new Point(0, (int)(5 * scale)), SetupTheme.Muted);
+                TextRenderer.DrawText(g, "DeepSteam", wordmark, new Point(-3, (int)(24 * scale)), SetupTheme.Ink);
+                TextRenderer.DrawText(g, "Keep curiosity growing.", tagline, new Point(0, (int)(89 * scale)), SetupTheme.Muted);
+            }
+            if (Width < 530 * scale) return;
+            bool motion = SetupTheme.Motion;
+            morph = motion ? SetupTheme.Approach(morph, Busy ? 1 : 0, 0.035) : 0;
+            double bloom = motion ? SetupTheme.EaseOutCubic(Phase / 1.8) : 1;
+            double cycle = Math.Sin(Math.PI * Math.Max(0, Phase - 1.8) / 9.0);
+            double drift = morph * 0.8 * cycle * cycle;               // extra degrees per dot index
+            float spin = (float)(-90 * (1 - bloom) + morph * Math.Sin(Phase * 0.21) * 24);
+            float cx = Width - 92 * scale, cy = 64 * scale, radius = 60 * scale;
+            g.TranslateTransform(cx, cy);
+            using (GraphicsPath haloPath = new GraphicsPath())
+            {
+                float h = radius * 1.25F;
+                haloPath.AddEllipse(-h, -h, 2 * h, 2 * h);
+                using (PathGradientBrush halo = new PathGradientBrush(haloPath))
+                {
+                    halo.CenterColor = Color.FromArgb((int)(70 * bloom), 242, 178, 106);
+                    halo.SurroundColors = new[] { Color.FromArgb(0, 224, 122, 69) };
+                    halo.FocusScales = new PointF(0.05F, 0.05F);
+                    g.FillEllipse(halo, -h, -h, 2 * h, 2 * h);
+                }
+            }
+            g.RotateTransform(spin);
+            Color inner = Color.FromArgb(255, 241, 214), outer = Color.FromArgb(110, 67, 48);
+            float step = (float)(radius / Math.Sqrt(Dots));
+            for (int k = Dots; k >= 1; k--)
+            {
+                double t = (double)k / Dots;
+                double angle = (k * (Golden + drift)) * Math.PI / 180.0;
+                float r = (float)(step * Math.Sqrt(k) * bloom);
+                float size = (float)((1.3 + 2.4 * Math.Sqrt(t)) * scale * (0.4 + 0.6 * bloom));
+                Color c = t < 0.45 ? SetupTheme.Mix(inner, SetupTheme.Accent, t / 0.45) : SetupTheme.Mix(SetupTheme.Accent, outer, (t - 0.45) / 0.55);
+                int alpha = (int)(255 * Math.Min(1, (1 - t) / 0.22 + 0.15) * Math.Min(1, bloom * 1.6));
+                using (Brush dot = new SolidBrush(Color.FromArgb(Math.Max(0, Math.Min(255, alpha)), c)))
+                    g.FillEllipse(dot, (float)Math.Cos(angle) * r - size / 2, (float)Math.Sin(angle) * r - size / 2, size, size);
+            }
+            g.ResetTransform();
+            g.TranslateTransform(cx, cy);
+            float pulse = (float)(1 + morph * 0.18 * Math.Sin(Phase * 2.2));
+            using (GraphicsPath corePath = new GraphicsPath())
+            {
+                float glow = 13 * scale * pulse;
+                corePath.AddEllipse(-glow, -glow, 2 * glow, 2 * glow);
+                using (PathGradientBrush core = new PathGradientBrush(corePath))
+                {
+                    core.CenterColor = Color.FromArgb(235, 255, 248, 234);
+                    core.SurroundColors = new[] { Color.FromArgb(0, 242, 178, 106) };
+                    g.FillEllipse(core, -glow, -glow, 2 * glow, 2 * glow);
+                }
+            }
+            using (Brush center = new SolidBrush(Color.FromArgb(255, 255, 250, 240)))
+                g.FillEllipse(center, -2.6F * scale * pulse, -2.6F * scale * pulse, 5.2F * scale * pulse, 5.2F * scale * pulse);
+            g.ResetTransform();
+        }
+    }

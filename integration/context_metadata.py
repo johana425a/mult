@@ -43,6 +43,14 @@ def patch_context_metadata(catalog_service, body):
                 result['matched'] += 1
                 metadata = {'actual_model': route['model'],
                             **managed_model_limits(route['model'], route['route'])}
+                if managed_model_limits(route['model'], route['route']):
+                    # Pinned official DeepSeek adapter Config accepts off/low/
+                    # high/max. The catalog's common vocabulary uses none for
+                    # off, mapped by the authenticated Harness gateway.
+                    metadata['codex_supported_reasoning_levels'] = ['none', 'low', 'high', 'max']
+                    capabilities = dict(model.get('capabilities') or {})
+                    capabilities['reasoning'] = True
+                    metadata['capabilities'] = capabilities
                 changed = False
                 for key, value in metadata.items():
                     value = str(value) if key == 'context_window' else value

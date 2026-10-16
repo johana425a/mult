@@ -8,4 +8,4 @@ Set-Location -LiteralPath $taskRoot
 Write-Output 'Checking package integrity and preparing local runtimes...'
 & $taskPython -I -B (Join-Path $taskRoot 'installer\prepare_install.py') $taskRoot
 if ($LASTEXITCODE -ne 0) { throw 'DeepSteam preparation failed. Review the installation log and retry.' }
-Write-Output 'DeepSteam installation is ready. The bundled local model is available; other model APIs can be configured in the application.'
+Write-Output 'DeepSteam installation is ready. Configure your model connection in the application; the document parser is available offline.'

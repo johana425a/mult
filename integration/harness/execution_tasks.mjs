@@ -9,7 +9,7 @@ const error = (code, status = 409) => Object.assign(new Error(code), { code, sta
 const identity = value => typeof value === 'string' && /^[A-Za-z0-9_.:-]{1,200}$/.test(value);
 const publicTask = task => structuredClone(Object.fromEntries(Object.entries(task).filter(([key]) => !['prompt', 'fingerprint'].includes(key))));
 
-export async function createExecutionTasks({ profile, workspaces, pollMs = 200 }) {
+export async function createExecutionTasks({ profile, workspaces, interactions, pollMs = 200 }) {
   const root = join(profile, 'execution-tasks');
   const path = join(root, 'tasks.json');
   await mkdir(root, { recursive: true });
@@ -111,7 +111,11 @@ export async function createExecutionTasks({ profile, workspaces, pollMs = 200 }
     async get(id, owner, afterSeq = -1) {
       const task = find(id, owner);
       const snapshot = task.session_id ? await workspaces.events(task.session_id, { after_seq: afterSeq }) : { events: [], next_seq: -1 };
-      return { task: publicTask(task), events: snapshot.events, next_seq: snapshot.next_seq };
+      const capabilities = task.session_id && interactions ? await interactions.state(task.session_id) : null;
+      const waiting = active.has(task.status) && capabilities?.pending_questions?.length > 0;
+      return { task: { ...publicTask(task), ...(waiting ? { status: 'awaiting_input', runtime_status: task.status } : {}) },
+        events: snapshot.events, next_seq: snapshot.next_seq, capabilities,
+        ...(task.session_id ? { session_id_link: task.session_id } : {}) };
     },
     async list(owner) { return { tasks: Object.values(tasks).filter(task => task.owner === owner).map(publicTask) }; },
     async cancel(id, owner) {

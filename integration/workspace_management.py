@@ -10,6 +10,7 @@ import asyncio
 from copy import deepcopy
 import os
 import re
+import time
 
 from integration.harness_bridge import HarnessError
 
@@ -40,13 +41,45 @@ def metadata_equal(row, expected):
 
 
 class WorkspaceManager:
+    # DeepSteam 2026-10-16 workspaces: one Harness listing asks for metadata once per
+    # workspace, and every request fetched the whole learning-service list.
+    # Share one fetch for a moment; any change made here drops it at once.
+    NATIVE_CACHE_SECONDS = 1.5
+
     def __init__(self, transport):
         self.transport = transport
         self.lock = asyncio.Lock()
+        self._native_generation = 0
+        self._native_cached = None
+        self._native_pending = None
 
-    async def native_catalog(self):
+    def forget_native_catalog(self):
+        self._native_generation += 1
+        self._native_cached = None
+        self._native_pending = None
+
+    async def _fetch_native_catalog(self):
         result = await self.transport.native_workspace_service('GET', 'workspaces')
         return [native_row(item) for item in result.get('workspaces', [])]
+
+    async def native_catalog(self):
+        generation = self._native_generation
+        cached = self._native_cached
+        if cached and cached[1] == generation and time.monotonic() - cached[0] < self.NATIVE_CACHE_SECONDS:
+            return deepcopy(cached[2])
+        pending = self._native_pending
+        if pending is None or pending[1] != generation:
+            pending = (asyncio.ensure_future(self._fetch_native_catalog()), generation)
+            self._native_pending = pending
+        task = pending[0]
+        try:
+            rows = await asyncio.shield(task)
+        finally:
+            if self._native_pending is pending and task.done():
+                self._native_pending = None
+        if generation == self._native_generation:
+            self._native_cached = (time.monotonic(), generation, rows)
+        return deepcopy(rows)
 
     async def metadata(self, path):
         matches = [item for item in await self.native_catalog() if path_key(item['path']) == path_key(path)]
@@ -177,6 +210,7 @@ class WorkspaceManager:
         if 'archived' in patch and not isinstance(patch['archived'], bool):
             raise HarnessError('workspace_input_invalid', 'The workspace removal or restoration state is invalid.', 422)
         async with self.lock:
+            self.forget_native_catalog()
             rows = (await self._catalog())['workspaces']
             row = next((item for item in rows if identity in (item['id'], item['native_workspace_id'], item['harness_workspace_id'])), None)
             if not row:
@@ -197,10 +231,14 @@ class WorkspaceManager:
                 transaction_id = prepared['reservation']['transaction_id']
             try:
                 if native:
-                    await self._native_change(native, patch, native)
+                    try:
+                        await self._native_change(native, patch, native)
+                    finally:
+                        self.forget_native_catalog()
                 if host_id:
                     await self._host_change(host_id, 'commit', transaction_id=transaction_id)
             except HarnessError as error:
+                self.forget_native_catalog()
                 if not host_id or not await self._recover_failed_apply(host_id, transaction_id, error):
                     raise error
             updated = next(item for item in (await self._catalog(recover=False))['workspaces'] if item['id'] == row['id'])

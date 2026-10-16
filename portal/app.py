@@ -149,6 +149,9 @@ async def local_origin(request: Request, call_next):
             and (request.method not in ('GET', 'HEAD', 'OPTIONS') or workspace_request)
             and request.method != 'OPTIONS' and origin not in ALLOWED_ORIGINS):
         return JSONResponse({'detail': 'Use the local model connection page for this operation.', 'code': 'origin_required'}, status_code=403)
+    if (request.url.path == '/api/document-policy' and request.method not in ('GET', 'HEAD', 'OPTIONS')
+            and origin not in ALLOWED_ORIGINS):
+        return JSONResponse({'detail': 'Use application settings to change document reading.', 'code': 'origin_required'}, status_code=403)
     response = await call_next(request)
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Referrer-Policy'] = 'no-referrer'
@@ -192,14 +195,15 @@ async def materials(workspace_id: str | None = None):
 
 @app.get('/api/material-config')
 async def material_config():
-    return {'max_bytes': material_sources.MAX_DOCUMENT_BYTES, 'extensions': sorted(material_sources.SUPPORTED_SUFFIXES)}
+    return {'max_bytes': material_sources.MAX_DOCUMENT_BYTES, 'extensions': sorted(material_sources.SUPPORTED_SUFFIXES),
+            'long_pdf_planning': True, 'max_preview_units': 40, 'whole_pdf_page_limit': None}
 
 
 class DocumentReadInput(BaseModel):
     path: str = ''
     cursor: str | None = None
     document_sha256: str | None = None
-    max_units: int = Field(default=10, ge=1, le=10)
+    max_units: int = Field(default=40, ge=1, le=40)
     asset_id: str | None = None
     query: str | None = None
     limit: int = Field(default=200, ge=1, le=500)
@@ -360,6 +364,58 @@ async def select_material_window(material_id: str, value: DocumentReadInput):
         return material_public(item, full=True)
 
 
+@app.get('/materials/{material_id}/whole-pdf')
+async def whole_pdf_page(material_id: str):
+    source = store.get('materials', material_id)
+    if not source or Path(source.get('path') or '').suffix.lower() != '.pdf':
+        raise HTTPException(404, 'Choose an uploaded PDF first.')
+    return FileResponse(ROOT / 'portal' / 'whole-pdf.html', media_type='text/html')
+
+
+@app.post('/api/materials/{material_id}/plan')
+async def plan_whole_pdf(material_id: str):
+    source = store.get('materials', material_id)
+    if not source:
+        raise HTTPException(404, 'Material not found.')
+    from portal import long_pdf
+    try:
+        async with MATERIAL_LOCKS.setdefault(material_id, asyncio.Lock()):
+            plan = await asyncio.to_thread(long_pdf.build_plan, source, UPLOADS)
+        return long_pdf.public_plan(plan)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(409, safe_error(exc)) from None
+
+
+class PdfPartInput(BaseModel):
+    part_id: int = Field(ge=1)
+
+
+@app.post('/api/materials/{material_id}/select-part', status_code=201)
+async def select_pdf_part(material_id: str, value: PdfPartInput):
+    from portal import long_pdf
+    async with MATERIAL_LOCKS.setdefault(material_id, asyncio.Lock()):
+        source = store.get('materials', material_id)
+        if not source:
+            raise HTTPException(404, 'Material not found.')
+        try:
+            snapshot = await asyncio.to_thread(long_pdf.part_snapshot, source, UPLOADS, value.part_id)
+        except (ValueError, OSError) as exc:
+            raise HTTPException(409, safe_error(exc)) from None
+        for item in store.list('materials'):
+            saved = material_sources.decode(item.get('source_snapshot'), {})
+            if (item.get('path') == source.get('path') and item.get('document_sha256') == snapshot['document']['sha256']
+                    and (saved.get('prepared_pdf_part') or {}).get('id') == value.part_id):
+                return material_public(item, full=True)
+        part = snapshot['prepared_pdf_part']
+        fields = material_sources.window_fields(snapshot)
+        item = {**source, **fields, 'id': identifier('material'), 'source_kind': 'upload_range',
+                'title': f"{part['title']} (PDF {part['page_start']}-{part['page_end']})",
+                'source_max_units': len(snapshot['units']), 'created_at': now(),
+                'dt_material_id': None, 'sync_error': None}
+        store.insert('materials', item)
+        return material_public(item, full=True)
+
+
 async def sync_material(material_id):
     async with MATERIAL_LOCKS.setdefault(material_id, asyncio.Lock()):
         return await _sync_material(material_id)
@@ -406,10 +462,16 @@ def material_filename(filename):
 
 async def finish_material_upload(mid, path, filename, workspace_id):
     try:
-        result = await material_sources.managed_request(UPLOADS, path.name, **material_sources.READ_OPTIONS)
+        if path.suffix.lower() == '.pdf' and path.stat().st_size > 200 * 1024 * 1024:
+            from portal import long_pdf
+            result = await asyncio.to_thread(long_pdf.read_window, {'id': mid, 'path': str(path)}, UPLOADS,
+                                            **material_sources.READ_OPTIONS)
+        else:
+            result = await material_sources.managed_request(UPLOADS, path.name, **material_sources.READ_OPTIONS)
         fields = material_sources.window_fields(result)
         item = {'id': mid, 'title': Path(filename).stem, 'filename': filename, 'path': str(path),
-                'source_kind': 'upload', 'workspace_id': workspace_id, **fields,
+                'source_kind': 'upload', 'workspace_id': workspace_id,
+                'source_max_units': material_sources.READ_OPTIONS['max_units'], **fields,
                 'dt_material_id': None, 'sync_error': None, 'created_at': now()}
         store.insert('materials', item)
         return material_public(item, full=True)
@@ -530,6 +592,13 @@ async def internal_workspace_provider(request: Request):
     authenticate_service(request)
     body = await workspace_input(request, {'llm_selection'})
     return await harness_bridge().workspace_provider(**body)
+
+
+@app.post('/api/harness/internal/workspace-search-status')
+async def harness_workspace_search_status(request: Request):
+    authenticate_service(request)
+    body = await workspace_input(request, {'llm_selection'})
+    return await harness_bridge().workspace_search_status(**body)
 
 
 async def execution_workspace_binding(owner, native_workspace_id):
@@ -679,6 +748,21 @@ async def harness_workspace_access():
     return await harness_bridge().transport.host('GET', '/workspace-access')
 
 
+@app.get('/api/document-policy')
+async def document_policy():
+    from integration.document_jobs import DocumentJobs
+    return await asyncio.to_thread(lambda: DocumentJobs().get_policy())
+
+
+@app.patch('/api/document-policy')
+async def document_policy_update(request: Request):
+    from integration.document_jobs import DocumentJobs
+    body = await workspace_input(request, {'local_mineru_enabled'})
+    if type(body.get('local_mineru_enabled')) is not bool:
+        raise HarnessError('document_policy_invalid', 'Choose whether the optional local parser is enabled.', 422)
+    return await asyncio.to_thread(lambda: DocumentJobs().set_policy(body['local_mineru_enabled']))
+
+
 @app.post('/api/harness/workspace-access')
 async def harness_workspace_access_update(request: Request):
     body = await workspace_input(request, {'default_access'})
@@ -742,6 +826,51 @@ async def harness_workspace_turn(session_id: str, request: Request):
     if 'access_level' in body and body['access_level'] not in {'workspace', 'full'}:
         raise HarnessError('workspace_input_invalid', 'Choose Workspace only or Full computer access.', 422)
     return await harness_bridge().transport.host('POST', '/sessions/' + workspace_identifier(session_id) + '/turn', body)
+
+
+@app.get('/api/harness/sessions/{session_id}/capabilities-state')
+async def harness_capability_state(session_id: str):
+    return await harness_bridge().capability_state(workspace_identifier(session_id))
+
+
+@app.post('/api/harness/sessions/{session_id}/questions/{question_id}')
+async def harness_question_answer(session_id: str, question_id: str, request: Request):
+    body = await workspace_input(request, {'answers', 'cancel'})
+    cancel = body.get('cancel', False)
+    if type(cancel) is not bool or (cancel and 'answers' in body) or (not cancel and 'answers' not in body):
+        raise HarnessError('question_answer_invalid', 'Answer the question or cancel it.', 422)
+    return await harness_bridge().answer_question(workspace_identifier(session_id),
+        workspace_identifier(question_id), answers=body.get('answers'), cancel=cancel)
+
+
+@app.post('/api/harness/sessions/{session_id}/plan')
+async def harness_plan_mode(session_id: str, request: Request):
+    body = await workspace_input(request, {'active'})
+    if type(body.get('active')) is not bool:
+        raise HarnessError('plan_mode_invalid', 'Choose planning or execution mode.', 422)
+    return await harness_bridge().plan_mode(workspace_identifier(session_id), body['active'])
+
+
+def capability_position(seq: int, index: int):
+    if not 0 <= seq <= 1000000000 or not 0 <= index <= 1000:
+        raise HarnessError('capability_position_invalid', 'This result reference is invalid.', 422)
+
+
+@app.get('/api/harness/sessions/{session_id}/changes/{seq}/diff/{index}')
+async def harness_workspace_diff(session_id: str, seq: int, index: int):
+    capability_position(seq, index)
+    return await harness_bridge().workspace_diff(workspace_identifier(session_id), seq, index)
+
+
+@app.get('/api/harness/sessions/{session_id}/deliverables/{seq}/files/{index}')
+async def harness_delivered_file(session_id: str, seq: int, index: int, mode: str = 'preview'):
+    capability_position(seq, index)
+    result = await harness_bridge().delivered_file(workspace_identifier(session_id), seq, index, mode)
+    headers = {**result.get('headers', {}), 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'}
+    # HTML/SVG and other generated files are untrusted documents, never product
+    # scripts. Keep the Host's stricter policy, with an isolated fallback.
+    headers.setdefault('Content-Security-Policy', "sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'")
+    return Response(content=result['content'], media_type=result.get('media_type', 'application/octet-stream'), headers=headers)
 
 
 @app.get('/api/harness/sessions/{session_id}/attachments/{attachment_id}')
@@ -921,8 +1050,10 @@ def lesson_public(item):
 @app.post('/api/demo-lesson', status_code=201)
 async def demo_lesson():
     from portal.demo_classroom import payload
+    # DeepSteam 2026-10-16 demo reuse: the demo was renamed to Chinese; match both names.
+    demo_titles = {payload()[0]['name'], 'Conditional probability · Prepared demo'}
     for existing in store.list('lessons'):
-        if existing['title'] == 'Conditional probability · Prepared demo' and existing['status'] == 'ready':
+        if existing['title'] in demo_titles and existing['status'] == 'ready':
             try:
                 await om_bridge().classroom(existing['classroom_id'])
                 return existing
@@ -968,8 +1099,9 @@ async def create_lesson(value: LessonInput):
     selection_args = {'llm_selection': value.llm_selection} if 'llm_selection' in value.model_fields_set else {}
     execution = await harness_bridge().execution_config(**selection_args)
     if (snapshot and snapshot.get('images')
-            and ((execution.get('resolved_model') or {}).get('capabilities') or {}).get('vision') is False):
-        raise HTTPException(409, 'The selected material contains images, but the current model does not support image input. Choose a vision-capable model before generating the classroom.')
+            and ((execution.get('resolved_model') or {}).get('capabilities') or {}).get('vision_verified') is not True):
+        raise HTTPException(409, {'code': 'model_vision_not_verified',
+            'message': '当前模型未通过图片输入验证，请切换到支持图片的模型（如 V4.1-Flash）。'})
     config = {**execution['provider'], 'execution_id': execution.get('execution_id'), 'model_snapshot': execution.get('model_snapshot')}
     if not config.get('model') or not config.get('base_url'):
         raise HTTPException(409, 'Enter the model name and API address in Settings. Saving does not call a model; selected materials are sent only when you generate.')
@@ -1071,9 +1203,9 @@ async def generate_lesson(lesson_id, resume=False, frozen_provider=None, retry_f
             source_scope = json.dumps(parsed.get('locators', []), ensure_ascii=False)
             image_scope = json.dumps([{'image_index': entry['image_index'], 'locator': entry['locator']}
                                       for entry in parsed.get('image_sources', [])], ensure_ascii=False)
-            requirement = f"Lesson title: {item['title']}\nLearning goal: {item['goal']}\nSelected material: {source['filename']}\nMaterial version: {parsed.get('document', {}).get('sha256', '')}\nReading scope: {source_scope}\nAttached image order and source mapping: {image_scope}\nCover only the attached selected scope; do not claim full-book coverage. Generate an English visual lesson from the attached materials and preserve relevant source images. Distinguish source content from supplementary explanation and never invent source references. End with questions that check understanding."
+            requirement = f"Lesson title: {item['title']}\nLearning goal: {item['goal']}\nSelected material: {source['filename']}\nMaterial version: {parsed.get('document', {}).get('sha256', '')}\nReading scope: {source_scope}\nAttached image order and source mapping: {image_scope}\nCover only the attached selected scope; do not claim full-book coverage. Generate a Chinese visual lesson (use another language only when explicitly requested) from the attached materials and preserve relevant source images. Distinguish source content from supplementary explanation and never invent source references. End with questions that check understanding."
             if config.get('tts_mode', 'local') == 'local':
-                tts = {'provider': 'windows-system-tts', 'model': 'system-speech', 'voice': 'auto-zh'}
+                tts = {'provider': 'windows-system-tts', 'model': 'system-speech', 'voice': 'auto'}
             else:
                 tts = {'provider': 'openai-tts', 'base_url': config.get('tts_base_url'), 'model': config.get('tts_model'), 'voice': config.get('tts_voice'), 'api_key': config.get('tts_api_key')}
             job_id = identifier('job')
@@ -1212,7 +1344,7 @@ async def retry_lesson(lesson_id: str, value: RetryLessonInput):
                     'model_snapshot': execution.get('model_snapshot'),
                     'tts_enabled': config.get('tts_enabled', False)}
         if config.get('tts_mode', 'local') == 'local':
-            provider.update(tts_provider='windows-system-tts', tts_model='system-speech', tts_voice='auto-zh')
+            provider.update(tts_provider='windows-system-tts', tts_model='system-speech', tts_voice='auto')
         else:
             provider.update(tts_provider='openai-tts', **{key: config.get(key) for key in ('tts_base_url', 'tts_model', 'tts_voice', 'tts_api_key')})
         store.update('lessons', lesson_id, status='generating', progress='Resubmitting the original task...', updated_at=now())

@@ -1,0 +1,32 @@
+{
+  "schema": "deepsteam-document-runtime-lock-v1",
+  "python": "CPython 3.13 win_amd64",
+  "versions": {
+    "pymupdf": "1.28.2",
+    "python_docx": "1.2.0",
+    "python_pptx": "1.0.2",
+    "openpyxl": "3.1.5",
+    "pillow": "12.3.0",
+    "lxml": "6.1.3",
+    "defusedxml": "0.7.1",
+    "rapidocr": "3.10.0",
+    "onnxruntime": "1.31.0",
+    "opencv_python_headless": "5.0.0.93",
+    "pyclipper": "1.4.0",
+    "shapely": "2.2.0",
+    "omegaconf": "2.4.0",
+    "colorlog": "6.12.0",
+    "flatbuffers": "25.12.19",
+    "protobuf": "7.36.2"
+  },
+  "ocr_files": 813,
+  "ocr_manifest_sha256": "33d7eb7b717cf17fa674190583495475b7522a54e190b9e3c8071ef58b0d2100",
+  "offline_model_files": [
+    "runtime/python/Lib/site-packages/rapidocr/models/PP-OCRv6_det_small.onnx",
+    "runtime/python/Lib/site-packages/rapidocr/models/PP-OCRv6_rec_small.onnx",
+    "runtime/python/Lib/site-packages/rapidocr/models/ch_ppocr_mobile_v2.0_cls_mobile.onnx"
+  ],
+  "reader_sha256": "202fa0ff70787b688b2d9464c0ebafea80749c3b8dbeefd5bacb72e151b1b14f",
+  "ocr_files_sha256": "7d9b614e93264cd71f94af962e99460a27ac3a8ef17cb2a82ec9040c5e115327",
+  "model_download_on_first_use_required": false
+}

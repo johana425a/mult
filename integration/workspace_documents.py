@@ -163,7 +163,12 @@ def model_view(result: dict) -> dict:
     navigation = result.get('navigation') or {'next_cursor': result.get('next_cursor'),
                                               'next_start_unit': result.get('next_start_unit'),
                                               'done': not result.get('truncated')}
-    hint = ('Reading of this document is complete.' if navigation.get('done') else
+    complete_hint = ('Text-layer extraction is complete, but visual content remains unread. '
+        'Call workspace_document_image for each vision_pending asset using the selected, '
+        'image-verified model; do not mark the document fully read.'
+        if result.get('visual_pending') or result.get('vision_pending') else
+        'Requested document data has been delivered. Delivery is not proof of semantic comprehension.')
+    hint = (complete_hint if navigation.get('done') else
             f'Continue with cursor="{navigation.get("next_cursor")}" or, equivalently, start_unit={navigation.get("next_start_unit")}.')
     navigation = {**navigation, 'how_to_continue': hint}
     body = {key: value for key, value in result.items() if key not in {'text', 'navigation', 'units'}}

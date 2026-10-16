@@ -16,6 +16,47 @@ from integration.deeptutor_shared_provider import install_routes
 install_routes(app)
 
 
+def _prewarm_first_chat():
+    """DeepSteam 2026-10-16: load what the first chat turn needs in the background.
+
+    The first message used to wait several seconds while the chat engine,
+    the model client and the tokenizer were imported on demand.
+    """
+    import importlib
+    import threading
+    import time
+
+    def run():
+        import socket
+
+        # Start only after the server is up, so nothing races its own startup.
+        deadline = time.monotonic() + 180
+        while time.monotonic() < deadline:
+            try:
+                socket.create_connection(("127.0.0.1", 8011), timeout=1).close()
+                break
+            except OSError:
+                time.sleep(0.5)
+        time.sleep(2)
+        for name in ("deeptutor.agents.chat.capability", "deeptutor.agents.loop.pipeline",
+                     "deeptutor.agents.loop.agent_loop", "deeptutor.runtime.agentic.client",
+                     "openai.resources.chat", "deeptutor.services.session.context_builder"):
+            try:
+                importlib.import_module(name)
+            except Exception:
+                pass
+        try:
+            import tiktoken
+            tiktoken.get_encoding("cl100k_base")
+        except Exception:
+            pass
+
+    threading.Thread(target=run, name="deepsteam-prewarm", daemon=True).start()
+
+
+_prewarm_first_chat()
+
+
 class AnswerRecord(BaseModel):
     question: str = Field(min_length=1, max_length=20000)
     answer: str = Field(min_length=1, max_length=30000)

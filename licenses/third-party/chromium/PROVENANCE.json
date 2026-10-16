@@ -1,0 +1,5 @@
+{
+  "url": "https://chromium.googlesource.com/chromium/src/+/refs/tags/155.0.8059.39/LICENSE?format=TEXT",
+  "sha256": "368cca1106be99d39ecd32a38d8305585d802a475effb66380b91ffc9bcf709b",
+  "note": "Official Chromium root license at the bundled Chrome for Testing version. Additional notices and browser terms remain available at chrome://credits and chrome://terms; original browser ABOUT retained."
+}

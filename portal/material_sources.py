@@ -2,16 +2,17 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import os
 import re
 from pathlib import Path
 
-SUPPORTED_SUFFIXES = {'.pdf', '.docx', '.pptx', '.md', '.txt', '.xlsx'}
+SUPPORTED_SUFFIXES = {'.pdf', '.docx', '.pptx', '.md', '.txt', '.xlsx', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp'}
 try:
-    MAX_DOCUMENT_BYTES = min(512 * 1024 * 1024, max(1024 * 1024, int(os.environ.get('EDUAGENT_DOCUMENT_MAX_BYTES', 200 * 1024 * 1024))))
+    MAX_DOCUMENT_BYTES = max(1024 * 1024, int(os.environ.get('EDUAGENT_DOCUMENT_MAX_BYTES', 2 * 1024 * 1024 * 1024)))
 except ValueError:
-    MAX_DOCUMENT_BYTES = 200 * 1024 * 1024
-READ_OPTIONS = {'max_chars': 24000, 'max_units': 10}
+    MAX_DOCUMENT_BYTES = 2 * 1024 * 1024 * 1024
+READ_OPTIONS = {'max_chars': 24000, 'max_units': 40}
 
 
 def decode(value, default=None):
@@ -23,6 +24,7 @@ def same_window(saved, current):
     previous = decode(saved, {})
     def identity(value):
         return {'text': value.get('text'), 'next_cursor': value.get('next_cursor'),
+                'visual_pending': value.get('visual_pending'), 'vision_pending': value.get('vision_pending'),
                 'units': [{'text': unit.get('text'), 'locator': unit.get('locator'),
                            'assets': [{'id': asset.get('id'), 'locator': asset.get('locator')}
                                       for asset in unit.get('assets') or []]}
@@ -60,6 +62,13 @@ async def read_source(source, uploads, *, cursor=None, verify=True):
     ranged = source.get('source_kind') == 'upload_range' and re.fullmatch(r'material_[a-f0-9]{32}', path.stem)
     if path.is_symlink() or path.resolve().parent != root or not (owned or ranged):
         raise ValueError('This material is not an application-managed imported copy.')
+    saved = decode(source.get('source_snapshot'), {})
+    if path.suffix.lower() == '.pdf' and (saved.get('long_pdf') or path.stat().st_size > 200 * 1024 * 1024):
+        from portal import long_pdf
+        if saved.get('prepared_pdf_part') and cursor == source.get('source_cursor'):
+            return await asyncio.to_thread(long_pdf.part_snapshot, source, root, saved['prepared_pdf_part']['id'])
+        return await asyncio.to_thread(long_pdf.read_window, source, root, cursor=cursor,
+                                       max_units=kwargs['max_units'], max_chars=kwargs['max_chars'])
     return await managed_request(root, path.name, **kwargs)
 
 
@@ -79,8 +88,6 @@ async def classroom_snapshot(source, uploads):
     result = decode(source.get('source_snapshot')) or verified
     if result.get('document', {}).get('sha256') != verified.get('document', {}).get('sha256'):
         raise ValueError('The material version changed. Select the reading scope again.')
-    if not (result.get('text') or '').strip():
-        raise ValueError('The selected scope has no usable text. OCR did not produce usable scan text. Choose a readable scope or complete OCR first.')
     images, image_sources, warnings, locators = [], [], list(result.get('warnings') or []), []
     image_bytes = 0
     assets = []
@@ -89,10 +96,18 @@ async def classroom_snapshot(source, uploads):
         assets.extend({**asset, 'locator': asset.get('locator') or unit.get('locator') or {}}
                       for asset in unit.get('assets') or [])
     unique = list({asset['id']: asset for asset in assets if asset.get('id')}.values())
-    for asset in unique[:10]:
+    if len(unique) > 20:
+        raise ValueError('This scope contains more than 20 images. Use the whole-PDF planner to select an automatically bounded part; no images were omitted.')
+    if not (result.get('text') or '').strip() and not unique:
+        raise ValueError('This selected scope has neither extracted text nor retained source images. Select a readable scope or check the source format.')
+    for asset in unique:
         payload = {'path': source.get('relative_path') or Path(source['path']).name,
                    'asset_id': asset['id'], 'document_sha256': result['document']['sha256']}
-        if source.get('source_kind') == 'workspace':
+        if result.get('long_pdf'):
+            from portal import long_pdf
+            picture = await asyncio.to_thread(long_pdf.read_asset, source, uploads,
+                                              asset['id'], result['document']['sha256'])
+        elif source.get('source_kind') == 'workspace':
             picture = await workspace_request(source['workspace_id'], 'asset', **payload)
         else:
             picture = await managed_request(uploads, payload.pop('path'), action='asset', **payload)
@@ -106,10 +121,12 @@ async def classroom_snapshot(source, uploads):
         image_sources.append({'image_index': len(images), 'asset_id': asset['id'],
                               'locator': asset['locator'], 'document_sha256': result['document']['sha256'],
                               'source_document_name': str(source.get('filename') or '')[:160]})
-    if len(unique) > 10:
-        raise ValueError('This scope contains more than 10 images. Reduce the reading scope before generating the classroom.')
-    return {'text': result['text'], 'images': images, 'image_sources': image_sources, 'locators': locators,
+    return {'text': result.get('text') or '', 'images': images, 'image_sources': image_sources, 'locators': locators,
             'document': result['document'], 'source_kind': source.get('source_kind') or 'upload',
             'workspace_id': source.get('workspace_id'), 'relative_path': source.get('relative_path'),
             'cursor': source.get('source_cursor'), 'partial': bool(result.get('truncated')),
-            'warning': '; '.join(str(item) for item in warnings), 'status': result.get('status')}
+            'warning': '; '.join(str(item) for item in warnings), 'status': result.get('status'),
+            'requires_image_reading': bool(result.get('requires_image_reading') or result.get('visual_pending')),
+            'visual_pending': bool(result.get('visual_pending')), 'vision_pending': result.get('vision_pending') or [],
+            'image_reading': result.get('image_reading'), 'next_tool': result.get('next_tool'),
+            'coverage': result.get('coverage') or {}}

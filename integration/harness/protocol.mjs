@@ -60,7 +60,7 @@ export async function convertRequest(body, ctx) {
   if (body.top_p !== undefined && body.top_p !== 1) throw invalid('top_p is not supported by this Harness route');
   if (body.n !== undefined && body.n !== 1) throw invalid('Only one completion is supported');
   const response = responseValidation(body.response_format);
-  const reasoningEffort = body.thinking?.type === 'disabled' ? 'off' : body.reasoning_effort;
+  const reasoningEffort = body.thinking?.type === 'disabled' || body.reasoning_effort === 'none' ? 'off' : body.reasoning_effort;
   if (reasoningEffort !== undefined && !['off', 'low', 'high', 'max'].includes(reasoningEffort)) throw invalid('Unsupported reasoning_effort');
   return { messages, tools, ...response, system: [response.system, toolInstruction].filter(Boolean).join('\n\n') || undefined,
     toolChoice, parallelToolCalls: body.parallel_tool_calls, reasoningEffort, maxTokens: body.max_completion_tokens ?? body.max_tokens, temperature: body.temperature, stop: typeof body.stop === 'string' ? [body.stop] : body.stop };

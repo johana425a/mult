@@ -70,8 +70,8 @@ class OpenMAICBridge:
             values.update({
                 "x-contest-tts-provider": tts_id,
                 "x-contest-tts-base-url": str(provider.get("tts_base_url") or ""),
-                "x-contest-tts-model": str(provider.get("tts_model") or "tts-1"),
-                "x-contest-tts-voice": str(provider.get("tts_voice") or "alloy"),
+                "x-contest-tts-model": str(provider.get("tts_model") or ("system-speech" if tts_id == "windows-system-tts" else "tts-1")),
+                "x-contest-tts-voice": str(provider.get("tts_voice") or ("auto" if tts_id == "windows-system-tts" else "alloy")),
                 "x-contest-tts-api-key": str(provider.get("tts_api_key") or ""),
             })
         for name, value in values.items():
@@ -192,5 +192,25 @@ class OpenMAICBridge:
         from portal.material_sources import managed_request, READ_OPTIONS
         path = Path(path)
         result = await managed_request(path.parent, path.name, **READ_OPTIONS)
-        return {**result, 'images': [], 'warning': '; '.join(result.get('warnings') or []),
-                'metadata': {'parser': 'shared-workspace-document-reader', 'originalFileName': path.name}}
+        assets = list({asset['id']: {**asset, 'locator': asset.get('locator') or unit.get('locator') or {}}
+            for unit in result.get('units') or [] for asset in unit.get('assets') or [] if asset.get('id')}.values())
+        if len(assets) > 20:
+            raise ValueError('This reading scope contains more than 20 source images. Use whole-PDF planning or select a smaller scope; no source image was omitted.')
+        images, sources = [], []
+        image_bytes = 0
+        for asset in assets:
+            picture = await managed_request(path.parent, path.name, action='asset', asset_id=asset['id'],
+                document_sha256=result['document']['sha256'])
+            data = (picture.get('asset') or {}).get('base64')
+            if not isinstance(data, str) or not data:
+                raise ValueError('The original document image could not be read. Its content has not been recognized.')
+            image_bytes += len(data)
+            if image_bytes > 12 * 1024 * 1024:
+                raise ValueError('Source images exceed the lesson input limit. Select fewer complete pages or slides; no image was omitted.')
+            images.append('data:image/png;base64,' + data)
+            sources.append({'image_index': len(images), 'asset_id': asset['id'], 'locator': asset['locator'],
+                            'document_sha256': result['document']['sha256'], 'source_document_name': path.name})
+        return {**result, 'images': images, 'image_sources': sources,
+                'warning': '; '.join(result.get('warnings') or []),
+                'metadata': {'parser': 'shared-workspace-document-reader', 'originalFileName': path.name,
+                    'coverage': result.get('coverage') or {}, 'requiresImageReading': result.get('requires_image_reading') is True}}

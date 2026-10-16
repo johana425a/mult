@@ -1,5 +1,6 @@
 {
-  "source_commit": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+  "upstream_commit": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+  "modified_public_source": true,
   "compiler": "esbuild 0.28.2",
   "targets": [
     {
@@ -325,7 +326,7 @@
       "export": ".",
       "source": "src/index.ts",
       "output": "./lib/index.js",
-      "output_sha256": "0421eb07f898f5bcef4a741f83c801a3d880f34c43fdb8eff072874d904e00fd",
+      "output_sha256": "fd4dcec2d1e0d17a734371338e57b45635724df2993b4a41f4385a1168db80ed",
       "inputs": {
         "packages/boot/app-boot/src/plugin-compatibility.ts": "ab688efec2beb165e2a0917b36fa72bfd5c8b96b8be3a1e6121b76ba24748135",
         "packages/boot/app-boot/src/profile-compatibility.ts": "e1b2ae8907cd3220f622c49e94819f09d3e24fd8734a95b6d1efc1fa6d088162",
@@ -338,7 +339,7 @@
         "packages/boot/app-boot/src/package-meta.ts": "2b09e3ce0ec793971c53176eded347b735ee41be2ddfdcbfd3492f945fd68e2a",
         "packages/boot/app-boot/src/compatibility-preflight.ts": "789b04a95931b039ae43109535770dc7335fb207410f73fef2628cb764268a81",
         "packages/boot/app-boot/src/official-bundle-packages.ts": "a0bcae46162e582d565dbe2a13383e8c1c4fb3883ace0af6fe3674f3b8ed76be",
-        "packages/boot/app-boot/src/official-bundles.generated.ts": "b2b35bb8ca27663ce87ebedbafe9c912dc4650cabbd2b978884ebda097651a1d",
+        "packages/boot/app-boot/src/official-bundles.generated.ts": "cd86d0266e32a9c84aa9092490fd250186041e55399c762c0cc3a2fb4d2cb874",
         "packages/boot/app-boot/src/official-bundles.ts": "7f447a43c56a0f4bcf6400dcc1508002e00e14b28440123f73d03a895b713f36",
         "packages/boot/app-boot/src/config-schema/native.ts": "74c76cc02dbee5be5bd7f0029e2187728a7c52091392dab0e9156f822609166b",
         "packages/boot/app-boot/src/config-schema/pattern.ts": "fb94255cfde7c316d058c43a1ea4ed9e88437af05796caf5e40d1373cd7d43dd",
@@ -760,12 +761,12 @@
       "export": ".",
       "source": "src/index.ts",
       "output": "./lib/index.js",
-      "output_sha256": "7afdd230ce19cc588fc6a11982948aea5891eb8a521aa358c258350965e5c026",
+      "output_sha256": "74e55e74475e9e51b1cba99ea53636ee29b98659cbb7b0c054d6f86d265dfabf",
       "inputs": {
         "packages/credentials/deepseek-account-platform/src/protocol.ts": "fe59de1da59763d39de3705923d05114d89a78eac0e9791297bb4f5b7d0f9d1e",
         "packages/credentials/deepseek-account-platform/src/details.ts": "470e945ec18c3f361d218bcc9e983c3a57c3a0e75c829bb3143a35dfc9ff9d40",
         "packages/credentials/deepseek-account-platform/src/logout.ts": "1906a6163849f4ee3e8f25f370cb9708d33e528454384d90210c90be8de6f55a",
-        "packages/credentials/deepseek-account-platform/src/index.ts": "425324c3db58c1f703a8d63f30f3d5b41cb57987d6c2bcda0d11cdf9b8549f10",
+        "packages/credentials/deepseek-account-platform/src/index.ts": "d0a1d86303415f3cdb6f953bae7925b3fe1ecf3b48f560e1dbc0a296ebe836af",
         "packages/credentials/deepseek-account-platform/src/types.ts": "bbca8f707ce6c0c6fd3c22aa9fd0fd1397a294a1e4e60e7596e67c09b99a2757"
       }
     },
@@ -780,7 +781,7 @@
         "packages/credentials/deepseek-account-platform/src/protocol.ts": "fe59de1da59763d39de3705923d05114d89a78eac0e9791297bb4f5b7d0f9d1e",
         "packages/credentials/deepseek-account-platform/src/details.ts": "470e945ec18c3f361d218bcc9e983c3a57c3a0e75c829bb3143a35dfc9ff9d40",
         "packages/credentials/deepseek-account-platform/src/logout.ts": "1906a6163849f4ee3e8f25f370cb9708d33e528454384d90210c90be8de6f55a",
-        "packages/credentials/deepseek-account-platform/src/index.ts": "425324c3db58c1f703a8d63f30f3d5b41cb57987d6c2bcda0d11cdf9b8549f10",
+        "packages/credentials/deepseek-account-platform/src/index.ts": "d0a1d86303415f3cdb6f953bae7925b3fe1ecf3b48f560e1dbc0a296ebe836af",
         "packages/credentials/deepseek-account-platform/src/types.ts": "bbca8f707ce6c0c6fd3c22aa9fd0fd1397a294a1e4e60e7596e67c09b99a2757"
       }
     },
@@ -1407,6 +1408,45 @@
       }
     },
     {
+      "package": "@deepseek-ai/dsh-plan-mode",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "9a55e82380ed2e26a20a9d74f39de5e94e60d81ce8ee7b5884b3c468db189499",
+      "inputs": {
+        "packages/plan/plan-mode/src/index.ts": "748199b16bd9c93b6eda926b0af8c72405585037a5f88cadb290857d0af5b69f",
+        "packages/plan/plan-mode/src/types.ts": "d0facf9115794593fe1afbfb7275a01a8f5aee6a74a5c26bb2aba6c73ebe4693",
+        "packages/plan/plan-mode/src/client.ts": "ddbed822b3fd8dc48a50df1180de5894253423dfbfd79bb5e4ba0bb5aeed5895"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-plan-mode",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/plan/plan-mode/src/index.ts": "748199b16bd9c93b6eda926b0af8c72405585037a5f88cadb290857d0af5b69f",
+        "packages/plan/plan-mode/src/types.ts": "d0facf9115794593fe1afbfb7275a01a8f5aee6a74a5c26bb2aba6c73ebe4693",
+        "packages/plan/plan-mode/src/client.ts": "ddbed822b3fd8dc48a50df1180de5894253423dfbfd79bb5e4ba0bb5aeed5895"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-plan-mode",
+      "version": "0.2.1-alpha.2",
+      "export": "./client",
+      "source": "src/client.ts",
+      "output": "./lib/types/client.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/plan/plan-mode/src/index.ts": "748199b16bd9c93b6eda926b0af8c72405585037a5f88cadb290857d0af5b69f",
+        "packages/plan/plan-mode/src/types.ts": "d0facf9115794593fe1afbfb7275a01a8f5aee6a74a5c26bb2aba6c73ebe4693",
+        "packages/plan/plan-mode/src/client.ts": "ddbed822b3fd8dc48a50df1180de5894253423dfbfd79bb5e4ba0bb5aeed5895"
+      }
+    },
+    {
       "package": "@deepseek-ai/dsh-ptc-runtime",
       "version": "0.2.1-alpha.2",
       "export": ".",
@@ -1435,9 +1475,9 @@
       "export": ".",
       "source": "src/index.ts",
       "output": "./lib/index.js",
-      "output_sha256": "e07eace806bfbd76b95d502f2f2b667b2086270c4051bde2fc61760f59969558",
+      "output_sha256": "f03edc0bafc8ab300e6d6ed464bc847c128a4f0b8a4cb2a9c7aa200e3c5b1a85",
       "inputs": {
-        "packages/sandbox/sandbox/src/escalation.ts": "82b165b60d20ebcd78ab51a4ba503a88b4305fa6a8ba1b420da749759ecc5085",
+        "packages/sandbox/sandbox/src/escalation.ts": "a8c08f564d2196d86e67a4a4c17b153c3443d972e68ab94c7060e465834a0aba",
         "packages/sandbox/sandbox/src/roots.ts": "8a18e1474012415def8197a4ee493394a91cc739a6ec94eb83c6b4d980b7a23b",
         "packages/sandbox/sandbox/src/diagnostics.ts": "758d86ef3e565f534a9903ea75b25bab92d31d7c080c8740ff118388966c8659",
         "packages/sandbox/sandbox/src/index.ts": "46592025ce36d04ff8d1bfa9d6594dd8d1527883649ccf40ff7a169e94e68dc6"
@@ -2242,6 +2282,18 @@
       }
     },
     {
+      "package": "@deepseek-ai/dsh-tool-ask-user",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "ec2b5a66aab00ec04d9d6d8811a5246db6063e6b0ff25c275e467cfab2bb81b0",
+      "inputs": {
+        "packages/interaction/tool-ask-user/src/timed.ts": "c11da1a785add253eb99cda4a56e6729bb3a6191cc59b07533a8165faabdd942",
+        "packages/interaction/tool-ask-user/src/index.ts": "592f5b7b2e8528180b1bce69b33010d38b1e4352514484cada991c0add0e5bef"
+      }
+    },
+    {
       "package": "@deepseek-ai/dsh-tool-fs",
       "version": "0.2.1-alpha.2",
       "export": ".",
@@ -2305,6 +2357,30 @@
       }
     },
     {
+      "package": "@deepseek-ai/dsh-tool-present",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "8094c8f9f82cdbce94a4d5dcdc6769ad144809fd01837854ded2deed18941a19",
+      "inputs": {
+        "packages/deliverables/tool-present/src/index.ts": "cc0cf35d724e7954b5c74498a0f1a8e424603b8addd9deae2aa8dbd5347265db",
+        "packages/deliverables/tool-present/src/types.ts": "417e4b43ac7a3241e5b045a7252716b08b3547bfdd9b9df9a8ffec76c7cad706"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-tool-present",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/deliverables/tool-present/src/index.ts": "cc0cf35d724e7954b5c74498a0f1a8e424603b8addd9deae2aa8dbd5347265db",
+        "packages/deliverables/tool-present/src/types.ts": "417e4b43ac7a3241e5b045a7252716b08b3547bfdd9b9df9a8ffec76c7cad706"
+      }
+    },
+    {
       "package": "@deepseek-ai/dsh-tool-pwsh",
       "version": "0.2.1-alpha.2",
       "export": ".",
@@ -2323,9 +2399,9 @@
       "export": ".",
       "source": "src/index.ts",
       "output": "./lib/index.js",
-      "output_sha256": "77814adf359c264b2073a7480c4b5a4dea1199a2b3566872d33f7a6a0370c2b7",
+      "output_sha256": "642e086800bdb8cbe329819c5b06b78af6843de9dc9c4f777e2eb8e4feaac09e",
       "inputs": {
-        "packages/schedule/tool-schedule/src/index.ts": "4f790c591571e4855d87382e0b908fd722d945ee366850e6bb76cf1594c39458"
+        "packages/schedule/tool-schedule/src/index.ts": "6718c6f1f956642cd35c8aabfe9e588ec40ea888cb471bc371a2c2ee0a3b2b21"
       }
     },
     {
@@ -2418,6 +2494,20 @@
       }
     },
     {
+      "package": "@deepseek-ai/dsh-tool-web",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "6823b36450825518c820878265f1d71773cbf48d2f76a47df5a21907ab9a2d3d",
+      "inputs": {
+        "packages/web/tool-web/src/trust.ts": "3d35bb98ca3b29a393a733fd19142bf3b4a58cf61e4c70ba475def0203e89061",
+        "packages/web/tool-web/src/search.ts": "7fa69d836cf682f0a6a3854f90e91cf4f746d90c91881fe92d11aeed5c66a2ee",
+        "packages/web/tool-web/src/fetch.ts": "dc192e9b26d4114704be77e3ce1cffd10c8b2cef611ff0f1b7455f4ba84c3ab0",
+        "packages/web/tool-web/src/index.ts": "6e13c20e5b5b9155a2212a5875a5cd924257908e88168f761eafcf1606854022"
+      }
+    },
+    {
       "package": "@deepseek-ai/dsh-tools",
       "version": "0.2.1-alpha.2",
       "export": ".",
@@ -2429,7 +2519,7 @@
         "packages/core/tools/src/schema.ts": "096f679e38626cc52536b8ecb9eef4c551c1a8a095c8e84f7a3b6156ee533653",
         "packages/core/tools/src/ptc.ts": "3a8d22c0040d48d80f214b52a9d741fa63709acdb295467008b9024b2cd5dc77",
         "packages/core/tools/src/ts-types.ts": "85205a23ed99597b12579fb2ac4f88ffb3c67ce30a0bd731237a85ba0a8e70b4",
-        "packages/core/tools/src/py-types.ts": "9c6886843ffef0fd99407902b8648b1b702ac761a1819ef9473faf23986deaa2",
+        "packages/core/tools/src/py-types.ts": "82906abff93236504b24b61728e8b3fc3a70959b27ef29ecffeb7aab7a6cc9bd",
         "packages/core/tools/src/testing.ts": "8b7bf72750d885c1acb52e99ccac9e42542cc5efcb581098ad3507e83ca0a651",
         "packages/core/tools/src/index.ts": "e7209f5ba63fff439f1462249c6de77f7a1be060c62d9fe1aa67e5a6ecceb5b9",
         "packages/core/tools/src/types.ts": "26c2c9ac831526d9bcefe5ee3b9b1a6a8ca313d43efffe579670366790539bb6",
@@ -2448,7 +2538,7 @@
         "packages/core/tools/src/schema.ts": "096f679e38626cc52536b8ecb9eef4c551c1a8a095c8e84f7a3b6156ee533653",
         "packages/core/tools/src/ptc.ts": "3a8d22c0040d48d80f214b52a9d741fa63709acdb295467008b9024b2cd5dc77",
         "packages/core/tools/src/ts-types.ts": "85205a23ed99597b12579fb2ac4f88ffb3c67ce30a0bd731237a85ba0a8e70b4",
-        "packages/core/tools/src/py-types.ts": "9c6886843ffef0fd99407902b8648b1b702ac761a1819ef9473faf23986deaa2",
+        "packages/core/tools/src/py-types.ts": "82906abff93236504b24b61728e8b3fc3a70959b27ef29ecffeb7aab7a6cc9bd",
         "packages/core/tools/src/testing.ts": "8b7bf72750d885c1acb52e99ccac9e42542cc5efcb581098ad3507e83ca0a651",
         "packages/core/tools/src/index.ts": "e7209f5ba63fff439f1462249c6de77f7a1be060c62d9fe1aa67e5a6ecceb5b9",
         "packages/core/tools/src/types.ts": "26c2c9ac831526d9bcefe5ee3b9b1a6a8ca313d43efffe579670366790539bb6",
@@ -2467,7 +2557,7 @@
         "packages/core/tools/src/schema.ts": "096f679e38626cc52536b8ecb9eef4c551c1a8a095c8e84f7a3b6156ee533653",
         "packages/core/tools/src/ptc.ts": "3a8d22c0040d48d80f214b52a9d741fa63709acdb295467008b9024b2cd5dc77",
         "packages/core/tools/src/ts-types.ts": "85205a23ed99597b12579fb2ac4f88ffb3c67ce30a0bd731237a85ba0a8e70b4",
-        "packages/core/tools/src/py-types.ts": "9c6886843ffef0fd99407902b8648b1b702ac761a1819ef9473faf23986deaa2",
+        "packages/core/tools/src/py-types.ts": "82906abff93236504b24b61728e8b3fc3a70959b27ef29ecffeb7aab7a6cc9bd",
         "packages/core/tools/src/testing.ts": "8b7bf72750d885c1acb52e99ccac9e42542cc5efcb581098ad3507e83ca0a651",
         "packages/core/tools/src/index.ts": "e7209f5ba63fff439f1462249c6de77f7a1be060c62d9fe1aa67e5a6ecceb5b9",
         "packages/core/tools/src/types.ts": "26c2c9ac831526d9bcefe5ee3b9b1a6a8ca313d43efffe579670366790539bb6",
@@ -2555,6 +2645,34 @@
       }
     },
     {
+      "package": "@deepseek-ai/dsh-user-questions",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "3f7524cb1f9fb3fc377e17eb8ef29e060d8ff64a5b74254dfed255ad571a83f6",
+      "inputs": {
+        "packages/interaction/user-questions/src/projection.ts": "d01796bd8d4fd098bf8f004ccced882c8a243bb88b563871abc26dc98c9a3e7a",
+        "packages/interaction/user-questions/src/timed-wait.ts": "adc8a7ac7d079a8d468a0607329aec6025865ff366482790cf62edeb269c61ae",
+        "packages/interaction/user-questions/src/index.ts": "5bf54301a5560daf36a75ec12496a57dc7d2f20d741e17895df3c03584673106",
+        "packages/interaction/user-questions/src/types.ts": "682e2c58e1915019b3ef50be91a4edcdd7ba6cf3e4637baeb0fb4efa7319fa93"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-user-questions",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/interaction/user-questions/src/projection.ts": "d01796bd8d4fd098bf8f004ccced882c8a243bb88b563871abc26dc98c9a3e7a",
+        "packages/interaction/user-questions/src/timed-wait.ts": "adc8a7ac7d079a8d468a0607329aec6025865ff366482790cf62edeb269c61ae",
+        "packages/interaction/user-questions/src/index.ts": "5bf54301a5560daf36a75ec12496a57dc7d2f20d741e17895df3c03584673106",
+        "packages/interaction/user-questions/src/types.ts": "682e2c58e1915019b3ef50be91a4edcdd7ba6cf3e4637baeb0fb4efa7319fa93"
+      }
+    },
+    {
       "package": "@deepseek-ai/dsh-util-code-language",
       "version": "0.2.1-alpha.2",
       "export": ".",
@@ -2609,6 +2727,44 @@
       "inputs": {
         "packages/util/workspace-path/src/file-address.ts": "e54979d7970c09a777d9917a098ab0de8768c60dd198a97167480ffde9bc8f7c",
         "packages/util/workspace-path/src/index.ts": "0e3c4a10337288f51459d3ef72f443424cef929ffb9507e1bdc51d67734c1392"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-web",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "2f5ad8ef7de765c9da20d0de0b7e26ebe78c1f890afa62e6ea9e1f12fe376482",
+      "inputs": {
+        "packages/web/web/src/types.ts": "5359ed9130690d7c2fceab7079ba2c2e017b1ac5e053a06cf612cbc6b7609896",
+        "packages/web/web/src/index.ts": "70393ce16a880977f819c590176fce963c6772f48db26bd2f2274b2d81795e02"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-web-fetch-http",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "e80cbe3ced20f89ac3fa7259e3e147797c479aea54e045b8ec9e984bab22968a",
+      "inputs": {
+        "packages/web/web-fetch-http/src/network.ts": "e4d2f6091fbda36e19297ee67b45da44d171cf1b2177aef2b1f9175c75e1faf3",
+        "packages/web/web-fetch-http/src/policy.ts": "dd53d2c6d462e53d891da289e5595ebb0563385ec07c6339e6d8ba3a8f38373a",
+        "packages/web/web-fetch-http/src/provider.ts": "f7f291e08f0650b860d23af496327468b2a4f74b4d0c5ecc95741b869d1e970d",
+        "packages/web/web-fetch-http/src/index.ts": "052bb02cae475d2ce450a8d3d1bb278df6bbac1d60fa997ebfba44422278c6f3"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-web-search-deepseek",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "04bca0dacbf720758ac650cc9cc22c5c3fdc730fa59019aac25e9e375cf6c6b9",
+      "inputs": {
+        "packages/web/web-search-deepseek/src/provider.ts": "525e23d15f735c7508d10f29e5ee8c79285ad45eda2499394cdcb2716ea3e86e",
+        "packages/web/web-search-deepseek/src/index.ts": "efe2780e962221cc2d6f013720c4e57d42d5ec4f4d1049d680df5b6a1be64ba0"
       }
     },
     {
@@ -2667,6 +2823,42 @@
         "packages/workspace/workspace/src/spec.ts": "5066b6bd70c579cd84c2e3bfc16e0262483d0bcffbb269ea0b1b1a3ca2ad6b41",
         "packages/workspace/workspace/src/index.ts": "6130c03aee1809e193c278e69fdea37c2c840dbc1550f5ca9b183bf6319292df",
         "packages/workspace/workspace/src/types.ts": "fe005dabf56078a3ff10267f8176e9f6bd93761f7ff8de942cd8ab96d9c881cc"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-workspace-changes",
+      "version": "0.2.1-alpha.2",
+      "export": ".",
+      "source": "src/index.ts",
+      "output": "./lib/index.js",
+      "output_sha256": "8d39399a4d5eb04e2c3559036ac27e800d0ff45ce0a78bcccc3588abf015ee1d",
+      "inputs": {
+        "packages/deliverables/workspace-changes/src/numstat.ts": "6277137516459cfa1f65b0d7ddf18b52f983be16542b0b993fe582e783b48e43",
+        "packages/deliverables/workspace-changes/src/paths.ts": "a30ae70d5484b60c8c2f06d672e5abbdeba2907943f7e1bbba320cf752fc6096",
+        "packages/deliverables/workspace-changes/src/git.ts": "e9b2cb678ef3dee3a4fbb1a34d9433b8c5d28c5f34f189d2398367a1537fdc28",
+        "packages/deliverables/workspace-changes/src/capture.ts": "3330a50bcf0628d351209149eac5e5d643da1a8954e5c77d1e6ed3b264a875e6",
+        "packages/deliverables/workspace-changes/src/compare.ts": "6ecc20f8b53909a95be8cb2d8135325f78a7fc5b862f5cf04e8f71e92d01c2aa",
+        "packages/deliverables/workspace-changes/src/recorder.ts": "7241b4c3e2c9dbbb7f33993b0a35fa6cfab76551a898a97acf698e343899e5c7",
+        "packages/deliverables/workspace-changes/src/index.ts": "447b2b4b131fcff7c268b569c6b3a8abe50e31965f073ea8b1808d406a5d7a87",
+        "packages/deliverables/workspace-changes/src/types.ts": "ae4413b06084bc28b423d4e7075d338e00e97482bb45953ab71a4dd03d1db8f9"
+      }
+    },
+    {
+      "package": "@deepseek-ai/dsh-workspace-changes",
+      "version": "0.2.1-alpha.2",
+      "export": "./types",
+      "source": "src/types.ts",
+      "output": "./lib/types/types.js",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputs": {
+        "packages/deliverables/workspace-changes/src/numstat.ts": "6277137516459cfa1f65b0d7ddf18b52f983be16542b0b993fe582e783b48e43",
+        "packages/deliverables/workspace-changes/src/paths.ts": "a30ae70d5484b60c8c2f06d672e5abbdeba2907943f7e1bbba320cf752fc6096",
+        "packages/deliverables/workspace-changes/src/git.ts": "e9b2cb678ef3dee3a4fbb1a34d9433b8c5d28c5f34f189d2398367a1537fdc28",
+        "packages/deliverables/workspace-changes/src/capture.ts": "3330a50bcf0628d351209149eac5e5d643da1a8954e5c77d1e6ed3b264a875e6",
+        "packages/deliverables/workspace-changes/src/compare.ts": "6ecc20f8b53909a95be8cb2d8135325f78a7fc5b862f5cf04e8f71e92d01c2aa",
+        "packages/deliverables/workspace-changes/src/recorder.ts": "7241b4c3e2c9dbbb7f33993b0a35fa6cfab76551a898a97acf698e343899e5c7",
+        "packages/deliverables/workspace-changes/src/index.ts": "447b2b4b131fcff7c268b569c6b3a8abe50e31965f073ea8b1808d406a5d7a87",
+        "packages/deliverables/workspace-changes/src/types.ts": "ae4413b06084bc28b423d4e7075d338e00e97482bb45953ab71a4dd03d1db8f9"
       }
     },
     {
@@ -2803,6 +2995,16 @@
     {
       "package": "dsh-typert-registry",
       "export": "./client",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-user-questions",
+      "export": "./typert",
+      "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
+    },
+    {
+      "package": "dsh-user-questions",
+      "export": "./remote",
       "reason": "Generated remote/type-graph metadata; this Host loads no Remote or Typert service."
     }
   ]

@@ -1,7 +1,8 @@
 """Offline portable-document self-check using only generated, non-user files.
 
-Run with this installation's Python using -I -B. This checks real imports and
-OCR inference, rather than merely finding package metadata. It does not start
+Run with this installation's Python using -I -B. This checks real imports,
+text-layer extraction and original image retrieval, not OCR or VLM inference.
+It does not start
 DeepSteam, read accounts, call a language model, or access a user's workspace.
 """
 from __future__ import annotations
@@ -115,16 +116,19 @@ def verify(root: Path, work_directory: Path) -> dict:
             workbook.active.append(["DeepSteam spreadsheet", 2, "=B1+1"])
             workbook.save(folder / "sample.xlsx")
             (folder / "sample.md").write_text("# DeepSteam Markdown\n![source](sample.png)\n", "utf8")
-            samples = [("text.pdf", ["DeepSteam", "text PDF"]), ("scan.pdf", ["DeepSteam", "reading"]),
-                       ("scan-en.pdf", ["Cell biology", "mitochondria"]),
+            samples = [("text.pdf", ["DeepSteam", "text PDF"]), ("scan.pdf", []),
+                       ("scan-en.pdf", []),
                        ("sample.docx", ["Word document", "Header", "42"]), ("sample.pptx", ["slide two"]),
                        ("sample.xlsx", ["spreadsheet", "=B1+1"]), ("sample.md", ["Markdown"])]
             for filename, terms in samples:
-                value = reader.handle_request({"root": str(folder), "path": filename, "max_units": 20, "ocr": "auto"})
+                value = reader.handle_request({"root": str(folder), "path": filename, "max_units": 20, "ocr": "off"})
                 if not value.get("ok") or not all(term in value.get("text", "") for term in terms):
                     raise RuntimeError(f"Synthetic document failed: {filename}")
-                if filename in {"scan.pdf", "scan-cn.pdf"} and value["units"][0]["extraction"] != "ocr":
-                    raise RuntimeError("Scanned PDF did not use the packaged OCR engine")
+                if filename in {"scan.pdf", "scan-en.pdf"}:
+                    if value.get('text', '').strip() or not value.get('visual_pending'):
+                        raise RuntimeError("Scanned PDF must retain pixels as visually pending, without invented OCR")
+                if any(unit.get('extraction') == 'ocr' for unit in value.get('units', [])):
+                    raise RuntimeError("Default document self-check unexpectedly invoked OCR")
                 asset_count = sum(len(unit.get("assets", [])) for unit in value["units"])
                 if filename != "sample.xlsx" and not asset_count:
                     raise RuntimeError(f"Synthetic source visual missing: {filename}")

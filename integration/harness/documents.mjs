@@ -78,7 +78,9 @@ export function documentModelView(value) {
   if (!value || typeof value !== 'object' || !Array.isArray(value.units)) return value;
   const { text: _duplicate, units, navigation, ...rest } = value;
   const nav = navigation ?? { next_cursor: value.next_cursor ?? null, next_start_unit: value.next_start_unit ?? null, done: !value.truncated };
-  const next = nav.done ? 'Reading of this document is complete.'
+  const next = nav.done ? (value.visual_pending || value.vision_pending?.length
+    ? 'Text-layer extraction is complete, but visual content remains unread. Call read_document_image for each vision_pending asset using the selected, image-verified model; do not mark the document fully read.'
+    : 'Requested document data has been delivered. Delivery is not proof of semantic comprehension.')
     : `Continue with cursor="${nav.next_cursor}" or, equivalently, start_unit=${nav.next_start_unit}.`;
   return { navigation: { ...nav, how_to_continue: next }, ...rest,
     units: units.map(({ unit_text_sha256: _hash, ...unit }) => unit), navigation_end: { ...nav, how_to_continue: next } };

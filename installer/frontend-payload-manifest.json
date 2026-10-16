@@ -1,0 +1,75 @@
+{
+  "version": "2026.10.13-r9-selected-model-vision",
+  "native_build_id": "20261013-190000",
+  "openmaic_next_build_id": "W1hgNcDed_r80iKjzwb-Y",
+  "components": [
+    {
+      "path": "runtime/native-frontends/20261013-190000",
+      "files": 3384,
+      "bytes": 84137941,
+      "inventory_sha256": "9e2f6c2f6d23bc0f31b069d452f93316bd72d8934da5d75a4ebeaece91c14b8b",
+      "inventory_order": "sorted-relative-path"
+    },
+    {
+      "path": "runtime/openmaic-standalone",
+      "files": 9694,
+      "bytes": 337673279,
+      "inventory_sha256": "76239ef3fb887d7444ab32288f453b384f68ce943365c5a6c04b724a09fe0e33",
+      "inventory_order": "sorted-relative-path"
+    },
+    {
+      "path": "runtime/render-service",
+      "files": 20125,
+      "bytes": 464396641,
+      "inventory_sha256": "0bf271b2bafa82ba773a62f71ff8ca2513ee85c85bf770daced3f22a43c68b22",
+      "inventory_order": "sorted-relative-path"
+    },
+    {
+      "path": "runtime/desktop",
+      "files": 83,
+      "bytes": 385687892,
+      "inventory_sha256": "45740fd9334c68c0adfb45e04bce73157503f6a7a0d7f6319f2a1a78ef970699",
+      "inventory_order": "sorted-relative-path"
+    },
+    {
+      "path": "runtime/harness",
+      "files": 16645,
+      "bytes": 221868156,
+      "inventory_sha256": "421ef9aad0e1917ea2312123f58cf1ddf84d769d93ab57855f10065ef1ed6b05",
+      "inventory_order": "sorted-relative-path"
+    },
+    {
+      "path": "runtime/mineru",
+      "files": 17422,
+      "bytes": 629097382,
+      "inventory_sha256": "310e39c70966216b7ee6f0e63b36d464d73fd017be82604c54db2d6da6af4358",
+      "inventory_order": "sorted-relative-path"
+    },
+    {
+      "path": "models/mineru",
+      "files": 19,
+      "bytes": 2098703847,
+      "inventory_sha256": "8638a5d0f581466a25d7363953d1e08457db8e5e47e12d1b5c0cbca91755a559",
+      "inventory_order": "sorted-relative-path"
+    },
+    {
+      "path": "runtime/ffmpeg",
+      "files": 5,
+      "bytes": 210722227,
+      "inventory_sha256": "7a521a32c97a2485501a4990302f66a6adc2e012aa844e839f7ef9961887f034",
+      "inventory_order": "sorted-relative-path"
+    }
+  ],
+  "junctions": 899,
+  "junction_manifest": "installer/junctions.json",
+  "staged_reparse_points": 0,
+  "credentials_and_user_data_copied": false,
+  "installer_launch_page_included": false,
+  "generated_entry_modification_required": "separate-storage images.maximumDiskCacheSize=0; optimizer retained",
+  "desktop_harness_included": true,
+  "tzdata_version": "2026.5",
+  "native_next_build_id": "SIBGwz-w7JILD5mGdv2PU",
+  "openmaic_build_id": "W1hgNcDed_r80iKjzwb-Y",
+  "default_language": "zh",
+  "source_commit": "2b436c74c49f6affc9c1f8c4d0e2d3cd2c226d75"
+}

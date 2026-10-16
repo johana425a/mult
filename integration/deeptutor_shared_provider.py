@@ -5,6 +5,7 @@ is exported to the frontend, persisted elsewhere or copied from another app.
 """
 from __future__ import annotations
 
+import asyncio
 import hmac
 import os
 import re
@@ -110,6 +111,10 @@ def install_routes(app, root=None, token_loader=None, resolver=None,
 
     from integration.unified_model_runtime import install_unified_model_routes
     install_unified_model_routes(app, authenticate)
+    from integration.bilibili_bridge import install_bilibili_routes
+    install_bilibili_routes(app, authenticate)
+    from integration.domestic_bridge import install_domestic_routes
+    install_domestic_routes(app, authenticate)
     from integration.execution_workspace_binding import install_execution_workspace_binding
     install_execution_workspace_binding(app, authenticate, service_factory=workspace_service)
 
@@ -127,7 +132,7 @@ def install_routes(app, root=None, token_loader=None, resolver=None,
     async def shared_workspace_catalog(request: Request):
         authenticate(request)
         try:
-            return {'workspaces': workspace_service().list_workspaces()}
+            return {'workspaces': await asyncio.to_thread(lambda: workspace_service().list_workspaces())}
         except Exception:
             raise HTTPException(409, {'code': 'workspace_catalog_unavailable',
                 'message': 'The workspace directory is temporarily unavailable. Retry shortly.'}) from None
@@ -160,39 +165,50 @@ def install_routes(app, root=None, token_loader=None, resolver=None,
                 or ('kind' in expected and (not isinstance(expected['kind'], str) or not expected['kind']))):
             raise HTTPException(422, 'Invalid workspace revision')
         patch = {key: body[key] for key in ('name', 'archived') if key in body}
+
+        def apply_change():
+            # DeepSteam 2026-10-16 workspaces: renaming, removing and restoring only edit
+            # this registry row; folders, chats and answers in progress are
+            # left alone. The account-wide exclusive data lock taken here before
+            # failed whenever any chat (in any workspace) was still finishing or
+            # a background import was running, so a workspace could not be
+            # removed after chatting. A pending data-migration recovery still
+            # blocks changes, and the registry update is itself transactional.
+            check_workspace_recovery()
+            service = workspace_service()
+            row = next((item for item in service.list_workspaces()
+                        if item.get('workspace_id') == workspace_id), None)
+            if row is None:
+                raise HTTPException(404, {'code': 'workspace_missing', 'message': 'Workspace not found.'})
+            if row.get('kind') != 'workspace':
+                raise HTTPException(403, {'code': 'workspace_protected',
+                    'message': 'System and general workspaces cannot be renamed or removed.'})
+            if expected is not None and (row.get('display_name') != expected['name']
+                    or bool(row.get('archived')) != expected['archived']
+                    or ('kind' in expected and row.get('kind') != expected['kind'])
+                    or ('path' in expected and os.path.normcase(os.path.normpath(row.get('path', '')))
+                        != os.path.normcase(os.path.normpath(expected['path'])))):
+                raise HTTPException(409, {'code': 'workspace_revision_changed',
+                    'message': 'The workspace state changed. Refresh and retry.'})
+            return {'workspace': service.update_workspace(workspace_id, **patch)}
+
         try:
-            # Reuse the native cross-process exclusion and recovery checks;
-            # metadata updates never remove a folder or its saved sessions.
-            with workspace_activity():
-                check_workspace_recovery()
-                service = workspace_service()
-                row = next((item for item in service.list_workspaces()
-                            if item.get('workspace_id') == workspace_id), None)
-                if row is None:
-                    raise HTTPException(404, {'code': 'workspace_missing', 'message': 'Workspace not found.'})
-                if row.get('kind') != 'workspace':
-                    raise HTTPException(403, {'code': 'workspace_protected',
-                        'message': 'System and general workspaces cannot be renamed or removed.'})
-                if expected is not None and (row.get('display_name') != expected['name']
-                        or bool(row.get('archived')) != expected['archived']
-                        or ('kind' in expected and row.get('kind') != expected['kind'])
-                        or ('path' in expected and os.path.normcase(os.path.normpath(row.get('path', '')))
-                            != os.path.normcase(os.path.normpath(expected['path'])))):
-                    raise HTTPException(409, {'code': 'workspace_revision_changed',
-                        'message': 'The workspace state changed. Refresh and retry.'})
-                return {'workspace': service.update_workspace(workspace_id, **patch)}
+            return await asyncio.to_thread(apply_change)
         except HTTPException:
             raise
-        except Exception:
-            raise HTTPException(409, {'code': 'workspace_busy_or_unavailable',
-                'message': 'The workspace has running or recoverable tasks. Stop them before managing it.'}) from None
+        except Exception as exc:
+            from deeptutor.services.workspace.models import WorkspaceError
+            message = str(exc).strip() if isinstance(exc, WorkspaceError) else ''
+            raise HTTPException(409, {'code': 'workspace_update_failed',
+                'message': message or 'The workspace could not be updated. Retry shortly; files and chats are unchanged.'}) from None
 
     @app.get('/api/contest/internal/workspaces/{workspace_id}')
     async def shared_workspace(workspace_id: str, request: Request):
         authenticate(request)
         if not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', workspace_id):
             raise HTTPException(422, 'Invalid workspace identity')
-        row = next((item for item in workspace_service().list_workspaces()
+        rows = await asyncio.to_thread(lambda: workspace_service().list_workspaces())
+        row = next((item for item in rows
                     if item.get('workspace_id') == workspace_id and not item.get('archived')), None)
         if not row or row.get('status') != 'ready':
             raise HTTPException(404, 'Registered workspace unavailable')

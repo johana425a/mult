@@ -42,6 +42,9 @@ MIN_GPU_FREE_MIB = 1536  # weights, projector and KV cache of the 1.2B model
 GPU_RETRY_SECONDS = 24 * 3600  # after a GPU server failure, use the CPU build for a day
 LLAMA_RELEASE = "b11541"
 VLM_ALIAS = "mineru-document-tool"
+# This pinned model's training window is 8192. llama.cpp's unified KV cache
+# is shared across slots, so reserve that capacity for every concurrent page.
+VLM_CONTEXT_PER_SLOT = 8192
 SMALL_MODEL_DIR = MODEL_ROOT / "MinerU-4_models_onnx"
 # MinerU 4.0.12 tier -> analysis effort (parser/tier.py). Only standard/high and
 # advanced/xhigh run the VLM; advanced also enables VLM image analysis.
@@ -308,12 +311,11 @@ def server_args(port: int, slots: int, threads: int, device: dict | None = None)
             "--mmproj", str(VLM_PROJECTOR),
             "--host", "127.0.0.1", "--port", str(port), "--alias", VLM_ALIAS,
             *(["--device", device["id"], "--n-gpu-layers", "99"] if gpu else ["--n-gpu-layers", "0", "--no-mmproj-offload"]),
-            "--parallel", str(slots), "--ctx-size", "0",
+            "--parallel", str(slots), "--ctx-size", str(VLM_CONTEXT_PER_SLOT * slots),
             "--threads", str(threads), "--no-webui", "--no-warmup", "--jinja",
             "--special", "--skip-chat-parsing", "--metrics"]
     if slots > 1:
-        # One KV buffer shared by all slots, so batching never shrinks the
-        # context available to a single page request.
+        # Unified scheduling shares the total capacity reserved above.
         args.append("--kv-unified")
     return args
 
@@ -327,7 +329,8 @@ def portable_vlm_engine(tier: str, home: Path):
     """Official MIT llama.cpp is a private document subprocess, never a provider."""
     slots = vlm_parallel()
     policy = {"device": "cpu", "n_gpu_layers": 0, "n_parallel": slots,
-              "n_threads": max(1, min(8, os.cpu_count() or 1)), "context": "model_training_default",
+              "n_threads": max(1, min(8, os.cpu_count() or 1)),
+              "context": VLM_CONTEXT_PER_SLOT * slots, "context_per_slot": VLM_CONTEXT_PER_SLOT,
               "engine": "official-llama.cpp-b11541", "transport": "private_loopback_http"}
     if tier not in VLM_TIERS:
         yield {**policy, "vlm": False, "n_parallel": 0}

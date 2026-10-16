@@ -1,7 +1,26 @@
 {
-  "version": "2026.10.13-r8-adaptive-vlm",
-  "native_build_id": "20261012-230020",
-  "openmaic_next_build_id": "a94MyhgoL4M-F9FiHIuP9",
+  "version": "2026.10.13-r9-selected-model-vision",
+  "source_repository": "https://github.com/johana425a/mult",
+  "source_commit": "2b436c74c49f6affc9c1f8c4d0e2d3cd2c226d75",
+  "native_build_id": "20261013-190000",
+  "native_next_build_id": "SIBGwz-w7JILD5mGdv2PU",
+  "openmaic_next_build_id": "W1hgNcDed_r80iKjzwb-Y",
+  "default_language": "zh",
+  "timezone_policy": "runtime_local",
+  "user_data_copied": false,
+  "credentials_copied": false,
+  "local_build_adjustments": [
+    "Pinned Canvas N-API binary and native DLL tracing",
+    "External native Canvas and LinkeDOM packages",
+    "Node-only instrumentation import; retain all startup work",
+    "Browser-safe persistence package entry; server exports preserved",
+    "Six Next routes wrap unchanged handlers without exporting non-route helpers",
+    "Chinese local interface and first-run defaults",
+    "Generated Next image-cache storage policy and semantic installer diagnostic",
+    "Program-only updater ownership for guides and renderer",
+    "Direct original-image input to a verified selected vision model; local MinerU is opt-in",
+    "Pinned official Harness web, questions, plan, present and workspace change capabilities"
+  ],
   "upstream": {
     "DeepTutor": {
       "commit": "6cf793bd868ba5ecbe64722936d4be8fab5a01df",
@@ -19,13 +38,10 @@
       "working_tree_changes_included": true
     }
   },
+  "previous_version": "2026.10.13-r8-adaptive-vlm",
   "deferred_validation": [
     "second_physical_computer",
     "fresh_cloud_inference",
     "production_uninstall"
-  ],
-  "user_data_copied": false,
-  "credentials_copied": false,
-  "previous_version": "2026.10.12-r7-harness-tools",
-  "binary_build": "not yet built from this revision; native_build_id and openmaic_next_build_id refer to the r7 build"
+  ]
 }

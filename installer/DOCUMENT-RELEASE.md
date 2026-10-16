@@ -1,5 +1,25 @@
 # Document-capable Windows release
 
+The r9 selected-model-vision edition keeps text-layer extraction local. Scan
+pages, standalone images and embedded Office pictures retain their original
+pixels and source locations for the verified model selected for the current task.
+No separate visual model is selected and no OCR step is required first. The
+packaged local MinerU engine remains disabled by default in advanced settings.
+The installer includes the optional local
+engine but does not enable it or select another cloud provider automatically.
+
+This release also includes the pinned official Harness web, user questions,
+plan, presentation and workspace-change plugins. Their full locked dependency
+closure is required in `runtime/harness/node_modules`; copying only the
+`@deepseek-ai` scope is insufficient. A search provider, live image verification
+and model authorization remain user configuration, not portable installer state.
+
+Build and deployment manifests must be regenerated for r9. Program updates
+preserve existing external application data; installer and source companions
+must exclude accounts, credentials, documents, learning records and test state.
+Offline provider fixtures validate software routing and UI behavior. They do not
+constitute cloud model or second-computer acceptance.
+
 Use `installer/build_document_release.py` for new releases. `build_installer.py`
 is the retired r3 entry point; it refuses a new build before copying any files.
 The original portable-Python freeze is historical. The document closure is pinned
@@ -80,8 +100,8 @@ containing the standalone old-version uninstall-entry repair).
 - Extract only the final package's document Python closure (about 348 MB, not the
   app/model payload) to a fresh temporary folder and run its own Python with
   `-I -B` and a minimal environment.
-- Import the real native libraries; read generated PDF text and English
-  scanned pages, Word text/table/image, PowerPoint, spreadsheet formula strings,
+- Import the real native libraries; read generated PDF text and retain original
+  scanned-page pixels, Word text/table/image, PowerPoint, spreadsheet formula strings,
   Markdown, and the original PDF page image. All network calls are blocked and
   model calls are absent. The synthetic English scan ships with the probe so it
   does not depend on an additional language font on the recipient's computer.

@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import secrets
+import time
 from urllib.parse import urlsplit
 
 import httpx
@@ -58,6 +59,18 @@ def safe_code(value):
     return value if re.fullmatch(r'[a-z0-9_]{1,60}', value) else 'upstream_error'
 
 
+def _capability_identity(value):
+    if not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', value):
+        raise HarnessError('invalid_identity', 'The requested session or question is invalid.', 422)
+    return value
+
+
+def _capability_index(value):
+    if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 1_000_000_000:
+        raise HarnessError('invalid_cursor', 'The requested file position is invalid.', 422)
+    return value
+
+
 class HarnessTransport:
     def __init__(self, root, dt_url='http://127.0.0.1:8011'):
         self.root = Path(root)
@@ -94,6 +107,34 @@ class HarnessTransport:
             raise
         except (httpx.HTTPError, ValueError):
             raise HarnessError('host_unavailable', 'The model service is temporarily unavailable. Previous settings are retained.', 503) from None
+
+    async def host_binary(self, path, timeout=45):
+        """Read a declared deliverable through authenticated, bounded Host access."""
+        try:
+            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
+                async with client.stream('GET', GATEWAY + path,
+                        headers={'Authorization': 'Bearer ' + self.token()}) as response:
+                    if response.status_code >= 400:
+                        await response.aread()
+                        try:
+                            data = response.json()
+                        except ValueError:
+                            data = {}
+                        code = safe_code((data.get('error') or {}).get('code'))
+                        raise HarnessError(code, 'The declared file is unavailable or access was denied.', response.status_code)
+                    chunks, count = [], 0
+                    async for chunk in response.aiter_bytes():
+                        count += len(chunk)
+                        if count > 64 * 1024 * 1024:
+                            raise HarnessError('deliverable_too_large', 'This file exceeds the preview/download limit.', 413)
+                        chunks.append(chunk)
+                    return {'content': b''.join(chunks), 'media_type': response.headers.get('content-type', 'application/octet-stream'),
+                        'headers': {name: response.headers[name] for name in ('content-disposition', 'content-security-policy', 'x-content-type-options', 'cache-control')
+                                    if name in response.headers}}
+        except HarnessError:
+            raise
+        except httpx.HTTPError:
+            raise HarnessError('host_unavailable', 'The desktop file service is temporarily unavailable.', 503) from None
 
     async def native(self, method, path, body=None):
         try:
@@ -158,7 +199,11 @@ class HarnessTransport:
                     'workspace_revision_changed': 'The workspace state changed. Refresh and retry.',
                     'workspace_busy_or_unavailable': 'The workspace has running or recoverable tasks. Stop them before managing it.',
                     'workspace_catalog_unavailable': 'The workspace directory is temporarily unavailable. Retry shortly.'}
-                raise HarnessError(code, messages.get(code, 'The workspace service is temporarily unavailable. Files and sessions are retained.'), response.status_code)
+                # DeepSteam 2026-10-16 workspaces: show the service's own reason when it gives one.
+                reason = detail.get('message') if isinstance(detail, dict) else None
+                message = messages.get(code) or (reason.strip() if isinstance(reason, str) and reason.strip() else
+                    'The workspace service is temporarily unavailable. Files and sessions are retained.')
+                raise HarnessError(code, message, response.status_code)
             return response.json()
         except HarnessError:
             raise
@@ -200,6 +245,10 @@ class HarnessBridge:
         self.store = store
         self.transport = transport or HarnessTransport(root)
         self.commit_lock = asyncio.Lock()
+        self.image_restore_lock = asyncio.Lock()
+        self.image_restore_key = None
+        self.image_restore_after = 0
+        self.image_restore_result = None
 
     def _op(self, op_id=None, revision=None):
         op = self.store.harness_state()
@@ -255,10 +304,14 @@ class HarnessBridge:
             if not current or current.get('route_id') != route_id:
                 raise HarnessError('connection_unavailable', 'The model connection changed. Select a verified connection again.', 409)
             caps = self._capabilities(current)
+            # The enabled targets are persisted on the active route by apply();
+            # report them instead of assuming learning was never selected.
+            applied = set(current.get('targets') or [])
             value = {'selection': 'current', 'managed': True, 'provider': 'deepseek',
                      'provider_label': 'DeepSeek', 'model': current['model'], 'route': current['route'],
                      'text': {'verified': caps['text']}, 'vision': {'verified': caps['vision']},
-                     'targets': {'learning': 'not_selected', 'classroom': 'selected'}}
+                     'targets': {'learning': 'selected' if 'learning' in applied else 'not_selected',
+                                 'classroom': 'selected' if 'classroom' in applied else 'not_selected'}}
             value.update(managed_model_limits(current['model'], current['route']))
         else:
             from integration.local_qwen_defaults import is_local_provider
@@ -276,7 +329,7 @@ class HarnessBridge:
             'configured': local_tts or bool(settings.get('tts_base_url') and settings.get('tts_key_set')),
             'provider': 'windows-system-tts' if local_tts else 'openai-tts',
             'model': 'system-speech' if local_tts else settings.get('tts_model') or 'tts-1',
-                     'voice': 'auto-en' if local_tts else settings.get('tts_voice') or 'alloy'}
+                     'voice': 'auto-zh' if local_tts else settings.get('tts_voice') or 'alloy'}
         return value
 
     def _route(self, route_id):
@@ -319,7 +372,25 @@ class HarnessBridge:
             value = self.connection(settings)
             value['selection_source'] = 'override'
             return value
-        result = await self.transport.native_service('POST', 'model-resolution', {})
+        if settings.get('connection_mode') != 'native':
+            # A first run has no connection at all, so no model can resolve yet.
+            # That is a readable state, not a service failure: this same endpoint
+            # carries the sign-in progress the connection page polls, so failing
+            # here would also stall an in-progress official authorization.
+            value = self.connection(settings)
+            value['selection_source'] = 'default'
+            return value
+        try:
+            result = await self.transport.native_service('POST', 'model-resolution', {})
+        except HarnessError as exc:
+            if exc.code != 'model_selection_unavailable':
+                raise
+            # The learning catalog currently holds no usable model (fresh or
+            # reset install, or a removed selection). Report the unresolved
+            # state instead of failing the whole connection status read.
+            value = self.connection(settings)
+            value.update(selection_source='default', available=False, error_code=exc.code)
+            return value
         model = result['resolved_model']
         return {'selection': 'native', 'managed': False, 'provider': model['provider'],
             'provider_label': model['provider_label'], 'model': model['model'], 'route': 'native',
@@ -410,8 +481,10 @@ class HarnessBridge:
                     op = self._save(op, op['revision'])
             except HarnessError:
                 op = self.store.harness_state()
+        image_restore = await self.restore_managed_image_proofs()
         return {'available': bool(available), 'account': account,
-                'operation': public_operation(op), 'current': self.current()}
+                'operation': public_operation(op), 'current': self.current(),
+                'image_verification_restore': image_restore}
 
     async def models(self):
         result = await self.transport.host('GET', '/models')
@@ -557,6 +630,78 @@ class HarnessBridge:
             await self._register(current)
             current = current.get('previous')
         await self.reconcile_learning_defaults()
+        await self.restore_managed_image_proofs(force=True)
+
+    async def restore_managed_image_proofs(self, force=False):
+        """Bounded cold-start reuse of this application's actual old image probe.
+
+        Reads masked catalog identities, never changes selections or contacts a
+        model. A previously failed/rejected verification is not overwritten by
+        the older managed evidence. A temporarily absent native backend leaves
+        the operation retryable from connection status.
+        """
+        owned, current, seen = [], self.store.harness_state('current'), set()
+        while current and len(seen) < 32:
+            identity = current.get('route_id')
+            if identity in seen:
+                break
+            seen.add(identity)
+            if ('learning' in current.get('targets', [])
+                    and current.get('profile_id') == 'deepsteam-harness-' + str(identity)
+                    and self._capabilities(current).get('vision') is True):
+                owned.append(current)
+            current = current.get('previous')
+        key = tuple((item.get('profile_id'), item.get('route_id'), item.get('model'),
+                     item.get('secret_ref'), item.get('context_metadata_revision')) for item in owned)
+        if not owned:
+            return {'restored': 0, 'existing': 0, 'skipped': 0, 'deferred': 0}
+        if self.image_restore_lock.locked():
+            return self.image_restore_result or {'restored': 0, 'existing': 0, 'skipped': 0, 'deferred': len(owned)}
+        if not force and key == self.image_restore_key and time.monotonic() < self.image_restore_after:
+            return deepcopy(self.image_restore_result)
+        async with self.image_restore_lock:
+            result = {'restored': 0, 'existing': 0, 'skipped': 0, 'deferred': max(0, len(owned) - 8)}
+            async def restore():
+                # Older managed profiles may not yet name the actual model.
+                # Repair only their already-owned metadata before resolving the
+                # exact image identity, without activating any profile.
+                catalog = await self._reconcile_context_metadata(self.store.harness_state('current'))
+                profiles = {item.get('id'): item for item in catalog.get('services', {}).get('llm', {}).get('profiles', [])}
+                for route in owned[:8]:
+                    profile = profiles.get(route['profile_id'], {})
+                    model = next((item for item in profile.get('models', []) if item.get('id') == route['route_id']), {})
+                    if (profile.get('managed_by') not in (None, '', 'deepsteam-harness')
+                            or str(profile.get('base_url') or '').rstrip('/') != GATEWAY + '/v1'
+                            or model.get('model') != route['route_id']
+                            or model.get('actual_model') != route['model']):
+                        result['skipped'] += 1
+                        continue
+                    selection = {'profile_id': route['profile_id'], 'model_id': route['route_id']}
+                    state = await self.transport.native_service('POST', 'model-image-status', {'llm_selection': selection})
+                    evidence = state.get('image_verification') or {}
+                    snapshot = state.get('resolved_model') or {}
+                    if evidence.get('verified') is True:
+                        result['existing'] += 1
+                        continue
+                    if (evidence.get('status') != 'not_verified' or evidence.get('checked_at')
+                            or snapshot.get('model') != route['model'] or not snapshot.get('configuration_revision')):
+                        result['skipped'] += 1
+                        continue
+                    # This authenticated endpoint rechecks the exact current
+                    # config.model, displayed model and configuration revision.
+                    await self.transport.native_service('POST', 'model-image-verification', {
+                        'llm_selection': selection, 'expected_configuration_revision': snapshot['configuration_revision'],
+                        'route_id': route['route_id'], 'model': route['model'], 'verified': True})
+                    result['restored'] += 1
+            try:
+                await asyncio.wait_for(restore(), timeout=6)
+            except (HarnessError, asyncio.TimeoutError, KeyError, TypeError) as exc:
+                result['deferred'] += max(0, min(8, len(owned)) - result['restored'] - result['existing'] - result['skipped'])
+                result['error_code'] = exc.code if isinstance(exc, HarnessError) else 'image_verification_restore_deferred'
+            self.image_restore_key = key
+            self.image_restore_after = time.monotonic() + (10 if result['deferred'] else 30)
+            self.image_restore_result = deepcopy(result)
+            return result
 
     async def reconcile_learning_defaults(self):
         async with self.commit_lock:
@@ -615,6 +760,9 @@ class HarnessBridge:
                     continue
                 metadata = {'actual_model': route['model'],
                             **managed_model_limits(route['model'], route['route'])}
+                if managed_model_limits(route['model'], route['route']):
+                    metadata['codex_supported_reasoning_levels'] = ['none', 'low', 'high', 'max']
+                    metadata['capabilities'] = {**dict(model.get('capabilities') or {}), 'reasoning': True}
                 updates.append({key: route[key] for key in ('profile_id', 'route_id', 'model', 'route')})
                 for key, value in metadata.items():
                     # The public catalog represents context as an editable string.
@@ -634,7 +782,8 @@ class HarnessBridge:
                      for profile in catalog.get('services', {}).get('llm', {}).get('profiles', [])
                      for model in profile.get('models', [])}
         if expected and not all(
-                all(persisted.get(identity, {}).get(key) == value for key, value in metadata.items())
+                all((persisted.get(identity, {}).get(key) or {}).get('reasoning') is True if key == 'capabilities'
+                    else persisted.get(identity, {}).get(key) == value for key, value in metadata.items())
                 for identity, metadata in expected.items()):
             if 'context_metadata_revision' in current:
                 current.pop('context_metadata_revision')
@@ -700,7 +849,8 @@ class HarnessBridge:
                         'model': route_id, 'actual_model': op['model'],
                         **{key: str(value) if key == 'context_window' else value
                            for key, value in managed_model_limits(op['model'], op['mode']).items()},
-                        'capabilities': {'tools': True, 'vision': bool(op['probe']['vision'])}}]}
+                        'capabilities': {'tools': True, 'vision': bool(op['probe']['vision']), 'reasoning': True},
+                        'codex_supported_reasoning_levels': ['none', 'low', 'high', 'max']}]}
                     # Mark before call: timeout may happen after upstream commits.
                     native_changed = True
                     await self.transport.native('POST', '/api/settings/apply/provider',
@@ -804,6 +954,9 @@ class HarnessBridge:
 
     async def execution_config(self, require_managed=False, llm_selection=_UNSET_SELECTION, execution_id=None, model_snapshot=None):
         settings = self.store.settings(secret=True)
+        current = self.store.harness_state('current')
+        if current:
+            await self._reconcile_context_metadata(current)
         payload = {'surface': 'classroom',
             **({'execution_id': execution_id} if execution_id else {}),
             **({'model_snapshot': model_snapshot} if model_snapshot else {})}
@@ -812,6 +965,7 @@ class HarnessBridge:
         elif not model_snapshot and settings.get('connection_mode') in ('custom', 'local'):
             payload['legacy_provider'] = self.provider(settings)
         selected = await self.transport.native_service('POST', 'model-executions', payload)
+        selected = await self._import_managed_image_verification(selected, 'classroom')
         narration = dict(self.connection(settings)['narration'])
         if narration['mode'] == 'api':
             narration.update(base_url=settings.get('tts_base_url', ''), api_key=settings.get('tts_api_key', ''))
@@ -839,15 +993,98 @@ class HarnessBridge:
     async def selected_provider(self, settings):
         return (await self.execution_config())['provider']
 
+    def _owned_selection(self, selection):
+        selection = selection or {}
+        owned = self.store.harness_state('current')
+        while owned and not (owned.get('profile_id') == selection.get('profile_id')
+                             and owned.get('route_id') == selection.get('model_id')):
+            owned = owned.get('previous')
+        return owned
+
+    async def _import_managed_image_verification(self, selected, surface):
+        selection = selected.get('selection') or {}
+        public = selected.get('resolved_model') or {}
+        owned = self._owned_selection(selection)
+        if not owned or self._capabilities(owned).get('vision') is not True or public.get('capabilities', {}).get('vision_verified') is True:
+            return selected
+        evidence = public.get('image_verification') or {}
+        if evidence.get('status') != 'not_verified' or evidence.get('checked_at'):
+            return selected
+        # Import only an actual earlier managed image probe into the common
+        # identity registry. A catalog capability flag is not verification.
+        await self.transport.native_service('POST', 'model-image-verification', {
+            'llm_selection': selection,
+            'expected_configuration_revision': public.get('configuration_revision'),
+            'route_id': owned['route_id'], 'model': owned['model'], 'verified': True})
+        return await self.transport.native_service('POST', 'model-executions', {
+            'llm_selection': selection, 'surface': surface})
+
     async def workspace_provider(self, llm_selection=None):
+        current = self.store.harness_state('current')
+        if current:
+            await self._reconcile_context_metadata(current)
         selected = await self.transport.native_service('POST', 'model-executions',
             {'llm_selection': llm_selection, 'surface': 'workspace'})
+        selected = await self._import_managed_image_verification(selected, 'workspace')
         provider, public = selected['provider'], selected['resolved_model']
+        selection = selected.get('selection', llm_selection) or {}
+        # Search is a separate official DeepSeek capability. Reuse only the
+        # exact managed connection selected for this execution, not another
+        # account or an arbitrary OpenAI-compatible model with a similar name.
+        owned = self._owned_selection(selection)
+        search_route = {'eligible': False, 'reason': 'search_connection_required'}
+        if owned:
+            search_route = {'eligible': True, 'kind': owned['route'],
+                            'model': 'deepseek-v4-pro' if owned['model'] == 'deepseek-v4-pro' else 'deepseek-v4-flash'}
+            if owned['route'] == 'apikey':
+                search_route['api_key'] = self.secret(owned['secret_ref'], owned['route_id'])
         return {'route_id': selected['execution_id'], 'provider': 'deepsteam-custom',
                 'model': provider['model'], 'base_url': provider['base_url'], 'api_key': provider['api_key'],
                 'resolved_model': public, 'llm_selection': selected.get('selection', llm_selection),
-                'vision_verified': public.get('capabilities', {}).get('vision') is True,
+                'vision_verified': public.get('capabilities', {}).get('vision_verified') is True,
+                'vision_supported': public.get('capabilities', {}).get('vision') is True,
+                'search_route': search_route,
                 **{field: provider[field] for field in ('context_window', 'max_output_tokens', 'context_window_source') if field in provider}}
+
+    async def workspace_search_status(self, llm_selection=None):
+        catalog = (await self.transport.native('GET', '/api/settings/catalog'))['catalog']
+        bucket = catalog.get('services', {}).get('llm', {})
+        selection = llm_selection or {key: bucket.get('active_' + key) for key in ('profile_id', 'model_id')}
+        owned = self._owned_selection(selection)
+        if owned:
+            if owned['route'] == 'account':
+                state = await self.transport.host('GET', '/account/status')
+                if state.get('status') != 'credential-stored':
+                    return {'eligible': False, 'provider': 'deepseek-official', 'reason': 'search_sign_in_required', 'consumes_model_quota': True}
+            return {'eligible': True, 'provider': 'deepseek-official', 'consumes_model_quota': True}
+        return {'eligible': False, 'provider': 'deepseek-official', 'reason': 'search_connection_required', 'consumes_model_quota': True}
+
+    async def capability_state(self, session_id):
+        session_id = _capability_identity(session_id)
+        return await self.transport.host('GET', f'/sessions/{session_id}/capabilities-state')
+
+    async def answer_question(self, session_id, question_id, answers=None, cancel=False):
+        session_id, question_id = _capability_identity(session_id), _capability_identity(question_id)
+        payload = {'cancel': True} if cancel else {'answers': answers}
+        return await self.transport.host('POST', f'/sessions/{session_id}/questions/{question_id}', payload)
+
+    async def plan_mode(self, session_id, active):
+        session_id = _capability_identity(session_id)
+        if type(active) is not bool:
+            raise HarnessError('plan_mode_invalid', 'Choose planning or execution mode.', 422)
+        return await self.transport.host('POST', f'/sessions/{session_id}/plan', {'active': active})
+
+    async def workspace_diff(self, session_id, seq, index):
+        session_id = _capability_identity(session_id)
+        seq, index = _capability_index(seq), _capability_index(index)
+        return await self.transport.host('GET', f'/sessions/{session_id}/changes/{seq}/diff/{index}')
+
+    async def delivered_file(self, session_id, seq, index, mode='preview'):
+        session_id = _capability_identity(session_id)
+        seq, index = _capability_index(seq), _capability_index(index)
+        if mode not in ('preview', 'download'):
+            raise HarnessError('deliverable_mode_invalid', 'Choose preview or download.', 422)
+        return await self.transport.host_binary(f'/sessions/{session_id}/deliverables/{seq}/files/{index}?mode={mode}')
 
     async def legacy_workspace_provider(self):
         """Resolve only this application's active connection, inside the Host."""

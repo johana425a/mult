@@ -79,6 +79,7 @@ def main():
                        check=True, timeout=90, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
         mineru_verified = True
     subprocess.run([sys.executable, '-I', '-B', '-c', 'import deeptutor, fastapi, uvicorn, psutil, PIL, pymupdf, faiss; print("Python application dependencies OK")'], check=True)
+    subprocess.run([sys.executable, '-I', '-B', str(ROOT / 'installer/native_backend_probe.py')], check=True, timeout=45)
     subprocess.run([sys.executable, '-I', '-B', str(ROOT / 'scripts/verify_timezone_runtime.py')], check=True)
     # Test the shipped parser/OCR closure on the recipient's machine as well as
     # at build time. No workspace, account or language model is involved.

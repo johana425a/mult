@@ -1,13 +1,12 @@
 """Durable local document work shared by all product entry points.
 
 The caller supplies a server-authorized root, never an arbitrary model command.
-SQLite owns requests/results. Two lanes, each owned by an OS file lock, do the
-work: the read lane (quick reads, cached MinerU windows, preparation plans) and
-the parse lane (local MinerU batches in one persistent worker). A read that
-needs an unparsed MinerU batch parks until the parse lane has it, so other
-documents keep moving. Waiting clients may disappear without killing a job.
-Explicit cancellation is separate and a lane only advances after its child has
-actually exited.
+The default read lane extracts text layers and retains original visual assets
+for the currently selected model. It never starts OCR or local VLM parsing.
+SQLite owns requests/results. Only an explicit Settings opt-in enables the
+separate MinerU parse lane; cached windows remain compatible when disabled.
+Waiting clients may disappear without killing a job. Explicit cancellation is
+separate and a lane only advances after its child has actually exited.
 """
 from __future__ import annotations
 
@@ -29,13 +28,15 @@ import uuid
 
 from scripts.storage_paths import StoragePaths, assert_plain_path, select_storage
 from scripts import workspace_document_reader as reader
+from integration import document_reading_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 TERMINAL = {'ready', 'partial', 'empty', 'needs_ocr', 'failed', 'cancelled'}
 FIELDS = {'path', 'cursor', 'start_unit', 'ocr', 'max_chars', 'max_units',
           'asset_id', 'document_sha256', 'max_dimension', 'engine', 'job_id', 'tier'}
 MAX_RESULT = 24 * 1024 * 1024
-# Local MinerU tiers, all on this computer. adaptive (the default) parses with
+# Optional local MinerU tiers, all on this computer. adaptive (the local tier
+# default only after the user enables MinerU in Settings) parses with
 # the small ONNX models first and sends only pages whose layout shows tables or
 # display formulas through the standard tier's local MinerU2.5 VLM; standard
 # runs the hybrid VLM pipeline on every page; advanced adds two-step VLM
@@ -163,6 +164,33 @@ class DocumentJobs:
                 # Embedded-image parses are keyed by image content; owner_hash
                 # links them to the document whose progress they belong to.
                 db.execute('ALTER TABLE parses ADD COLUMN owner_hash TEXT')
+        if not self.get_policy()['local_mineru_enabled']:
+            self._pause_local_parses()
+
+    def get_policy(self):
+        # A missing state directory must never be interpreted as opt-in.
+        directory = getattr(self, 'directory', None)
+        return document_reading_policy.get_policy(directory) if directory is not None else {
+            'local_mineru_enabled': False, 'local_ocr': 'auto', 'vision_verification': 'optional',
+            'default_engine': 'builtin', 'image_reading': 'selected_model'}
+
+    def set_policy(self, local_mineru_enabled, local_ocr=None, vision_verification=None):
+        """Settings-only operation. Never include it in model tool schemas."""
+        value = document_reading_policy.set_policy(self.directory, local_mineru_enabled,
+                                                   local_ocr=local_ocr, vision_verification=vision_verification)
+        if not value['local_mineru_enabled']:
+            self._pause_local_parses()
+        else:
+            with self.connect() as db:
+                db.execute("UPDATE parses SET status='queued',stage='resuming',updated=? WHERE status='paused' AND cancel_requested=0", (time.time(),))
+        return value
+
+    def _pause_local_parses(self):
+        """Retain parsed caches and progress; never implicitly resume old OCR."""
+        now = time.time()
+        with self.connect() as db:
+            db.execute("UPDATE parses SET status='paused',stage='policy_paused',updated=? WHERE status IN ('queued','running')", (now,))
+            db.execute("UPDATE jobs SET status='queued',stage='policy_resuming',updated=? WHERE status='waiting'", (now,))
 
     @contextlib.contextmanager
     def connect(self):
@@ -191,12 +219,18 @@ class DocumentJobs:
         if payload.get('tier', DEFAULT_MINERU_TIER) not in MINERU_TIERS:
             raise ValueError('document_engine_tier_invalid')
         request = {k: v for k, v in payload.items() if k != 'job_id'}
-        request.update(root=str(Path(root).resolve()), document_sha256=digest, engine=engine, action='read')
-        signature = hashlib.sha256((ROOT / 'scripts/workspace_document_reader.py').read_bytes() + Path(__file__).read_bytes()).hexdigest()
+        # The local reading mode is application state, never a model argument: a
+        # tool call can neither enable nor disable bundled offline scan OCR.
+        policy = self.get_policy()
+        request.update(root=str(Path(root).resolve()), document_sha256=digest, engine=engine, action='read',
+                       ocr='auto' if policy['local_ocr'] == 'auto' else 'off',
+                       vision=policy['vision_verification'])
+        signature = hashlib.sha256((ROOT / 'scripts/workspace_document_reader.py').read_bytes() + Path(__file__).read_bytes()
+                                   + (ROOT / 'integration/document_reading_policy.py').read_bytes()).hexdigest()
         mineru = ROOT / 'scripts/mineru_document_worker.py'
         if engine != 'builtin' and mineru.is_file():
             signature += hashlib.sha256(mineru.read_bytes()).hexdigest()
-        dedup = hashlib.sha256(_dump([scope, request, signature, 'job-v1']).encode()).hexdigest()
+        dedup = hashlib.sha256(_dump([scope, request, signature, self.get_policy(), 'job-v2']).encode()).hexdigest()
         now = time.time()
         with self.connect() as db:
             if payload.get('job_id'):
@@ -297,6 +331,9 @@ class DocumentJobs:
         self._spawn('worker.lock', '--drain')
 
     def ensure_parse_worker(self):
+        if not self.get_policy()['local_mineru_enabled']:
+            self._pause_local_parses()
+            return
         self._spawn('parse.lock', '--drain-parses')
 
     def _spawn(self, lock, flag):
@@ -546,7 +583,10 @@ class DocumentJobs:
         engine = request.pop('engine')
         self._source(request['root'], {k: v for k, v in request.items() if k in FIELDS})
         structured_cursor = is_structured_cursor(request.get('cursor'))
+        policy = self.get_policy()
         lightweight_request = dict(request)
+        lightweight_request['ocr'] = 'auto' if policy['local_ocr'] == 'auto' else 'off'
+        lightweight_request['vision'] = policy['vision_verification']
         if structured_cursor:
             index, _ = reader.cursor_decode(request['cursor'], row['source_hash'])
             lightweight_request.pop('cursor', None)
@@ -559,9 +599,20 @@ class DocumentJobs:
         if not value.get('ok'):
             return value
         value['engine'] = 'builtin'
-        requires = structured_cursor or engine == 'mineru' or engine == 'auto' and needs_structure(value)
+        enabled = self.get_policy()['local_mineru_enabled']
+        requires = structured_cursor or enabled and (engine == 'mineru' or engine == 'auto' and needs_structure(value))
         if requires:
             value = self._upgrade(row, request, value, required=structured_cursor or engine == 'mineru', engine=engine)
+        if value.get('ok'):
+            value['reading_policy'] = self.get_policy()
+            if value.get('visual_pending'):
+                # Cached OCR/layout text is reusable, but is not evidence that
+                # the selected model has consumed the original visual assets.
+                value['status'] = 'partial'
+                value['coverage'] = {**value.get('coverage', {}), 'document_fully_read': False,
+                                     'visual_status': 'pending', 'visual_fully_read': False}
+            if engine == 'mineru' and not enabled:
+                value.setdefault('warnings', []).append('Local MinerU is disabled in Settings. The tool cannot enable it; original images are available to read_document_image with the selected model.')
         # Revalidate the original after the child exits, before committing.
         self._source(request['root'], {k: v for k, v in request.items() if k in FIELDS})
         return value
@@ -605,6 +656,7 @@ class DocumentJobs:
         return mineru_failure(value)
 
     def _upgrade(self, row, request, lightweight, *, required, engine='mineru'):
+        enabled = self.get_policy()['local_mineru_enabled']
         python, helper = mineru_runtime()
         if not python.is_file() or not helper.is_file():
             if required:
@@ -617,6 +669,8 @@ class DocumentJobs:
                     'warnings': [*lightweight.get('warnings', []), 'Scans or complex layouts still need advanced parsing. Local extraction and original images are retained.']}
         tier = mineru_tier(request, engine)
         if lightweight.get('format') in OFFICE_IMAGE_FORMATS:
+            if not enabled:
+                return lightweight
             return self._office_images(row, request, lightweight, tier, helper)
         pages = MINERU_BATCH_PAGES[tier]
         pdf_batch = lightweight.get('format') == 'pdf'
@@ -634,6 +688,10 @@ class DocumentJobs:
         if manifest.is_file():
             parsed = json.loads(assert_plain_path(manifest).read_text('utf-8'))
             destination = container
+        elif not enabled:
+            return {**restart_failure('document_local_parser_disabled',
+                        'This older structured cursor has no cached result. Local MinerU is disabled; use the built-in text reader and read_document_image, or enable local MinerU in Settings.', first),
+                    'reading_policy': self.get_policy(), 'next_tool': 'read_document_image'}
         elif deferred:
             # The parse lane owns the local MinerU worker. This read parks
             # until its batch is ready instead of holding the read lane.
@@ -660,7 +718,7 @@ class DocumentJobs:
                 'engine_options': {'tier': tier}, 'request_id': row['id']}, MINERU_TIMEOUT_SECONDS[tier])
             parsed = self._accept_parse(parsed, destination, engine_hash, row['source_hash'], request['root'],
                                         request['path'], batch_start, batch_end, manifest)
-        if deferred and parsed.get('ok'):
+        if deferred and parsed.get('ok') and enabled:
             self._read_ahead(row, request, tier, helper, batch_end, unit_count)
         if not parsed.get('ok'):
             if required or parsed.get('error', {}).get('code') == 'document_cancelled':
@@ -708,6 +766,8 @@ class DocumentJobs:
         return images
 
     def _office_images(self, row, request, lightweight, tier, helper):
+        if not self.get_policy()['local_mineru_enabled']:
+            return lightweight
         """Word/PowerPoint: the built-in text, locations and cursor stay as
         they are; each embedded image in this window is parsed by local MinerU
         (adaptive by default: small models first, the VLM only for images that
@@ -771,6 +831,8 @@ class DocumentJobs:
         return parsed
 
     def _request_parse(self, row, request, tier, key, batch_start, batch_end, unit_count):
+        if not self.get_policy()['local_mineru_enabled']:
+            return failure('document_local_parser_disabled', 'Local MinerU is disabled in Settings. Read the original images with the selected model.')
         """Queue (or move up) the batch this read needs; None means park.
 
         A parse that failed or was stopped while this very read waited for it
@@ -821,6 +883,8 @@ class DocumentJobs:
         return True
 
     def _read_ahead(self, row, request, tier, helper, batch_end, unit_count):
+        if not self.get_policy()['local_mineru_enabled']:
+            return
         """Queue the next batches of a document being read, below waiting reads,
         so they are ready by the time the reader gets there."""
         if batch_end is None or batch_end >= unit_count:
@@ -845,6 +909,9 @@ class DocumentJobs:
 
     def drain_parses(self, *, idle_seconds=PARSE_IDLE_SECONDS):
         """Parse lane: local MinerU batches, one at a time, in one persistent worker."""
+        if not self.get_policy()['local_mineru_enabled']:
+            self._pause_local_parses()
+            return
         while True:
             with self.parse_lock() as acquired:
                 if not acquired:
@@ -861,6 +928,9 @@ class DocumentJobs:
         idle_since = time.monotonic()
         try:
             while True:
+                if not self.get_policy()['local_mineru_enabled']:
+                    self._pause_local_parses()
+                    return
                 row = self._claim_parse()
                 if row is None:
                     if session is None or not session.alive() or time.monotonic() - idle_since >= idle_seconds:
@@ -892,6 +962,8 @@ class DocumentJobs:
                 session.close()
 
     def _claim_parse(self):
+        if not self.get_policy()['local_mineru_enabled']:
+            return None
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute("SELECT * FROM parses WHERE status='queued' ORDER BY priority,created,batch_start LIMIT 1").fetchone()
@@ -902,6 +974,8 @@ class DocumentJobs:
             return row
 
     def _new_session(self):
+        if not self.get_policy()['local_mineru_enabled']:
+            raise OSError('document_local_parser_disabled')
         python, helper = mineru_runtime()
         if not python.is_file() or not helper.is_file():
             raise OSError('document_engine_unavailable')
@@ -950,6 +1024,8 @@ class DocumentJobs:
         return {name: parsed[name] for name in ('ok', 'status', 'error', 'engine') if name in parsed}
 
     def _parse_cancelled(self, key):
+        if not self.get_policy()['local_mineru_enabled']:
+            return True
         with self.connect() as db:
             row = db.execute('SELECT cancel_requested FROM parses WHERE key=?', (key,)).fetchone()
             return row is None or bool(row[0])
@@ -960,6 +1036,13 @@ class DocumentJobs:
 
     def _finish_parse(self, row, value, elapsed, cold):
         now = time.time()
+        if not self.get_policy()['local_mineru_enabled']:
+            # A policy change interrupts running work without deleting its
+            # completed batches, attempts or position. Only Settings resumes it.
+            with self.connect() as db:
+                db.execute("UPDATE parses SET status='paused',stage='policy_paused',updated=? WHERE key=? AND status!='ready'", (now, row['key']))
+                db.execute("UPDATE jobs SET status='queued',stage='policy_resuming',updated=? WHERE status='waiting' AND waiting_for=?", (now, row['key']))
+            return
         code = (value.get('error') or {}).get('code')
         status = 'ready' if value.get('ok') else 'cancelled' if code == 'document_cancelled' else 'failed'
         error = None if value.get('ok') else _dump({name: value[name] for name in ('ok', 'status', 'error', 'engine') if name in value})
@@ -1037,6 +1120,31 @@ class DocumentJobs:
         paths = [paths] if isinstance(paths, str) else paths
         if not isinstance(paths, list) or not 1 <= len(paths) <= PREPARE_LIMIT or not all(isinstance(path, str) and path for path in paths):
             return failure('document_request_invalid', f'paths must list 1 to {PREPARE_LIMIT} document paths.')
+        if not self.get_policy()['local_mineru_enabled']:
+            # This is a cheap advisory probe, so it stays on the text layer only.
+            # Report scan pages as locally readable when bundled OCR is enabled,
+            # so the caller does not queue per-page model image reads.
+            local_ocr = self.get_policy()['local_ocr'] == 'auto'
+            documents = []
+            for path in dict.fromkeys(paths):
+                value = reader.handle_request({'root': str(root), 'path': path, 'ocr': 'off',
+                                               'max_units': 40, 'max_chars': 12000})
+                if not value.get('ok'):
+                    documents.append({'path': path, 'ok': False, 'error': value.get('error', {})})
+                    continue
+                documents.append({'path': path, 'ok': True,
+                                  'state': 'not_prepared' if local_ocr else 'visual_pending' if value.get('visual_pending') else 'not_prepared' if value.get('truncated') else 'not_needed',
+                                  'document_sha256': value['document_sha256'],
+                                  'unit_count': value['document']['unit_count'],
+                                  'vision_pending': [] if local_ocr else value.get('vision_pending', []),
+                                  'truncated': value.get('truncated', False),
+                                  'message': 'Text is available from the built-in reader. Image-only pages are transcribed locally with the bundled OCR engine when the document is read; original images stay available for checking formulas and figures.' if local_ocr else 'Text is available from the built-in reader. Images remain pending for the selected model; no local MinerU task was queued.'})
+            with self.connect() as db:
+                totals = self._queue_totals(db)
+            return {'ok': True, 'status': 'ready', 'engine': 'builtin',
+                    'reading_policy': self.get_policy(), 'documents': documents, 'queue': totals,
+                    'next_tool': None if local_ocr else 'read_document_image',
+                    'message': 'Local MinerU is disabled in Settings. Bundled offline scan OCR reads image-only pages during a read; background parsing is paused.' if local_ocr else 'Local MinerU is disabled in Settings. Read source text and original images with the selected model; background parsing is paused.'}
         engine = payload.get('engine', 'auto')
         if engine not in {'auto', 'mineru'}:
             return failure('document_request_invalid', 'prepare uses engine=auto (documents that need structure) or engine=mineru (every page).')
@@ -1102,6 +1210,10 @@ class DocumentJobs:
         request = json.loads(row['request'])
         root, path, engine, tier = request['root'], request['path'], request['engine'], request['tier']
         self._source(root, {'path': path, 'document_sha256': row['source_hash']})
+        if not self.get_policy()['local_mineru_enabled']:
+            return {'ok': True, 'status': 'partial', 'kind': 'plan',
+                    'plan': {'engine': 'builtin', 'mineru_needed': False, 'local_mineru_paused': True, 'batches': 0},
+                    'message': 'Local parsing is paused by Settings. Existing progress is retained; use read_document_image with the selected model.'}
         python, helper = mineru_runtime()
         if not python.is_file() or not helper.is_file():
             return failure('document_engine_unavailable', 'The local MinerU runtime is not installed. Repair the DeepSteam document runtime; no remote parsing service is used.')
@@ -1180,7 +1292,7 @@ class DocumentJobs:
                 seen = {}
                 own = Path(str(base).casefold() if os.name == 'nt' else str(base))
                 for row in db.execute("SELECT scope,COALESCE(owner_hash,source_hash) AS document FROM parses "
-                                      "WHERE status IN ('queued','running') ORDER BY created"):
+                                      "WHERE status IN ('queued','running','paused') ORDER BY created"):
                     try:
                         scope_root, relative = json.loads(row['scope'])
                         location = Path(scope_root) / relative
@@ -1205,13 +1317,14 @@ class DocumentJobs:
             totals = self._queue_totals(db)
         if stopped:
             self._kick('read')
-        return {'ok': True, 'status': 'ready', 'remote_api': False, 'documents': documents, 'queue': totals}
+        return {'ok': True, 'status': 'ready', 'remote_api': False, 'documents': documents, 'queue': totals,
+                'reading_policy': self.get_policy()}
 
     @staticmethod
     def _cancel_document(db, scope, digest):
         now = time.time()
         stopped = _dump(failure('document_cancelled', 'Background parsing of this document was stopped.'))
-        db.execute("UPDATE parses SET status='cancelled',stage='cancelled',error=?,finished=?,updated=? WHERE scope=? AND COALESCE(owner_hash,source_hash)=? AND status='queued'",
+        db.execute("UPDATE parses SET status='cancelled',stage='cancelled',error=?,finished=?,updated=? WHERE scope=? AND COALESCE(owner_hash,source_hash)=? AND status IN ('queued','paused')",
                    (stopped, now, now, scope, digest))
         db.execute("UPDATE parses SET cancel_requested=1,stage='cancelling',updated=? WHERE scope=? AND COALESCE(owner_hash,source_hash)=? AND status='running'",
                    (now, scope, digest))
@@ -1228,7 +1341,7 @@ class DocumentJobs:
         plan = db.execute("SELECT * FROM jobs WHERE kind='plan' AND scope=? AND source_hash=? ORDER BY updated DESC LIMIT 1", (scope, digest)).fetchone()
         tiers = {}
         for row in rows:
-            entry = tiers.setdefault(row['tier'], {'batches': 0, 'ready': 0, 'parsing': 0, 'queued': 0, 'failed': 0, 'stopped': 0,
+            entry = tiers.setdefault(row['tier'], {'batches': 0, 'ready': 0, 'parsing': 0, 'queued': 0, 'paused': 0, 'failed': 0, 'stopped': 0,
                                                     'pages_ready': 0, 'unit_count': row['unit_count']})
             entry['batches'] += 1
             entry[{'running': 'parsing', 'cancelled': 'stopped'}.get(row['status'], row['status'])] += 1
@@ -1243,10 +1356,14 @@ class DocumentJobs:
             state = 'parsing'
         elif pending:
             state = 'queued'
+        elif any(row['status'] == 'paused' for row in rows):
+            state = 'paused'
         elif errors:
             state = 'failed'
         elif rows and all(row['status'] == 'ready' for row in rows):
             state = 'ready'
+        elif plan_view is not None and plan_view.get('plan', {}).get('local_mineru_paused') is True:
+            state = 'paused'
         elif plan_view is not None and plan_view.get('plan', {}).get('mineru_needed') is False:
             state = 'not_needed'
         elif plan_view is not None and not plan_view.get('ok', True):
@@ -1276,7 +1393,10 @@ class DocumentJobs:
             origins[row['origin']] = origins.get(row['origin'], 0) + 1
             pages += row['pages'] or 0
         etas = [view['eta_seconds'] for view in views.values()]
-        return {'workers': 1, 'mode': 'local MinerU on this computer, one batch at a time; waiting reads go first',
+        paused = db.execute("SELECT COUNT(*) FROM parses WHERE status='paused'").fetchone()[0]
+        return {'workers': 1 if self.get_policy()['local_mineru_enabled'] else 0,
+                'mode': 'local MinerU on this computer, one batch at a time; waiting reads go first' if self.get_policy()['local_mineru_enabled'] else 'paused; use selected-model image reading',
+                'paused_batches': paused,
                 'running': {key: running[key] for key in ('tier', 'pages', 'stage', 'elapsed_seconds', 'origin') if key in running} if running else None,
                 'queued_batches': sum(origins.values()), 'queued_by_reason': origins, 'queued_pdf_pages': pages,
                 'eta_seconds': max(etas) if etas and all(eta is not None for eta in etas) else None}
@@ -1562,7 +1682,7 @@ def mineru_runtime():
     return ROOT / 'runtime/mineru/python.exe', ROOT / 'scripts/mineru_document_worker.py'
 
 
-def engine_status(*, verify=False):
+def engine_status(*, verify=False, enabled=True):
     """Report what local MinerU would run: model, backend, tier and readiness.
 
     ``verify`` additionally starts the private llama.cpp server and reads back
@@ -1575,6 +1695,10 @@ def engine_status(*, verify=False):
                 'standard': 'local MinerU2.5 VLM with hybrid layout on every page; scanned pages are slow on a CPU',
                 'advanced': 'local MinerU2.5 VLM, two-step extraction with image analysis; slowest, use for figures whose meaning matters',
                 'basic': 'small local ONNX models only, never the VLM'}}
+    if not enabled:
+        return {**base, 'ok': True, 'status': 'disabled', 'enabled': False,
+                'installed': python.is_file() and helper.is_file(),
+                'message': 'Local MinerU is disabled in Settings. Source images use the current selected model; no parser process was started.'}
     if not python.is_file() or not helper.is_file():
         return {**base, 'ok': False, 'installed': False,
                 'error': {'code': 'document_engine_unavailable', 'message': 'The local MinerU runtime is not installed in this DeepSteam folder.'}}
@@ -1824,12 +1948,19 @@ def _child_guard(process):
 
 def handle(request, *, test_root=None, python=None):
     try:
-        if not isinstance(request, dict) or set(request) - (FIELDS | {'root', 'action', 'wait_seconds', 'limit', 'refresh', 'coverage_cursor', 'paths', 'cancel'}):
+        if not isinstance(request, dict) or set(request) - (FIELDS | {'root', 'action', 'wait_seconds', 'limit', 'refresh', 'coverage_cursor', 'paths', 'cancel', 'local_mineru_enabled'}):
             raise ValueError('document_request_invalid')
         root = request.get('root')
         action = request.get('action', 'read')
+        if action in {'policy', 'set_policy'}:
+            jobs = DocumentJobs(test_root=test_root, python=python)
+            policy = jobs.set_policy(request.get('local_mineru_enabled')) if action == 'set_policy' else jobs.get_policy()
+            return {'ok': True, 'status': 'ready', **policy}
         if action == 'engine_status':
-            return engine_status(verify=request.get('refresh') is True)
+            storage = select_storage(ROOT) if test_root is None else StoragePaths(ROOT, assert_plain_path(Path(test_root)))
+            policy = document_reading_policy.get_policy(storage.state_root / 'runtime/document-jobs')
+            return {**engine_status(verify=request.get('refresh') is True,
+                                    enabled=policy['local_mineru_enabled']), 'reading_policy': policy}
         if action != 'inventory':
             # One shared repair point for the Harness tool, DeepTutor and Portal:
             # placeholder cursors, numeric strings and page numbers sent as a

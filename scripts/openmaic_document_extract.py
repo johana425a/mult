@@ -2,6 +2,8 @@
 
 Launched by the server with its fixed installation Python in isolated mode.
 No client path, provider credential, network endpoint or executable is accepted.
+The shared policy enumerates text and retains source pixels by default. A
+visual-pending result is deliberately incomplete recognition, not OCR success.
 """
 from __future__ import annotations
 

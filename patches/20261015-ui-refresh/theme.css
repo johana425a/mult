@@ -1,0 +1,85 @@
+/* DeepSteam theme refresh: final (琥珀底色 + H&E 图标) */
+:root:not(.dark):not(.theme-snow){--background:#fcf9f4;--secondary:#f2ebe0;--card:#fffdf9;--popover:#fffdf9;--muted:#ece4d8;--accent:#e7ddcf;--border:#e0d5c5;--input:#e0d5c5;--foreground:#3d362f;--card-foreground:#3d362f;--popover-foreground:#3d362f;--secondary-foreground:#3d362f;--accent-foreground:#3d362f;--muted-foreground:#76695b;--primary:#b65a30;--ring:#c8693c;--surface-raised:#fffdf9;--ds-glow:#e0b26a;--ds-hair:rgba(80,50,20,0.10);--ds-accent2:#5d52b0}
+:root.dark:not(.theme-glass){--background:#1c1814;--secondary:#14110e;--card:#241f1a;--popover:#26211b;--muted:#2a241e;--accent:#332b23;--border:#3c3329;--input:#3c3329;--foreground:#efe5d8;--card-foreground:#efe5d8;--popover-foreground:#efe5d8;--secondary-foreground:#efe5d8;--accent-foreground:#efe5d8;--muted-foreground:#a6998a;--primary:#d97a48;--ring:#d97a48;--surface-raised:#2a241e;--ds-glow:#d9a050;--ds-hair:rgba(255,230,200,0.07);--ds-accent2:#a197ea}
+:root:not(.dark):not(.theme-snow) .bg-sky-500\/10{background-color:color-mix(in srgb,#5560b8 11%,transparent)!important;color:#5560b8!important}
+:root:not(.dark):not(.theme-snow) .bg-blue-500\/10{background-color:color-mix(in srgb,#5560b8 11%,transparent)!important;color:#5560b8!important}
+:root:not(.dark):not(.theme-snow) .bg-indigo-500\/10{background-color:color-mix(in srgb,#6355b5 11%,transparent)!important;color:#6355b5!important}
+:root:not(.dark):not(.theme-snow) .bg-violet-500\/10{background-color:color-mix(in srgb,#7d4fae 11%,transparent)!important;color:#7d4fae!important}
+:root:not(.dark):not(.theme-snow) .bg-purple-500\/10{background-color:color-mix(in srgb,#7d4fae 11%,transparent)!important;color:#7d4fae!important}
+:root:not(.dark):not(.theme-snow) .bg-emerald-500\/10{background-color:color-mix(in srgb,#3c8670 11%,transparent)!important;color:#3c8670!important}
+:root:not(.dark):not(.theme-snow) .bg-teal-500\/10{background-color:color-mix(in srgb,#3c8670 11%,transparent)!important;color:#3c8670!important}
+:root:not(.dark):not(.theme-snow) .bg-green-500\/10{background-color:color-mix(in srgb,#3c8670 11%,transparent)!important;color:#3c8670!important}
+:root:not(.dark):not(.theme-snow) .bg-amber-500\/10{background-color:color-mix(in srgb,#b0643e 11%,transparent)!important;color:#b0643e!important}
+:root:not(.dark):not(.theme-snow) .bg-orange-500\/10{background-color:color-mix(in srgb,#b0643e 11%,transparent)!important;color:#b0643e!important}
+:root:not(.dark):not(.theme-snow) .bg-yellow-500\/10{background-color:color-mix(in srgb,#b0643e 11%,transparent)!important;color:#b0643e!important}
+:root:not(.dark):not(.theme-snow) .bg-rose-500\/10{background-color:color-mix(in srgb,#b9496b 11%,transparent)!important;color:#b9496b!important}
+:root:not(.dark):not(.theme-snow) .bg-red-500\/10{background-color:color-mix(in srgb,#b9496b 11%,transparent)!important;color:#b9496b!important}
+:root:not(.dark):not(.theme-snow) .bg-pink-500\/10{background-color:color-mix(in srgb,#b9496b 11%,transparent)!important;color:#b9496b!important}
+:root:not(.dark):not(.theme-snow) .bg-cyan-500\/10{background-color:color-mix(in srgb,#5560b8 11%,transparent)!important;color:#5560b8!important}
+:root:not(.dark):not(.theme-snow) .bg-fuchsia-500\/10{background-color:color-mix(in srgb,#a84c86 11%,transparent)!important;color:#a84c86!important}
+:root:not(.dark):not(.theme-snow) .bg-lime-500\/10{background-color:color-mix(in srgb,#3c8670 11%,transparent)!important;color:#3c8670!important}
+:root.dark:not(.theme-glass) .bg-sky-500\/10{background-color:color-mix(in srgb,#8e9be6 14%,transparent)!important;color:#8e9be6!important}
+:root.dark:not(.theme-glass) .bg-blue-500\/10{background-color:color-mix(in srgb,#8e9be6 14%,transparent)!important;color:#8e9be6!important}
+:root.dark:not(.theme-glass) .bg-indigo-500\/10{background-color:color-mix(in srgb,#9d8fe6 14%,transparent)!important;color:#9d8fe6!important}
+:root.dark:not(.theme-glass) .bg-violet-500\/10{background-color:color-mix(in srgb,#b78ade 14%,transparent)!important;color:#b78ade!important}
+:root.dark:not(.theme-glass) .bg-purple-500\/10{background-color:color-mix(in srgb,#b78ade 14%,transparent)!important;color:#b78ade!important}
+:root.dark:not(.theme-glass) .bg-emerald-500\/10{background-color:color-mix(in srgb,#76b9a2 14%,transparent)!important;color:#76b9a2!important}
+:root.dark:not(.theme-glass) .bg-teal-500\/10{background-color:color-mix(in srgb,#76b9a2 14%,transparent)!important;color:#76b9a2!important}
+:root.dark:not(.theme-glass) .bg-green-500\/10{background-color:color-mix(in srgb,#76b9a2 14%,transparent)!important;color:#76b9a2!important}
+:root.dark:not(.theme-glass) .bg-amber-500\/10{background-color:color-mix(in srgb,#e3a37f 14%,transparent)!important;color:#e3a37f!important}
+:root.dark:not(.theme-glass) .bg-orange-500\/10{background-color:color-mix(in srgb,#e3a37f 14%,transparent)!important;color:#e3a37f!important}
+:root.dark:not(.theme-glass) .bg-yellow-500\/10{background-color:color-mix(in srgb,#e3a37f 14%,transparent)!important;color:#e3a37f!important}
+:root.dark:not(.theme-glass) .bg-rose-500\/10{background-color:color-mix(in srgb,#e68aa4 14%,transparent)!important;color:#e68aa4!important}
+:root.dark:not(.theme-glass) .bg-red-500\/10{background-color:color-mix(in srgb,#e68aa4 14%,transparent)!important;color:#e68aa4!important}
+:root.dark:not(.theme-glass) .bg-pink-500\/10{background-color:color-mix(in srgb,#e68aa4 14%,transparent)!important;color:#e68aa4!important}
+:root.dark:not(.theme-glass) .bg-cyan-500\/10{background-color:color-mix(in srgb,#8e9be6 14%,transparent)!important;color:#8e9be6!important}
+:root.dark:not(.theme-glass) .bg-fuchsia-500\/10{background-color:color-mix(in srgb,#d886b6 14%,transparent)!important;color:#d886b6!important}
+:root.dark:not(.theme-glass) .bg-lime-500\/10{background-color:color-mix(in srgb,#76b9a2 14%,transparent)!important;color:#76b9a2!important}
+
+/* ---- type: Latin stays Geist/Lora; Chinese gets a real UI face instead of SimSun ---- */
+:root{--font-sans:"Geist","Geist Fallback","HarmonyOS Sans SC","MiSans","HONOR Sans CN","PingFang SC","Microsoft YaHei UI","Microsoft YaHei","Noto Sans SC",sans-serif;
+--font-serif:"Lora","Lora Fallback","Source Han Serif SC","Noto Serif SC","Songti SC","STSong","Microsoft YaHei UI",serif}
+body{font-feature-settings:"ss01","cv11";text-rendering:optimizeLegibility}
+main h1{letter-spacing:-0.015em}
+
+/* ---- inset canvas: content floats on the sidebar's surface ---- */
+@media (min-width:768px){
+  body>div.flex.h-dvh{background:var(--secondary)}
+  body>div.flex.h-dvh>main{position:relative;margin:8px 8px 8px 0;border-radius:14px;
+    border:1px solid var(--ds-hair);box-shadow:0 1px 2px rgba(0,0,0,.06),0 12px 32px -12px rgba(0,0,0,.18)}
+  :root.dark body>div.flex.h-dvh>main{box-shadow:0 0 0 1px rgba(0,0,0,.35),0 18px 48px -16px rgba(0,0,0,.6)}
+}
+/* a faint light from above, like the lamp over a microscope stage */
+body>div.flex.h-dvh>main::after{content:"";position:absolute;inset:0 0 auto 0;height:340px;pointer-events:none;z-index:1;
+  background:radial-gradient(60% 100% at 50% 0%,color-mix(in srgb,var(--ds-glow) 13%,transparent),transparent 72%)}
+:root:not(.dark) body>div.flex.h-dvh>main::after{background:radial-gradient(60% 100% at 50% 0%,color-mix(in srgb,var(--ds-glow) 12%,transparent),transparent 72%);mix-blend-mode:multiply}
+
+/* ---- sidebar: active item carries the brand colour, quietly ---- */
+aside a.bg-\[var\(--accent\)\]{background:color-mix(in srgb,var(--primary) 13%,transparent)!important;color:var(--foreground)}
+aside a.bg-\[var\(--accent\)\] svg{color:var(--primary)}
+aside .group\/nav.bg-\[var\(--accent\)\]{background:color-mix(in srgb,var(--primary) 13%,transparent)!important}
+aside .group\/nav.bg-\[var\(--accent\)\] svg{color:var(--primary)}
+
+/* ---- cards: hairline edge + a lit top edge instead of a heavy outline ---- */
+main [class*="bg-[var(--card)]"][class*="border"]{border-color:var(--ds-hair)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 1px 2px rgba(0,0,0,.05)}
+:root.dark main [class*="bg-[var(--card)]"][class*="border"]{box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 8px 24px -14px rgba(0,0,0,.55)}
+main a[class*="bg-[var(--card)]"]:hover,main button[class*="bg-[var(--card)]"]:hover{border-color:color-mix(in srgb,var(--primary) 35%,var(--ds-hair))!important}
+
+/* ---- inputs & selects ---- */
+main select{appearance:none;-webkit-appearance:none;background-color:var(--background);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+:where(button,a,[role="button"],select):where(:focus-visible){outline:2px solid color-mix(in srgb,var(--ring) 70%,transparent);outline-offset:2px}
+[class*="ChatComposer_surface"]:focus-within{border-color:color-mix(in srgb,var(--primary) 38%,var(--ds-hair))!important;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 9%,transparent),0 14px 36px -18px rgba(60,30,20,.18)!important}
+:root.dark [class*="ChatComposer_surface"]:focus-within{box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 10%,transparent),0 14px 36px -16px rgba(0,0,0,.5)!important}
+
+/* ---- workspace folders pick up the material's second colour ---- */
+aside [data-group-id^="workspace:"] .group\/heading>span:first-child svg{color:var(--ds-accent2);opacity:1}
+
+/* ---- scrollbars & selection ---- */
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted-foreground) 28%,transparent);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--muted-foreground) 50%,transparent);background-clip:padding-box}
+::selection{background-color:color-mix(in srgb,var(--primary) 28%,transparent)}
+@media (prefers-reduced-motion:reduce){body>div.flex.h-dvh>main::after{display:none}}

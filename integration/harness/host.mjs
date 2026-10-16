@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import { DeepSteamCredentials } from './credentials.mjs';
 import { createWorkspaceAdapter } from './workspaces.mjs';
 import { createExecutionTasks } from './execution_tasks.mjs';
+import { createInteractionSurfaces } from './interaction_surfaces.mjs';
 
 export const COMMIT = 'd743267388641bc76f17c45ce8b4c231aed1d32c';
 export const TOOL_DESCRIPTIONS = Object.freeze({});
@@ -53,7 +54,8 @@ export async function createHost(options) {
   await ctx.plugin(AgentRegistry);
   await ctx.plugin(AgentLoop, { agents: [] });
   const workspaces = await createWorkspaceAdapter(ctx, { ...options, configureWorkspaceProvider });
-  const tasks = await createExecutionTasks({ profile: options.profile, workspaces });
+  const interactions = await createInteractionSurfaces(ctx, { ...options, workspaces });
+  const tasks = await createExecutionTasks({ profile: options.profile, workspaces, interactions });
   ctx.effect(() => () => tasks.close());
-  return { ctx, workspaces, tasks };
+  return { ctx, workspaces, tasks, interactions };
 }

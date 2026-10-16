@@ -9,6 +9,10 @@ $taskInstalledMarker = Join-Path $taskRoot '.deepsteam-installed'
 if (-not $NoBrowser -and -not (Test-Path -LiteralPath $taskDesktop) -and (Test-Path -LiteralPath $taskInstalledMarker)) {
     throw 'The DeepSteam desktop component is missing. Repair the installation with the matching version, then reopen it from the desktop shortcut.'
 }
+# A launcher started from a host such as a code editor can export
+# ELECTRON_RUN_AS_NODE, which would run the desktop as a plain script host
+# instead of opening the application window.
+if (Test-Path Env:ELECTRON_RUN_AS_NODE) { Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue }
 Set-Location -LiteralPath $taskRoot
 & $taskPython -I -B (Join-Path $taskRoot 'installer\repair_install_paths.py') $taskRoot
 if ($LASTEXITCODE -ne 0) { throw 'Bundled dependency paths could not be restored in the current installation folder.' }

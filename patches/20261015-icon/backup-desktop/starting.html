@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN" data-deepsteam-startup="true" data-startup-stage="starting">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
+    <title>DeepSteam</title>
+    <style>
+      :root { color-scheme: dark; --paper: #1c1814; --panel: #241f1a; --ink: #efe5d8; --muted: #a6998a; --accent: #d97a48; --line: #3c3329; --soft-accent: #3a2a1f;
+        /* iOS-style motion: critically damped sheet spring, gentle overshoot, quick press. */
+        --spring: cubic-bezier(.32, .72, 0, 1); --spring-bounce: cubic-bezier(.34, 1.56, .64, 1); --ease-out: cubic-bezier(.16, 1, .3, 1);
+        --t-fast: 220ms; --t-base: 520ms; --t-slow: 900ms; }
+      * { box-sizing: border-box; }
+      body { min-height: 100vh; margin: 0; background: var(--paper); color: var(--ink); font: 15px "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; }
+      body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 78% 30%, #d9a05026, transparent 46%), radial-gradient(ellipse at 10% 90%, #4a3a2c18, transparent 55%); animation: ds-ambient 18s ease-in-out infinite alternate; }
+      main { position: relative; width: min(100% - 112px, 1100px); min-height: 100vh; margin: auto; padding: 42px 0 28px; display: flex; flex-direction: column; }
+      /* Staggered entrance: content rises out of a soft blur, like an iOS app launch. */
+      .masthead, .hero > div:first-child > *, .art, .launch-card, footer { animation: ds-enter var(--t-slow) var(--spring) both; }
+      .masthead { animation-delay: 40ms; }
+      .eyebrow { animation-delay: 120ms !important; } h1 { animation-delay: 180ms !important; } .tagline { animation-delay: 250ms !important; } .intro { animation-delay: 320ms !important; }
+      .art { animation-name: ds-enter-art; animation-delay: 160ms; }
+      .launch-card { animation-delay: 380ms; }
+      footer { animation-delay: 520ms; }
+      .masthead { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+      .brand { display: flex; align-items: center; gap: 10px; font: 500 24px Georgia, "Times New Roman", serif; letter-spacing: -.7px; }
+      .brand svg { width: 28px; height: 32px; color: var(--accent); }
+      .brand svg path { stroke-dasharray: 60; stroke-dashoffset: 60; animation: ds-draw 1.4s var(--ease-out) 260ms forwards; }
+      .edition { color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; }
+      .hero { flex: 1; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 18px; padding: 48px 0 30px; min-height: 370px; transition: transform var(--t-slow) var(--spring), opacity var(--t-slow) var(--spring); }
+      .eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 21px; color: var(--accent); font-size: 11px; letter-spacing: 2px; font-weight: 600; }
+      .eyebrow::before { content: ""; width: 25px; height: 1px; background: currentColor; transform-origin: left; animation: ds-line 900ms var(--spring) 300ms both; }
+      h1 { margin: 0; font: 400 clamp(48px, 6.8vw, 82px)/1.1 Georgia, "Times New Roman", serif; letter-spacing: -3.2px; }
+      .tagline { margin: 23px 0 0; font-size: clamp(20px, 2.2vw, 27px); font-weight: 400; letter-spacing: 2px; }
+      .intro { max-width: 360px; margin: 17px 0 0; color: var(--muted); font-size: 14px; line-height: 1.9; }
+      .art { position: relative; aspect-ratio: 1.16; width: 100%; max-width: 470px; justify-self: end; isolation: isolate; }
+      .art::before { content: ""; position: absolute; inset: 17% 9% 9% 10%; border-radius: 50%; background: radial-gradient(ellipse, #a85d2d24, #25232000 67%); animation: ds-glow 6s ease-in-out infinite; }
+      .art svg { width: 100%; height: 100%; overflow: visible; animation: ds-float 9s ease-in-out infinite; }
+      .orbit { transform-origin: 240px 202px; animation: orbit-drift 17s ease-in-out infinite alternate; }
+      .orbit.reverse { animation-direction: alternate-reverse; animation-duration: 22s; }
+      .steam { transform-origin: 240px 208px; animation: steam-rise 5.5s ease-in-out infinite; }
+      .steam.second { animation-delay: -2.2s; }
+      .spark { transform-origin: 240px 202px; animation: orbit-drift 13s ease-in-out infinite alternate-reverse; }
+      .art-caption { position: absolute; bottom: 3%; width: 100%; margin: 0; color: #867e73; font-size: 9px; text-align: center; letter-spacing: 3px; }
+      /* Frosted status card with a hairline highlight, as on iOS materials. */
+      .launch-card { position: relative; padding: 25px 28px 23px; border: 1px solid #ffffff12; border-radius: 22px; background: #241f1ab8; -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%);
+        box-shadow: inset 0 1px 0 #ffffff0d, 0 18px 50px -24px #000000a6, 0 2px 8px #00000026; transition: border-color var(--t-base) var(--spring), box-shadow var(--t-base) var(--spring), transform var(--t-base) var(--spring); }
+      .status-line { display: flex; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 19px; }
+      .status { display: flex; gap: 11px; align-items: center; margin: 0; font-size: 15px; font-weight: 500; line-height: 1.65; }
+      .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px var(--soft-accent); flex-shrink: 0; animation: ds-breathe 2.4s ease-in-out infinite; transition: background-color var(--t-base) var(--spring); }
+      .phase-label { color: var(--muted); font-size: 11px; white-space: nowrap; transition: color var(--t-base) var(--spring); }
+      .progress-track { position: relative; height: 5px; overflow: hidden; border-radius: 99px; background: #3a3129; }
+      .progress-bar { display: block; height: 100%; width: 35%; border-radius: inherit; background: linear-gradient(90deg, #9a5a3300, #9a5a33 30%, var(--accent) 70%, #f2b178); box-shadow: 0 0 12px #d97a4880; animation: startup-progress 2.1s var(--spring) infinite; }
+      [data-startup-stage="opening"] .progress-bar { width: 62%; animation-duration: 1.5s; }
+      [data-startup-stage="opening"] .launch-card { border-color: #d97a4840; box-shadow: inset 0 1px 0 #ffffff12, 0 22px 60px -26px #d97a4855, 0 2px 8px #00000026; }
+      .steps { display: flex; gap: 32px; margin: 19px 0 0; padding: 0; list-style: none; }
+      .step { display: flex; align-items: center; gap: 8px; color: #938c82; font-size: 12px; line-height: 1.6; transition: color var(--t-base) var(--spring); }
+      .step-number { position: relative; display: grid; place-items: center; width: 18px; height: 18px; border: 1px solid #534a41; border-radius: 50%; font-size: 9px; font-variant-numeric: tabular-nums;
+        transition: color var(--t-fast), background-color var(--t-base) var(--spring), border-color var(--t-base) var(--spring), transform var(--t-base) var(--spring-bounce); }
+      .step[data-state="active"] { color: var(--ink); }
+      .step[data-state="active"] .step-number { color: var(--accent); border-color: #94572f; background: #3a2a1f; transform: scale(1.12); animation: ds-ring 2.2s ease-out infinite; }
+      .step[data-state="complete"] { color: #9eb6a0; }
+      .step[data-state="complete"] .step-number { color: transparent; border-color: #4a644c; background: #29302a; }
+      .step[data-state="complete"] .step-number::after { content: ""; position: absolute; width: 4px; height: 8px; margin-top: -2px; border: solid #9eb6a0; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); animation: ds-check 520ms var(--spring-bounce) both; }
+      .note { margin: 17px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+      .actions:not([hidden]) { animation: ds-enter var(--t-base) var(--spring) both; }
+      button { min-height: 41px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; background: transparent; color: var(--ink); font: inherit; font-size: 13px; cursor: pointer;
+        transition: background-color var(--t-fast) ease, border-color var(--t-fast) ease, transform 420ms var(--spring-bounce), box-shadow var(--t-base) var(--spring); }
+      button.primary { background: var(--accent); border-color: var(--accent); color: #211a16; box-shadow: 0 6px 18px -8px #d97a4899; }
+      button:hover { background: #30281f; transform: translateY(-1px); }
+      button.primary:hover { background: #e8915a; box-shadow: 0 10px 24px -10px #d97a48b3; }
+      button:active { transform: scale(.96); transition-duration: 90ms; }
+      button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      button:disabled { opacity: .6; cursor: wait; transform: none; }
+      footer { display: flex; justify-content: space-between; align-items: center; gap: 24px; min-height: 57px; padding-top: 18px; }
+      .tip { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.8; }
+      .tip[data-tip-variant="0"] { animation: tip-arrive-a 560ms var(--spring); }
+      .tip[data-tip-variant="1"] { animation: tip-arrive-b 560ms var(--spring); }
+      .footer-mark { color: #938c82; font-size: 9px; letter-spacing: 2px; white-space: nowrap; }
+      [data-startup-stage^="error-"] .status::before { background: #e89b87; box-shadow: 0 0 0 5px #402b25; animation: none; }
+      [data-startup-stage^="error-"] .phase-label { color: #e89b87; }
+      [data-startup-stage^="error-"] .launch-card { border-color: #e89b8738; animation: ds-shake 560ms var(--spring) both; }
+      [data-startup-stage^="error-"] .art *, [data-startup-paused="true"] * { animation-play-state: paused !important; }
+      [hidden] { display: none !important; }
+      @keyframes startup-progress { from { transform: translateX(-110%); } to { transform: translateX(390%); } }
+      @keyframes orbit-drift { from { transform: rotate(-6deg); } to { transform: rotate(8deg); } }
+      @keyframes steam-rise { 0%, 100% { transform: translateY(5px); opacity: .68; } 50% { transform: translateY(-6px); opacity: 1; } }
+      @keyframes tip-arrive-a { from { opacity: 0; transform: translateY(6px); filter: blur(3px); } to { opacity: 1; transform: none; filter: blur(0); } }
+      @keyframes tip-arrive-b { from { opacity: 0; transform: translateY(6px); filter: blur(3px); } to { opacity: 1; transform: none; filter: blur(0); } }
+      @keyframes ds-enter { from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
+      @keyframes ds-enter-art { from { opacity: 0; transform: scale(.9) rotate(-4deg); filter: blur(14px); } to { opacity: 1; transform: none; filter: blur(0); } }
+      @keyframes ds-draw { to { stroke-dashoffset: 0; } }
+      @keyframes ds-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      @keyframes ds-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+      @keyframes ds-glow { 0%, 100% { opacity: .75; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+      @keyframes ds-ambient { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-2%, 1.5%, 0); } }
+      @keyframes ds-breathe { 0%, 100% { box-shadow: 0 0 0 4px var(--soft-accent); } 50% { box-shadow: 0 0 0 7px #3a2a1f00; } }
+      @keyframes ds-ring { 0% { box-shadow: 0 0 0 0 #d97a4855; } 70%, 100% { box-shadow: 0 0 0 7px #d97a4800; } }
+      @keyframes ds-check { from { opacity: 0; transform: rotate(45deg) scale(.2); } to { opacity: 1; transform: rotate(45deg) scale(1); } }
+      @keyframes ds-shake { 0%, 100% { transform: translateX(0); } 18% { transform: translateX(-9px); } 36% { transform: translateX(7px); } 54% { transform: translateX(-4px); } 72% { transform: translateX(2px); } }
+      @media (max-width: 790px) { main { width: calc(100% - 56px); padding-top: 26px; } .hero { grid-template-columns: 1fr .8fr; min-height: 315px; padding-top: 30px; } h1 { font-size: 55px; } .tagline { font-size: 21px; letter-spacing: 1px; } .intro { font-size: 12px; } .edition { font-size: 8px; letter-spacing: 1.5px; } .launch-card { padding: 23px; } }
+      @media (max-width: 600px) { main { width: calc(100% - 40px); } .hero { grid-template-columns: 1fr; padding: 48px 0 30px; } .art { display: none; } .edition { display: none; } .status-line { align-items: flex-start; } .phase-label { display: none; } .steps { gap: 20px; } footer { gap: 12px; } .footer-mark { display: none; } }
+      @media (max-height: 850px) and (min-width: 601px) { main { padding-top: 30px; padding-bottom: 20px; } .hero { padding: 24px 0 22px; min-height: 310px; } .art { max-width: 350px; } }
+      @media (max-height: 650px) and (min-width: 601px) { main { padding-top: 24px; padding-bottom: 14px; } .hero { padding: 12px 0 17px; min-height: 255px; } .art { max-width: 280px; } .eyebrow { margin-bottom: 14px; } h1 { font-size: 62px; } .tagline { margin-top: 14px; } .intro { margin-top: 10px; } .launch-card { padding-top: 20px; padding-bottom: 19px; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .progress-bar { width: 38%; margin-inline: auto; } .brand svg path { stroke-dashoffset: 0; } .step[data-state="complete"] .step-number::after { opacity: 1; } }
+    </style>
+  </head>
+  <body>
+    <main aria-busy="true" id="startup-content">
+      <header class="masthead">
+        <div class="brand"><svg viewBox="0 0 28 32" fill="none" aria-hidden="true"><path d="M7 27C-1 19 20 17 11 5M15 29C7 21 29 15 20 2" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg><span>DeepSteam</span></div>
+        <span class="edition">为好奇心留一片空间</span>
+      </header>
+      <section class="hero" aria-label="DeepSteam">
+        <div>
+          <p class="eyebrow">让学习，持续发生</p>
+          <h1>DeepSteam</h1>
+          <p class="tagline">让好奇，继续生长。</p>
+          <p class="intro">从阅读到理解，从提问到探索。<br>你的下一段学习，即将开始。</p>
+        </div>
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 480 414" fill="none">
+            <ellipse cx="240" cy="207" rx="155" ry="155" stroke="#4b3e31" stroke-dasharray="2 9"/>
+            <g class="orbit"><ellipse cx="240" cy="202" rx="206" ry="78" transform="rotate(-24 240 202)" stroke="#815c41" stroke-width="1.15"/><circle cx="58" cy="257" r="5" fill="#d97a48"/></g>
+            <g class="orbit reverse"><ellipse cx="240" cy="202" rx="190" ry="90" transform="rotate(48 240 202)" stroke="#57483a" stroke-width="1.1"/><circle cx="344" cy="340" r="3.5" fill="#a08a70"/></g>
+            <circle cx="240" cy="202" r="78" fill="#32271f"/>
+            <circle cx="240" cy="202" r="67" fill="#1f1914"/>
+            <path class="steam" d="M221 250C176 211 275 203 229 148" stroke="#d97a48" stroke-width="8" stroke-linecap="round"/>
+            <path class="steam second" d="M252 258C211 218 306 184 261 139" stroke="#e2a958" stroke-width="7" stroke-linecap="round"/>
+            <g class="spark"><circle cx="372" cy="106" r="10" fill="#c7a06a"/><circle cx="115" cy="102" r="3" fill="#d97a48"/><path d="M386 282h10m-5-5v10" stroke="#86715b" stroke-width="1.2" stroke-linecap="round"/></g>
+          </svg>
+          <p class="art-caption">阅读 · 提问 · 探索</p>
+        </div>
+      </section>
+      <section class="launch-card" aria-label="启动状态">
+        <div class="status-line">
+          <p class="status" id="startup-status" role="status" aria-live="polite" aria-atomic="true">正在准备学习服务……</p>
+          <span class="phase-label" id="startup-phase-label">准备中</span>
+        </div>
+        <div class="progress-track" id="startup-progress" role="progressbar" aria-label="DeepSteam 启动进度" aria-valuetext="正在准备学习服务">
+          <span class="progress-bar" aria-hidden="true"></span>
+        </div>
+        <ol class="steps" aria-label="启动阶段">
+          <li class="step" id="startup-step-services" data-state="active" aria-current="step"><span class="step-number" aria-hidden="true">1</span><span>准备学习服务</span></li>
+          <li class="step" id="startup-step-page" data-state="pending"><span class="step-number" aria-hidden="true">2</span><span>打开学习界面</span></li>
+        </ol>
+        <p class="note" id="startup-note">准备完成后会自动进入。你的工作区、课程与学习记录会保留。</p>
+        <div class="actions" id="startup-actions" hidden>
+          <button class="primary" id="startup-retry" type="button" disabled>重试启动</button>
+          <button id="startup-logs" type="button">查看启动日志</button>
+        </div>
+      </section>
+      <footer>
+        <p class="tip" id="startup-tip" data-tip-variant="0">从一份资料开始，连起阅读、提问与理解。</p>
+        <span class="footer-mark">为你的下一个想法而来</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -32,10 +32,11 @@ class ExecutionLease:
 
 
 class UnifiedModelRuntime:
-    def __init__(self, *, resolver=None, provider_factory=None, user_loader=None):
+    def __init__(self, *, resolver=None, provider_factory=None, user_loader=None, image_registry=None):
         self.resolver = resolver
         self.provider_factory = provider_factory
         self.user_loader = user_loader
+        self.image_registry = image_registry
         self.leases: dict[str, ExecutionLease] = {}
 
     def resolve(self, selection=None, surface='chat'):
@@ -48,6 +49,17 @@ class UnifiedModelRuntime:
             raise HTTPException(409, {'code': 'model_selection_unavailable', 'message': 'The selected model is unavailable. Check unified model settings.'}) from None
         if surface == 'workspace' and not snapshot.get('capabilities', {}).get('tools'):
             raise HTTPException(409, {'code': 'model_tools_unsupported', 'message': 'This model does not support the tool calls required by the file agent.'})
+        from integration.model_image_verification import default_registry
+        try:
+            evidence = (self.image_registry or default_registry()).status(config, snapshot)
+        except Exception:
+            from integration.model_image_verification import image_unverified_message
+            evidence = {'verified': False, 'status': 'verification_storage_unavailable',
+                        'supported': snapshot.get('capabilities', {}).get('vision') is True,
+                        'message': image_unverified_message()}
+        snapshot.setdefault('capabilities', {})['vision_verified'] = evidence['verified'] is True
+        snapshot['capabilities']['vision'] = evidence.get('supported') is True
+        snapshot['image_verification'] = evidence
         return config, concrete, snapshot
 
     def freeze(self, selection=None, surface='chat', model_snapshot=None):
@@ -91,7 +103,8 @@ class UnifiedModelRuntime:
             'connection': {'selection': 'native', 'managed': False, 'provider': value['provider'],
                 'provider_label': value['provider_label'], 'model': value['model'], 'route': 'native',
                 'available': True, 'text': {'verified': False},
-                'vision': {'verified': False, 'configured': value.get('capabilities', {}).get('vision') is True},
+                'vision': {'verified': value.get('capabilities', {}).get('vision_verified') is True,
+                           'configured': value.get('capabilities', {}).get('vision') is True},
                 'targets': {'learning': 'selected', 'classroom': 'selected'},
                 'resolved_model': dict(value),
                 **{field: value[field] for field in ('context_window', 'max_output_tokens', 'context_window_source') if field in value}}}
@@ -113,13 +126,51 @@ class UnifiedModelRuntime:
             isinstance(part, dict) and part.get('type') in ('image_url', 'input_image', 'image')
             for part in item['content']) for item in messages)
         if images and not caps.get('vision'):
-            raise HTTPException(422, {'code': 'model_vision_unsupported'})
+            from integration.model_image_verification import image_unsupported_message
+            raise HTTPException(422, {'code': 'model_vision_unsupported', 'message': image_unsupported_message(body.get('language', 'en'))})
         response_format = body.get('response_format')
         if response_format is not None and not isinstance(response_format, dict):
             raise HTTPException(422, 'Invalid response format')
         if (response_format or {}).get('type') not in (None, 'text') and not caps.get('json_output'):
             raise HTTPException(422, {'code': 'model_json_unsupported'})
         return lease
+
+    async def verify_image(self, selection=None, *, confirm=False, language='en'):
+        """An explicit action sends only a fresh synthetic image to the frozen model."""
+        from deeptutor.multi_user.context import get_current_user
+        from integration.model_image_verification import default_registry, synthetic_image_probe, probe_answer_matches
+        if confirm is not True:
+            raise HTTPException(422, {'code': 'image_probe_confirmation_required',
+                'message': 'Confirm sending a small synthetic colour image to the selected model; this may use its quota.'})
+        config, concrete, snapshot = self.resolve(selection)
+        registry = self.image_registry or default_registry()
+        evidence = registry.status(config, snapshot, language)
+        # An explicit probe may establish support for an unknown model too.
+        # The metadata directory must not become a model-name allowlist.
+        identity = evidence['configuration_identity']
+        messages, expected = synthetic_image_probe()
+        lease = ExecutionLease(deepcopy(config), deepcopy(concrete), deepcopy(snapshot),
+            (self.user_loader or get_current_user)(), '', time.monotonic(), 'image-verification')
+        try:
+            # Leave room for a reasoning-capable model's analysis and the short
+            # visual answer; a 64-token cap can create a false-negative probe.
+            response = await self.invoke(lease, {'messages': messages, 'max_tokens': 512, 'temperature': 0})
+            verified = response.finish_reason != 'error' and probe_answer_matches(response.content, expected)
+        except asyncio.CancelledError:
+            # Cancellation never becomes positive evidence and no retry follows.
+            raise
+        except Exception:
+            verified = False
+        # A late result cannot authorize a newly edited connection or new login.
+        fresh_config, _, fresh_snapshot = self.resolve(concrete)
+        if registry.identity(fresh_config, fresh_snapshot) != identity:
+            raise HTTPException(409, {'code': 'image_probe_configuration_changed',
+                'message': 'The model connection changed during verification. Verify the current connection again.'})
+        evidence = registry.record(config, snapshot, verified, language=language)
+        snapshot['capabilities']['vision'] = evidence['supported']
+        snapshot['capabilities']['vision_verified'] = evidence['verified']
+        snapshot['image_verification'] = evidence
+        return {'selection': concrete, 'resolved_model': snapshot, 'image_verification': evidence, 'available': verified}
 
     async def invoke(self, lease, body, *, on_content=None, on_reasoning=None):
         from deeptutor.multi_user.context import set_current_user, reset_current_user
@@ -132,7 +183,13 @@ class UnifiedModelRuntime:
         usage_token = current_usage.set(TurnUsage(source='deepsteam-' + lease.surface))
         try:
             provider = (self.provider_factory or get_runtime_provider)(config)
-            maximum = body.get('max_completion_tokens', body.get('max_tokens', 4096))
+            maximum = body.get('max_completion_tokens', body.get('max_tokens'))
+            if maximum is None:
+                # An omitted budget used to become 4096, and the DeepSeek API
+                # applies the same 4096 default, which silently truncates
+                # JSON-heavy classroom scenes and long agent answers. Ask for a
+                # real budget instead; the model capability still caps it below.
+                maximum = 131072
             if not isinstance(maximum, int) or isinstance(maximum, bool) or maximum <= 0:
                 raise HTTPException(422, 'Invalid output token budget')
             cap = getattr(config, 'max_output_tokens', None)
@@ -243,6 +300,49 @@ def install_unified_model_routes(app, authenticate, *, runtime=None):
         body = await body_of(request, ('llm_selection', 'surface'))
         _, selection, snapshot = runtime.resolve(body.get('llm_selection'), body.get('surface', 'chat'))
         return {'selection': selection, 'resolved_model': snapshot, 'available': True}
+
+    async def image_status(body):
+        from integration.model_image_verification import default_registry
+        config, selection, snapshot = runtime.resolve(body.get('llm_selection'))
+        evidence = (runtime.image_registry or default_registry()).status(config, snapshot, body.get('language', 'en'))
+        return {'selection': selection, 'resolved_model': snapshot, 'image_verification': evidence, 'available': evidence['supported']}
+
+    @app.post('/api/contest/models/image-verification', dependencies=[Depends(require_auth)])
+    async def public_image_status(request: Request):
+        return await image_status(await body_of(request, ('llm_selection', 'language')))
+
+    @app.post('/api/contest/models/verify-image', dependencies=[Depends(require_auth)])
+    async def public_verify_image(request: Request):
+        body = await body_of(request, ('llm_selection', 'confirm', 'language'))
+        return await runtime.verify_image(body.get('llm_selection'), confirm=body.get('confirm'), language=body.get('language', 'en'))
+
+    @app.post('/api/contest/internal/model-image-status')
+    async def internal_image_status(request: Request):
+        authenticate(request)
+        return await image_status(await body_of(request, ('llm_selection', 'language')))
+
+    @app.post('/api/contest/internal/model-verify-image')
+    async def internal_verify_image(request: Request):
+        authenticate(request)
+        body = await body_of(request, ('llm_selection', 'confirm', 'language'))
+        return await runtime.verify_image(body.get('llm_selection'), confirm=body.get('confirm'), language=body.get('language', 'en'))
+
+    @app.post('/api/contest/internal/model-image-verification')
+    async def reuse_managed_image_probe(request: Request):
+        authenticate(request)
+        from integration.model_image_verification import default_registry
+        body = await body_of(request, ('llm_selection', 'expected_configuration_revision', 'route_id', 'model', 'verified'))
+        config, selection, snapshot = runtime.resolve(body.get('llm_selection'))
+        # Only installation-owned dsroute connections can import an already-real
+        # managed probe. General API/Codex support is never upgraded from a flag.
+        if (body.get('verified') is not True or not str(config.model).startswith('dsroute_')
+                or body.get('route_id') != config.model or body.get('model') != snapshot['model']
+                or body.get('expected_configuration_revision') != snapshot['configuration_revision']):
+            raise HTTPException(409, {'code': 'managed_image_probe_identity_mismatch'})
+        evidence = (runtime.image_registry or default_registry()).record(config, snapshot, True, source='managed_real_probe')
+        snapshot['capabilities']['vision_verified'] = True
+        snapshot['image_verification'] = evidence
+        return {'selection': selection, 'resolved_model': snapshot, 'image_verification': evidence, 'available': True}
 
     @app.put('/api/contest/models/default', dependencies=[Depends(require_auth)])
     async def choose_default(request: Request):

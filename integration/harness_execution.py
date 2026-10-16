@@ -83,6 +83,15 @@ class ExecutionClient:
                     if on_event:
                         await on_event(event)
                 after = value.get('next_seq', after)
+                if task.get('status') == 'awaiting_input' or (value.get('capabilities') or {}).get('pending_questions'):
+                    # Release this native tool invocation so the user can see
+                    # and answer the actual Host question. The owned task and
+                    # its foreground question remain live; no cancellation or
+                    # second task is created by returning this intermediate state.
+                    return {**task, 'status': 'awaiting_input',
+                        'capabilities': value.get('capabilities') or {},
+                        'session_id': task.get('session_id') or value.get('session_id_link'),
+                        'recovery': 'answer_the_existing_question_in_the_linked_session'}
                 if task['status'] in {'completed', 'failed', 'cancelled', 'interrupted'}:
                     return task
                 await asyncio.sleep(.25)

@@ -1,0 +1,16 @@
+{
+  "node": {
+    "version": "24.19.0",
+    "url": "https://nodejs.org/dist/v24.19.0/node-v24.19.0-win-x64.zip",
+    "sha256": "57f71ab3652e797d84acddc79c81cc9ff1c6ddb2a1974cdb83f00fee9bff4c73",
+    "publisher_checksum_verified": true
+  },
+  "chrome": {
+    "version": "155.0.8059.39",
+    "url": "https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/win64/chrome-win64.zip",
+    "sha256": "59ab2a6e99bde9c0bc180414988394f9f5355a0d3764c704151ee8ecea235c7e",
+    "metadata_source": "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json",
+    "authenticode_status": "NotSigned",
+    "origin_verified": "Official Chrome for Testing HTTPS metadata and download; local SHA256 recorded"
+  }
+}

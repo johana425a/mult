@@ -22,7 +22,6 @@ async function desktopFixture(options = {}) {
   const ipc = new Map();
   const openedPaths = [];
   const alerts = [];
-  const trays = [];
   const timers = new Map();
   let timerSequence = 0;
   const app = new EventEmitter();
@@ -42,11 +41,6 @@ async function desktopFixture(options = {}) {
       windows.push(this);
     }
     isDestroyed() { return false; }
-    isMinimized() { return false; }
-    restore() {}
-    show() { this.hidden = false; }
-    hide() { this.hidden = true; }
-    focus() { this.focused = true; }
     setMenuBarVisibility() {}
     loadFile(file) { this.webContents.currentURL = pathToFileURL(file).href; queueMicrotask(() => this.webContents.emit('did-finish-load')); return Promise.resolve(); }
     loadURL(url) {
@@ -57,12 +51,6 @@ async function desktopFixture(options = {}) {
       return Promise.resolve();
     }
   }
-  class TestTray extends EventEmitter {
-    constructor() { super(); trays.push(this); }
-    setToolTip(value) { this.tooltip = value; }
-    setContextMenu(value) { this.menu = value; }
-    destroy() { this.destroyed = true; }
-  }
   const fakeFs = {
     existsSync: file => file === path.join(root, 'scripts', 'desktop_runtime.py') || file === path.join(root, 'runtime', 'python', 'python.exe'),
     readFileSync: () => '{}', mkdirSync() {},
@@ -70,13 +58,12 @@ async function desktopFixture(options = {}) {
   };
   vm.runInNewContext(main, {
     __dirname: options.asar ? path.join(root, 'runtime', 'desktop', 'resources', 'app.asar') : __dirname,
-    process: { argv: options.argv || [], env: { FAKE_API_KEY: 'must-not-inherit' }, pid: 1234 },
+    process: { argv: [], env: { FAKE_API_KEY: 'must-not-inherit' }, pid: 1234 },
     setTimeout: options.fakeTimers ? (callback, milliseconds) => { const id = ++timerSequence; timers.set(id, { callback, milliseconds }); return id; } : setTimeout,
     clearTimeout: options.fakeTimers ? id => timers.delete(id) : clearTimeout,
     URL, AbortController,
     require(module) {
       if (module === 'electron') return {
-        ...(options.tray ? { Tray: TestTray, Menu: { buildFromTemplate: value => value }, nativeImage: { createFromBitmap: () => ({}) } } : {}),
         app, BrowserWindow: TestWindow, protocol: { registerSchemesAsPrivileged() {}, handle() {} }, session: { defaultSession: { protocol: { handle() {}, unhandle() {} }, webRequest: { onBeforeRequest() {}, onBeforeSendHeaders() {} } } }, net: { fetch() {} }, dialog: { showErrorBox: (...args) => alerts.push(args) },
         ipcMain: { handle: (name, handler) => ipc.set(name, handler), on: (name, handler) => ipc.set(name, handler) },
         shell: { openExternal() {}, openPath: async value => { openedPaths.push(value); return ''; } },
@@ -89,44 +76,8 @@ async function desktopFixture(options = {}) {
     },
   });
   await flush();
-  return { app, children, window: windows[0], trays, diagnostics, events, ipc, openedPaths, alerts, timers, quits: () => quits };
+  return { app, children, window: windows[0], diagnostics, events, ipc, openedPaths, alerts, timers, quits: () => quits };
 }
-
-test('closing hides to tray without stopping services, and tray restores the same window', async () => {
-  const fixture = await desktopFixture({ tray: true });
-  await startServices(fixture);
-  let prevented = false;
-  fixture.window.emit('close', { preventDefault: () => { prevented = true; } });
-  assert.equal(prevented, true);
-  assert.equal(fixture.window.hidden, true);
-  assert.equal(fixture.children.length, 1);
-  assert.equal(fixture.quits(), 0);
-  fixture.trays[0].emit('click');
-  assert.equal(fixture.window.hidden, false);
-  assert.equal(fixture.window.focused, true);
-});
-
-test('an install-targeted quit reaches graceful cleanup even while hidden', async () => {
-  const fixture = await desktopFixture({ tray: true });
-  await startServices(fixture);
-  fixture.app.emit('second-instance', {}, ['--quit', '--install-root=' + path.join(root, 'other')]);
-  assert.equal(fixture.quits(), 0);
-  fixture.app.emit('second-instance', {}, ['--quit', '--install-root=' + root]);
-  assert.equal(fixture.quits(), 1);
-  fixture.app.emit('before-quit', { preventDefault() {} });
-  await flush();
-  assert.equal(fixture.children[1].args.includes('stop-owned'), true);
-  fixture.children[1].emit('exit', 0);
-  await flush();
-  assert.equal(fixture.trays[0].destroyed, true);
-});
-
-test('quit launched without a running instance never starts services', async () => {
-  const fixture = await desktopFixture({ tray: true, argv: ['--quit', '--install-root=' + root] });
-  assert.equal(fixture.children.length, 0);
-  assert.equal(fixture.window, undefined);
-  assert.equal(fixture.quits(), 1);
-});
 
 function eventFor(fixture) { return { sender: fixture.window.webContents }; }
 function stages(fixture) { return fixture.window.sent.map(([, stage]) => stage); }
@@ -360,7 +311,7 @@ test('preload distinguishes error phases and exposes no retry/log capability to 
   }) });
   dom.window.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
   receive({}, 'error-page');
-  assert.match(dom.window.document.getElementById('startup-status').textContent, /services are ready/);
+  assert.match(dom.window.document.getElementById('startup-status').textContent, /服务已启动/);
   assert.equal(dom.window.document.getElementById('startup-progress').hidden, true);
   assert.equal(dom.window.document.getElementById('startup-actions').hidden, false);
   assert.equal(dom.window.document.getElementById('startup-retry').disabled, false);
@@ -368,8 +319,8 @@ test('preload distinguishes error phases and exposes no retry/log capability to 
   assert.equal(dom.window.document.getElementById('startup-actions').hidden, true);
   assert.equal(dom.window.document.getElementById('startup-progress').hidden, false);
   receive({}, 'error-services');
-  assert.match(dom.window.document.getElementById('startup-status').textContent, /could not finish starting/);
-  assert.deepEqual(Object.keys(exposed).sort(), ['openOfficial', 'openRegisteredWorkspaceDirectory', 'openUninstaller', 'openWorkspaceDirectory', 'pickWorkspaceDirectory', 'version', 'webSocketUrl']);
+  assert.match(dom.window.document.getElementById('startup-status').textContent, /未能完成启动/);
+  assert.deepEqual(Object.keys(exposed).sort(), ['openOfficial', 'openRegisteredWorkspaceDirectory', 'openWorkspaceDirectory', 'pickWorkspaceDirectory', 'version', 'webSocketUrl']);
   dom.window.close();
 });
 
@@ -415,7 +366,7 @@ test('startup tips rotate readably without changing or advancing real readiness'
   fixture.receive({}, 'opening');
   assert.equal(fixture.element('startup-step-services').dataset.state, 'complete');
   assert.equal(fixture.element('startup-step-page').getAttribute('aria-current'), 'step');
-  assert.equal(fixture.element('startup-phase-label').textContent, 'Opening shortly');
+  assert.equal(fixture.element('startup-phase-label').textContent, '即将进入');
   assert.equal(fixture.timers.size, 1);
   fixture.receive({}, 'untrusted invented stage');
   assert.equal(fixture.element('startup-step-services').dataset.state, 'complete');

@@ -206,7 +206,16 @@ class DocumentIngestions:
                 result = shared.extract_document(source, **json.loads(row['options']),
                     cancelled=lambda: bool(self._row(identity)['cancel_requested']))
                 self._source(row)
-                if result.get('document', {}).get('sha256') != row['source_hash'] or result.get('coverage', {}).get('document_fully_read') is not True:
+                coverage = result.get('coverage') or {}
+                # The default reader enumerates every source unit and delivers
+                # the text layer plus original pixels. It does not claim that
+                # pending scans/figures have already been recognized by a model.
+                image_ready = (result.get('requires_image_reading') is True
+                    and coverage.get('source_units_enumerated') is True
+                    and coverage.get('text_layer_complete') is True
+                    and bool(result.get('images')))
+                if (result.get('document', {}).get('sha256') != row['source_hash']
+                        or (coverage.get('document_fully_read') is not True and not image_ready)):
                     raise shared.SharedDocumentError('Document reading is incomplete. The original and task are retained.')
                 images = [{k: v for k, v in image.items() if k != 'data'} | {'base64': base64.b64encode(image['data']).decode('ascii')}
                           for image in result.get('images', [])]

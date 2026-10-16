@@ -1,17 +1,19 @@
 'use strict';
 
-const { app, BrowserWindow, dialog, ipcMain, shell, protocol, session, net, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, WebContentsView, dialog, ipcMain, shell, protocol, session, net, Tray, Menu, nativeImage } = require('electron');
 const { Buffer } = require('node:buffer');
 const { spawn } = require('node:child_process');
+const tcp = require('node:net');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { isLocalPage, canonicalLocalPage, isOfficialLink, isExternalPage } = require('./policy.cjs');
 const { SCHEME, PRIVILEGES, SERVICES, applicationOrigin, forwardRequest, socketUrl, websocketHeaders, sessionFetcher, verifyRetainedCookies, allowApplicationRequest, applicationHeaders } = require('./transport.cjs');
 const { MIGRATION_PATH, MIGRATION_HTML, migrateOwnedOriginStorage } = require('./storage-migration.cjs');
+const { createBilibiliBridge } = require('./bilibili.cjs');
+const { createEmbeddedMediaBridge } = require('./embedded-media.cjs');
 
 protocol.registerSchemesAsPrivileged([{ scheme: SCHEME, privileges: PRIVILEGES }]);
-app.commandLine.appendSwitch('lang', 'en');
 
 function resolveRoot() {
   const requested = process.argv.find((item) => item.startsWith('--install-root='));
@@ -20,6 +22,7 @@ function resolveRoot() {
 }
 const root = resolveRoot();
 if (!root) throw new Error('DeepSteam installation could not be located.');
+const startInBackground = process.argv.includes('--background');
 const pythonCandidates = [path.join(root, 'runtime', 'python', 'python.exe'), path.join(root, 'runtime', 'portal-venv', 'Scripts', 'python.exe')];
 const python = pythonCandidates.find((candidate) => fs.existsSync(candidate));
 if (!python) throw new Error('DeepSteam Python runtime is missing.');
@@ -59,6 +62,11 @@ const claim = `${process.pid}-${Date.now()}`;
 const startupFile = path.join(__dirname, 'starting.html');
 const startupURL = pathToFileURL(startupFile).href;
 const projectLogs = path.join(stateRoot, 'logs');
+function recordCaptionEvent(event, details = {}) {
+  // Fixed diagnostic labels only; never log credentials, URLs or caption text.
+  const entry = { at: new Date().toISOString(), event, ...details };
+  try { fs.appendFileSync(path.join(projectLogs, 'desktop', 'bilibili-events.jsonl'), JSON.stringify(entry) + '\n', 'utf8'); } catch {}
+}
 
 // A window close hides the UI; only an explicit quit stops owned services.
 function showMainWindow() {
@@ -93,12 +101,14 @@ function createTray() {
     const color = book || steam ? [244, 240, 232, 255] : [211, 116, 75, 255];
     for (let c = 0; c < 4; c++) pixels[(y * size + x) * 4 + c] = color[c];
   }
-  tray = new Tray(nativeImage.createFromBitmap(pixels, { width: size, height: size }));
-  tray.setToolTip('DeepSteam · Background tasks continue running');
+  // DeepSteam 2026-10-15: brand icon file; the drawn bitmap stays as a fallback.
+  const fileIcon = nativeImage.createFromPath(path.join(__dirname, 'tray.png'));
+  tray = new Tray(fileIcon.isEmpty() ? nativeImage.createFromBitmap(pixels, { width: size, height: size }) : fileIcon);
+  tray.setToolTip('DeepSteam · 后台任务继续运行');
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'Open DeepSteam', click: showMainWindow },
+    { label: '打开 DeepSteam', click: showMainWindow },
     { type: 'separator' },
-    { label: 'Quit and pause', click: requestQuit },
+    { label: '退出并暂停', click: requestQuit },
   ]));
   tray.on('double-click', showMainWindow);
   tray.on('click', showMainWindow);
@@ -127,6 +137,41 @@ function updateStartupStage(stage) {
   if (!['starting', 'opening', 'error-services', 'error-page', 'error-cleanup'].includes(stage)) return;
   startupStage = stage;
   if (window && !window.isDestroyed() && window.webContents.getURL() === startupURL) window.webContents.send('deepsteam:startup-status', stage);
+}
+
+// deepsteam:startup-services: which local services already accept connections.
+// A row on the startup screen is ticked only when its port really answers.
+const STARTUP_SERVICE_PORTS = Object.freeze({ engine: 8011, harness: 3796, classroom: 3793, renderer: 3794, interface: 3792, portal: 3791 });
+let startupServiceTimer = null;
+let startupServiceStates = {};
+function probeStartupPort(port) {
+  return new Promise((resolve) => {
+    const socket = tcp.connect({ host: '127.0.0.1', port });
+    const done = (ok) => { socket.destroy(); resolve(ok); };
+    socket.setTimeout(400);
+    socket.once('connect', () => done(true));
+    socket.once('error', () => done(false));
+    socket.once('timeout', () => done(false));
+  });
+}
+function sendStartupServices() {
+  if (window && !window.isDestroyed() && window.webContents.getURL() === startupURL) window.webContents.send('deepsteam:startup-services', startupServiceStates);
+}
+function watchStartupServices() {
+  if (startupServiceTimer !== null) return;
+  const tick = async () => {
+    const entries = await Promise.all(Object.entries(STARTUP_SERVICE_PORTS).map(async ([name, port]) => [name, await probeStartupPort(port)]));
+    if (startupServiceTimer === null) return;
+    startupServiceStates = Object.fromEntries(entries);
+    sendStartupServices();
+  };
+  startupServiceTimer = setInterval(() => { void tick(); }, 500);
+  void tick();
+}
+function stopStartupServices(allReady) {
+  if (startupServiceTimer !== null) clearInterval(startupServiceTimer);
+  startupServiceTimer = null;
+  if (allReady) { startupServiceStates = Object.fromEntries(Object.keys(STARTUP_SERVICE_PORTS).map(name => [name, true])); sendStartupServices(); }
 }
 
 function runLifecycle(action) {
@@ -175,10 +220,12 @@ function installApplicationTransport() {
   session.defaultSession.webRequest.onBeforeRequest({ urls: ['deepsteam://*/*'] }, (details, callback) => {
     callback({ cancel: !allowApplicationRequest(details, window?.webContents, migrationContents, MIGRATION_PATH) });
   });
-  protocol.handle(SCHEME, request => {
+  protocol.handle(SCHEME, async request => {
     const origin = applicationOrigin(request.url);
     if (origin && new URL(request.url).pathname === MIGRATION_PATH && request.method === 'GET') return new Response(MIGRATION_HTML, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
-    return forwardRequest(request, fetchOwnedService);
+    const response=await forwardRequest(request, fetchOwnedService);
+    if(request.url==='deepsteam://app/connect')recordCaptionEvent('app_document_response',{status:response.status});
+    return response;
   });
   session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ['deepsteam://*/*', 'ws://127.0.0.1/*', 'wss://127.0.0.1/*'] }, async (details, callback) => {
     if (applicationOrigin(details.url)) { callback(applicationHeaders(details, window?.webContents, migrationContents, MIGRATION_PATH)); return; }
@@ -192,6 +239,19 @@ function installApplicationTransport() {
       callback(result);
     } catch { callback({ cancel: true }); }
   });
+}
+
+// DeepSteam 2026-10-16 transition: the startup art spirals into its center point, then the app fades in.
+const APP_FADE_CSS = '@keyframes dsAppIn{from{opacity:0}to{opacity:1}}body{animation:dsAppIn .55s cubic-bezier(.16,1,.3,1) both}';
+function playStartupExit() {
+  if (closing || !window || window.isDestroyed() || window.webContents.getURL() !== startupURL) return Promise.resolve();
+  try { window.webContents.send('deepsteam:startup-exit'); } catch { return Promise.resolve(); }
+  return new Promise((resolve) => setTimeout(resolve, 900));
+}
+function fadeInFrontend(contents) {
+  const onReady = () => { if (isFrontendPage(contents.getURL())) contents.insertCSS(APP_FADE_CSS).catch(() => {}); };
+  contents.on('dom-ready', onReady);
+  setTimeout(() => contents.removeListener('dom-ready', onReady), 15000);
 }
 
 function loadHomepage() {
@@ -240,6 +300,7 @@ function loadHomepage() {
     contents.on('did-fail-load', onFailed);
     contents.on('did-start-navigation', onNavigation);
     contents.on('did-stop-loading', onStopped);
+    fadeInFrontend(contents);
     void activeWindow.loadURL(target).then(() => {
       // Electron resolves loadURL only after did-finish-load. Check the actual
       // destination too; a promise result alone cannot bless a remote page.
@@ -271,7 +332,7 @@ async function showStartupFailure(stage, phase, error, port = null) {
   if (window.webContents.getURL() !== startupURL) {
     try { await window.loadFile(startupFile); }
     catch {
-      dialog.showErrorBox('DeepSteam could not open', 'The local page could not open. Existing data and model settings were preserved. Reopen the app or view its logs.');
+      dialog.showErrorBox('DeepSteam 页面未能打开', '本机页面未能打开。已有数据和模型设置已保留，请重新打开应用或查看本项目日志。');
       return false;
     }
   }
@@ -292,13 +353,14 @@ function startStartup() {
       if (closing) return false;
       claimNeedsCleanup = true;
       recordStartupProgress('service_starting');
-      try { await runLifecycle('start-owned'); servicesStarted = true; recordStartupProgress('services_ready'); }
-      catch (error) { return showStartupFailure('error-services', 'service_start', error); }
+      watchStartupServices();
+      try { await runLifecycle('start-owned'); servicesStarted = true; stopStartupServices(true); recordStartupProgress('services_ready'); }
+      catch (error) { stopStartupServices(false); return showStartupFailure('error-services', 'service_start', error); }
     }
     if (closing || !window || window.isDestroyed()) return false;
     updateStartupStage('opening');
     recordStartupProgress('page_opening');
-    try { await migrateApplicationStorage(); await loadHomepage(); recordStartupProgress('page_loaded'); return true; }
+    try { await migrateApplicationStorage(); await playStartupExit(); await loadHomepage(); recordStartupProgress('page_loaded'); return true; }
     catch (error) {
       if (closing || error?.code === 'CANCELLED') return false;
       return showStartupFailure('error-page', 'page_open', error, 3792);
@@ -357,8 +419,8 @@ async function pickWorkspaceDirectory(event) {
   workspaceDirectoryDialogPending = true;
   try {
     const result = await dialog.showOpenDialog(ownedWindow, {
-      title: 'Choose a DeepSteam workspace folder',
-      buttonLabel: 'Use this folder',
+      title: '选择 DeepSteam 工作区文件夹',
+      buttonLabel: '选择此文件夹',
       properties: ['openDirectory'],
     });
     // A dialog result cannot grant a capability to a newly navigated page or
@@ -417,7 +479,7 @@ async function openExternalPage(value) {
   if (!isExternalPage(value)) return false;
   try { await shell.openExternal(value); return true; }
   catch {
-    if (window && !window.isDestroyed()) dialog.showErrorBox('Could not open the browser', 'Check your default browser, then try the link again.');
+    if (window && !window.isDestroyed()) dialog.showErrorBox('未能打开浏览器', '请检查系统默认浏览器，然后重新点击链接。');
     return false;
   }
 }
@@ -425,9 +487,19 @@ async function openExternalPage(value) {
 function makeWindow() {
   const loginPlaceholders = new Set();
   workspaceDirectoryWindowClosing = false;
-  window = new BrowserWindow({ width: 1320, height: 900, minWidth: 860, minHeight: 640, title: 'DeepSteam', backgroundColor: '#1a1918', show: true,
+  window = new BrowserWindow({ width: 1320, height: 900, minWidth: 860, minHeight: 640, title: 'DeepSteam', backgroundColor: '#1c1814', icon: path.join(__dirname, 'icon.png'), show: !startInBackground,
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true, allowRunningInsecureContent: false } });
   window.setMenuBarVisibility(false);
+  let frontendErrors=0;
+  window.webContents.on('console-message', (...args) => {
+    const details=args[1];
+    const level=typeof details==='object'?details.level:details;
+    const message=typeof details==='object'?details.message:args[2];
+    if(frontendErrors>=10 || !isFrontendPage(window?.webContents.getURL() || '') || !['error',3].includes(level))return;
+    frontendErrors++;
+    recordCaptionEvent('frontend_error',{message:String(message).replace(/https?:\/\/\S+/g,'[url]').slice(0,260)});
+  });
+  window.webContents.on('render-process-gone',(_event,details)=>recordCaptionEvent('renderer_gone',{reason:details.reason,exitCode:details.exitCode}));
   window.webContents.setWindowOpenHandler(({ url }) => {
     // Existing provider cards reserve a blank popup before an async login
     // request. It never receives our preload or displays an external page.
@@ -464,10 +536,10 @@ function makeWindow() {
   });
   window.webContents.session.setPermissionRequestHandler((contents, permission, callback, details) => {
     if (contents !== window?.webContents || permission !== 'media' || !isLocalPage(details.requestingUrl || contents.getURL()) || !details.mediaTypes?.length || details.mediaTypes.some(type => type !== 'audio')) return callback(false);
-    void dialog.showMessageBox(window, { type: 'question', title: 'DeepSteam microphone access', message: 'Allow microphone access for this learning session?', detail: 'Used only by the local learning page you opened.', buttons: ['Do not allow', 'Allow'], defaultId: 0, cancelId: 0 }).then(({ response }) => callback(response === 1)).catch(() => callback(false));
+    void dialog.showMessageBox(window, { type: 'question', title: 'DeepSteam 麦克风访问', message: '是否允许这次学习使用麦克风？', detail: '仅用于你打开的本机学习页面。', buttons: ['不允许', '允许'], defaultId: 0, cancelId: 0 }).then(({ response }) => callback(response === 1)).catch(() => callback(false));
   });
   window.webContents.session.setPermissionCheckHandler((contents, permission, requestingOrigin) => permission === 'media' && contents === window?.webContents && isLocalPage(requestingOrigin));
-  window.webContents.on('did-finish-load', () => updateStartupStage(startupStage));
+  window.webContents.on('did-finish-load', () => { updateStartupStage(startupStage); sendStartupServices(); });
   void window.loadFile(startupFile).catch((error) => recordStartupFailure('page_open', error));
   window.on('close', (event) => {
     if (tray && !explicitQuit) { event.preventDefault(); window.hide(); return; }
@@ -483,9 +555,57 @@ function makeWindow() {
 if (!app.requestSingleInstanceLock()) app.quit();
 else if (process.argv.includes('--quit')) app.quit();
 else {
+  const { createDomesticMediaBridge } = require('./domestic-media.cjs');
+  const domesticMedia = createDomesticMediaBridge({ WebContentsView, getWindow: () => window,
+    getBilibiliSession: () => session.defaultSession,
+    authorize: isWorkspaceDirectorySender,
+    serviceRequest: async (route, options = {}) => {
+      const token = fs.readFileSync(path.join(stateRoot, 'runtime', 'harness-state', 'control-token'), 'utf8').trim();
+      if (!/^[A-Za-z0-9_-]{24,200}$/.test(token)) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
+      const response = await fetch('http://127.0.0.1:8011' + route, {
+        method: options.method || 'GET', redirect: 'error', signal: AbortSignal.timeout(15000),
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        ...(options.body ? { body: JSON.stringify(options.body) } : {}) });
+      if (!response.ok) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
+      return response.json();
+    } });
+  ipcMain.handle('deepsteam:domestic-video', domesticMedia.handle);
+  app.on('before-quit', domesticMedia.close);
+  if(process.argv.includes('--verify-video-quality'))app.whenReady().then(()=>{
+    require('./video-quality-acceptance.cjs').run({BrowserWindow,WebContentsView,session,output:path.join(stateRoot,'logs','desktop','video-quality-acceptance.json')}).catch(()=>{});
+  });
+  const embeddedMedia = createEmbeddedMediaBridge({ getWindow: () => window, authorize: isWorkspaceDirectorySender, diagnostic: recordCaptionEvent });
+  ipcMain.handle('deepsteam:bilibili-playback', embeddedMedia.playback);
+  const bilibiliBridge = createBilibiliBridge({ BrowserWindow, getWindow: () => window,
+    getSession: () => session.defaultSession, authorize: isWorkspaceDirectorySender,
+    diagnostic: recordCaptionEvent,
+    serviceRequest: async (route, options = {}) => {
+      const token = fs.readFileSync(path.join(stateRoot, 'runtime', 'harness-state', 'control-token'), 'utf8').trim();
+      if (!/^[A-Za-z0-9_-]{24,200}$/.test(token)) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
+      const response = await fetch('http://127.0.0.1:8011' + route, {
+        method: options.method || 'GET', redirect: 'error', signal: AbortSignal.timeout(15000),
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        ...(options.body ? { body: JSON.stringify(options.body) } : {}) });
+      recordCaptionEvent('internal_response', { http_status: response.status });
+      if (!response.ok) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
+      return response.json();
+    } });
+  for (const [channel, action] of [['deepsteam:bilibili-login', bilibiliBridge.openLogin], ['deepsteam:bilibili-subtitles', bilibiliBridge.importSubtitles], ['deepsteam:bilibili-status', bilibiliBridge.sessionStatus]]) {
+    ipcMain.handle(channel, async (event, options) => {
+      recordCaptionEvent('bridge_request', { channel, authorized: isWorkspaceDirectorySender(event) });
+      try {
+        const result = await action(event, options);
+        recordCaptionEvent('bridge_result', { channel, status: result.status });
+        return result;
+      } catch {
+        recordCaptionEvent('bridge_result', { channel, status: 'request_failed' });
+        return { status: 'request_failed' };
+      }
+    });
+  }
   app.on('second-instance', (_event, args = []) => {
     if (quitTargetsThisInstall(args)) requestQuit();
-    else showMainWindow();
+    else if (!args.includes('--background')) showMainWindow();
   });
   ipcMain.handle('deepsteam:open-official', (event, url) => isWorkspaceDirectorySender(event) && openOfficial(url));
   ipcMain.on('deepsteam:websocket-url', (event, value) => { event.returnValue = isWorkspaceDirectorySender(event) ? socketUrl(value) : null; });
@@ -503,8 +623,17 @@ else {
     try { return (await shell.openPath(projectLogs)) === ''; } catch { return false; }
   });
   app.whenReady().then(async () => {
+    const cacheVersionFile=path.join(stateRoot,'runtime','video-follow-cache-version');
+    if(!fs.existsSync(cacheVersionFile)||fs.readFileSync(cacheVersionFile,'utf8')!=='20261016-domestic-5'){
+      await session.defaultSession.clearCache();
+      fs.writeFileSync(cacheVersionFile,'20261016-domestic-5');
+    }
     installApplicationTransport();
     makeWindow();
+    bilibiliBridge.observeSessionChanges(() => {
+      if (window && !window.isDestroyed() && isFrontendPage(window.webContents.getURL()))
+        window.webContents.send('deepsteam:bilibili-session-changed');
+    });
     createTray();
     await startStartup();
   });
@@ -518,6 +647,10 @@ else {
     storageMigrationAbort?.abort();
     cancelPageLoad?.();
     if (window && !window.isDestroyed()) window.webContents.stop();
+    // Disappear at once; stopping the local services continues in the background.
+    if (window && !window.isDestroyed()) window.hide();
+    tray?.destroy();
+    tray = null;
     // Wait for any in-progress start to record its ownership before cleanup.
     const wait = startupAttempt || Promise.resolve();
     void wait.catch(() => {}).then(() => runLifecycle('stop-owned')).catch(() => {}).finally(() => {

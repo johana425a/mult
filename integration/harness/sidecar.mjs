@@ -8,7 +8,9 @@ import { requestCredential } from './credentials.mjs';
 import { convertRequest, failureInfo, openAiResponse } from './protocol.mjs';
 import { workspaceRequest } from './workspace_http.mjs';
 import { executionTaskRequest } from './execution_tasks.mjs';
+import { interactionRequest } from './interaction_http.mjs';
 import sharp from 'sharp';
+import { deploymentProtectedPaths } from './deployment_policy.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const profile = process.env.DEEPSTEAM_HARNESS_PROFILE;
@@ -32,22 +34,26 @@ const host = await createHost({ profile, sessions: join(profile, 'sessions'), po
   python: process.env.DEEPSTEAM_HARNESS_PYTHON, credentialHelper: join(here, 'credential_store.py'),
   documentHelper: join(dirname(dirname(here)), 'scripts', 'workspace_document_reader.py'),
   chromium: process.env.DEEPSTEAM_CHROMIUM,
-  protectedPaths: [dirname(dirname(here)), dirname(tokenFile), process.env.DEEPSTEAM_STATE_ROOT].filter(Boolean),
+  protectedPaths: deploymentProtectedPaths(dirname(dirname(here)), process.env.DEEPSTEAM_STATE_ROOT, tokenFile),
   async resolveWorkspaceRoute(llm_selection = null) {
     const selected = await rpc('/api/harness/internal/workspace-provider', { llm_selection });
     return { provider: selected.provider, model: selected.model, route_id: selected.route_id,
-      base_url: selected.base_url, vision_verified: selected.vision_verified,
+      base_url: selected.base_url, vision_verified: selected.vision_verified, vision_supported: selected.vision_supported,
       context_window: selected.context_window, max_output_tokens: selected.max_output_tokens,
       context_window_source: selected.context_window_source,
       resolved_model: selected.resolved_model, llm_selection: selected.llm_selection ?? llm_selection,
-      runWithCredentials: callback => requestCredential.run({ apiKey: selected.api_key || 'no-key' }, callback) };
+      search_route: selected.search_route,
+      runWithCredentials: callback => requestCredential.run({ apiKey: selected.api_key || 'no-key', searchRoute: selected.search_route }, callback) };
   },
   async resolveWorkspaceMetadata(path) {
     const result = await rpc('/api/harness/internal/workspace-metadata', { path });
     return result.workspace ?? null;
+  },
+  async resolveWorkspaceSearchStatus(llm_selection = null) {
+    return rpc('/api/harness/internal/workspace-search-status', { llm_selection });
   } });
 const { ctx } = host;
-const metadata = { version: '0.2.1-alpha.2', locale: 'en-US', timezoneOffsetSeconds: -new Date().getTimezoneOffset() * 60 };
+const metadata = { version: '0.2.1-alpha.2', locale: 'zh-CN', timezoneOffsetSeconds: -new Date().getTimezoneOffset() * 60 };
 let closing = false;
 const json = (res, value, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
 async function bodyOf(req) {
@@ -73,7 +79,7 @@ function accountView(state) {
 }
 async function route(req, res) {
   const path = new URL(req.url, 'http://127.0.0.1').pathname;
-  if (path === '/health' && req.method === 'GET') return json(res, { healthy: !closing, protocol: 2, implementation: 'official-harness-plugins', version: '0.2.1-alpha.2', source_commit: COMMIT, port, active: ['cordis', 'deepseek-account-platform', 'llm-deepseek-account', 'llm-deepseek-api-key', 'llm-pi-ai', 'agent-loop', 'session-persistence-jsonl', 'workspace-files-search-shell', 'authorized-tasks', 'durable-execution-tasks', 'source-ledger', 'lazy-capabilities'] });
+  if (path === '/health' && req.method === 'GET') return json(res, { healthy: !closing, protocol: 2, implementation: 'official-harness-plugins', version: '0.2.1-alpha.2', source_commit: COMMIT, port, active: ['cordis', 'deepseek-account-platform', 'llm-deepseek-account', 'llm-deepseek-api-key', 'llm-pi-ai', 'agent-loop', 'session-persistence-jsonl', 'workspace-files-search-shell', 'authorized-tasks', 'durable-execution-tasks', 'source-ledger', 'lazy-capabilities', 'tool-web', 'web-fetch-http', 'web-search-deepseek', 'user-questions', 'tool-ask-user', 'plan-mode', 'tool-present', 'workspace-changes'] });
   if (req.headers.origin !== undefined) return json(res, { error: { code: 'BROWSER_ORIGIN_DENIED', message: 'Use the local application gateway' } }, 403);
   let selected;
   const presented = bearer(req);
@@ -85,6 +91,17 @@ async function route(req, res) {
   res.once('close', disconnect);
   try {
     const body = req.method === 'POST' ? await bodyOf(req) : {};
+    const interaction = await interactionRequest(host.interactions, req.method, path,
+      new URL(req.url, 'http://127.0.0.1').searchParams, body, controller.signal);
+    if (interaction) {
+      if (interaction.binary) {
+        res.writeHead(200, { 'Content-Type': interaction.media_type, 'Content-Length': interaction.binary.byteLength,
+          'Content-Disposition': interaction.disposition, 'Cache-Control': 'no-store',
+          'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox" });
+        res.end(Buffer.from(interaction.binary)); return;
+      }
+      return json(res, interaction.value);
+    }
     const task = await executionTaskRequest(host.tasks, req.method, path,
       new URL(req.url, 'http://127.0.0.1').searchParams, body);
     if (task) return json(res, task);

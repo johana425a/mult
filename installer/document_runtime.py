@@ -109,7 +109,7 @@ def check_rows(rows: dict, ocr_manifest: Path = OCR_MANIFEST) -> dict:
 def diagnostic_files() -> dict[str, Path]:
     return {"scripts/check_document_runtime.py": PROBE,
             "installer/document-runtime-requirements.txt": REQUIREMENTS,
-            "installer/document-fixtures/scanned-cn.png": ROOT / "installer/document-fixtures/scanned-cn.png"}
+            "installer/document-fixtures/scanned-en.png": ROOT / "installer/document-fixtures/scanned-en.png"}
 
 
 def selected_for_probe(name: str) -> bool:

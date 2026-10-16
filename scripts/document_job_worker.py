@@ -10,6 +10,22 @@ sys.path.insert(0, str(ROOT))
 from integration.document_jobs import DocumentJobs, handle
 
 
+def emit(value):
+    """Write one UTF-8 JSON document, independent of the console code page.
+
+    ``-I`` also ignores PYTHONUTF8, so on Windows a text-mode stdout would fall
+    back to the ANSI code page and raise on any character outside it (an OCR'd
+    '・', '≤' or a non-Chinese script). The caller parses UTF-8 bytes.
+    """
+    payload = json.dumps(value, ensure_ascii=False).encode('utf-8')
+    stream = getattr(sys.stdout, 'buffer', None)
+    if stream is None:
+        sys.stdout.write(payload.decode('utf-8', 'replace'))
+        return
+    stream.write(payload)
+    stream.flush()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--drain', action='store_true')
@@ -31,7 +47,7 @@ def main():
     if len(raw) > 64 * 1024:
         return 2
     result = handle(json.loads(raw.decode('utf-8')), test_root=args.test_root, python=sys.executable)
-    sys.stdout.write(json.dumps(result, ensure_ascii=False))
+    emit(result)
     return 0
 
 
