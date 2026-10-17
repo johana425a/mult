@@ -1,0 +1,408 @@
+{
+  "schema": 1,
+  "version": "2026.10.17-r11.1-review",
+  "review_source": "user-pasted review; model/author not authenticated",
+  "baseline_commit": "ff0bb0eb181881c44b6bd1396179d171dae7b52c",
+  "openmaic_build": "RcB4EAVNrNtSnX1ppnha5",
+  "regression": {
+    "groups": 10,
+    "all_passed": true,
+    "tests_passed": 56,
+    "skipped_native_control": 1,
+    "repair_hard_death_points": 6,
+    "upgrade_hard_death_points": 7,
+    "installer_hard_death_points": 6,
+    "isolated_uninstall_cases": 6,
+    "method": "deterministic/model-fixture decisions with real files and processes",
+    "groups_details": [
+      {
+        "case": "test_upgrade_transactions.py",
+        "exit_code": 0,
+        "seconds": 6.312
+      },
+      {
+        "case": "test_reading_pagination.py",
+        "exit_code": 0,
+        "seconds": 1.659
+      },
+      {
+        "case": "test_delivery_gate.py",
+        "exit_code": 0,
+        "seconds": 0.443
+      },
+      {
+        "case": "test_execution_client.py",
+        "exit_code": 0,
+        "seconds": 1.264
+      },
+      {
+        "case": "harness-real-os",
+        "exit_code": 0,
+        "seconds": 200.809
+      },
+      {
+        "case": "openmaic-adapter",
+        "exit_code": 0,
+        "seconds": 1.457
+      },
+      {
+        "case": "installer-hard-death",
+        "exit_code": 0,
+        "seconds": 12.598
+      },
+      {
+        "case": "test_harness_result_contract.py",
+        "exit_code": 0,
+        "seconds": 7.639
+      },
+      {
+        "case": "test_learning_record_archive.py",
+        "exit_code": 0,
+        "seconds": 2.326
+      },
+      {
+        "case": "test_repair_transactions.py",
+        "exit_code": 0,
+        "seconds": 15.144
+      }
+    ]
+  },
+  "real_model": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "high",
+    "entry_method": "native WebSocket and OpenMAIC HTTP/SSE; no native UI control",
+    "cases": [
+      {
+        "case": "chat",
+        "status": "failed",
+        "total_seconds": 425.502,
+        "observed_tool_seconds": 145.404,
+        "observed_exec_seconds": 13.865,
+        "remaining_model_transport_dispatch_seconds": 280.098,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 24,
+        "tools": [
+          "exec",
+          "learning_records",
+          "load_harness_tools",
+          "load_workspace_dependencies",
+          "present",
+          "read_document",
+          "read_document_image",
+          "read_image",
+          "skill",
+          "todo_write"
+        ]
+      },
+      {
+        "case": "learning",
+        "status": "failed",
+        "total_seconds": 265.661,
+        "observed_tool_seconds": 111.749,
+        "observed_exec_seconds": 17.706,
+        "remaining_model_transport_dispatch_seconds": 153.912,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 13,
+        "tools": [
+          "exec",
+          "learning_records",
+          "load_harness_tools",
+          "load_workspace_dependencies",
+          "present",
+          "read_image",
+          "skill",
+          "todo_write"
+        ]
+      },
+      {
+        "case": "reading",
+        "status": "failed",
+        "total_seconds": 470.941,
+        "observed_tool_seconds": 214.481,
+        "observed_exec_seconds": 4.514,
+        "remaining_model_transport_dispatch_seconds": 256.46,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 32,
+        "tools": [
+          "exec",
+          "invoke_surface_tool",
+          "load_workspace_dependencies",
+          "present",
+          "read",
+          "read_document",
+          "read_document_image",
+          "read_image",
+          "read_surface_context",
+          "surface_tools",
+          "todo_write"
+        ]
+      },
+      {
+        "case": "workbench",
+        "status": "completed",
+        "total_seconds": 405.365,
+        "observed_tool_seconds": 137.997,
+        "observed_exec_seconds": 34.204,
+        "remaining_model_transport_dispatch_seconds": 267.368,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 15,
+        "tools": [
+          "exec",
+          "learning_records",
+          "load_workspace_dependencies",
+          "present",
+          "read_document",
+          "read_document_image",
+          "todo_write"
+        ]
+      },
+      {
+        "case": "classroom",
+        "status": "completed",
+        "total_seconds": 433.65,
+        "observed_tool_seconds": 247.08,
+        "observed_exec_seconds": 4.367,
+        "remaining_model_transport_dispatch_seconds": 186.57,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 15,
+        "tools": [
+          "exec",
+          "invoke_surface_tool",
+          "learning_records",
+          "load_workspace_dependencies",
+          "present",
+          "read_document",
+          "surface_tools",
+          "todo_write"
+        ]
+      },
+      {
+        "case": "chat-final",
+        "status": "completed",
+        "total_seconds": 78.614,
+        "observed_tool_seconds": 18.353,
+        "observed_exec_seconds": 0.0,
+        "remaining_model_transport_dispatch_seconds": 60.261,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 2,
+        "tools": [
+          "present"
+        ]
+      },
+      {
+        "case": "learning-final",
+        "status": "completed",
+        "total_seconds": 74.002,
+        "observed_tool_seconds": 23.956,
+        "observed_exec_seconds": 0.0,
+        "remaining_model_transport_dispatch_seconds": 50.046,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 3,
+        "tools": [
+          "learning_records",
+          "present"
+        ]
+      },
+      {
+        "case": "reading-final",
+        "status": "completed",
+        "total_seconds": 51.089,
+        "observed_tool_seconds": 7.092,
+        "observed_exec_seconds": 0.0,
+        "remaining_model_transport_dispatch_seconds": 43.997,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 1,
+        "tools": [
+          "present"
+        ]
+      },
+      {
+        "case": "chat-edit",
+        "status": "completed",
+        "total_seconds": 53.888,
+        "observed_tool_seconds": 6.17,
+        "observed_exec_seconds": 2.333,
+        "remaining_model_transport_dispatch_seconds": 47.718,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 3,
+        "tools": [
+          "exec",
+          "present",
+          "skill"
+        ]
+      },
+      {
+        "case": "learning-resume",
+        "status": "completed",
+        "total_seconds": 43.843,
+        "observed_tool_seconds": 6.61,
+        "observed_exec_seconds": 0.0,
+        "remaining_model_transport_dispatch_seconds": 37.233,
+        "model": "gpt-6.1-sol",
+        "reasoning": "high",
+        "tool_calls": 3,
+        "tools": [
+          "learning_records"
+        ]
+      }
+    ],
+    "timing_note": "Tool intervals are measured from the Harness journal; remaining time includes model, transport, queue and dispatch. Nested teacher work includes its model time. Some initial requests overlapped; not a latency benchmark.",
+    "initial_native_failures_retained": [
+      "chat",
+      "learning",
+      "reading"
+    ],
+    "fixed_native_delivery_cases": [
+      "chat-final",
+      "learning-final",
+      "reading-final"
+    ],
+    "teacher_child_inherited_binding": {
+      "owner": true,
+      "native_workspace_id": true,
+      "llm_selection": true,
+      "resolved_model": true,
+      "source_references": true
+    },
+    "teacher_child_completed": true
+  },
+  "artifacts": {
+    "all_passed": true,
+    "download_cases": 6,
+    "download_count": 23,
+    "native_attachment_cards": 14,
+    "openmaic_downloads": 9,
+    "formats": [
+      "md",
+      "docx",
+      "pdf",
+      "xlsx",
+      "pptx"
+    ],
+    "sha_size_parser_source_markers_checked": true,
+    "word_heading_table_bullet_page_field_checks": true,
+    "chinese_pdf_text_checked": true,
+    "three_representative_pdf_renders_visually_checked": true,
+    "old_word_link_survived_source_edit_and_backend_restart": true
+  },
+  "reading": {
+    "source_kind": "previously authenticated Bilibili subtitles",
+    "total_segments": 189,
+    "requested_segments": 30,
+    "actual_batches": [
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    ],
+    "new_live_bilibili_login_or_playback_test": false
+  },
+  "records": {
+    "archive_message_objects": 3,
+    "wrong_workspace_reproduction_fixed": true,
+    "empty_archive_rejected": true,
+    "restart_snapshot_unchanged": true,
+    "real_model_append_after_restart": true,
+    "mastery_asserted": false
+  },
+  "deployment": {
+    "upgrades": [
+      {
+        "seconds": 175.967,
+        "version": "2026.10.17-r11.1-review-local",
+        "checks": {
+          "passed": true,
+          "targets": 33,
+          "trees_checked": 1,
+          "preserved_paths_checked": 11,
+          "preserved_hashes_equal": true
+        },
+        "native_processes_unchanged": true,
+        "health": {
+          "3791": 200,
+          "3792": 200,
+          "3793": 200,
+          "3794": 200,
+          "3796": 200,
+          "8011": 200
+        }
+      },
+      {
+        "seconds": 138.203,
+        "version": "2026.10.17-r11.1-review-local",
+        "checks": {
+          "passed": true,
+          "targets": 2,
+          "trees_checked": 0,
+          "preserved_paths_checked": 11,
+          "preserved_hashes_equal": true
+        },
+        "native_processes_unchanged": true,
+        "health": {
+          "3791": 200,
+          "3792": 200,
+          "3793": 200,
+          "3794": 200,
+          "3796": 200,
+          "8011": 200
+        }
+      }
+    ],
+    "composite_post_check": {
+      "passed": true,
+      "targets": 33,
+      "trees": 1,
+      "tree_files": 3331,
+      "later_patch_supersedes_only_two_explicit_targets": true
+    },
+    "uninstall_ownership_refreshed": true,
+    "user_installation_uninstalled": false,
+    "desktop_or_removable_distribution_updated": false,
+    "background_only": true
+  },
+  "remaining": [
+    "Full clean-checkout native installer rebuild is unverified; prior compiled-only frontend changes need source recovery.",
+    "No new native visual UI walkthrough, Bilibili login/playback test or all-provider/network stress test in this review.",
+    "No claim of arbitrary autonomous self-repair safety or universal semantic deduplication of newly generated calls.",
+    "Fresh external review of this exact patch has not been obtained."
+  ]
+}

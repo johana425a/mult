@@ -225,6 +225,7 @@ export async function runPiDirectorLoop(opts: {
     harnessVisibleContent=true;agentHadContent=true;totalAgents+=1;
   };
   const director = buildAgent({
+    abortSignal: opts.signal,
     harnessContext: {surface:'openmaic-classroom',conversationId:`classroom:${opts.nativeWhiteboardStageId || opts.body.storeState.stage?.id || 'default'}:${opts.body.harnessSessionId || 'legacy'}`,context:opts.body.storeState,onDeliveries:showHarnessText},
     streamFn,
     systemPrompt: buildDirectorPrompt(opts.body, opts.agentConfigs, opts.maxAgentTurns),

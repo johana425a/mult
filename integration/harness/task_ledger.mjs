@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 
-export async function createTaskLedger(profile) {
+export async function createTaskLedger(profile, options = {}) {
   const root = join(profile, 'source-ledgers');
   await mkdir(root, { recursive: true });
   const cache = new Map(); const writes = new Map();
@@ -26,6 +26,45 @@ export async function createTaskLedger(profile) {
       await writeFile(temporary, content, 'utf8'); await rename(temporary, path);
     });
     writes.set(id, job.catch(() => {})); await job;
+  }
+  const normalized = path => String(path).replaceAll('\\','/').replace(/^\.\//,'');
+  function mergeEvidence(target, prior) {
+    target.units=[...new Map([...(target.units||[]),...(prior.units||[])].map(unit=>[JSON.stringify(unit),unit])).values()];
+    target.delivered_units ??= {};
+    for(const [index,unit] of Object.entries(prior.delivered_units||{})) {
+      const current=target.delivered_units[index];
+      if(!current){target.delivered_units[index]=unit;continue;}
+      if(current.text_hash!==unit.text_hash||current.total_chars!==unit.total_chars)continue;
+      const spans=[...current.spans,...unit.spans].sort((a,b)=>a[0]-b[0]), merged=[];
+      for(const span of spans){const last=merged.at(-1);if(last&&span[0]<=last[1])last[1]=Math.max(last[1],span[1]);else merged.push([...span]);}
+      current.spans=merged;current.delivered=merged.length===1&&merged[0][0]===0&&merged[0][1]===current.total_chars;
+    }
+    target.unit_count ??= prior.unit_count;
+    target.output_references=[...new Set([...(target.output_references||[]),...(prior.output_references||[])])];
+    if(prior.source_summary && prior.source_summary!==target.source_summary)
+      target.migrated_summaries=[...new Set([...(target.migrated_summaries||[]),prior.source_summary])];
+    target.complete=Number.isInteger(target.unit_count)&&Object.values(target.delivered_units).filter(unit=>unit.delivered).length===target.unit_count;
+    if(Number.isInteger(target.unit_count))target.pending_units=Array.from({length:target.unit_count},(_,i)=>i+1).filter(i=>!target.delivered_units[i]?.delivered);
+  }
+  async function sourceKey(id, ledger, path, result) {
+    const binding=await options.resolveSource?.(id,path,result);
+    if(!binding)return normalized(path);
+    if(!binding.owner||!binding.scope||!binding.source_id||!Array.isArray(binding.aliases))throw new Error('source_identity_invalid');
+    ledger.aliases ??= {};
+    const scope=JSON.stringify([binding.owner,binding.scope]);
+    const aliases=[path,...binding.aliases].map(normalized);
+    const priorKeys=[...new Set([...aliases,...aliases.map(alias=>ledger.aliases[scope+':'+alias]).filter(Boolean)])];
+    const existing=aliases.map(alias=>ledger.aliases[scope+':'+alias]).find(key=>key&&ledger.sources[key]
+      && (!binding.sha256||!ledger.sources[key].sha256||binding.sha256===ledger.sources[key].sha256));
+    const key=existing || 'source:'+createHash('sha256').update(JSON.stringify([binding.owner,binding.scope,normalized(binding.source_id)])).digest('hex');
+    for(const alias of aliases)ledger.aliases[scope+':'+alias]=key;
+    // Migrate only exact broker-registered aliases, never a global hash match.
+    for(const alias of priorKeys)if(alias!==key&&ledger.sources[alias]&&(!binding.sha256||ledger.sources[alias].sha256===binding.sha256)) {
+      if(ledger.sources[key])mergeEvidence(ledger.sources[key],ledger.sources[alias]);
+      else ledger.sources[key] = {...ledger.sources[alias],path:key};
+      delete ledger.sources[alias];
+    }
+    return key;
   }
   function summary(ledger, offset = 0, limit = 30) {
     const sources = Object.values(ledger.sources);
@@ -50,8 +89,11 @@ export async function createTaskLedger(profile) {
       const ledger = await load(id), keys = new Set();
       for(const ref of references || []) {
         if(ref.type !== 'reading' || typeof ref.material_id !== 'string' || !Number.isInteger(ref.material_revision) || !Number.isInteger(ref.page))continue;
-        const key=`reading:${ref.material_id}@${ref.material_revision}`;keys.add(key);
-        const source=ledger.sources[key] ?? {path:key,title:ref.title,units:[],complete:false,status:'partially_delivered',semantic_completeness:'not_guaranteed'};
+        const key=await sourceKey(id,ledger,`reading:${ref.material_id}@${ref.material_revision}`,ref);keys.add(key);
+        const digest=ref._source_binding?.sha256;
+        const previous=ledger.sources[key];
+        const source=previous && (!digest||!previous.sha256||previous.sha256===digest) ? previous : {path:key,title:ref.title,units:[],complete:false,status:'partially_delivered',semantic_completeness:'not_guaranteed'};
+        source.sha256=digest || source.sha256;
         source.units=[...new Map([...source.units,{page:ref.page}].map(unit=>[unit.page,unit])).values()];
         // Native references prove these locators were returned. They don't
         // include character spans or total scope, so never assert completion.
@@ -64,7 +106,7 @@ export async function createTaskLedger(profile) {
     async recordDocument(id, requestedPath, result) {
       if (!result?.ok) return;
       const ledger = await load(id);
-      const key = String(requestedPath).replaceAll('\\', '/').replace(/^\.\//, '');
+      const key = await sourceKey(id,ledger,requestedPath,result);
       const digest = result.document?.sha256;
       let source = ledger.sources[key];
       if (!source || digest && source.sha256 && digest !== source.sha256) source = { path: key, units: [], complete: false };
@@ -111,7 +153,7 @@ export async function createTaskLedger(profile) {
       const ledger = await load(id);
       for (const entry of entries) {
         if (!entry.path || entry.kind === 'directory' || entry.type === 'directory') continue;
-        const key = entry.path.replaceAll('\\', '/').replace(/^\.\//, '');
+        const key = await sourceKey(id,ledger,entry.path,entry);
         const prior = ledger.sources[key];
         if (!prior || prior.mtime_ns != null && entry.mtime_ns != null &&
           (prior.mtime_ns !== entry.mtime_ns || prior.bytes !== entry.bytes)) {
@@ -128,6 +170,7 @@ export async function createTaskLedger(profile) {
     },
     async update(id, input) {
       const ledger = await load(id);
+      if(input.source_path && !ledger.sources[input.source_path]) input={...input,source_path:await sourceKey(id,ledger,input.source_path,{})};
       const invalid = () => Object.assign(new Error('Progress is too large or malformed. Save per-source notes with source_path/source_summary and store full outputs in task files; no existing progress was changed.'), { code: 'task_progress_size_limit' });
       if (input.summary !== undefined && (typeof input.summary !== 'string' || input.summary.length > 12000)) throw invalid();
       if (input.next_steps !== undefined && (!Array.isArray(input.next_steps) || input.next_steps.length > 100
@@ -149,7 +192,8 @@ export async function createTaskLedger(profile) {
     },
     async read(id, offset = 0, limit = 30) { return summary(await load(id), offset, Math.min(100, Math.max(1, limit))); },
     async source(id, path, offset = 0, limit = 30) {
-      const ledger = await load(id), source = ledger.sources[path];
+      const ledger = await load(id);
+      const source = ledger.sources[path] ?? ledger.sources[await sourceKey(id,ledger,path,{})];
       if (!source) return { found: false, path };
       const count = source.unit_count ?? 0, end = Math.min(count, offset + Math.min(100, Math.max(1, limit)));
       return { found: true, path, unit_count: count, complete: source.complete,

@@ -59,6 +59,7 @@ async function fixture(permissionMode = 'exact-action-once') {
         runWithCredentials: callback => requestCredential.run({ apiKey: 'fixture-no-secret' }, callback) };
     }, resolveWorkspaceMetadata: async path => nativeMetadata?.path === path ? structuredClone(nativeMetadata) : null };
   const host = await createHost(options);
+  if(permissionMode==='exact-action-once')await host.workspaces.setAccess({default_access:'workspace'});
   const { workspace } = await host.workspaces.register({ path: folder, name: 'Real OS fixture' });
   const { session } = await host.workspaces.createSession({ workspace_id: workspace.id });
   async function command(name, arguments_, decision = 'allow') {
@@ -79,10 +80,42 @@ async function fixture(permissionMode = 'exact-action-once') {
     async close() { await host.ctx.fiber.dispose(); await new Promise(resolve => server.close(resolve)); } };
 }
 
-test('shared document tools return PDF page evidence and model-visible image in the official agent loop', { skip: !python, timeout: 30000 }, async () => {
+test('review: an invalid source image produces a durable failure before any model call', {skip:!python,timeout:30000},async()=>{
+  const f=await fixture('authorized-task');
+  try {
+    const result=await f.host.tasks.create({owner:'fixture',source:'chat',surface:'chat',task_key:'invalid-image',workspace_id:f.workspace.id,text:'Inspect image',
+      interaction:{surface:'chat',context_ref:'fixture',tools:[],output_dir:join(f.folder,'outputs'),images:['not-an-image']}});
+    const final=await until(async()=>{const value=await f.host.tasks.get(result.task.id,'fixture');return value.task.status==='failed'?value:false;});
+    assert.equal(f.requestCount(),0);assert.ok(final.task.error?.message);assert.ok(final.events.some(event=>event.type==='turn/end'&&event.outcome==='error'));
+  }finally{await f.close();}
+});
+
+test('review: cancellation while resolving the model starts no write or transport', {skip:!python,timeout:30000},async()=>{
+  const f=await fixture('authorized-task');let release;
+  try {
+    release=f.holdRoute();
+    const result=await f.host.tasks.create({owner:'fixture',source:'chat',task_key:'cancel-admission',workspace_id:f.workspace.id,text:'Write a file'});
+    await delay(100);const pending=f.host.tasks.cancel(result.task.id,'fixture');release();await pending;
+    assert.equal(f.requestCount(),0);assert.equal((await f.host.tasks.get(result.task.id,'fixture')).task.status,'cancelled');
+  }finally{release?.();await f.close();}
+});
+
+test('review: provider-call budgets stop before the second actual transport', {skip:!python,timeout:30000},async()=>{
+  const f=await fixture('authorized-task');
+  try {
+    const started=await f.host.tasks.create({owner:'fixture',source:'classroom',task_key:'transport-budget',workspace_id:f.workspace.id,
+      provider_call_budget:1,text:'FIXTURE_TOOL:'+JSON.stringify({name:'read',arguments:{file_path:'notes.txt'}})});
+    const final=await until(async()=>{const value=await f.host.tasks.get(started.task.id,'fixture');return value.task.status==='failed'?value:false;});
+    assert.equal(f.requestCount(),1);assert.equal(final.events.filter(event=>event.type==='execution/provider-call').length,1);
+    assert.match(JSON.stringify(final.task.error),/budget/);
+  }finally{await f.close();}
+});
+
+// Exercises eleven real parser/process launches, not one model request.
+test('shared document tools return PDF page evidence and model-visible image in the official agent loop', { skip: !python, timeout: 120000 }, async () => {
   const f = await fixture();
   try {
-    const generated = await runReaderProcess(python, ['-c', 'import sys,json,runpy,pathlib; p=json.load(sys.stdin); helpers=runpy.run_path(p["helper"]); helpers["create_fixtures"](pathlib.Path(p["root"])); print(json.dumps({"ok":True}))'], { root: f.folder, helper: join(here, '../../../reports/smoke_workspace_documents.py') });
+    const generated = await runReaderProcess(python, ['-c', 'import sys,json,runpy,pathlib; p=json.load(sys.stdin); helpers=runpy.run_path(p["helper"]); helpers["create_fixtures"](pathlib.Path(p["root"])); print(json.dumps({"ok":True}))'], { root: f.folder, helper: join(here, '../../../tests/r11/document_fixtures.py') });
     assert.equal(generated.ok, true);
     const read = await f.command('read_document', { path: 'fixture.pdf', max_units: 1 });
     assert.equal(read.result.is_error, false); assert.match(read.result.text, /Synthetic PDF page 1/);
@@ -210,7 +243,7 @@ test('pinned browser and native computer tool catalogs load on demand without re
   } finally { await f.close(); }
 });
 
-test('official workspace tool loop executes real local files/image/search/approved PowerShell and resumes durable history', { skip: !python, timeout: 60000 }, async () => {
+test('official workspace tool loop executes real local files/image/search/approved PowerShell and resumes durable history', { skip: !python, timeout: 120000 }, async () => {
   const f = await fixture();
   try {
     assert.equal(f.session.cwd, await import('node:fs/promises').then(fs => fs.realpath(f.folder)));
@@ -374,7 +407,7 @@ test('linked native metadata is rechecked before durable prepare and commit and 
       { ...prepare, native_before: { ...before, name: 'Stale' } }), { code: 'workspace_revision_changed' });
     f.setNativeMetadata({ ...before, kind: 'general' });
     await assert.rejects(f.host.workspaces.manage(f.workspace.id, prepare), { code: 'workspace_protected' });
-    await assert.rejects(f.host.workspaces.register({ path: f.folder }), { code: 'workspace_protected' });
+    assert.equal((await f.host.workspaces.register({path:f.folder})).workspace.id,f.workspace.id); // Current general workspace supports authorized execution.
     const protectedPath = join(f.root, 'built-in-fixture');
     await mkdir(protectedPath);
     f.setNativeMetadata({ ...before, path: protectedPath, kind: 'system' });

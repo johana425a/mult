@@ -24,7 +24,7 @@ namespace DeepSteamInstaller
 {
     internal static class Program
     {
-        internal const string Version = "2026.10.16-r10.2-local";
+        internal const string Version = "2026.10.17-r11.1-review-local";
         internal const string InstallingMarker = ".deepsteam-installing";
         internal const string InstalledMarker = ".deepsteam-installed";
 
@@ -1745,7 +1745,7 @@ namespace DeepSteamInstaller
             // the reviewed SHA; edited installed bytes remain user-owned.
             bool factoryOcrConfig = value == "runtime/python/lib/site-packages/rapidocr/config.yaml";
             bool factoryMineruMetadata = value == "runtime/mineru/runtime.json";
-            foreach (string prefix in new string[] { "data", "logs", "cache", "reports", "runtime/temp", "runtime/deeptutor-home", "runtime/harness-state", "runtime/openmaic-standalone/data", "upstream/openmaic/data" })
+            foreach (string prefix in new string[] { "data", "logs", "cache", "reports", "extensions", "runtime/temp", "runtime/deeptutor-home", "runtime/harness-state", "runtime/openmaic-standalone/data", "upstream/openmaic/data" })
                 if (value == prefix || value.StartsWith(prefix + "/", StringComparison.Ordinal)) return true;
             return value == "deepsteam-storage.json" || value.EndsWith("/process.json") || (value.EndsWith("/runtime.json") && !factoryMineruMetadata) ||
                 value.EndsWith("/workspace-folders.json") || value.EndsWith("/desktop-claims.json") || value.EndsWith(".sqlite3") ||
@@ -1812,7 +1812,24 @@ namespace DeepSteamInstaller
             Write(context);
             CreateUninstallShortcut(root);
         }
-        internal static void Write(UninstallContext context)
+        internal static void AtomicBytes(string path, byte[] bytes)
+        {
+            string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            using (FileStream stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            { stream.Write(bytes, 0, bytes.Length); stream.Flush(true); }
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    if (File.Exists(path)) File.Replace(temporary, path, null);
+                    else File.Move(temporary, path);
+                    return;
+                }
+                catch (IOException) { if (attempt >= 11) throw; Thread.Sleep(50); }
+                catch (UnauthorizedAccessException) { if (attempt >= 11) throw; Thread.Sleep(50); }
+            }
+        }
+        internal static string ManifestText(UninstallContext context)
         {
             Root(context.Root);
             StringBuilder data = new StringBuilder("DeepSteamUninstallV1\n");
@@ -1827,8 +1844,18 @@ namespace DeepSteamInstaller
                 data.Append("S\tworkspaces-v1\n");
                 foreach (string folder in context.WorkspaceSnapshot) data.Append("W\t").Append(B64(folder)).Append('\n');
             }
-            File.WriteAllText(context.Manifest, data.ToString(), new UTF8Encoding(false));
-            File.WriteAllText(Path.Combine(context.Root, IdName), context.Id, new UTF8Encoding(false));
+            return data.ToString();
+        }
+        internal static void Write(UninstallContext context)
+        {
+            AtomicBytes(context.Manifest, new UTF8Encoding(false).GetBytes(ManifestText(context)));
+#if DEEPSTEAM_REVIEW_TEST
+            ReviewFaults.AfterWrite("manifest");
+#endif
+            AtomicBytes(Path.Combine(context.Root, IdName), new UTF8Encoding(false).GetBytes(context.Id));
+#if DEEPSTEAM_REVIEW_TEST
+            ReviewFaults.AfterWrite("identity");
+#endif
             using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryName(context.Id)))
             {
                 key.SetValue("DisplayName", "DeepSteam 学习助手"); key.SetValue("Publisher", "DeepSteam");
@@ -1838,6 +1865,9 @@ namespace DeepSteamInstaller
                 key.SetValue("InstallationId", context.Id); key.SetValue("ManifestSha256", Sha(context.Manifest));
                 key.SetValue("NoModify", 1, RegistryValueKind.DWord); key.SetValue("NoRepair", 1, RegistryValueKind.DWord);
             }
+#if DEEPSTEAM_REVIEW_TEST
+            ReviewFaults.AfterWrite("registry");
+#endif
         }
         internal static void BindData(string root, string dataRoot)
         {
@@ -2040,7 +2070,7 @@ namespace DeepSteamInstaller
                 if (value == "desktop/" + file) return true;
             foreach (string prefix in new string[] { "portal/", "integration/", "scripts/", "installer/", "licenses/", "upstream/",
                 "runtime/python/", "runtime/deeptutor-packages/", "runtime/native-frontends/", "runtime/openmaic-standalone/",
-                "runtime/desktop/", "runtime/harness/", "runtime/node/", "runtime/mineru/", "runtime/render-service/", "demo/", "runtime/render-service/", "demo/" })
+                "runtime/desktop/", "runtime/harness/", "runtime/node/", "runtime/mineru/", "runtime/pglite/", "runtime/render-service/", "demo/" })
                 if (value.StartsWith(prefix, StringComparison.Ordinal)) return true;
             return value == "release.md" || value == "release-identity.json" || value == "local-build-info.json" || value == "guide.md" || value == "user-guide.txt" || value == "agents.md" || value == "package-manifest.json" || value == "public-source-manifest.json" || value == "requirements-demo.txt" || value == "runtime/native-frontend.json" || value == "runtime/openmaic-frontend.json" ||
                 value == "runtime/harness-runtime.json" || value == "readme.md" || value == "requirements.txt" ||
@@ -2115,6 +2145,7 @@ namespace DeepSteamInstaller
         }
         internal static void Refresh(string root, string receiptPath, string receiptHash, string report, bool dryRun)
         {
+            if (!dryRun) RecoverRefresh(root, receiptPath, receiptHash);
             UninstallContext previous = UninstallRegistration.Verify(root); root = previous.Root;
             if (!Regex.IsMatch(receiptHash ?? "", "^[a-f0-9]{64}$") || UninstallRegistration.Sha(receiptPath) != receiptHash)
                 throw new IOException("Update receipt verification failed. The uninstall manifest was not expanded.");
@@ -2200,28 +2231,94 @@ namespace DeepSteamInstaller
             if (UninstallRegistration.Sha(receiptPath) != receiptHash || UninstallRegistration.Sha(previous.Manifest) != (string)receipt["previous_manifest_sha256"])
                 throw new IOException("Update inputs changed during verification. Registration was not updated.");
             if (repairEntriesOnly) ValidateEntryRepair(previous, receipt);
+            byte[] markerBytes = new UTF8Encoding(false).GetBytes("DeepSteam " + next.Version + "\r\n" + DateTime.UtcNow.ToString("o"));
+            byte[] updaterBytes = File.ReadAllBytes(Application.ExecutablePath);
+            foreach (string relative in ownNames)
+            {
+                byte[] bytes = relative == Program.InstalledMarker ? markerBytes : updaterBytes;
+                next.Files.RemoveAll(delegate(UninstallFile row) { return String.Equals(row.Path, relative, StringComparison.OrdinalIgnoreCase); });
+                next.Files.Add(new UninstallFile { Path = relative, Hash = BytesHash(bytes), Bytes = bytes.Length });
+            }
+            List<object> journalFiles = new List<object>();
+            foreach (string relative in ownNames)
+                journalFiles.Add(new { path = relative, before = Convert.ToBase64String(originals[relative]), before_sha = BytesHash(originals[relative]),
+                    after_sha = BytesHash(relative == Program.InstalledMarker ? markerBytes : updaterBytes) });
+            byte[] oldManifest = File.ReadAllBytes(previous.Manifest);
+            journalFiles.Add(new { path = UninstallRegistration.ManifestName, before = Convert.ToBase64String(oldManifest), before_sha = BytesHash(oldManifest),
+                after_sha = BytesHash(new UTF8Encoding(false).GetBytes(UninstallRegistration.ManifestText(next))) });
+            string journalPath = receiptPath + ".ownership-journal.json";
+            Dictionary<string, object> journal = new Dictionary<string, object> {
+                { "root", root }, { "id", previous.Id }, { "receipt_sha256", receiptHash },
+                { "updater_sha256", BytesHash(updaterBytes) }, { "status", "prepared" }, { "files", journalFiles.ToArray() } };
+            UninstallRegistration.AtomicBytes(journalPath, new UTF8Encoding(false).GetBytes(Serialize(journal)));
             try
             {
                 foreach (string relative in ownNames)
                 {
                     string file = UninstallRegistration.Child(root, relative);
                     if (relative == Program.InstalledMarker)
-                        File.WriteAllText(file, "DeepSteam " + next.Version + "\r\n" + DateTime.UtcNow.ToString("o"), new UTF8Encoding(false));
-                    else File.Copy(Application.ExecutablePath, file, true);
+                        UninstallRegistration.AtomicBytes(file, markerBytes);
+                    else UninstallRegistration.AtomicBytes(file, updaterBytes);
+#if DEEPSTEAM_REVIEW_TEST
+                    ReviewFaults.AfterWrite(relative);
+#endif
                     next.Files.RemoveAll(delegate(UninstallFile row) { return String.Equals(row.Path, relative, StringComparison.OrdinalIgnoreCase); });
                     next.Files.Add(new UninstallFile { Path = relative, Hash = UninstallRegistration.Sha(file), Bytes = new FileInfo(file).Length });
                 }
                 UninstallRegistration.Write(next);
                 UninstallRegistration.CreateUninstallShortcut(root);
                 Check(root, report);
+                journal["status"] = "committed";
+                UninstallRegistration.AtomicBytes(journalPath, new UTF8Encoding(false).GetBytes(Serialize(journal)));
             }
             catch
             {
                 foreach (KeyValuePair<string, byte[]> item in originals)
-                    File.WriteAllBytes(UninstallRegistration.Child(root, item.Key), item.Value);
+                    UninstallRegistration.AtomicBytes(UninstallRegistration.Child(root, item.Key), item.Value);
                 UninstallRegistration.Write(previous);
+                journal["status"] = "rolled_back";
+                UninstallRegistration.AtomicBytes(journalPath, new UTF8Encoding(false).GetBytes(Serialize(journal)));
                 throw;
             }
+        }
+        private static string BytesHash(byte[] bytes)
+        {
+            using (SHA256 sha = SHA256.Create()) return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+        }
+        private static void RecoverRefresh(string root, string receiptPath, string receiptHash)
+        {
+            string journalPath = receiptPath + ".ownership-journal.json";
+            if (!File.Exists(journalPath)) return;
+            Dictionary<string, object> journal = (Dictionary<string, object>)UninstallRegistration.Json(journalPath);
+            if ((string)journal["status"] != "prepared") return;
+            root = UninstallRegistration.Root(root);
+            if (!String.Equals((string)journal["root"], root, StringComparison.OrdinalIgnoreCase) ||
+                (string)journal["receipt_sha256"] != receiptHash || UninstallRegistration.Sha(receiptPath) != receiptHash ||
+                (string)journal["updater_sha256"] != UninstallRegistration.Sha(Application.ExecutablePath))
+                throw new IOException("Pending ownership transaction does not match this updater and receipt.");
+            HashSet<string> allowed = new HashSet<string>(new string[] { "DeepSteam.exe", "Uninstall-DeepSteam.exe", Program.InstalledMarker, UninstallRegistration.ManifestName });
+            object[] files = (object[])journal["files"];
+            if (files.Length != allowed.Count) throw new IOException("Invalid ownership recovery inventory.");
+            foreach (object raw in files)
+            {
+                Dictionary<string, object> row = (Dictionary<string, object>)raw;
+                string name = (string)row["path"];
+                if (!allowed.Remove(name) || BytesHash(Convert.FromBase64String((string)row["before"])) != (string)row["before_sha"])
+                    throw new IOException("Ownership recovery bytes failed validation.");
+                string path = UninstallRegistration.Child(root, name); UninstallRegistration.PlainPath(path);
+                string hash = UninstallRegistration.Sha(path);
+                if (hash != (string)row["before_sha"] && hash != (string)row["after_sha"])
+                    throw new IOException("An unrelated edit prevents ownership recovery: " + name);
+            }
+            foreach (object raw in files)
+            {
+                Dictionary<string, object> row = (Dictionary<string, object>)raw;
+                UninstallRegistration.AtomicBytes(UninstallRegistration.Child(root, (string)row["path"]), Convert.FromBase64String((string)row["before"]));
+            }
+            UninstallContext previous = UninstallRegistration.Read(root, (string)journal["id"], UninstallRegistration.Sha(Path.Combine(root, UninstallRegistration.ManifestName)));
+            UninstallRegistration.Write(previous);
+            journal["status"] = "rolled_back";
+            UninstallRegistration.AtomicBytes(journalPath, new UTF8Encoding(false).GetBytes(Serialize(journal)));
         }
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "CreateFileW")]
         private static extern SafeFileHandle OpenLinkDirectory(string name, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);

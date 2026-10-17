@@ -1,5 +1,16 @@
 # Validation record
 
+## Current r11.1 review follow-up
+
+The newer [review acceptance report](../reports/r11/review-acceptance.json) and
+[review disposition](review-remediation.md) supersede broad lifecycle claims in
+the historical r11 results below. They include actual failed native deliveries,
+the subsequent repairs, 23 checked downloads and restart persistence. The new
+report keeps deterministic tests separate from ten actual model turns and does
+not assert a clean full-installer build or a native UI walkthrough.
+
+## Historical r11 validation
+
 This record combines the October 17 Harness migration acceptance and the later standalone experience checks. It describes completed observations on one Windows machine. This source-publication task did not rerun every cloud-model scenario or produce a new installer.
 
 ## Real-model execution acceptance

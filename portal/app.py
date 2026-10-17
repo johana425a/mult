@@ -660,7 +660,7 @@ async def internal_execution_task_create(request: Request):
     authenticate_service(request)
     body = await workspace_input(request, {'owner', 'native_workspace_id', 'source', 'task_key',
         'text', 'llm_selection', 'source_references', 'parent_task_id', 'continuation_task_id',
-        'conversation_id', 'surface', 'interaction', 'expected_model'})
+        'conversation_id', 'surface', 'interaction', 'expected_model', 'provider_call_budget'})
     if (not isinstance(body.get('owner'), str) or not isinstance(body.get('native_workspace_id'), str)
             or not isinstance(body.get('text'), str) or not 1 <= len(body['text'].strip()) <= 200000
             or not isinstance(body.get('source'), str) or not 1 <= len(body['source']) <= 100
@@ -669,6 +669,13 @@ async def internal_execution_task_create(request: Request):
         raise HarnessError('workspace_input_invalid', 'Invalid task request. Start again.', 422)
     body['workspace_id'] = await execution_workspace_binding(body['owner'], body['native_workspace_id'])
     return await harness_bridge().transport.host('POST', '/execution-tasks', body)
+
+
+@app.post('/api/harness/internal/execution-tasks/cancel-admission')
+async def internal_execution_task_cancel_admission(request: Request):
+    authenticate_service(request)
+    body = await workspace_input(request, {'owner', 'source', 'task_key'})
+    return await harness_bridge().transport.host('POST', '/execution-tasks/cancel-admission', body)
 
 
 @app.post('/api/harness/internal/surface-tools/invoke')
@@ -716,9 +723,9 @@ async def internal_execution_task(request: Request, task_id: str, owner: str, af
 @app.post('/api/harness/internal/execution-tasks/{task_id}/{action}')
 async def internal_execution_task_action(request: Request, task_id: str, action: str):
     authenticate_service(request)
-    if action not in {'cancel', 'resume', 'answer'}:
+    if action not in {'cancel', 'resume', 'rebind', 'answer'}:
         raise HarnessError('execution_action_invalid', 'Task operation not found.', 404)
-    body = await workspace_input(request, {'owner', 'question_id', 'answers', 'cancel'} if action == 'answer' else {'owner'})
+    body = await workspace_input(request, {'owner', 'question_id', 'answers', 'cancel'} if action == 'answer' else {'owner', 'interaction'})
     if not isinstance(body.get('owner'), str):
         raise HarnessError('workspace_input_invalid', 'Invalid task account.', 422)
     body['owner'] = workspace_identifier(body['owner'])

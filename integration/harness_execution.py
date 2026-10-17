@@ -74,7 +74,7 @@ class ExecutionClient:
 
     async def execute(self, *, text, workspace_id, source, task_key, llm_selection=None,
                       owner=None, on_event=None, source_references=None, parent_task_id=None, continuation_task_id=None,
-                      conversation_id=None, surface=None, interaction=None, on_live=None, expected_model=None, on_question=None):
+                      conversation_id=None, surface=None, interaction=None, on_live=None, expected_model=None, on_question=None, on_task=None):
         if owner is None:
             from deeptutor.multi_user.context import get_current_user
             owner = get_current_user().id
@@ -83,12 +83,34 @@ class ExecutionClient:
                    'source_references': source_references or [], 'parent_task_id': parent_task_id,
                    'continuation_task_id': continuation_task_id, 'conversation_id': conversation_id,
                    'surface': surface, 'interaction': interaction, 'expected_model': expected_model}
-        accepted = await self.request('POST', '', payload)
-        task = accepted['task']; task_id = task['id']; after = -1
+        task_id = None
+        admission_key = task_key
         try:
+            recovery = None
+            if conversation_id and surface:
+                saved = await self.request('GET', '?' + urlencode({'owner': owner}))
+                previous = [item for item in saved.get('tasks', []) if item.get('surface') == surface
+                    and item.get('conversation_id') == conversation_id and item.get('native_workspace_id') == workspace_id]
+                candidate = previous[-1] if previous else None
+                matches = candidate and (candidate.get('task_key') == task_key or
+                    candidate.get('request_hash') == hashlib.sha256(text.encode()).hexdigest() or
+                    text.strip().lower().rstrip('.。!！') in {'continue','resume','继续','恢复','继续上次任务','恢复任务'})
+                if matches and candidate.get('status') in {'queued', 'running', 'awaiting_input', 'interrupted'}:
+                    recovery = candidate
+                    admission_key = candidate['task_key']
+            accepted = {'task': recovery, 'reused': True} if recovery else await self.request('POST', '', payload)
+            task = accepted['task']; task_id = task['id']; after = -1
+            if on_task:
+                on_task(task)
+            if accepted.get('reused') and interaction and task['status'] not in {'completed', 'cancelled'}:
+                action = 'resume' if task['status'] in {'interrupted', 'failed'} else 'rebind'
+                task = (await self.request('POST', '/' + task_id + '/' + action,
+                    {'owner': owner, 'interaction': interaction}))['task']
             while True:
                 value = await self.request('GET', '/' + task_id + '?' + urlencode({'owner': owner, 'after_seq': after}))
                 task = value['task']
+                if on_task:
+                    on_task(task)
                 for event in value.get('events', []):
                     if on_event:
                         await on_event(event)
@@ -115,7 +137,10 @@ class ExecutionClient:
                     return task
                 await asyncio.sleep(.25)
         except asyncio.CancelledError:
-            await asyncio.shield(self.request('POST', '/' + task_id + '/cancel', {'owner': owner}))
+            # The server may have accepted POST before cancellation hid its
+            # response. Persist intent using the same admission key in either case.
+            await asyncio.shield(self.request('POST', '/cancel-admission',
+                {'owner': owner, 'source': source, 'task_key': admission_key}))
             raise
 
 

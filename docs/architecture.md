@@ -50,6 +50,14 @@ Generated files are checked for existence, nonempty bytes and supported-format p
 
 Learning summaries, chat archives and mastery state are different records. A generated summary cannot replace raw conversation history or silently become evidence of mastery. Reconnect subscribes to the original admitted task; request keys and persisted state prevent blind replay of prior writes.
 
+The r11.1 contract adds explicit terminal event ranges and teaching-context
+rebinding after restart. Completed operation IDs reuse durable receipts; uncertain
+mutations are blocked for reconciliation rather than replayed automatically.
+Teacher children inherit the actual parent binding. Presentation snapshots are
+content-addressed, with the same byte limit and hash at validation and download.
+Archive JSON preserves available message objects; its visible text is a projection,
+not a lossless UI/runtime recording. See [review limits](review-remediation.md).
+
 ## Permissions and lifecycle
 
 Execution respects the configured workspace/full-access policy. Application-owned credentials stay in the credential service. Extensions have source/version/dependency records and an uninstall path. Self-repair prepares a reversible staged patch and validates it before activation; isolated repair tests do not prove arbitrary autonomous production changes are safe.

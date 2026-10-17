@@ -147,6 +147,7 @@ export async function createInteractionSurfaces(ctx, options) {
     if (!Array.isArray(request.questions) || request.questions.length < 1 || request.questions.length > 16) throw error('QUESTION_BATCH_INVALID', 422);
     let record = Object.values(journal.questions).find(item => item.session_id === agent.id && item.call_id === callId);
     record ??= { id: 'question_' + randomUUID().replaceAll('-', ''), session_id: agent.id,
+      seq: agent.session.seq,
       call_id: callId, tool_name: request.questions.some(item => item.intent?.kind === 'plan-review') ? 'exit_plan_mode' : 'ask_user_question',
       questions: clone(request.questions), status: 'open', created_at: now() };
     journal.questions[record.id] = record; record.status = 'open';
@@ -216,29 +217,32 @@ export async function createInteractionSurfaces(ctx, options) {
       ...(eligible ? {} : { message: 'Select a verified DeepSeek connection for native web search. Public webpage fetch is already available.' }) } };
   }
   const surface = {
-    async state(sessionId) {
+    async state(sessionId, bounds = {}) {
       const agent = await agentFor(sessionId);
       await Promise.allSettled([...captureJobs]);
-      const events = agent.session.snapshotEvents();
+      const all = agent.session.snapshotEvents();
+      const within = seq => seq > (bounds.after_seq ?? -1) && seq <= (bounds.before_seq ?? Infinity);
+      const events = all.filter(event => within(event.seq));
       // A newly journaled question is not yet answerable while its initial
       // durable write is in flight. Publish it only after the waiter exists;
       // recovered/continued questions intentionally have no live waiter.
       const questions = Object.values(journal.questions).filter(item => item.session_id === sessionId
+        && bounds.active !== false && within(item.seq ?? all.find(event=>event.type==='tool/call' && event.data.callId===item.call_id)?.seq ?? -1)
         && (item.status === 'continued' || item.status === 'open' && liveQuestions.has(item.id)));
       const deliveries = [];
       for (const event of events.filter(event => event.type === 'deliverables/presented')) {
         const files = [];
-        for (const file of event.data.files) {
+        for (const [index,file] of event.data.files.entries()) {
           let available = false, size = null;
-          try { const info = await stat(await fileFor(agent, file.path)); available = info.isFile(); size = info.size; } catch {}
+          try { const result = await options.workspaces.deliveredFile(sessionId,event.seq,index); available = true; size = result.file.size_bytes; } catch {}
           files.push({ ...file, available, bytes: size, mime_type: mime(file.path) });
         }
         deliveries.push({ seq: event.seq, turn: event.data.turn, call_id: event.data.callId, files });
       }
-      return { session_id: sessionId, plan: { ...ctx.planMode.get(agent), readonly: true },
+      return { session_id: sessionId, plan: bounds.active === false ? null : { ...ctx.planMode.get(agent), readonly: true },
         pending_questions: clone(questions), deliverables: deliveries,
-        workspace_changes: Object.values(journal.changes).filter(item => item.session_id === sessionId).map(({ diffs, ...item }) => clone(item)),
-        web: await webStatus(agent) };
+        workspace_changes: Object.values(journal.changes).filter(item => item.session_id === sessionId && within(item.seq)).map(({ diffs, ...item }) => clone(item)),
+        web: bounds.active === false ? null : await webStatus(agent) };
     },
     async answer(sessionId, questionId, input) {
       const agent = await agentFor(sessionId); const record = journal.questions[questionId];
@@ -297,13 +301,11 @@ export async function createInteractionSurfaces(ctx, options) {
       const event = agent.session.snapshotEvents().find(event => event.seq === seq && event.type === 'deliverables/presented');
       const file = event?.data.files[index];
       if (!file) throw error('DELIVERABLE_NOT_FOUND', 404);
-      const path = await fileFor(agent, file.path); const info = await stat(path);
-      if (!info.isFile()) throw error('DELIVERABLE_NOT_FOUND', 404);
-      if (info.size > 64 * 1024 * 1024) throw error('DELIVERABLE_TOO_LARGE', 413);
-      const type = mime(path);
+      const snapshot=await options.workspaces.deliveredFile(sessionId,seq,index);
+      const type = mime(snapshot.file.filename);
       const inline = mode === 'preview' && /^(?:image\/(?:png|jpeg|webp|gif)|application\/pdf|text\/plain)/.test(type);
-      return { binary: await readFile(path), media_type: type,
-        disposition: `${inline ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(basename(path))}` };
+      return { binary: snapshot.binary, media_type: type,
+        disposition: `${inline ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(snapshot.file.filename)}` };
     },
   };
   ctx.effect(() => async () => {

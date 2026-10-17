@@ -16,6 +16,7 @@ import BrowserUse from '@deepseek-ai/dsh-browser-use';
 import ComputerUse from '@deepseek-ai/dsh-computer-use';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
+import { configurationTransaction } from './configuration_transaction.mjs';
 
 export const CAPABILITY_GROUPS = ['subagents', 'skills', 'goals', 'schedule', 'browser', 'computer', 'mcp'];
 
@@ -94,6 +95,8 @@ export async function createCapabilities(ctx, options) {
         computerRuntime ??= ctx.plugin(provider).then(() => true).catch(cause => { computerRuntime = undefined; throw cause; });
         await computerRuntime;
       } else if (group === 'mcp') {
+        await configurationTransaction(join(options.profile,'extension-transaction.json'),
+          [join(options.profile,'mcp-servers.json'),join(import.meta.dirname,'../../extensions/registry.json')]).recover();
         let servers = [];
         try { servers = JSON.parse(await readFile(join(options.profile, 'mcp-servers.json'), 'utf8')).servers ?? []; }
         catch (cause) { if (cause.code !== 'ENOENT') throw cause; }

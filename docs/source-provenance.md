@@ -1,6 +1,16 @@
 # Source provenance and build coverage
 
+The source inventory hashes canonical Git bytes. The three upstream Windows
+`.cmd` wrappers explicitly retain their CRLF checkout rule; verification accepts
+that declared checkout conversion and checks the same LF Git blob in a source ZIP.
+
 ## Publication base
+
+The r11.1 review patch uses `ff0bb0eb181881c44b6bd1396179d171dae7b52c`
+as its immediate public-source baseline. The `05c1...` recovery checkout below
+is an older layer in that history, not the current installed output. The rebuilt
+OpenMAIC output for this review is `RcB4EAVNrNtSnX1ppnha5`; the prior locally
+deployed build `Xc7eGhl9FBJiI_RPA72ND` and its newest layout changes were preserved.
 
 Repository: <https://github.com/johana425a/mult>.
 
@@ -19,7 +29,7 @@ These are upstream bases, not claims that the modified trees match upstream byte
 - r11 core review snapshot `DeepSteam-r11-Harness-Full-Source.zip`: SHA-256 `53ed2d0f1b516fb58434316c73d1f4535da539a8a38856d108430068d92e5b1c`.
 - Subsequent experience source snapshot `DeepSteam-r11-Experience-Source-20261017.zip`: SHA-256 `ff25d64bad5d5a48d29e74b9b989e0c85beaa40602c5edcdaaf90812118f36cc`.
 - Current installed integration, portal, desktop, backend and Harness source, compared with the latter snapshot at publication preparation.
-- Current OpenMAIC source paired with build `w_YlqwSMVFIPwGLN1gLy_`, current renderer source, and launcher/installer helpers.
+- The earlier publication paired OpenMAIC source with build `w_YlqwSMVFIPwGLN1gLy_`; r11.1 builds the current reviewed source as `RcB4EAVNrNtSnX1ppnha5` and retains the subsequent source layout refinement.
 - Seven available native sidebar/auth source overlays applied to their canonical DeepTutor web paths; focused regression scripts made checkout-relative.
 
 The review ZIP hashes identify input snapshots. They are **not** hashes of this edited GitHub publication. The final public bytes are described by `PUBLIC-SOURCE-MANIFEST.json`. Source paths are ASCII, public documentation is English, interface fallbacks are English, and text line endings are normalized for identical checked-out bytes. Saved language choices in the local application are unaffected.

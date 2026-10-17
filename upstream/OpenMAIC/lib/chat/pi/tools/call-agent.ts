@@ -878,6 +878,7 @@ export function buildCallAgentTool(opts: {
       const childToolsByName = new Map(childTools.map((tool) => [tool.name, tool]));
 
       const child = buildAgent({
+        abortSignal: childAbort.signal,
         streamFn: createCallLlmStreamFn({
           languageModel: opts.languageModel,
           source: 'pi-chat-child',

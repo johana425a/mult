@@ -40,6 +40,9 @@ const STUB_MODEL = {
 } as unknown as Model<Api>;
 
 export interface BuildAgentOptions {
+  abortSignal?: AbortSignal;
+  maxProviderTransports?: number;
+  onProviderTransport?: (count: number) => void;
   harnessContext?: HarnessContext;
   streamFn: StreamFn;
   systemPrompt: string;
@@ -65,7 +68,7 @@ export interface BuildAgentOptions {
 }
 
 export function buildAgent(opts: BuildAgentOptions): Agent {
-  if (harnessCoreEnabled()) return createHarnessAgent(opts);
+  if (harnessCoreEnabled()) return createHarnessAgent({...opts, tools:opts.tools.map(tool=>withAgentToolTimeout(tool))});
   const quotaHook = makeQuotaHook({ remaining: () => Number.MAX_SAFE_INTEGER });
   const agent = new Agent({
     streamFn: opts.streamFn,

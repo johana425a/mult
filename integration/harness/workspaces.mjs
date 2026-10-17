@@ -36,6 +36,8 @@ import { executionError, reasoningDeclaration, harnessReasoning } from './execut
 import { installSurfaceTools } from './surface_tools.mjs';
 import { installExtensionTools } from './extensions.mjs';
 import { installRepairTools } from './repairs.mjs';
+import { createOperationReceipts } from './operation_receipts.mjs';
+import { createImmutableDeliveries } from './immutable_deliveries.mjs';
 
 export const WORKSPACE_TOOLS = ['read', 'read_image', 'read_document', 'read_document_image', 'document_engine_status', 'prepare_documents', 'document_queue', 'load_workspace_dependencies', 'load_harness_tools', 'catalog_workspace', 'read_task_progress', 'save_task_progress', 'write', 'edit', 'glob', 'grep', 'pwsh', 'todo_write', 'job_output', 'job_list', 'job_kill', 'web_search', 'web_fetch', 'ask_user_question', 'exit_plan_mode', 'present'];
 export const ACCESS_LEVELS = ['workspace', 'full'];
@@ -93,7 +95,21 @@ function jsonArgs(value) { try { return typeof value === 'string' ? JSON.parse(v
 
 /** Install capabilities globally, restrict every agent scope before publication, then expose local adapter. */
 export async function createWorkspaceAdapter(ctx, options) {
-  const ledger = await createTaskLedger(options.profile);
+  const ledger = await createTaskLedger(options.profile, {async resolveSource(id,path,result) {
+    const workspace=member(id), task=modelStates[ledgerId(id)]?.task_context;
+    const owner=task?.owner || 'workspace-local', scope=task?.native_workspace_id || workspace.id;
+    if(result?._source_binding) {
+      const binding=result._source_binding;
+      if(binding.owner!==owner||binding.scope!==scope)throw new Error('source_binding_scope_mismatch');
+      return binding;
+    }
+    if(String(path).startsWith('reading:'))return null;
+    const check=accessLevel(id)==='full'?checkedTaskPath:checkedWorkspacePath;
+    const canonical=await check(await checkedRoot(workspace),path,protectedPaths);
+    const source=process.platform==='win32'?canonical.toLowerCase():canonical;
+    return {owner,scope,source_id:source,sha256:result?.document?.sha256,
+      aliases:[path,canonical,source,relative(workspace.path,canonical)]};
+  }});
   const modelStatePath = join(options.profile, 'workspace-model-selections.json');
   let modelStates = {};
   try { modelStates = JSON.parse(await readFile(modelStatePath, 'utf8')); }
@@ -154,13 +170,26 @@ export async function createWorkspaceAdapter(ctx, options) {
       const check = accessLevel(agent.id) === 'full' ? checkedTaskPath : checkedWorkspacePath;
       return check(await checkedRoot(workspace), requested || join(cwd, 'outputs'), protectedPaths);
     } });
-  const busy = new Set(); const customRoutes = new Map(); const liveResponses = new Map(); const validatedFiles = new Map();
+  const busy = new Set(); const customRoutes = new Map(); const liveResponses = new Map();
+  const deliveries = await createImmutableDeliveries(options.profile,(paths,signal)=>surfaces.validateFiles(paths,signal));
+  const receipts = await createOperationReceipts(options.profile);
   await installExtensionTools(ctx,{profile:options.profile,checkedPath:(agent,path,signal)=>surfaces.checkedPath(agent,path,signal)});
   await installRepairTools(ctx,{python:options.python,checkedPath:(agent,path,signal)=>surfaces.checkedPath(agent,path,signal)});
   // Official maintenance/compaction streams originate at the Host, not the
   // agent scope. Bind their credentials to the exact persisted session route.
   // Never use a different session's active route or borrow ambient credentials.
   ctx.on('llm/stream', (payload, next) => (async function* () {
+    const execution = payload.sessionId && modelStates[payload.sessionId];
+    const budget = execution?.task_context?.provider_call_budget;
+    if (Number.isSafeInteger(budget) && budget > 0) {
+      const runState = execution.runs?.at(-1);
+      if (!runState || (runState.provider_transport_count ?? 0) >= budget) throw Object.assign(new Error('The teacher provider-call budget was reached.'), {code:'native_provider_transport_budget'});
+      runState.provider_transport_count = (runState.provider_transport_count ?? 0) + 1;
+      await saveModelStates();
+      const agent = ctx.agents.get(payload.sessionId);
+      agent?.session.append('execution/provider-call',{count:runState.provider_transport_count});
+      await ctx.sessionPersistence.flush(payload.sessionId);
+    }
     let route;
     if (payload.sessionId && String(payload.provider).startsWith('deepsteam-workspace-')) {
       member(payload.sessionId);
@@ -286,8 +315,7 @@ export async function createWorkspaceAdapter(ctx, options) {
       if (!Array.isArray(args.files) || !args.files.length) throw new Error('workspace_path_invalid');
       const paths=[];
       for (const file of args.files) paths.push(await check(root, file?.path, protectedPaths));
-      const verified=await surfaces.validateFiles(paths,exec.signal);
-      validatedFiles.set(`${exec.agent.id}:${exec.callId}`, verified);
+      await deliveries.capture(`${exec.agent.id}:${exec.callId}`,paths,exec.signal);
     }
     return { root, args };
   }
@@ -310,6 +338,10 @@ export async function createWorkspaceAdapter(ctx, options) {
   ctx.on('tools/execute', async (exec, next) => {
     await toolPaths(exec);
     if (['read_image', 'read_document_image'].includes(exec.name) && !routeSupportsImages(runRoutes.get(exec.agent.id))) throw new Error(imageVerificationMessage(options.language));
+    exec.signal?.throwIfAborted();
+    const task = modelStates[ledgerId(exec.agent.id)]?.task_context;
+    if (task?.task_id && MUTATIONS.has(exec.name)) return receipts.execute(
+      [task.owner,task.task_id,exec.agent.id,exec.callId],{name:exec.name,arguments:exec.arguments},next,exec.signal);
     return next();
   });
   async function documentOperation(workspaceId, action, input, signal, taskMode = false) {
@@ -669,9 +701,11 @@ export async function createWorkspaceAdapter(ctx, options) {
     return { ...route, provider };
   }
   function normalizeEvent(event, allEvents, sessionId) {
-    const snapshot = modelStates[sessionId]?.runs?.findLast(run => run.start_seq <= event.seq)?.resolved_model;
-    const base = { seq: event.seq, type: event.type, timestamp: event.time, ...(snapshot ? { resolved_model: snapshot } : {}) };
+    const run = modelStates[sessionId]?.runs?.findLast(run => run.start_seq <= event.seq);
+    const snapshot = run?.resolved_model;
+    const base = { seq: event.seq, type: event.type, timestamp: event.time, ...(run ? {run_id:run.run_id} : {}), ...(snapshot ? { resolved_model: snapshot } : {}) };
     const data = event.data;
+    if (event.type === 'execution/provider-call') return {...base,count:data.count};
     // DeepSteam 2026-10-16 transcript: internal context the harness adds as user
     // messages (runtime-context, working-directory, ...) is not something the user said.
     if (event.type === 'user/message' && data.source?.kind && data.source.kind !== 'user') return null;
@@ -694,7 +728,7 @@ export async function createWorkspaceAdapter(ctx, options) {
       ...(data.reason.kind === 'error' ? { error: executionError(data.reason.error ?? data.reason.failure ?? data.reason, 'model_or_tool', `${sessionId}:${event.seq}`) } : {}) };
     if (event.type === 'plan/mode') return { ...base, plan: { active: data.active } };
     if (event.type === 'deliverables/presented') return { ...base, turn: data.turn, call_id: data.callId,
-      files: data.files.map((file,index)=>({...file,...(validatedFiles.get(`${sessionId}:${data.callId}`)?.[index]??{})})) };
+      files: data.files.map((file,index)=>({...file,...(deliveries.get(`${sessionId}:${data.callId}`)?.[index]??{})})) };
     if (event.type === 'workspace/changes') return { ...base, turn: data.turn };
     if (event.type === 'todo/write') return { ...base, todos: data.items ?? data.todos ?? data };
     if (['turn/start', 'step/start', 'step/end', 'working-directory/change'].includes(event.type)) return base;
@@ -706,6 +740,12 @@ export async function createWorkspaceAdapter(ctx, options) {
     await Promise.allSettled([...handles.values()].map(handle => handle.dispose()));
   });
   return {
+    async deliveredFile(sessionId,seq,index) {
+      const agent=await obtain(sessionId);
+      const event=agent.session.snapshotEvents().find(event=>event.seq===seq&&event.type==='deliverables/presented');
+      if(!event)throw new Error('DELIVERABLE_NOT_FOUND');
+      return deliveries.read(`${sessionId}:${event.data.callId}`,index);
+    },
     documents: documentOperation,
     dependencies: signal => packagedDependencies(options.python, signal),
     access() { return { default_access: accessSettings.default_access, levels: ACCESS_LEVELS,
@@ -804,6 +844,13 @@ export async function createWorkspaceAdapter(ctx, options) {
         active_child_count: descendantAgents(sessionId).filter(child => child.status !== 'idle').length,
         pending_approvals: [...pending.values()].map(item => item.card).filter(item => item.session_id === sessionId) };
     },
+    async rebind(sessionId, taskId, interaction) {
+      await obtain(sessionId);
+      const context = modelStates[sessionId]?.task_context;
+      if (!context || context.task_id !== taskId || context.interaction?.surface !== interaction.surface) throw new Error('execution_context_mismatch');
+      context.interaction = structuredClone(interaction);
+      await saveModelStates();
+    },
     async readAttachment(sessionId, attachmentId) {
       const agent = await obtain(sessionId);
       if (typeof attachmentId !== 'string' || attachmentId.length > 200) throw new Error('workspace_attachment_unknown');
@@ -861,8 +908,17 @@ export async function createWorkspaceAdapter(ctx, options) {
               const attachment = await ctx.attachments.saveImage({data:Buffer.from(match[2], 'base64'), mediaType:match[1], name:'interaction-source'});
               content.push({type:'image', attachment});
             }
+            operation.signal.throwIfAborted();
             agent.followup(createUserMessage({ content, source: { kind: 'user' } }));
           await agent.whenIdle(); await ctx.sessionPersistence.flush(sessionId);
+        } catch (cause) {
+          const latest = agent.session.snapshotEvents().findLast(event=>event.type==='turn/end');
+          const startSeq = modelStates[sessionId]?.runs?.at(-1)?.start_seq ?? 0;
+          if (!latest || latest.seq < startSeq) {
+            agent.session.append('turn/end', {reason: operation.signal.aborted ? {kind:'user'} :
+              {kind:'error',error:executionError(cause,'execution_start',runId)}});
+            await ctx.sessionPersistence.flush(sessionId);
+          }
         } finally { signal?.removeEventListener('abort', abort); busy.delete(sessionId); runRoutes.delete(sessionId); operations.delete(sessionId); }
       };
       const run = rawRoute.runWithCredentials ? rawRoute.runWithCredentials(drive) : drive();

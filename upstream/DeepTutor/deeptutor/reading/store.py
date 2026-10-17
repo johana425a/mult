@@ -252,6 +252,37 @@ class ReadingStore:
     # -- ingest -----------------------------------------------------------
 
     def ingest(self, source: Path | str, *, filename: str | None = None) -> MaterialManifest:
+        """Register the explicit import relationship, independently of content deduplication."""
+        source = Path(source).resolve()
+        before = source.stat()
+        manifest = self._ingest(source, filename=filename)
+        after = source.stat()
+        if (before.st_size, before.st_mtime_ns) == (after.st_size, after.st_mtime_ns):
+            with self._locked(manifest.material_id):
+                path = self._dir(manifest.material_id) / 'source-aliases.json'
+                record = _read_json(path) or {'schema': 1, 'aliases': []}
+                aliases = [row for row in record['aliases'] if row.get('path') != str(source)]
+                aliases.append({'path': str(source), 'sha256': manifest.source_hash,
+                    'size': after.st_size, 'mtime_ns': after.st_mtime_ns})
+                _atomic_write(path, json.dumps({'schema': 1, 'aliases': aliases}, ensure_ascii=False))
+        return manifest
+
+    def registered_source_aliases(self, material_id: str) -> list[str]:
+        """Only explicitly imported, unchanged files qualify as source aliases."""
+        manifest = self.manifest(material_id)
+        record = _read_json(self._dir(material_id) / 'source-aliases.json') or {}
+        aliases = []
+        for row in record.get('aliases', []):
+            try:
+                path = Path(row['path']).resolve(strict=True)
+                info = path.stat()
+                if row['sha256'] == manifest.source_hash and (info.st_size, info.st_mtime_ns) == (row['size'], row['mtime_ns']):
+                    aliases.append(str(path))
+            except (OSError, KeyError, TypeError):
+                continue
+        return aliases
+
+    def _ingest(self, source: Path | str, *, filename: str | None = None) -> MaterialManifest:
         """Extract *source* into the store and return its manifest.
 
         Idempotent on content: a file whose hash is already present is not

@@ -22,7 +22,7 @@ export async function installSurfaceTools(ctx, options) {
   const context = exec => options.context(exec.agent.id)?.interaction;
   const register = spec => ctx.effect(() => ctx.tools.register(defineTool(spec)));
   const output = { schema: { type: 'json' }, render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }] };
-  register({name:'learning_records',description:'Save or retrieve persistent learning summaries and actual conversation archives in the current DeepSteam learning space. These records never certify mastery. Archive mode uses saved conversation content; summary mode uses the supplied grounded text.',
+  register({name:'learning_records',description:'Save or retrieve persistent learning summaries and conversation message snapshots in the current DeepSteam learning space. These records never certify mastery. Archive mode saves available original message objects as JSON plus a readable text projection, not a lossless recording of every UI/runtime event. Summary mode uses the supplied grounded text.',
     parameters:{action:{type:'string',enum:['save_summary','archive_chat','list','append'],required:true},title:{type:'string'},content:{type:'string'},record_id:{type:'string'}},output,isConcurrencySafe:()=>false,
     async execute(args,exec){
       const task=options.context(exec.agent.id);

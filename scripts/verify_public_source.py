@@ -46,6 +46,13 @@ def main() -> int:
         for reason, pattern in PRIVATE_CONTENT.items():
             if pattern.search(data):
                 failures.append({'file': row['path'], 'reason': reason})
+        if row.get('checkout_eol') is not None:
+            if row['checkout_eol'] != 'crlf' or relative.suffix.lower() != '.cmd':
+                failures.append({'file': row['path'], 'reason': 'Unsupported checkout conversion'})
+                continue
+            # Git stores LF but the upstream .gitattributes checks these CMD files
+            # out as CRLF. Verify canonical Git bytes for either checkout form.
+            data = data.replace(b'\r\n', b'\n')
         if len(data) != row['bytes'] or hashlib.sha256(data).hexdigest() != row['sha256']:
             failures.append({'file': row['path'], 'reason': 'Source bytes differ from the reviewed manifest'})
         blob_sha = hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\0' + data).hexdigest()

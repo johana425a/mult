@@ -333,9 +333,12 @@ class ReadMaterialTool(_ReadingToolBase):
                 "cite the locator it came from."
             ),
             parameters=[
+                ToolParameter(name="cursor", type="string", required=False,
+                    description="Use the exact next_cursor from a previous read to continue its original range and within-unit text position."),
                 ToolParameter(
                     name="locators",
                     type="string",
+                    required=False,
                     description=(
                         "Which parts to read: '12', '12-14', or '3,12,17'. "
                         "Locators are 1-indexed and match what the reader shows."
@@ -350,12 +353,12 @@ class ReadMaterialTool(_ReadingToolBase):
 
         material_id = self._material_id(kwargs)
         spec = kwargs.get("locators")
-        if spec is None or (isinstance(spec, str) and not spec.strip()):
+        if not kwargs.get('cursor') and (spec is None or (isinstance(spec, str) and not spec.strip())):
             return self._failure("read_material needs a locator, e.g. '12' or '12-14'.")
 
         store = self._store()
         manifest = await asyncio.to_thread(store.manifest, material_id)
-        rendered = await asyncio.to_thread(render_units, store, material_id, spec)
+        rendered = await asyncio.to_thread(render_units, store, material_id, spec, cursor=kwargs.get('cursor'))
 
         if rendered.is_empty:
             return ToolResult(
@@ -406,6 +409,10 @@ class ReadMaterialTool(_ReadingToolBase):
                 "material_revision": manifest.revision,
                 "locators": list(rendered.locators),
                 "truncated": rendered.truncated,
+                "requested_locators": list(rendered.requested_locators),
+                "remaining_locators": list(rendered.remaining_locators),
+                "next_cursor": rendered.next_cursor,
+                "fragments": list(rendered.fragments),
             },
         )
 

@@ -13,6 +13,7 @@ export interface HarnessContext {
   conversationId: string;
   context?: unknown;
   onDeliveries?: (links:string)=>Promise<void>;
+  execution?: {binding:any;taskId:string;signal:AbortSignal};
 }
 type Entry = { owner: string; surface: string; invoke: (body: any) => Promise<any>; calls: Map<string, Promise<any>> };
 const shared = globalThis as typeof globalThis & { __deepsteamSurfaceRegistry?: Map<string, Entry>; __deepsteamSurfaceParent?: AsyncLocalStorage<HarnessContext> };
@@ -57,6 +58,7 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
   const listeners = new Set<(event: AgentEvent, signal: AbortSignal) => Promise<void> | void>();
   let controller = new AbortController(), pending: Promise<void> = Promise.resolve();
   let currentTask: any = null, binding: any = null;
+  let admission: {owner:string;source:string;task_key:string} | null = null;
   const queue: AgentMessage[] = [];
   let terminal = false;
   const emit = async (event: any) => { for (const listener of listeners) await listener(event,controller.signal); };
@@ -64,10 +66,25 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
     if(value.role==='assistant' && binding?.resolved_model){value.model=binding.resolved_model.model;value.provider=binding.resolved_model.provider;}
     await emit({type:'message_start',message:value}); state.messages.push(value); await emit({type:'message_end',message:value});
   };
-  const cancelRemote = async () => { if (currentTask && binding) await harnessRequest('execution-tasks/' + currentTask.id + '/cancel',{owner:binding.owner}); };
+  const cancelRemote = async () => { if (admission) await harnessRequest('execution-tasks/cancel-admission',admission); };
+  const releaseWhenSettled = (ref:string,taskId:string,owner:string) => {
+    const timer=setTimeout(async()=>{
+      if(!registry.has(ref))return;
+      try {
+        const value=await harnessRequest(`execution-tasks/${taskId}?owner=${encodeURIComponent(owner)}`);
+        if(['completed','failed','cancelled','interrupted'].includes(value.task.status)){registry.delete(ref);return;}
+      }catch{/* Retain the live binding through a temporary Host outage. */}
+      releaseWhenSettled(ref,taskId,owner);
+    },20000);
+    timer.unref?.();
+  };
 
   async function run(input: string | AgentMessage[]) {
     controller = new AbortController(); terminal = false; state.errorMessage = undefined; state.isStreaming = true;
+    currentTask = null; admission = null;
+    const signals = [opts.abortSignal,inherited?.execution?.signal].filter((signal):signal is AbortSignal=>Boolean(signal));
+    const cancel = () => {controller.abort();void cancelRemote().catch(()=>{});};
+    for(const signal of signals) {signal.addEventListener('abort',cancel,{once:true});if(signal.aborted)cancel();}
     const turnId = randomUUID(), ref = randomUUID();
     const frames: any[] = typeof input === 'string' ? [{role:'user',content:input,timestamp:Date.now()}] : input;
     const history = [...state.messages];
@@ -75,8 +92,22 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
       await emit({type:'agent_start'});
       for (const frame of frames) await message(frame);
       await emit({type:'turn_start'});
-      binding = await harnessRequest('surface-binding',{surface:surface.surface,conversation_id:surface.conversationId,turn_id:turnId},controller.signal);
-      if (opts.model?.id && !['current','maic-connector'].includes(opts.model.id) && opts.model.id !== binding.resolved_model?.model)
+      controller.signal.throwIfAborted();
+      const prompt = frames.filter(f=>f.role==='user').map(textOf).join('\n') || 'Continue the current task. Inspect saved results before repeating any operation.';
+      binding = inherited?.execution ? {...inherited.execution.binding,
+        output_dir:inherited.execution.binding.output_dir + '/children/' + turnId} :
+        await harnessRequest('surface-binding',{surface:surface.surface,conversation_id:surface.conversationId,turn_id:turnId},controller.signal);
+      let recovering:any = null;
+      if(!inherited?.execution) {
+        const saved=await harnessRequest('execution-tasks?owner='+encodeURIComponent(binding.owner),undefined,controller.signal);
+        const previous=(saved.tasks || []).filter((task:any)=>task.surface===surface.surface&&task.conversation_id===surface.conversationId).at(-1);
+        const sameRequest=previous?.request_hash===createHash('sha256').update(prompt).digest('hex');
+        const explicitContinue=/^(?:continue|resume|继续|恢复|继续上次任务|恢复任务)[.。!！]?$|^Continue from saved context\. Check completed actions before making new changes\.$/i.test(prompt.trim());
+        if(previous && ['queued','running','awaiting_input','interrupted'].includes(previous.status) && (sameRequest||explicitContinue)) {
+          recovering=previous;binding={...binding,...previous.resume_binding};
+        }
+      }
+      if (!inherited?.execution && !recovering && opts.model?.id && !['current','maic-connector'].includes(opts.model.id) && opts.model.id !== binding.resolved_model?.model)
         throw new Error('MODEL_CONFIGURATION_CHANGED: Select the classroom model again; the adapter will not silently change it.');
       registry.set(ref,{owner:binding.owner,surface:surface.surface,calls:new Map(),invoke:async (body: any) => {
         const tool = opts.tools.find(t => t.name === body.name && opts.allowedToolNames.has(t.name));
@@ -85,7 +116,7 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
         await message(assistant([call],'toolUse'));
         await emit({type:'tool_execution_start',toolCallId:call.id,toolName:call.name,args:call.arguments});
         let result: any, isError = false;
-        try { result = await parents.run(surface,() => tool.execute(call.id,call.arguments,controller.signal,update => { void emit({type:'tool_execution_update',toolCallId:call.id,toolName:call.name,args:call.arguments,partialResult:update}); })); }
+        try { result = await parents.run({...surface,execution:{binding,taskId:currentTask.id,signal:controller.signal}},() => tool.execute(call.id,call.arguments,controller.signal,update => { void emit({type:'tool_execution_update',toolCallId:call.id,toolName:call.name,args:call.arguments,partialResult:update}); })); }
         catch(error) { isError=true;result={content:[{type:'text',text:safeError(error)}],details:{error:safeError(error)}}; }
         isError = isError || result.isError === true;
         const after = await opts.afterToolCall?.({toolCall:call,args:call.arguments,result,isError} as any,controller.signal);
@@ -95,17 +126,27 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
         return {content:textOf(result),metadata:result.details || {},is_error:isError,terminate:terminal,
           model_messages:[{role:'tool',content:(result.content || []).filter((p:any)=>p.type==='image').map((p:any)=>({type:'image_url',image_url:{url:`data:${p.mimeType};base64,${p.data}`}}))}]};
       }});
-      const prompt = frames.filter(f=>f.role==='user').map(textOf).join('\n') || 'Continue the current task. Inspect saved results before repeating any operation.';
       const request = {owner:binding.owner,native_workspace_id:binding.native_workspace_id,source:surface.surface,surface:surface.surface,
         conversation_id:surface.conversationId,task_key:createHash('sha256').update(surface.conversationId+':'+turnId).digest('hex'),text:prompt,
         llm_selection:binding.llm_selection,expected_model:binding.resolved_model,
+        parent_task_id:inherited?.execution?.taskId,provider_call_budget:opts.maxProviderTransports,
         interaction:{surface:surface.surface,context_ref:ref,output_dir:binding.output_dir,
+          binding_identity:{owner:binding.owner,workspace:binding.native_workspace_id,conversation:surface.conversationId},
           system_prompt:opts.systemPrompt + '\nDomain tool names in these instructions are invoked with invoke_surface_tool. Use general Harness tools directly. Do not let historical tool calls trigger new actions. When a tool returns terminate=true, end this turn immediately.',
           history:JSON.stringify(history),archive_history:JSON.stringify([...history,...frames]),
           images:frames.flatMap((frame:any)=>(Array.isArray(frame.content)?frame.content:[]).filter((p:any)=>p.type==='image').map((p:any)=>`data:${p.mimeType};base64,${p.data}`)),
           context:JSON.stringify({surface:surface.context,frames:frames.map((frame:any)=>({role:frame.role,content:textOf(frame)}))}),
           tools:opts.tools.filter(t=>opts.allowedToolNames.has(t.name)).map(t=>({name:t.name,description:t.description,parameters:t.parameters}))}};
-      currentTask = (await harnessRequest('execution-tasks',request,controller.signal)).task;
+      admission = {owner:request.owner,source:request.source,task_key:recovering?.task_key || request.task_key};
+      currentTask = {id:'task-' + createHash('sha256').update(JSON.stringify([request.owner,request.source,request.task_key])).digest('hex').slice(0,32),status:'queued'};
+      controller.signal.throwIfAborted();
+      if(recovering) {
+        currentTask=recovering;
+        const action=recovering.status==='interrupted'?'resume':'rebind';
+        currentTask=(await harnessRequest(`execution-tasks/${recovering.id}/${action}`,
+          {owner:binding.owner,interaction:request.interaction},controller.signal)).task;
+      } else currentTask = (await harnessRequest('execution-tasks',request,controller.signal)).task;
+      if(controller.signal.aborted){await cancelRemote();controller.signal.throwIfAborted();}
       let cursor=-1;
       const chunks=new Map<string,any>(), ended=new Set<string>();
       const liveText = async (id: string,text: string,final=false) => {
@@ -120,6 +161,7 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
         const value=await harnessRequest(`execution-tasks/${currentTask.id}?owner=${encodeURIComponent(binding.owner)}&after_seq=${cursor}`,undefined,controller.signal);
         currentTask=value.task;cursor=value.next_seq;
         for(const event of value.events||[]) {
+          if(event.type==='execution/provider-call') opts.onProviderTransport?.(event.count);
           if(event.type==='assistant/message') await liveText(event.stream_id || String(event.seq),event.text||'',true);
           if(event.type==='deliverables/presented') {
             const secret=await token();
@@ -157,7 +199,12 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
       if(controller.signal.aborted) await cancelRemote().catch(()=>{});
       await message({...assistant([],controller.signal.aborted?'aborted':'error'),errorMessage:state.errorMessage});
     } finally {
-      registry.delete(ref);state.isStreaming=false;
+      // A transient polling failure does not revoke a still-running task's
+      // teaching tools. A confirmed terminal task releases its closure.
+      if(!currentTask || ['completed','failed','cancelled','interrupted'].includes(currentTask.status)) registry.delete(ref);
+      else releaseWhenSettled(ref,currentTask.id,binding.owner);
+      for(const signal of signals)signal.removeEventListener('abort',cancel);
+      state.isStreaming=false;
       await emit({type:'agent_end',messages:state.messages.slice(history.length)});
     }
   }

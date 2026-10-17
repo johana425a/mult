@@ -18,6 +18,24 @@ _contexts = {}
 _health = (0.0, False)
 
 
+async def _release_context_when_settled(ref, entry):
+    from integration.harness_execution import ExecutionClient
+    from urllib.parse import urlencode
+    task = entry.get('harness_task')
+    if not task:
+        _contexts.pop(ref, None)
+        return
+    while _contexts.get(ref) is entry:
+        await asyncio.sleep(20)
+        try:
+            value = await ExecutionClient().request('GET', '/' + task['id'] + '?' + urlencode({'owner': entry['owner']}))
+            if value['task']['status'] in {'completed', 'failed', 'cancelled', 'interrupted'}:
+                _contexts.pop(ref, None)
+                return
+        except Exception:
+            continue
+
+
 def enabled():
     return os.environ.get('DEEPSTEAM_HARNESS_CORE') == '1'
 
@@ -46,7 +64,9 @@ def validate_file(path):
     if not path.is_file() or not path.stat().st_size:
         raise ValueError('Output file is missing or empty: ' + path.name)
     ext = path.suffix.lower()
-    if ext in {'.md', '.txt', '.json', '.csv'}:
+    if ext == '.json':
+        json.loads(path.read_text(encoding='utf-8-sig'))
+    elif ext in {'.md', '.txt', '.csv'}:
         path.read_text(encoding='utf-8-sig')
     elif ext == '.docx':
         from docx import Document
@@ -75,12 +95,16 @@ def install_routes(app, authenticate):
         body = await request.json()
         from integration.execution_workspace_binding import native_execution_owner
         from deeptutor.multi_user.models import LOCAL_ADMIN_ID
+        from deeptutor.services.auth import AUTH_ENABLED
         from deeptutor.multi_user.paths import user_context
         from deeptutor.services.workspace import get_content_workspace_service
         from deeptutor.services.model_selection.runtime import resolve_model_selection
         surface = body.get('surface')
         if surface not in {'openmaic-workbench', 'openmaic-classroom'}:
             raise HTTPException(422, {'code': 'surface_invalid', 'message': 'Unknown interaction surface.'})
+        if AUTH_ENABLED:
+            raise HTTPException(403, {'code':'classroom_owner_binding_required',
+                'message':'This classroom bridge requires an authenticated account binding in multi-user mode.'})
         user = native_execution_owner(LOCAL_ADMIN_ID)
         with user_context(user):
             try:
@@ -129,10 +153,13 @@ async def _learning_record(body):
     from integration.execution_workspace_binding import owner_workspace_binding, native_execution_owner
     from deeptutor.multi_user.paths import user_context
     from deeptutor.services.notebook import get_notebook_manager
+    from deeptutor.services.workspace.context import workspace_context
     args = body.get('arguments') or {}
     owner_workspace_binding(body['owner'], args.get('workspace_id'))
     user = native_execution_owner(body['owner'])
-    with user_context(user):
+    # Service-to-service requests do not inherit the original renderer header.
+    # Resolve both stores under the admitted workspace, after binding its owner.
+    with user_context(user), workspace_context(args['workspace_id']):
         manager = get_notebook_manager()
         notebook = manager.get_or_create_notebook('Learning records · ' + args['workspace_id'],
             description='Conversation archives and learning summaries. These records do not assert mastery.')
@@ -143,21 +170,46 @@ async def _learning_record(body):
             if body.get('call_id') in (record.get('metadata') or {}).get('harness_calls', []):
                 return {'notebook_id': notebook['id'], 'record': record, 'reused': True}
         content = str(args.get('content') or '')
+        archive_snapshot = None
         if args.get('action') == 'archive_chat':
             if str(args.get('conversation_id') or '').startswith('unified_'):
                 from deeptutor.services.session import get_session_store
                 history = await get_session_store().get_messages(args['conversation_id'])
             else:
                 history = json.loads(args.get('history') or '[]')
+            if not isinstance(history, list) or not history:
+                raise HTTPException(409, {'code':'chat_history_unavailable',
+                    'message':'No original messages were found in this conversation workspace. No archive was saved.'})
+            # Preserve the returned message objects alongside the readable text
+            # projection, including their parts/attachments/tool fields. This is
+            # a snapshot of the message service response, not all UI/runtime events.
+            from deeptutor.services.workspace import get_content_workspace_service
+            from scripts.repair_bundle import atomic
+            from scripts.transactional_upgrade import longpath
+            archive_data = json.dumps({'schema':1,'conversation_id':args.get('conversation_id'),
+                'scope':'message_service_response' if str(args.get('conversation_id') or '').startswith('unified_') else 'supplied_classroom_messages',
+                'messages':history},ensure_ascii=False,separators=(',',':')).encode('utf-8')
+            archive_hash = hashlib.sha256(archive_data).hexdigest()
+            relative = Path('outputs/chat-archives')/(archive_hash+'.json')
+            binding = get_content_workspace_service().binding_by_id(args['workspace_id'])
+            target = longpath(binding.root/relative)
+            if not target.exists():
+                atomic(target,archive_data)
+            if hashlib.sha256(target.read_bytes()).hexdigest()!=archive_hash:
+                raise ValueError('CHAT_ARCHIVE_SNAPSHOT_CHANGED')
+            archive_snapshot = {'path':relative.as_posix(),'sha256':archive_hash,'bytes':len(archive_data),
+                'display_kind':'text_projection','scope':'message_objects_only','message_count':len(history)}
             chunks = []
             for row in history:
                 if row.get('role') not in {'user', 'assistant'}:
                     continue
-                value = row.get('content', '')
+                value = row.get('content', row.get('parts', ''))
                 if isinstance(value, list):
                     value = '\n'.join(p.get('text', '') for p in value if p.get('type') == 'text')
                 chunks.append('## ' + row['role'] + '\n\n' + str(value))
             content = '\n\n'.join(chunks)
+            if not content.strip():
+                content = 'Conversation message snapshot: ' + str(len(history)) + ' messages. See the linked JSON snapshot for non-text content.'
         if not content.strip():
             raise HTTPException(422, {'code':'record_empty','message':'No content was supplied for this record.'})
         if args.get('action') == 'append':
@@ -176,8 +228,9 @@ async def _learning_record(body):
             metadata={'record_kind':'chat_archive' if args['action']=='archive_chat' else 'learning_summary',
                 'workspace_id':args['workspace_id'],'conversation_id':args.get('conversation_id'),
                 'source':args.get('source'),'source_references':args.get('source_references',[]),
-                'harness_calls':[body['call_id']], 'captured_at':time.time(), 'mastery_asserted':False})
-        return {'notebook_id':notebook['id'],**result}
+                'harness_calls':[body['call_id']], 'captured_at':time.time(), 'mastery_asserted':False,
+                **({'archive_snapshot':archive_snapshot} if archive_snapshot else {})})
+        return {'notebook_id':notebook['id'],**result,**({'archive_snapshot':archive_snapshot} if archive_snapshot else {})}
 
 
 async def _invoke(entry, name, args, call_id):
@@ -211,8 +264,25 @@ async def _invoke(entry, name, args, call_id):
     ):
         detail = '\n'.join(str(m.get('content') or '') for m in dispatch.tool_messages)
         raise RuntimeError('FILE_DELIVERY_FAILED: ' + detail[:1500])
+    sources = []
+    for reference in dispatch.sources or []:
+        reference = dict(reference)
+        if reference.get('type') == 'reading' and reference.get('material_id'):
+            from deeptutor.reading.store import ReadingStore
+            store = ReadingStore()
+            manifest = store.manifest(reference['material_id'])
+            if manifest.revision == reference.get('material_revision'):
+                aliases = store.registered_source_aliases(manifest.material_id)
+                raw = store.raw_path(manifest.material_id)
+                if raw:
+                    aliases.append(str(raw.resolve()))
+                material_key = f'reading:{manifest.material_id}@{manifest.revision}'
+                reference['_source_binding'] = {'owner': entry['owner'], 'scope': context.runtime.workspace.workspace_id,
+                    'source_id': aliases[0] if aliases else material_key, 'version': manifest.revision,
+                    'sha256': manifest.source_hash, 'aliases': [*aliases, material_key]}
+        sources.append(reference)
     return {'content': '\n'.join(str(m.get('content') or '') for m in dispatch.tool_messages),
-        'sources': dispatch.sources, 'model_messages': dispatch.model_messages,
+        'sources': sources, 'model_messages': dispatch.model_messages,
         'metadata': dispatch.tool_metadata_by_id,
         'terminate': dispatch.terminate or final_override is not None}
 
@@ -278,6 +348,8 @@ async def run_pipeline(pipeline, context, stream):
         'surface': surface, 'names': set(names), 'deferred': deferred, 'vars': contextvars.copy_context(), 'calls': {}}
     _contexts[ref] = entry
     interaction = {'surface': surface, 'context_ref': ref, 'tools': [s['function'] for s in schemas],
+        'binding_identity':{'owner':owner,'workspace':context.runtime.workspace.workspace_id,'conversation':context.session_id,
+            'reading_material':context.metadata.get('reading_material_id'),'mastery_path':context.metadata.get('mastery_path_id')},
         'system_prompt': system, 'history': json.dumps(history, ensure_ascii=False),
         'context': json.dumps({'messages': current_messages, 'source_references': context.metadata.get('source_references', [])}, ensure_ascii=False),
         'images': images,
@@ -355,16 +427,37 @@ async def run_pipeline(pipeline, context, stream):
             binding = service.binding_by_id(context.runtime.workspace.workspace_id)
             items = []
             for item in event.get('files', []):
-                path = Path(item['path']).resolve()
-                await asyncio.to_thread(validate_file, path)
-                if path.is_relative_to(Path(binding.root).resolve()):
-                    items.append({'path': path.relative_to(binding.root).as_posix()})
+                # Host validates a private immutable snapshot. Copy that exact
+                # revision into this turn's authorized delivery folder, including
+                # when the user requested an output outside the workspace.
+                path = Path(item.get('snapshot_path') or '').resolve()
+                if not item.get('delivery_id') or not item.get('snapshot_path'):
+                    raise ValueError('DELIVERY_SNAPSHOT_REQUIRED: Present this file again to create a verified attachment.')
+                metadata = await asyncio.to_thread(validate_file, path)
+                if metadata['sha256'] != item.get('sha256') or metadata['size_bytes'] != item.get('size_bytes'):
+                    raise ValueError('DELIVERY_SNAPSHOT_CHANGED: The verified output bytes do not match.')
+                # A compact workspace-local staging location avoids stacking a
+                # full turn path, hash and UUID temporary suffix on Windows.
+                # The authored output stays in the user's requested directory.
+                target = Path(binding.root) / 'outputs' / '.harness-deliveries' / metadata['sha256'] / Path(item['filename']).name
+                if not target.resolve().is_relative_to(Path(binding.root).resolve()):
+                    raise ValueError('DELIVERY_SCOPE_CHANGED: The current output directory is unavailable.')
+                def stage_snapshot():
+                    from scripts.repair_bundle import atomic
+                    data = path.read_bytes()
+                    if hashlib.sha256(data).hexdigest() != metadata['sha256']:
+                        raise ValueError('DELIVERY_SNAPSHOT_CHANGED')
+                    atomic(target, data)
+                await asyncio.to_thread(stage_snapshot)
+                items.append({'path': target.relative_to(binding.root).as_posix()})
             if items:
                 # Dispatch owns native tool_result metadata and attachment cards.
                 # Calling the low-level executor alone silently drops that UI
                 # contract even though the Host has validated the actual file.
                 await _invoke(entry, 'workspace_present', {'items':items}, 'harness-delivery-' + str(event['seq']))
 
+    task = None
+    cancelled = False
     try:
         selection = selection_for_config(pipeline.llm_config)
         task = None
@@ -376,6 +469,7 @@ async def run_pipeline(pipeline, context, stream):
                 source=surface, task_key=stable_task_key(context.session_id, context.runtime.turn_id, text),
                 llm_selection=selection, owner=owner, on_event=on_event, conversation_id=context.session_id,
                 surface=surface, interaction=interaction, on_live=on_live, on_question=on_question,
+                on_task=lambda value: entry.update(harness_task=value),
                 source_references=context.metadata.get('source_references', []),
                 expected_model=resolved_model_snapshot(pipeline.llm_config))
             if task['status'] != 'completed':
@@ -402,8 +496,17 @@ async def run_pipeline(pipeline, context, stream):
             'harness_task_id': task['id'], 'harness_session_id': task.get('session_id'),
             'execution_engine': 'harness', 'total_seconds': round(time.monotonic() - started, 3)})
         return LoopOutcome(final_text=final, completed=True)
+    except asyncio.CancelledError:
+        cancelled = True
+        raise
     finally:
-        _contexts.pop(ref, None)
-        for operation in entry['calls'].values():
-            if not operation.done():
-                operation.cancel()
+        # Polling transport failure is not task completion. Retain its tool
+        # binding until an authenticated reconnect replaces it or the Host has
+        # a confirmed terminal status; otherwise a live tool would see 409.
+        if cancelled or task is not None and task.get('status') in {'completed', 'failed', 'cancelled', 'interrupted'}:
+            _contexts.pop(ref, None)
+            for operation in entry['calls'].values():
+                if not operation.done():
+                    operation.cancel()
+        else:
+            entry['cleanup'] = asyncio.create_task(_release_context_when_settled(ref, entry))

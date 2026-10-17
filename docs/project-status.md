@@ -2,6 +2,12 @@
 
 The current source combines the r11 execution migration with subsequent experience fixes. This ledger retains known limits rather than treating a deployed patch as universal acceptance. Detailed private logs and screenshots are not published.
 
+The r11.1 [architecture-review ledger](review-remediation.md) supersedes broad
+earlier cancellation/recovery/maintenance claims with specific tested guarantees.
+It also records the two additional defects found in actual model tests. The newest
+layout refinement is retained; the native client remains running throughout the
+background upgrades.
+
 | Issue group | Included change | Recorded status |
 | --- | --- | --- |
 | Startup and launcher (001-002) | Correct stale junction inventory and read the validated release identity | Startup passed; final launcher footer screenshot not obtained |

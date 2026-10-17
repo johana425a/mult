@@ -14,6 +14,9 @@ of rules rather than a regex per call site.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import base64
+import hashlib
+import json
 import re
 from typing import Sequence
 
@@ -39,6 +42,10 @@ class RenderedUnits:
     locators: tuple[int, ...]
     truncated: bool
     unit: str
+    requested_locators: tuple[int, ...] = ()
+    remaining_locators: tuple[int, ...] = ()
+    next_cursor: str | None = None
+    fragments: tuple[dict, ...] = ()
 
     @property
     def is_empty(self) -> bool:
@@ -88,7 +95,9 @@ def parse_locators(spec: str | int | Sequence[int], unit_count: int) -> list[int
                 start, end = end, start
             # Bound the expansion before allocating: "1-100000" must not
             # materialise a hundred thousand integers to then discard them.
-            raw.extend(range(start, min(end, start + MAX_LOCATORS_PER_READ) + 1))
+            if unit_count > 1_000_000 or end - start > 10_000_000:
+                raise ReadingError('Locator range is too large; use a bounded range.')
+            raw.extend(range(max(1, start), min(end, unit_count) + 1))
     else:
         for value in spec or []:
             try:
@@ -99,7 +108,7 @@ def parse_locators(spec: str | int | Sequence[int], unit_count: int) -> list[int
     in_range = sorted({value for value in raw if 1 <= value <= unit_count})
     if not in_range:
         raise ReadingError(f"no valid locator in {spec!r} — this material has 1..{unit_count}.")
-    return in_range[:MAX_LOCATORS_PER_READ]
+    return in_range
 
 
 def render_units(
@@ -108,6 +117,7 @@ def render_units(
     spec: str | int | Sequence[int],
     *,
     max_chars: int = MAX_READ_CHARS,
+    cursor: str | None = None,
 ) -> RenderedUnits:
     """Read the requested units and render them with locator headers.
 
@@ -116,27 +126,62 @@ def render_units(
     recognises the shape without being taught twice.
     """
     manifest = store.manifest(material_id)
-    locators = parse_locators(spec, manifest.unit_count)
-    rows, truncated = store.read_units(material_id, locators, max_chars=max_chars)
+    index, offset = 0, 0
+    if cursor:
+        try:
+            value = json.loads(base64.urlsafe_b64decode(cursor.encode('ascii')))
+            if value['material'] != material_id or value['revision'] != manifest.revision:
+                raise ValueError('Source version changed')
+            locators = parse_locators(value['locators'], manifest.unit_count)
+            if spec is not None and parse_locators(spec, manifest.unit_count) != locators:
+                raise ValueError('Requested range changed')
+            index, offset = value['index'], value['offset']
+            if not isinstance(index, int) or not 0 <= index < len(locators) or not isinstance(offset, int) or offset < 0:
+                raise ValueError('Invalid position')
+        except (ValueError, KeyError, TypeError, UnicodeError) as exc:
+            raise ReadingError('Read cursor is invalid or belongs to another source revision.') from exc
+    else:
+        locators = parse_locators(spec, manifest.unit_count)
+    rows, fragments = [], []
+    budget = min(MAX_READ_CHARS, max(1, int(max_chars)))
+    while index < len(locators) and len(rows) < MAX_LOCATORS_PER_READ and budget > 0:
+        locator = locators[index]
+        text = store.unit_text(material_id, locator)
+        if offset > len(text):
+            raise ReadingError('Read cursor exceeds the current unit text.')
+        end = min(len(text), offset + budget)
+        rows.append((locator, text[offset:end]))
+        fragments.append({'locator': locator, 'char_start': offset, 'char_end': end,
+            'total_chars': len(text), 'unit_text_sha256': hashlib.sha256(text.encode('utf-8')).hexdigest()})
+        budget -= end - offset
+        if end < len(text):
+            offset = end
+            break
+        index += 1
+        offset = 0
+    truncated = index < len(locators)
+    next_cursor = base64.urlsafe_b64encode(json.dumps({'material': material_id, 'revision': manifest.revision,
+        'locators': locators, 'index': index, 'offset': offset}, separators=(',', ':')).encode()).decode() if truncated else None
 
     label = manifest.unit.capitalize()
     blocks: list[str] = []
     for locator, text in rows:
-        body = text.strip()
+        body = text
         blocks.append(
             f"--- {label} {locator} ---\n{body}" if body else f"--- {label} {locator} ---\n(empty)"
         )
     rendered = "\n\n".join(blocks)
     if truncated:
         rendered += (
-            f"\n\n[truncated — the requested range exceeds the {max_chars}-character "
-            f"read limit. Read fewer {manifest.unit}s at a time.]"
+            '\n\n[More original text remains. Continue read_material with next_cursor: ' + next_cursor + ']'
         )
     return RenderedUnits(
         text=rendered,
         locators=tuple(locator for locator, _ in rows),
         truncated=truncated,
         unit=manifest.unit,
+        requested_locators=tuple(locators), remaining_locators=tuple(locators[index:]),
+        next_cursor=next_cursor, fragments=tuple(fragments),
     )
 
 

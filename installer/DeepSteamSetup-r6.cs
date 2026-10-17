@@ -1949,7 +1949,7 @@ namespace DeepSteamInstaller
                 if (value == "desktop/" + file) return true;
             foreach (string prefix in new string[] { "portal/", "integration/", "scripts/", "installer/", "licenses/", "upstream/",
                 "runtime/python/", "runtime/deeptutor-packages/", "runtime/native-frontends/", "runtime/openmaic-standalone/",
-                "runtime/desktop/", "runtime/harness/", "runtime/node/", "runtime/mineru/", "runtime/render-service/", "demo/", "runtime/render-service/", "demo/" })
+                "runtime/desktop/", "runtime/harness/", "runtime/node/", "runtime/mineru/", "runtime/render-service/", "runtime/pglite/", "demo/" })
                 if (value.StartsWith(prefix, StringComparison.Ordinal)) return true;
             return value == "release.md" || value == "release-identity.json" || value == "local-build-info.json" || value == "guide.md" || value == "user-guide.txt" || value == "agents.md" || value == "package-manifest.json" || value == "public-source-manifest.json" || value == "requirements-demo.txt" || value == "runtime/native-frontend.json" || value == "runtime/openmaic-frontend.json" ||
                 value == "runtime/harness-runtime.json" || value == "readme.md" || value == "requirements.txt" ||

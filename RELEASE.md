@@ -1,8 +1,16 @@
-# DeepSteam r11 source update
+# DeepSteam r11.1 source update
 
-Source version: `2026.10.17-r11-harness-core`.
-Paired installed version: `2026.10.17-r11-harness-core-local`.
-Current paired OpenMAIC build: `w_YlqwSMVFIPwGLN1gLy_`.
+Source version: `2026.10.17-r11.1-review`.
+Paired installed version: `2026.10.17-r11.1-review-local`.
+Current paired OpenMAIC build: `RcB4EAVNrNtSnX1ppnha5`.
+
+The review patch starts from public commit `ff0bb0eb181881c44b6bd1396179d171dae7b52c`.
+It repairs admission/cancellation/rebinding, teacher inheritance, immutable file
+delivery, source pagination and scoped identity, extension/repair transactions,
+upgrade ownership and acceptance gates. Actual model tests also found and fixed
+workspace-local archive access and Windows attachment staging length. Read the
+[item-by-item review disposition](docs/review-remediation.md) before treating any
+normal-path result as proof of unattended long-running reliability.
 
 This publication incorporates the Harness migration and the subsequent October 17 experience fixes. It is based on the existing `standalone-2026-10-16` history. No new installer, desktop distribution ZIP, or removable-drive package is produced by this source update.
 
@@ -34,4 +42,6 @@ A same-source real-model classroom pair measured 659.803 s before and 593.053 s 
 
 The public-source manifest is regenerated from this publication. Older runtime verification reports in `installer/` are historical component checks, not proof of a new r11 installer. The local upgrade and rebuilt OpenMAIC have been tested; a complete clean-checkout native installer rebuild is still unproven. See [source provenance](docs/source-provenance.md).
 
-For independent review, use this commit's source and [review guide](docs/review-guide.md). External Pro review was requested separately; its completion is not asserted by these release notes.
+For independent review, use this commit's source, [review guide](docs/review-guide.md)
+and [remediation record](docs/review-remediation.md). The supplied review was acted
+on; its model/author identity and a fresh external approval of these fixes are not asserted.

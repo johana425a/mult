@@ -2,7 +2,7 @@
 
 DeepSteam brings document reading, personalized learning, video study, workspace tools, and interactive classrooms into one desktop application. Chat, personalized learning, immersive reading, the OpenMAIC workbench, and classroom dialogue now submit interactive turns to **one Harness execution core**. DeepTutor and OpenMAIC continue to provide their interfaces and teaching services.
 
-**Current source snapshot: `2026.10.17-r11-harness-core`, including the subsequent October 17 experience fixes.** This updates the former r8/r9 public snapshot and the October 16 standalone branch. Existing Git history and upstream licenses are preserved.
+**Current source snapshot: `2026.10.17-r11.1-review`, including the October 17 experience fixes and architecture-review repairs.** Existing Git history and upstream licenses are preserved. The [review disposition](docs/review-remediation.md) distinguishes fixed defects, actual tests and remaining reproducibility limits.
 
 | Start here | Contents |
 | --- | --- |
@@ -12,6 +12,7 @@ DeepSteam brings document reading, personalized learning, video study, workspace
 | [Project status](docs/project-status.md) | Resolved and outstanding experience issues |
 | [Source provenance](docs/source-provenance.md) | Upstream pins, source inputs, public normalization, and build coverage |
 | [Review guide](docs/review-guide.md) | Code entry points and questions for independent architecture review |
+| [Review remediation](docs/review-remediation.md) | All 18 review items, follow-up runtime defects and validation boundaries |
 | [User and source guide](GUIDE.md) | Configuration, usage, and component setup |
 
 ## What changed in r11
@@ -22,7 +23,7 @@ DeepSteam brings document reading, personalized learning, video study, workspace
 - Managed extensions and reversible program repairs, with dependency/version records and isolated lifecycle validation.
 - Follow-up fixes for persisted answers, original-source links, classroom layout and video export, sidebar continuity, and bounded classroom content prefetch.
 
-The [recorded execution acceptance](docs/validation.md) used the selected real `gpt-6.1-sol` model across 15 cases: 31/31 generated files parsed and 22/22 download checks passed. Later experience tests and their limits are recorded separately. Tool registration is not treated as proof that every tool action works.
+The earlier [execution acceptance](docs/validation.md) recorded 15 real-model cases, 31 parsed files and 22 downloads. The new [r11.1 review acceptance](reports/r11/review-acceptance.json) records 10 additional real-model turns, including initial failures and their repairs, 23 verified downloads, restart persistence and 56 focused regression passes. These are separate evidence sets. Tool registration is not treated as proof that every tool action works.
 
 ## Source and application distribution
 

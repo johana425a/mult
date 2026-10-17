@@ -505,6 +505,97 @@ function readableDiagram(unit: LayoutUnit, options: SlideLayoutOptions): PPTElem
 }
 
 /**
+ * Give an explicitly grouped vector diagram more room without changing its
+ * topology. Every node, connector point and label centre uses one uniform
+ * transform; label fonts and wording stay unchanged. Source images and text
+ * nodes that a connector attaches to are deliberately ineligible.
+ */
+function readableDiagramWithRoom(unit: LayoutUnit, options: SlideLayoutOptions,
+  availableWidth: number, availableHeight: number): PPTElement[] {
+  try { return readableDiagram(unit, options); }
+  catch (originalError) {
+    if (!(originalError instanceof SlideLayoutError) || originalError.code !== 'SLIDE_LAYOUT_OVERFLOW') throw originalError;
+    const groupId = unit.elements[0]?.groupId;
+    if (!groupId || unit.elements.some(element => element.groupId !== groupId ||
+      !['shape', 'line', 'text', 'latex'].includes(element.type) || ('rotate' in element && element.rotate)) ||
+      !unit.elements.some(element => element.type === 'shape') || !unit.elements.some(element => element.type === 'line')) throw originalError;
+    const labels = unit.elements.filter(element => element.type === 'text' || element.type === 'latex');
+    for (const element of unit.elements) {
+      if (element.type !== 'line') continue;
+      lineBounds(element);
+      for (const point of [element.start, element.end]) {
+        const x = element.left + point[0], y = element.top + point[1];
+        if (labels.some(label => { const box = elementBounds(label); return x >= box.left && x <= box.right &&
+          y >= box.top && y <= box.bottom; })) throw originalError;
+      }
+    }
+    const origin = unit.bounds;
+    for (const scale of [1.15, 1.35, 1.6, 1.9, 2.2]) {
+      const elements = unit.elements.map((element): PPTElement => {
+        const left = origin.left + (element.left - origin.left) * scale;
+        const top = origin.top + (element.top - origin.top) * scale;
+        if (element.type === 'line') {
+          const point = (value: [number, number]): [number, number] => [value[0] * scale, value[1] * scale];
+          return { ...element, left, top, start: point(element.start), end: point(element.end),
+            ...(element.broken ? { broken: point(element.broken) } : {}),
+            ...(element.broken2 ? { broken2: point(element.broken2) } : {}),
+            ...(element.curve ? { curve: point(element.curve) } : {}),
+            ...(element.cubic ? { cubic: element.cubic.map(point) as [[number, number], [number, number]] } : {}) };
+        }
+        if (element.type === 'shape') return { ...element, left, top,
+          width: element.width * scale, height: element.height * scale };
+        // Keep the full original label box at its transformed centre. Unlike
+        // scaling the box itself, this creates spacing between fixed-size text.
+        return { ...element, left: left + element.width * (scale - 1) / 2,
+          top: top + element.height * (scale - 1) / 2 };
+      });
+      try {
+        const readable = readableDiagram({ ...unit, elements }, options);
+        const bounds = unionBounds(readable.map(elementBounds));
+        if (bounds.right - bounds.left <= availableWidth && bounds.bottom - bounds.top <= availableHeight) return readable;
+      } catch (error) { if (!(error instanceof SlideLayoutError)) throw error; }
+    }
+    throw originalError;
+  }
+}
+
+/** A complete run of independent paragraphs can read down two columns. */
+function compactColumnRun(units: LayoutUnit[], start: number, width: number, height: number,
+  options: SlideLayoutOptions): { columns: LaidOutElement[][]; consumed: number } | undefined {
+  const gap = GENERATED_SLIDE_LAYOUT.gap;
+  const run: PPTElement[] = [];
+  for (let index = start; index < units.length; index++) {
+    const unit = units[index];
+    if (unit.atomic || !['text', 'latex'].includes(unit.elements[0].type)) break;
+    run.push(unit.elements[0]);
+  }
+  if (run.length < 3) return undefined;
+  try {
+    const halfWidth = (width - gap) / 2;
+    const narrow = run.map(element => sized(element, halfWidth, height, options));
+    const wide = run.map(element => sized(element, width, height, options));
+    // A lower bound over every one/two-element row arrangement. Only change
+    // reading layout when rows cannot fit this complete run on one page.
+    const rowHeight = [0];
+    for (let count = 1; count <= run.length; count++) {
+      rowHeight[count] = rowHeight[count - 1] + wide[count - 1].height + (count > 1 ? gap : 0);
+      if (count > 1) rowHeight[count] = Math.min(rowHeight[count], rowHeight[count - 2] +
+        Math.max(narrow[count - 2].height, narrow[count - 1].height) + (count > 2 ? gap : 0));
+    }
+    if (rowHeight[run.length] <= height) return undefined;
+    const prefix = [0];
+    for (const element of narrow) prefix.push(prefix[prefix.length - 1] + element.height + gap);
+    let split = -1, bestHeight = Infinity;
+    for (let index = 1; index < narrow.length; index++) {
+      const columnHeight = Math.max(prefix[index] - gap, prefix[narrow.length] - prefix[index] - gap);
+      if (columnHeight <= height && columnHeight < bestHeight) { split = index; bestHeight = columnHeight; }
+    }
+    if (split < 0) return undefined;
+    return { columns: [narrow.slice(0, split), narrow.slice(split)], consumed: run.length };
+  } catch (error) { if (!(error instanceof SlideLayoutError)) throw error; return undefined; }
+}
+
+/**
  * Reflow generated educational blocks, keeping every body element exactly once.
  * Header copies are the only duplicated content. Imported/designed slides do not
  * call this producer helper. An indivisible oversized block fails explicitly.
@@ -565,7 +656,7 @@ export function layoutGeneratedSlidePages(content: GeneratedSlideContent, option
   for (let index = 0; index < units.length; index++) {
     const unit = units[index];
     if (unit.atomic) {
-      const elements = readableDiagram(unit, options);
+      const elements = readableDiagramWithRoom(unit, options, usableWidth, bodyHeight);
       const bounds = unionBounds(elements.map(elementBounds));
       const rowWidth = bounds.right - bounds.left, rowHeight = bounds.bottom - bounds.top;
       if (rowWidth > usableWidth || rowHeight > bodyHeight) {
@@ -578,6 +669,28 @@ export function layoutGeneratedSlidePages(content: GeneratedSlideContent, option
       continue;
     }
     const current = unit.elements[0];
+    // Before making a new page, try placing the entire remaining prose run in
+    // two vertical columns. Preserve contiguous reading order and every block;
+    // never split a paragraph, cross a diagram/table, or leave a short tail.
+    if (cursor! > bodyTop && cursor! + sized(current, usableWidth, bodyHeight, options).height > bottom + 0.01) {
+      const compact = compactColumnRun(units, index, usableWidth, bodyHeight, options);
+      if (compact) {
+        startPage();
+        const halfWidth = (usableWidth - gap) / 2;
+        let lastBottom = bodyTop;
+        for (const [column, elements] of compact.columns.entries()) {
+          let top = bodyTop;
+          for (const element of elements) {
+            page!.elements.push({ ...element, left: margin + column * (halfWidth + gap), top });
+            top += element.height + gap;
+          }
+          lastBottom = Math.max(lastBottom, top);
+        }
+        cursor! = lastBottom;
+        index += compact.consumed - 1;
+        continue;
+      }
+    }
     const nextUnit = units[index + 1];
     const next = nextUnit && !nextUnit.atomic ? nextUnit.elements[0] : undefined;
     // Preserve an authored two-column row when two short content boxes shared
@@ -610,7 +723,22 @@ export function layoutGeneratedSlidePages(content: GeneratedSlideContent, option
         // A formula that cannot safely fit half width stays unchanged below.
       }
     }
-    if (paired) index += 1;
+    // Keep a short final formula/result with the preceding two points when
+    // three readable columns use no more height than the existing pair. This
+    // closes a run without creating a formula-only continuation page.
+    const thirdUnit = units[index + 2], followingUnit = units[index + 3];
+    if (paired && !authoredPair && thirdUnit && !thirdUnit.atomic &&
+      ['text', 'latex'].includes(thirdUnit.elements[0].type) &&
+      (!followingUnit || followingUnit.atomic || !['text', 'latex'].includes(followingUnit.elements[0].type))) {
+      try {
+        const thirdWidth = (usableWidth - gap * 2) / 3;
+        const three = [current, next!, thirdUnit.elements[0]].map(element => sized(element, thirdWidth, bodyHeight, options));
+        if (Math.max(...three.map(element => element.height)) <= Math.max(...row.map(element => element.height))) {
+          row = three; rowWidth = thirdWidth;
+        }
+      } catch (error) { if (!(error instanceof SlideLayoutError)) throw error; }
+    }
+    if (paired) index += row.length - 1;
     const rowHeight = Math.max(...row.map((element) => element.height));
     if (rowHeight > bodyHeight) {
       throw new SlideLayoutError('SLIDE_LAYOUT_OVERFLOW', `Element ${current.id} cannot fit without splitting its content.`);

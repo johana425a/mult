@@ -238,6 +238,9 @@ export async function runNativeChild(opts: RunNativeChildOptions): Promise<Nativ
   };
 
   const child = buildAgent({
+    abortSignal: opts.abortSignal,
+    maxProviderTransports: opts.maxProviderTransports,
+    onProviderTransport: count => { providerTransportCount = count; },
     streamFn: boundedStreamFn,
     systemPrompt: opts.systemPrompt,
     tools: trackedTools,

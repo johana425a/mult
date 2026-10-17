@@ -5,15 +5,20 @@ import { join, dirname, resolve, relative, isAbsolute } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { executionError } from './execution_errors.mjs';
+import { configurationTransaction } from './configuration_transaction.mjs';
 
 const json = async (path,fallback) => {try{return JSON.parse(await readFile(path,'utf8'));}catch(error){if(error.code==='ENOENT')return fallback;throw error;}};
 const atomic = async(path,value) => {await mkdir(dirname(path),{recursive:true});const tmp=path+'.'+randomUUID()+'.tmp';await writeFile(tmp,JSON.stringify(value,null,2),'utf8');await rename(tmp,path);};
 const within = (root,path) => {const rel=relative(root,path);return rel===''||(!isAbsolute(rel)&&rel!=='..'&&!rel.startsWith('..\\')&&!rel.startsWith('../'));};
 export async function installExtensionTools(ctx,options) {
-  const root=join(import.meta.dirname,'../../extensions'), config=join(options.profile,'mcp-servers.json');
+  const root=options.extensionsRoot || join(import.meta.dirname,'../../extensions'), config=join(options.profile,'mcp-servers.json');
   const registryPath=join(root,'registry.json');let chain=Promise.resolve();
+  const transaction=configurationTransaction(join(options.profile,'extension-transaction.json'),[config,registryPath]);
+  await transaction.recover();
   await mkdir(root,{recursive:true});
   async function execute(args,exec) {
+    await transaction.recover();
+    const generationInputs=await transaction.snapshot();
     const registry=await json(registryPath,{schema:1,extensions:{}});
     if(args.action==='list') return {extensions:Object.values(registry.extensions).map(({server,previous,...receipt})=>receipt)};
     if(!/^[A-Za-z0-9_-]{1,32}$/.test(args.id||'')) throw new Error('Use an extension id containing letters, numbers, underscore or hyphen.');
@@ -23,7 +28,9 @@ export async function installExtensionTools(ctx,options) {
     if(priorServer && !previous)throw new Error('This MCP id already belongs to existing configuration; choose another id.');
     if(args.action==='remove'||args.action==='rollback') {
       if(!previous)throw new Error('Extension is not installed.');
+      if(args.action==='remove' && previous.enabled===false)return {id:args.id,status:'disabled',reused:true,retained_files:true};
       const restored=args.action==='rollback'?previous.previous:null;
+      if(args.action==='rollback' && !restored)throw new Error('No earlier extension activation exists.');
       if(previous.type==='skill') {
         if(args.action==='rollback' && restored?.path) {
           await rename(previous.path,restored.path);
@@ -37,10 +44,10 @@ export async function installExtensionTools(ctx,options) {
         return {id:args.id,status:registry.extensions[args.id].enabled?'restored':'disabled',retained_files:true};
       }
       settings.servers=settings.servers.filter(s=>s.serverName!==args.id);
-      if(restored?.server)settings.servers.push(restored.server);
+      if(restored?.enabled && restored.server)settings.servers.push(restored.server);
       if(restored)registry.extensions[args.id]=restored;
       else registry.extensions[args.id]={...previous,enabled:false,previous};
-      await atomic(config,settings);await atomic(registryPath,registry);
+      await transaction.commit([settings,registry],generationInputs);
       return {id:args.id,status:restored?'rolled_back':'disabled',retained_files:true,activation:'next_session',message:'Existing in-flight sessions keep their frozen tools; new sessions use this configuration.'};
     }
     if(args.action==='install_skill') {
@@ -61,7 +68,7 @@ export async function installExtensionTools(ctx,options) {
     if(!/^(?:@[a-z0-9_.-]+\/)?[a-z0-9_.-]+$/.test(args.package||'')||!/^\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?$/i.test(args.version||''))throw new Error('An exact npm package name and pinned version are required.');
     const source=new URL(args.source_repository||'');
     if(source.protocol!=='https:'||source.hostname!=='github.com'||source.username||source.password)throw new Error('Record the inspected GitHub repository URL.');
-    const destination=join(root,'mcp',args.id,args.version);await mkdir(destination,{recursive:true});
+    const destination=join(root,'mcp',args.id,args.version+'-'+randomUUID());await mkdir(destination,{recursive:true});
     const npm=join(dirname(process.execPath),'node_modules/npm/bin/npm-cli.js');
     const npmrc=join(root,'npmrc');await writeFile(npmrc,'registry=https://registry.npmjs.org/\n','utf8');
     const result=await new Promise((accept,reject)=>{
@@ -85,7 +92,7 @@ export async function installExtensionTools(ctx,options) {
     const receipt={id:args.id,type:'mcp',source:source.href,package:args.package,version:args.version,path:destination,server,enabled:true,
       lock_sha256:createHash('sha256').update(await readFile(join(destination,'package-lock.json'))).digest('hex'),installed_at:new Date().toISOString(),
       ...(previous?{previous}:{})};
-    await atomic(config,settings);registry.extensions[args.id]=receipt;await atomic(registryPath,registry);
+    registry.extensions[args.id]=receipt;await transaction.commit([settings,registry],generationInputs);
     return {id:args.id,status:'installed',version:args.version,lock_sha256:receipt.lock_sha256,installation:result,
       activation:'Use load_harness_tools mcp, then call its actual tools to verify. Existing loaded namespaces are replaced on the next session.'};
   }

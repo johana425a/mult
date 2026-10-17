@@ -11,7 +11,8 @@ DESTINATION.mkdir(parents=True, exist_ok=True)
 for path in DESTINATION.rglob("*"):
     if "node_modules" not in path.relative_to(DESTINATION).parts and path.name in {"profile", "control-token", "runtime.json", "credentials.dpapi", ".credentials.yaml", "sessions"}:
         raise RuntimeError("Private state found in public Harness runtime")
-RUNTIME_SOURCE_FILES = ("package.json", "package-lock.json", "sidecar.mjs", "host.mjs", "workspaces.mjs", "workspace_http.mjs", "workspace_management.mjs", "execution_tasks.mjs", "execution_errors.mjs", "capabilities.mjs", "interaction_surfaces.mjs", "interaction_http.mjs", "public_web_fetch.mjs", "task_ledger.mjs", "documents.mjs", "credentials.mjs", "protocol.mjs", "credential_store.py", "surface_tools.mjs", "extensions.mjs", "repairs.mjs", "deployment_policy.mjs", "README.md", "pinned-source-build.json")
+RUNTIME_SOURCE_FILES = ("package.json", "package-lock.json", "sidecar.mjs", "host.mjs", "workspaces.mjs", "workspace_http.mjs", "workspace_management.mjs", "execution_tasks.mjs", "execution_errors.mjs", "operation_receipts.mjs", "immutable_deliveries.mjs", "capabilities.mjs", "interaction_surfaces.mjs", "interaction_http.mjs", "public_web_fetch.mjs", "task_ledger.mjs", "documents.mjs", "credentials.mjs", "protocol.mjs", "credential_store.py", "surface_tools.mjs", "extensions.mjs", "repairs.mjs", "deployment_policy.mjs", "README.md", "pinned-source-build.json")
+RUNTIME_SOURCE_FILES += ("configuration_transaction.mjs",)
 for name in RUNTIME_SOURCE_FILES:
     shutil.copy2(SOURCE / name, DESTINATION / name)
 shutil.copytree(SOURCE / "node_modules", DESTINATION / "node_modules", dirs_exist_ok=True)
