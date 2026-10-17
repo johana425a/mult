@@ -24,7 +24,7 @@ namespace DeepSteamInstaller
 {
     internal static class Program
     {
-        internal const string Version = "2026.10.17-r11.2-theme-local";
+        internal const string Version = "2026.10.17-r11.3-review-local";
         internal const string InstallingMarker = ".deepsteam-installing";
         internal const string InstalledMarker = ".deepsteam-installed";
 

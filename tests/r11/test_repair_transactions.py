@@ -49,6 +49,20 @@ def crash_helper():
 
 
 class RepairTests(unittest.TestCase):
+    def test_complete_credential_fields_in_success_failure_and_commands(self):
+        for success in (True, False):
+            identifier=self.stage()
+            samples=['Cookie: a=SYNTHETIC_FIRST; login=SYNTHETIC_SECOND',
+                'cookie:a=SYNTHETIC_FIRST;login=SYNTHETIC_SECOND',
+                'Set-Cookie: a=SYNTHETIC_FIRST; Path=/; login=SYNTHETIC_SECOND',
+                'Authorization: Basic SYNTHETIC_SECOND',
+                json.dumps({'headers':{'Cookie':'a=SYNTHETIC_FIRST; login=SYNTHETIC_SECOND'}})]
+            code='import sys; print('+repr('\n'.join(samples))+'); print('+repr(samples[0])+',file=sys.stderr); sys.exit('+str(0 if success else 2)+')'
+            self.module.run({'action':'verify','id':identifier,'command':[sys.executable,'-c',code,'--cookie','a=SYNTHETIC_FIRST;login=SYNTHETIC_SECOND']})
+            receipt=(self.store/identifier/'manifest.json').read_text('utf-8')
+            self.assertNotIn('SYNTHETIC_FIRST',receipt);self.assertNotIn('SYNTHETIC_SECOND',receipt)
+        self.assertEqual(self.module.redact({'headers':{'Set-Cookie':['a=SYNTHETIC_FIRST','b=SYNTHETIC_SECOND']}}),{'headers':{'Set-Cookie':'[redacted]'}})
+
     @unittest.skipUnless(os.name == 'nt', 'Windows temporary suffix exceeds MAX_PATH')
     def test_atomic_temporary_suffix_crosses_windows_path_limit(self):
         target = self.copy / ('a' * 70) / ('b' * 70) / '中文 交付文件.md'

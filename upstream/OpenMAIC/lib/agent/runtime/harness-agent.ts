@@ -12,8 +12,9 @@ export interface HarnessContext {
   surface: 'openmaic-workbench' | 'openmaic-classroom';
   conversationId: string;
   context?: unknown;
+  sourceSnapshot?: unknown;
   onDeliveries?: (links:string)=>Promise<void>;
-  execution?: {binding:any;taskId:string;signal:AbortSignal};
+  execution?: {binding:any;taskId:string;signal:AbortSignal;sourceSnapshot?:unknown;requestInput?:(question:any)=>void};
 }
 type Entry = { owner: string; surface: string; invoke: (body: any) => Promise<any>; calls: Map<string, Promise<any>> };
 const shared = globalThis as typeof globalThis & { __deepsteamSurfaceRegistry?: Map<string, Entry>; __deepsteamSurfaceParent?: AsyncLocalStorage<HarnessContext> };
@@ -49,12 +50,36 @@ const textOf = (message: any): string => typeof message?.content === 'string' ? 
   (message?.content || message?.parts || []).filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n');
 const assistant = (content: any[], stopReason = 'stop') => ({role:'assistant',content,api:'deepsteam-harness',provider:'deepsteam-shared',model:'current',
   usage:{input:0,output:0,cacheRead:0,cacheWrite:0,totalTokens:0,cost:{input:0,output:0,cacheRead:0,cacheWrite:0,total:0}},stopReason,timestamp:Date.now()});
+const canonical = (value:any) => JSON.stringify(value,(_key,row)=>row && typeof row==='object' && !Array.isArray(row)
+  ? Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])) : row);
+const questionText = (envelope:any) => (envelope.questions || []).map((question:any,index:number)=>
+  `${index+1}. ${question.question || question.title || question.prompt || ''}` +
+  (question.options?.length ? '\n'+question.options.map((option:any,i:number)=>`${option.id || i+1}: ${option.label || option}`).join('\n') : '') +
+  (question.multiSelect ? '\n(You may select more than one option.)' : '')).join('\n\n');
+const nativeQuestions = (questions:any[]) => questions.map((question,index)=>({...question,
+  question:question.question || question.title || question.prompt,
+  ...(question.options?.length ? {options:question.options.map((option:any,i:number)=>({
+    id:option.id || `${question.id || index+1}-${i+1}`,label:option.label || String(option)}))} : {})}));
 
 export function createHarnessAgent(opts: BuildAgentOptions): Agent {
   const inherited = parents.getStore();
   const surface = opts.harnessContext || (inherited ? {...inherited,conversationId:inherited.conversationId + ':child:' + randomUUID()} :
     {surface:'openmaic-classroom' as const,conversationId:'classroom:' + randomUUID()});
   const state: any = {systemPrompt:opts.systemPrompt,model:opts.model,tools:opts.tools,messages:[...(opts.history || [])],isStreaming:false,pendingToolCalls:new Set(),errorMessage:undefined};
+  const tools:any[]=[...opts.tools], allowed=new Set(opts.allowedToolNames), childQuestions=new Map<string,any>();
+  if (!tools.some(tool=>allowed.has(tool.name)&&['ask_user','cue_user'].includes(tool.name))) {
+    tools.push({name:'request_parent_input',description:'Return questions to the parent classroom or workbench and end this child turn. The existing interface asks the user, whose answer arrives as the next ordinary message.',
+      parameters:{type:'object',required:['questions'],properties:{questions:{type:'array',minItems:1,maxItems:4,items:{type:'object',required:['question'],
+        properties:{question:{type:'string'},options:{type:'array',items:{type:'object',required:['id','label'],properties:{id:{type:'string'},label:{type:'string'}}}},multiSelect:{type:'boolean'}}}}}},
+      execute:async(callId:string,args:any)=>{
+        if(!Array.isArray(args.questions)||!args.questions.length||args.questions.some((q:any)=>typeof q.question!=='string'||!q.question.trim()))throw new Error('Provide nonempty questions.');
+        const envelope={id:currentTask.id+':'+callId,task_id:currentTask.id,questions:args.questions};
+        state.needsInput=envelope;inherited?.execution?.requestInput?.(envelope);
+        return {content:[{type:'text',text:questionText(envelope)}],details:{needs_input:envelope}};
+      }});
+    allowed.add('request_parent_input');
+  }
+  state.tools=tools;
   const listeners = new Set<(event: AgentEvent, signal: AbortSignal) => Promise<void> | void>();
   let controller = new AbortController(), pending: Promise<void> = Promise.resolve();
   let currentTask: any = null, binding: any = null;
@@ -80,7 +105,7 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
   };
 
   async function run(input: string | AgentMessage[]) {
-    controller = new AbortController(); terminal = false; state.errorMessage = undefined; state.isStreaming = true;
+    controller = new AbortController(); terminal = false; state.errorMessage = undefined; state.needsInput=undefined; childQuestions.clear(); state.isStreaming = true;
     currentTask = null; admission = null;
     const signals = [opts.abortSignal,inherited?.execution?.signal].filter((signal):signal is AbortSignal=>Boolean(signal));
     const cancel = () => {controller.abort();void cancelRemote().catch(()=>{});};
@@ -109,34 +134,53 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
       }
       if (!inherited?.execution && !recovering && opts.model?.id && !['current','maic-connector'].includes(opts.model.id) && opts.model.id !== binding.resolved_model?.model)
         throw new Error('MODEL_CONFIGURATION_CHANGED: Select the classroom model again; the adapter will not silently change it.');
-      registry.set(ref,{owner:binding.owner,surface:surface.surface,calls:new Map(),invoke:async (body: any) => {
-        const tool = opts.tools.find(t => t.name === body.name && opts.allowedToolNames.has(t.name));
+      const sourceSnapshot=inherited?.execution?.sourceSnapshot ?? {owner:binding.owner,scope:binding.native_workspace_id,
+        sha256:createHash('sha256').update(canonical(surface.sourceSnapshot ?? surface.context ?? null)).digest('hex')};
+      const invokeLocal = async (body: any):Promise<any> => {
+        const tool = tools.find(t => t.name === body.name && allowed.has(t.name));
         if (!tool || terminal) throw new Error('This classroom tool is not available in the current turn.');
         const call = {type:'toolCall',id:body.call_id,name:body.name,arguments:body.arguments};
         await message(assistant([call],'toolUse'));
         await emit({type:'tool_execution_start',toolCallId:call.id,toolName:call.name,args:call.arguments});
         let result: any, isError = false;
-        try { result = await parents.run({...surface,execution:{binding,taskId:currentTask.id,signal:controller.signal}},() => tool.execute(call.id,call.arguments,controller.signal,update => { void emit({type:'tool_execution_update',toolCallId:call.id,toolName:call.name,args:call.arguments,partialResult:update}); })); }
+        try { result = await parents.run({...surface,execution:{binding,taskId:currentTask.id,signal:controller.signal,sourceSnapshot,
+          requestInput:question=>childQuestions.set(question.id,question)}},() => tool.execute(call.id,call.arguments,controller.signal,(update:any) => { void emit({type:'tool_execution_update',toolCallId:call.id,toolName:call.name,args:call.arguments,partialResult:update}); })); }
         catch(error) { isError=true;result={content:[{type:'text',text:safeError(error)}],details:{error:safeError(error)}}; }
         isError = isError || result.isError === true;
         const after = await opts.afterToolCall?.({toolCall:call,args:call.arguments,result,isError} as any,controller.signal);
-        isError ||= after?.isError === true; terminal = after?.terminate === true;
+        isError ||= after?.isError === true; terminal = after?.terminate === true || call.name==='request_parent_input' && !isError;
         await emit({type:'tool_execution_end',toolCallId:call.id,toolName:call.name,result,isError});
         await message({role:'toolResult',toolCallId:call.id,toolName:call.name,content:result.content,details:result.details,isError,timestamp:Date.now()});
+        if(call.name==='request_parent_input'&&!isError)await message(assistant([{type:'text',text:questionText(state.needsInput)}]));
+        if(childQuestions.size && !isError && !terminal) {
+          const envelopes=[...childQuestions.values()];childQuestions.clear();
+          const envelope={id:envelopes.map(row=>row.id).join(':'),questions:envelopes.flatMap(row=>row.questions)};
+          const native=tools.find(t=>allowed.has(t.name)&&['ask_user','cue_user'].includes(t.name));
+          if(native) {
+            const one=envelope.questions.length===1?envelope.questions[0]:null;
+            const args=native.name==='ask_user' ? (one || {question:questionText(envelope)}) : {prompt:questionText(envelope)};
+            const handed=await invokeLocal({...body,name:native.name,call_id:call.id+':input:'+createHash('sha256').update(envelope.id).digest('hex').slice(0,16),arguments:args});
+            if(handed.is_error)throw new Error('The parent could not publish the child question.');
+          } else {
+            inherited?.execution?.requestInput?.(envelope);state.needsInput=envelope;
+            await message(assistant([{type:'text',text:questionText(envelope)}]));terminal=true;
+          }
+        }
         return {content:textOf(result),metadata:result.details || {},is_error:isError,terminate:terminal,
           model_messages:[{role:'tool',content:(result.content || []).filter((p:any)=>p.type==='image').map((p:any)=>({type:'image_url',image_url:{url:`data:${p.mimeType};base64,${p.data}`}}))}]};
-      }});
+      };
+      registry.set(ref,{owner:binding.owner,surface:surface.surface,calls:new Map(),invoke:invokeLocal});
       const request = {owner:binding.owner,native_workspace_id:binding.native_workspace_id,source:surface.surface,surface:surface.surface,
         conversation_id:surface.conversationId,task_key:createHash('sha256').update(surface.conversationId+':'+turnId).digest('hex'),text:prompt,
         llm_selection:binding.llm_selection,expected_model:binding.resolved_model,
         parent_task_id:inherited?.execution?.taskId,provider_call_budget:opts.maxProviderTransports,
-        interaction:{surface:surface.surface,context_ref:ref,output_dir:binding.output_dir,
+        interaction:{surface:surface.surface,context_ref:ref,output_dir:binding.output_dir,source_snapshot:sourceSnapshot,
           binding_identity:{owner:binding.owner,workspace:binding.native_workspace_id,conversation:surface.conversationId},
           system_prompt:opts.systemPrompt + '\nDomain tool names in these instructions are invoked with invoke_surface_tool. Use general Harness tools directly. Do not let historical tool calls trigger new actions. When a tool returns terminate=true, end this turn immediately.',
           history:JSON.stringify(history),archive_history:JSON.stringify([...history,...frames]),
           images:frames.flatMap((frame:any)=>(Array.isArray(frame.content)?frame.content:[]).filter((p:any)=>p.type==='image').map((p:any)=>`data:${p.mimeType};base64,${p.data}`)),
           context:JSON.stringify({surface:surface.context,frames:frames.map((frame:any)=>({role:frame.role,content:textOf(frame)}))}),
-          tools:opts.tools.filter(t=>opts.allowedToolNames.has(t.name)).map(t=>({name:t.name,description:t.description,parameters:t.parameters}))}};
+          tools:tools.filter(t=>allowed.has(t.name)).map(t=>({name:t.name,description:t.description,parameters:t.parameters}))}};
       admission = {owner:request.owner,source:request.source,task_key:recovering?.task_key || request.task_key};
       currentTask = {id:'task-' + createHash('sha256').update(JSON.stringify([request.owner,request.source,request.task_key])).digest('hex').slice(0,32),status:'queued'};
       controller.signal.throwIfAborted();
@@ -190,7 +234,24 @@ export function createHarnessAgent(opts: BuildAgentOptions): Agent {
           if(currentTask.status!=='completed') throw new Error(currentTask.error?.message || currentTask.error_code || currentTask.status);
           break;
         }
-        if(currentTask.status==='awaiting_input') throw new Error('HARNESS_INPUT_REQUIRED: Continue the linked Harness question to resume this task.');
+        if(currentTask.status==='awaiting_input') {
+          // Older accepted child tasks may still contain a generic question.
+          // Transfer its actual unanswered envelope; never invent an answer or
+          // leave an invisible waiter running behind the native next-message UI.
+          const pendingQuestions=value.capabilities?.pending_questions || [];
+          const envelope={id:pendingQuestions.map((q:any)=>q.id||q.call_id).join(':'),task_id:currentTask.id,
+            questions:nativeQuestions(pendingQuestions.flatMap((q:any)=>q.questions || []))};
+          if(!envelope.questions.length)throw new Error('Pending question envelope is missing.');
+          state.needsInput=envelope;
+          if(inherited?.execution?.requestInput)inherited.execution.requestInput(envelope);
+          else {
+            const native=tools.find(t=>allowed.has(t.name)&&['ask_user','cue_user'].includes(t.name));
+            if(native)await invokeLocal({name:native.name,call_id:'handoff:'+envelope.id,arguments:native.name==='cue_user'?{prompt:questionText(envelope)}:
+              envelope.questions.length===1?envelope.questions[0]:{question:questionText(envelope)}});
+          }
+          await message(assistant([{type:'text',text:questionText(envelope)}]));
+          await cancelRemote();currentTask={...currentTask,status:'cancelled'};terminal=true;break;
+        }
         await new Promise(resolve=>setTimeout(resolve,250));
       }
       await emit({type:'turn_end',message:state.messages.at(-1) || assistant([]),toolResults:[]});

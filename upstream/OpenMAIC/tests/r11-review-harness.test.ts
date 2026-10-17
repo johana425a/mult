@@ -93,3 +93,72 @@ it('tool timeout aborts the actual derived signal',async()=>{
   await expect(tool.execute('call',{},new AbortController().signal)).rejects.toThrow('execution budget');
   expect(observed?.aborted).toBe(true);
 });
+
+it.each(['openmaic-workbench','openmaic-classroom'])('child questions hand off once through the native %s tool',async(surface)=>{
+  for(const questions of [[{question:'Which source?',options:[{id:'a',label:'A'},{id:'b',label:'B'}]}],
+    [{question:'Describe your goal'}],[{question:'Select topics',multiSelect:true,options:[{id:'a',label:'A'},{id:'b',label:'B'}]},{question:'How much time?'}]]) {
+    const shown:any[]=[],base=handler;
+    const invoke=async(body:any,name:string,args:any,callId:string)=>invokeHarnessSurface(new Request('http://fixture',{method:'POST',
+      headers:{authorization:'Bearer fixture-only','content-type':'application/json'},body:JSON.stringify({owner:body.owner,surface:body.surface,
+        context_ref:body.interaction.context_ref,name,arguments:args,call_id:callId})}));
+    handler=async(path,body,init)=>{
+      if(path==='execution-tasks') {
+        if(body.parent_task_id) {
+          expect(body.interaction.tools.some((t:any)=>t.name==='request_parent_input')).toBe(true);
+          const first=await invoke(body,'request_parent_input',{questions},'child-question');expect(first.status).toBe(200);
+          expect((await first.json()).terminate).toBe(true);
+        } else {
+          expect((await invoke(body,'teacher',{},'teacher-call')).status).toBe(200);
+          // HTTP retry must not show the same question again.
+          expect((await invoke(body,'teacher',{},'teacher-call')).status).toBe(200);
+        }
+      }
+      return base(path,body,init);
+    };
+    const native=surface==='openmaic-workbench'?'ask_user':'cue_user';
+    const teacher={name:'teacher',parameters:{},execute:async()=>{
+      const child=createHarnessAgent(options({harnessContext:undefined}));await child.prompt('Teach');
+      expect(child.state.errorMessage).toBeUndefined();
+      expect((child.state as any).needsInput.questions).toEqual(questions);
+      return {content:[{type:'text',text:'Teacher needs user input'}]};
+    }};
+    const ask={name:native,parameters:{},execute:async(_id:any,args:any)=>{shown.push(args);return {content:[{type:'text',text:'Question displayed'}],details:{emitted:true}};}};
+    const before=calls.filter(c=>c.path==='execution-tasks').length;
+    const agent=createHarnessAgent(options({harnessContext:{surface,conversationId:'q'},tools:[teacher,ask],allowedToolNames:new Set(['teacher',native]),
+      afterToolCall:({toolCall}:any)=>({terminate:toolCall.name===native})}));
+    await agent.prompt('Teach and ask');expect(agent.state.errorMessage).toBeUndefined();
+    expect(shown).toHaveLength(1);expect(JSON.stringify(shown)).toContain(questions[0].question);
+    for(const question of questions)expect(JSON.stringify(shown)).toContain(question.question);
+    if(native==='ask_user'&&questions.length===1)expect(shown[0]).toEqual(questions[0]);
+    expect(calls.filter(c=>c.path==='execution-tasks').length-before).toBe(2);
+    handler=base;
+  }
+});
+
+it('a pre-existing generic waiting task reconnects and transfers its actual envelope without a new admission or fake answer',async()=>{
+  const base=handler;const shown:any[]=[];
+  handler=async(path,body,init)=>{
+    if(path.startsWith('execution-tasks?'))return {tasks:[{id:'task-waiting',task_key:'original',surface:'openmaic-workbench',conversation_id:'waiting',status:'awaiting_input',
+      request_hash:createHash('sha256').update('Question').digest('hex'),resume_binding:binding}]};
+    if(path.endsWith('/rebind'))return {task:{id:'task-waiting',status:'running'}};
+    if(path.includes('&after_seq='))return {task:{id:'task-waiting',status:'awaiting_input'},next_seq:1,events:[],
+      capabilities:{pending_questions:[{id:'original-question',questions:[{id:'q',question:'Pick a source',options:[{label:'A'},{label:'B'}]}]}]}};
+    return base(path,body,init);
+  };
+  const ask={name:'ask_user',parameters:{},execute:async(_id:any,args:any)=>{shown.push(args);return {content:[{type:'text',text:'Shown'}]};}};
+  const agent=createHarnessAgent(options({harnessContext:{surface:'openmaic-workbench',conversationId:'waiting'},tools:[ask],allowedToolNames:new Set(['ask_user'])}));
+  await agent.prompt('Question');expect(agent.state.errorMessage).toBeUndefined();expect(shown).toHaveLength(1);
+  expect(shown[0].options[0]).toEqual({id:'q-1',label:'A'});
+  expect(calls.some(c=>c.path==='execution-tasks')).toBe(false);expect(calls.some(c=>c.path.endsWith('/answer'))).toBe(false);
+  expect(calls.filter(c=>c.path==='execution-tasks/cancel-admission')).toHaveLength(1);
+  expect(calls.find(c=>c.path==='execution-tasks/cancel-admission')?.body.task_key).toBe('original');
+});
+
+it('OpenMAIC rebind fingerprints source versions but ignores connection refs and question text',async()=>{
+  const snapshots:any[]=[];
+  for(const version of [1,1,2]) {
+    const agent=createHarnessAgent(options({harnessContext:{surface:'openmaic-workbench',conversationId:'source',sourceSnapshot:{source_id:'book',version}}}));
+    await agent.prompt('Read');snapshots.push(calls.filter(c=>c.path==='execution-tasks').at(-1)?.body.interaction.source_snapshot);
+  }
+  expect(snapshots[0]).toEqual(snapshots[1]);expect(snapshots[1]).not.toEqual(snapshots[2]);
+});

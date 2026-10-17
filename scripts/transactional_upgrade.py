@@ -50,6 +50,7 @@ def atomic(path, value):
 
 def child(root, name):
     root = root.resolve()
+    name = str(name).replace('\\', '/')
     if not name or Path(name).is_absolute() or ':' in name or '..' in Path(name).parts:
         raise ValueError('Unsafe relative program path')
     path = root / name
@@ -90,12 +91,35 @@ def copy(source, target):
         shutil.copy2(source, target)
 
 
+def preflight(root, folder, names, preserved):
+    if not names:
+        raise ValueError('Empty upgrade plan')
+    def key(path):
+        return str(Path(str(path).removeprefix('\\\\?\\')).resolve()).replace('\\', '/').rstrip('/').casefold()
+    def overlaps(a, b):
+        return a == b or a.startswith(b + '/') or b.startswith(a + '/')
+    targets = [key(child(root, name)) for name in names]
+    protected = [key(child(root, name)) for name in preserved]
+    journal = key(folder)
+    for index, target in enumerate(targets):
+        if any(overlaps(target, previous) for previous in targets[:index]):
+            raise ValueError('Overlapping upgrade targets')
+        if any(overlaps(target, path) for path in protected):
+            raise ValueError('Upgrade target overlaps preserved state')
+        if overlaps(target, journal):
+            raise ValueError('Upgrade target overlaps transaction journal')
+    if any(overlaps(journal, path) for path in protected):
+        raise ValueError('Transaction journal overlaps preserved state')
+
+
 def prepare(root, folder, changes, preserved=()):
     root, folder = Path(root).resolve(), Path(folder).resolve()
     if (folder / 'receipt.json').exists():
         raise ValueError('An existing transaction must be recovered, not replaced')
     rows = []
     names = [row['path'] for row in changes]
+    preserved = list(preserved)
+    preflight(root, folder, names, preserved)
     for index, change in enumerate(changes):
         name = change['path']
         if any(name == other or name.startswith(other.rstrip('/') + '/') or other.startswith(name.rstrip('/') + '/') for other in names[:index]):
@@ -122,8 +146,26 @@ def prepare(root, folder, changes, preserved=()):
 
 def run(folder, *, rollback=False, after_mutation=lambda *_: None):
     folder = Path(folder).resolve()
+    try:
+        return _run(folder, rollback=rollback, after_mutation=after_mutation)
+    except Exception:
+        receipt = folder / 'receipt.json'
+        if receipt.is_file():
+            record = json.loads(receipt.read_text('utf-8'))
+            record['status'] = 'failed_needs_recovery'
+            record['failed_action'] = 'rollback' if rollback else 'apply'
+            record.pop('completed_at', None)
+            atomic(receipt, record)
+        raise
+
+
+def _run(folder, *, rollback=False, after_mutation=lambda *_: None):
+    folder = Path(folder).resolve()
     record = json.loads((folder / 'receipt.json').read_text('utf-8'))
     root = Path(record['root'])
+    preflight(root, folder, [row['path'] for row in record['rows']], record['preserved_before'])
+    if {name:snapshot(child(root, name)) for name in record['preserved_before']} != record['preserved_before']:
+        raise ValueError('Preserved state bytes changed before mutation')
     if record['status'] == ('rolled_back' if rollback else 'applied'):
         verify(folder, rollback=rollback)
         return record
@@ -191,10 +233,11 @@ def run(folder, *, rollback=False, after_mutation=lambda *_: None):
             raise ValueError('Post-write byte verification failed')
         row['status'] = 'restored' if rollback else 'applied'
         atomic(folder / 'receipt.json', record)
+    # Commit success only after both program bytes and protected state pass.
+    verify(folder, rollback=rollback)
     record['status'] = 'rolled_back' if rollback else 'applied'
     record['completed_at'] = time.time()
     atomic(folder / 'receipt.json', record)
-    verify(folder, rollback=rollback)
     return record
 
 

@@ -8,6 +8,9 @@ const active = new Set(['queued', 'running', 'cancelling']);
 const terminal = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
 const error = (code, status = 409) => Object.assign(new Error(code), { code, status });
 const identity = value => typeof value === 'string' && /^[A-Za-z0-9_.:-]{1,200}$/.test(value);
+const canonical = value => JSON.stringify(value, (_key, row) => row && typeof row === 'object' && !Array.isArray(row)
+  ? Object.fromEntries(Object.keys(row).sort().map(key => [key, row[key]])) : row);
+const sourceSnapshot = task => canonical(task.interaction?.source_snapshot ?? task.source_references ?? []);
 export const executionTaskId = (owner, source, key) => 'task-' + createHash('sha256').update(JSON.stringify([owner, source, key])).digest('hex').slice(0, 32);
 const publicTask = task => structuredClone({...Object.fromEntries(Object.entries(task).filter(([key]) => !['prompt', 'fingerprint', 'interaction'].includes(key))),
   request_hash:createHash('sha256').update(task.prompt).digest('hex'),
@@ -33,10 +36,25 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
   };
   // An accepted write might have run before the process stopped. Explicit resume
   // inspects its persisted session; startup never replays the original prompt.
-  for (const task of Object.values(tasks)) if (active.has(task.status)) {
-    task.status = 'interrupted'; task.recovery = 'inspect_existing_results_before_continue';
-    task.requires_context_rebind = Boolean(task.interaction?.tools?.length);
-    task.updated_at = new Date().toISOString();
+  function cancelled(task, seen = new Set()) {
+    if (!task || seen.has(task.id)) return false;
+    seen.add(task.id);
+    return Boolean(task.cancel_requested_at || ['cancelling','cancelled'].includes(task.status)
+      || cancellations[task.id]?.owner === task.owner || cancelled(tasks[task.parent_task_id], seen));
+  }
+  function rememberCancellation(task) {
+    task.cancel_requested_at ??= cancellations[task.id]?.cancelled_at ?? new Date().toISOString();
+    cancellations[task.id] = {owner:task.owner, cancelled_at:task.cancel_requested_at};
+  }
+  for (const task of Object.values(tasks)) {
+    if (cancelled(task) && task.status !== 'completed') {
+      if (task.status !== 'cancelled') task.updated_at = new Date().toISOString();
+      rememberCancellation(task); task.status = 'cancelled';
+    } else if (active.has(task.status)) {
+      task.status = 'interrupted'; task.recovery = 'inspect_existing_results_before_continue';
+      task.requires_context_rebind = Boolean(task.interaction?.tools?.length);
+      task.updated_at = new Date().toISOString();
+    }
   }
   await save();
   const find = (taskId, owner) => {
@@ -50,7 +68,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
     if (!ending) return false;
     task.end_seq = ending.seq;
     const scoped = recent.filter(event => event.seq <= task.end_seq);
-    task.status = task.status === 'cancelling' || ['aborted', 'user', 'cancelled'].includes(ending.outcome)
+    task.status = cancelled(task) || ['aborted', 'user', 'cancelled'].includes(ending.outcome)
       ? 'cancelled' : ['error', 'blocked'].includes(ending.outcome) ? 'failed' : 'completed';
     task.result = scoped.filter(event => event.type === 'assistant/message').map(event => event.text).filter(Boolean).join('\n');
     if (task.status === 'failed') task.error = ending.error ?? executionError({ message: 'The agent ended before completing the task.' }, 'agent', task.id);
@@ -62,7 +80,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
   }
   async function drive(task, text) {
     const controller = controllers.get(task.id);
-    const check = () => { if (closed || task.status === 'cancelling' || task.status === 'cancelled') controller.abort(); controller.signal.throwIfAborted(); };
+    const check = () => { if (closed || cancelled(task)) controller.abort(); controller.signal.throwIfAborted(); };
     try {
       if (closed || task.status !== 'queued') return;
       if (!task.session_id) {
@@ -94,7 +112,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
         await new Promise(resolve => setTimeout(resolve, pollMs));
       }
     } catch (cause) {
-      task.status = closed ? 'interrupted' : controller.signal.aborted || task.status === 'cancelling' ? 'cancelled' : 'failed';
+      task.status = cancelled(task) ? 'cancelled' : closed ? 'interrupted' : controller.signal.aborted ? 'cancelled' : 'failed';
       task.error_code = /^[A-Za-z0-9_]{1,80}$/.test(cause.code ?? '') ? cause.code : 'execution_interrupted';
       task.error = executionError(cause, task.run_id ? 'execution' : 'admission', task.id);
       task.updated_at = new Date().toISOString(); await save();
@@ -123,13 +141,15 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
       const id = executionTaskId(input.owner, input.source, input.task_key);
       if (input.parent_task_id) {
         const parent = find(input.parent_task_id, input.owner);
-        if (!active.has(parent.status) || parent.status === 'cancelling') throw error('execution_parent_not_running');
+        if (!active.has(parent.status) || cancelled(parent)) throw error('execution_parent_not_running');
         input = {...input, workspace_id:parent.workspace_id, native_workspace_id:parent.native_workspace_id,
-          llm_selection:parent.llm_selection, expected_model:parent.resolved_model, source_references:parent.source_references};
+          llm_selection:parent.llm_selection, expected_model:parent.resolved_model, source_references:parent.source_references,
+          interaction:input.interaction ? {...input.interaction, source_snapshot:parent.interaction?.source_snapshot ?? parent.source_references ?? []} : input.interaction};
       }
       const fingerprint = createHash('sha256').update(JSON.stringify([input.workspace_id, input.text, input.llm_selection ?? null, input.native_workspace_id ?? null, input.continuation_task_id ?? null, input.conversation_id ?? null, input.surface ?? null])).digest('hex');
       if (tasks[id]) {
         if (tasks[id].fingerprint !== fingerprint) throw error('execution_task_key_conflict');
+        if (sourceSnapshot(tasks[id]) !== sourceSnapshot(input)) throw error('execution_source_context_changed');
         return { task: publicTask(tasks[id]), reused: true };
       }
       const task = { id, owner: input.owner, source: input.source, task_key: input.task_key,
@@ -156,7 +176,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
       tasks[id] = task; await save();
       if (task.parent_task_id) {
         const parent=find(task.parent_task_id,input.owner);
-        if(!active.has(parent.status)||parent.status==='cancelling'){task.status='cancelled';await save();}
+        if(!active.has(parent.status)||cancelled(parent)){rememberCancellation(task);task.status='cancelled';await save();}
       }
       if (task.status === 'queued') start(task, task.prompt);
       return { task: publicTask(task), reused: false };
@@ -166,7 +186,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
       const snapshot = task.session_id && task.start_seq !== undefined ? await workspaces.events(task.session_id, { after_seq: Math.max(afterSeq, task.start_seq) }) : { events: [], next_seq: -1 };
       const end = Number.isSafeInteger(task.end_seq) ? task.end_seq : Infinity;
       const capabilities = task.session_id && interactions ? await interactions.state(task.session_id, {after_seq:task.start_seq ?? -1, before_seq:end, active:active.has(task.status)}) : null;
-      const waiting = active.has(task.status) && capabilities?.pending_questions?.length > 0;
+      const waiting = active.has(task.status) && !cancelled(task) && capabilities?.pending_questions?.length > 0;
       // Admission can await model resolution before turn() clears the session's
       // previous live buffer. Never replay that prior answer into a new task.
       const live = snapshot.live_response;
@@ -187,19 +207,25 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
     },
     async cancel(id, owner) {
       const task = find(id, owner);
-      if (terminal.has(task.status)) return { task: publicTask(task) };
+      if (task.status === 'completed') {await save();return { task: publicTask(task) };}
+      const wasActive = active.has(task.status);
+      rememberCancellation(task);
       task.status = 'cancelling'; controllers.get(id)?.abort(); await save();
-      await Promise.all(Object.values(tasks).filter(child => child.parent_task_id === id && active.has(child.status)).map(child => api.cancel(child.id,owner)));
-      if (task.session_id) await workspaces.cancel(task.session_id);
-      await drivers.get(id);
+      await Promise.all(Object.values(tasks).filter(child => child.parent_task_id === id && child.status !== 'completed').map(child => api.cancel(child.id,owner)));
+      // A past task may share a session with a newer turn. Persist its cancelled
+      // intent without aborting that newer turn on a repeated cancel request.
+      if (wasActive && task.session_id) await workspaces.cancel(task.session_id);
+      if (wasActive) await drivers.get(id);
       task.status = 'cancelled'; task.updated_at = new Date().toISOString(); await save();
       return { task: publicTask(task) };
     },
     async rebind(id, owner, interaction) {
       const task = find(id,owner);
+      if (cancelled(task)) throw error('execution_task_cancelled');
       if (!interaction || interaction.surface !== task.surface || typeof interaction.context_ref !== 'string'
         || !Array.isArray(interaction.tools)) throw error('execution_context_invalid',422);
-      if(JSON.stringify(task.interaction?.binding_identity??null)!==JSON.stringify(interaction.binding_identity??null))
+      if(canonical(task.interaction?.binding_identity??null)!==canonical(interaction.binding_identity??null)
+        || sourceSnapshot(task) !== sourceSnapshot({interaction}))
         throw error('execution_source_context_changed');
       const catalog = tools => tools.map(({name,parameters})=>({name,parameters})).sort((a,b)=>a.name.localeCompare(b.name));
       if (JSON.stringify(catalog(task.interaction?.tools ?? [])) !== JSON.stringify(catalog(interaction.tools))) throw error('execution_tool_catalog_changed');
@@ -210,6 +236,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
     },
     async resume(id, owner, interaction) {
       const task = find(id, owner);
+      if (cancelled(task)) throw error('execution_task_cancelled');
       if (interaction) await api.rebind(id,owner,interaction);
       if (active.has(task.status) || task.status === 'completed') return { task: publicTask(task), reused: true };
       if (task.requires_context_rebind || task.interaction?.tools?.length && !interaction) throw error('execution_context_rebind_required');
@@ -223,7 +250,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
       for (const controller of controllers.values()) controller.abort();
       await Promise.allSettled(Object.values(tasks).filter(task => active.has(task.status) && task.session_id).map(task => workspaces.cancel(task.session_id)));
       await Promise.allSettled([...drivers.values()]);
-      for (const task of Object.values(tasks)) if (active.has(task.status)) task.status = 'interrupted';
+      for (const task of Object.values(tasks)) if (active.has(task.status)) task.status = cancelled(task) ? 'cancelled' : 'interrupted';
       await save();
     },
   };

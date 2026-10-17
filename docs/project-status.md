@@ -2,15 +2,16 @@
 
 The current source combines the r11 execution migration with subsequent experience fixes. This ledger retains known limits rather than treating a deployed patch as universal acceptance. Detailed private logs and screenshots are not published.
 
-The r11.1 [architecture-review ledger](review-remediation.md) supersedes broad
-earlier cancellation/recovery/maintenance claims with specific tested guarantees.
-It also records the two additional defects found in actual model tests. The newest
-layout refinement is retained; the native client remains running throughout the
-background upgrades.
+The r11.3 [second-review ledger](second-review-remediation.md) addresses ten
+remaining boundary defects and a gateway mismatch found by actual model checks.
+It supersedes broad cancellation/recovery/maintenance claims in the historical
+[r11.1 ledger](review-remediation.md) with specific tested guarantees. The current
+layout refinement is retained. Upgrades do not control or restart the native client.
 
 The r11.2 [installer theme update](installer-theme.md) aligns native maintenance
-windows with the existing dark application palette. It is a presentation update;
-the independent second architecture review remains pinned to commit `882b670`.
+windows with the existing dark application palette and is retained in r11.3.
+The second architecture review examined commit `9a8dba5`; r11.3 is its subsequent
+remediation, with the exact tested source fingerprints recorded separately.
 
 | Issue group | Included change | Recorded status |
 | --- | --- | --- |

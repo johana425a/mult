@@ -15,7 +15,39 @@ from pathlib import Path
 from fastapi import Request, HTTPException
 
 _contexts = {}
+_record_locks = {}
 _health = (0.0, False)
+
+
+def _source_snapshot(context, owner):
+    """Freeze authoritative source versions, not the current viewport or prompt."""
+    from integration.execution_workspace_binding import owner_workspace_binding
+    workspace_id = context.runtime.workspace.workspace_id
+    grant = owner_workspace_binding(owner, workspace_id)
+    metadata = context.metadata
+    digest = lambda value: hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
+        separators=(',', ':')).encode('utf-8')).hexdigest()
+    rows = [{'owner':owner, 'scope':workspace_id, 'source_id':'workspace-grant', 'version':digest(grant)}]
+    for name in ('source_index', 'mastery_topic_source_index'):
+        for source_id, content in sorted((metadata.get(name) or {}).items()):
+            rows.append({'owner':owner, 'scope':workspace_id, 'source_id':name+':'+source_id,
+                'version':digest(content), 'sha256':digest(content)})
+    material_ids = {metadata.get('reading_material_id')} - {None, ''}
+    for name in ('reading_references', 'source_references'):
+        for reference in metadata.get(name) or []:
+            if isinstance(reference, dict) and reference.get('material_id'):
+                material_ids.add(reference['material_id'])
+    if material_ids:
+        from deeptutor.reading.store import ReadingStore
+        store = ReadingStore()
+        for material_id in sorted(material_ids):
+            manifest = store.manifest(material_id)
+            requested = metadata.get('reading_material_revision') if material_id == metadata.get('reading_material_id') else None
+            if requested and requested != manifest.revision:
+                raise HTTPException(409, {'code':'execution_source_context_changed', 'message':'The selected material revision changed.'})
+            rows.append({'owner':owner, 'scope':workspace_id, 'source_id':'reading:'+material_id,
+                'version':manifest.revision, 'sha256':manifest.source_hash})
+    return rows
 
 
 async def _release_context_when_settled(ref, entry):
@@ -150,6 +182,33 @@ def install_routes(app, authenticate):
 
 
 async def _learning_record(body):
+    args = body.get('arguments') or {}
+    key = (body.get('owner'), args.get('workspace_id'))
+    lock = _record_locks.setdefault(key, asyncio.Lock())
+    async with lock:
+        return await _save_learning_record(body)
+
+
+def _record_operation(body):
+    args = body.get('arguments') or {}
+    operation = body.get('operation')
+    if operation is not None:
+        if not isinstance(operation, dict) or not all(isinstance(operation.get(key), str) and operation[key]
+                for key in ('task_id', 'agent_id', 'call_id')) or operation['call_id'] != body.get('call_id'):
+            raise HTTPException(422, {'code':'record_operation_invalid'})
+        identity = ['harness-v1', body['owner'], args['workspace_id'], operation['task_id'], operation['agent_id'], operation['call_id']]
+    else:
+        # Compatibility requests are conversation-scoped. Old bare harness_calls
+        # remain audit metadata and are never treated as global write receipts.
+        if not args.get('conversation_id') or not body.get('call_id'):
+            raise HTTPException(422, {'code':'record_operation_required'})
+        identity = ['legacy-v2', body['owner'], args['workspace_id'], args['conversation_id'], args.get('source'), body['call_id']]
+    encode = lambda value: json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+    return {'operation_id':hashlib.sha256(encode(identity)).hexdigest(),
+        'fingerprint':hashlib.sha256(encode(args)).hexdigest(), **(operation or {})}
+
+
+async def _save_learning_record(body):
     from integration.execution_workspace_binding import owner_workspace_binding, native_execution_owner
     from deeptutor.multi_user.paths import user_context
     from deeptutor.services.notebook import get_notebook_manager
@@ -166,9 +225,13 @@ async def _learning_record(body):
         records = manager.get_records(notebook['id'])
         if args.get('action') == 'list':
             return {'notebook_id': notebook['id'], 'records': records}
+        operation = _record_operation(body)
         for record in records:
-            if body.get('call_id') in (record.get('metadata') or {}).get('harness_calls', []):
-                return {'notebook_id': notebook['id'], 'record': record, 'reused': True}
+            for previous in (record.get('metadata') or {}).get('harness_operations', []):
+                if previous.get('operation_id') == operation['operation_id']:
+                    if previous.get('fingerprint') != operation['fingerprint']:
+                        raise HTTPException(409, {'code':'record_operation_conflict', 'message':'This operation already saved different content.'})
+                    return {'notebook_id': notebook['id'], 'record': record, 'reused': True}
         content = str(args.get('content') or '')
         archive_snapshot = None
         if args.get('action') == 'archive_chat':
@@ -220,6 +283,7 @@ async def _learning_record(body):
                 raise HTTPException(422, {'code':'archive_is_source_snapshot','message':'Conversation archives contain actual messages only. Save an added summary as a separate learning_summary record.'})
             metadata = {**(record.get('metadata') or {})}
             metadata['harness_calls'] = [*metadata.get('harness_calls', []), body['call_id']]
+            metadata['harness_operations'] = [*metadata.get('harness_operations', []), operation]
             manager.update_record(notebook['id'],record['id'],output=record.get('output','')+'\n\n'+content,metadata=metadata)
             return {'notebook_id':notebook['id'],'record_id':record['id'],'updated':True}
         if args.get('action') not in {'save_summary','archive_chat'}:
@@ -228,13 +292,16 @@ async def _learning_record(body):
             metadata={'record_kind':'chat_archive' if args['action']=='archive_chat' else 'learning_summary',
                 'workspace_id':args['workspace_id'],'conversation_id':args.get('conversation_id'),
                 'source':args.get('source'),'source_references':args.get('source_references',[]),
-                'harness_calls':[body['call_id']], 'captured_at':time.time(), 'mastery_asserted':False,
+                'harness_calls':[body['call_id']], 'harness_operations':[operation], 'captured_at':time.time(), 'mastery_asserted':False,
                 **({'archive_snapshot':archive_snapshot} if archive_snapshot else {})})
         return {'notebook_id':notebook['id'],**result,**({'archive_snapshot':archive_snapshot} if archive_snapshot else {})}
 
 
 async def _invoke(entry, name, args, call_id):
     pipeline, context, stream = entry['pipeline'], entry['context'], entry['stream']
+    if 'source_snapshot' in entry and _source_snapshot(context, entry['owner']) != entry['source_snapshot']:
+        raise HTTPException(409, {'code':'execution_source_context_changed',
+            'message':'The source or its authorization changed. Start a new task with the current source.'})
     if name in entry.get('deferred', set()):
         await pipeline._execute_tool_call('load_tools', pipeline._augment_tool_kwargs('load_tools', {'names':[name]}, context), stream=stream)
         entry['deferred'].discard(name)
@@ -344,10 +411,11 @@ async def run_pipeline(pipeline, context, stream):
     current_messages = [{**m, 'content': textual(m, current=True)} for m in messages[-1:]]
     owner = get_current_user().id
     ref = uuid.uuid4().hex
-    entry = {'pipeline': pipeline, 'context': context, 'stream': stream, 'owner': owner,
+    snapshot = _source_snapshot(context, owner)
+    entry = {'pipeline': pipeline, 'context': context, 'stream': stream, 'owner': owner, 'source_snapshot': snapshot,
         'surface': surface, 'names': set(names), 'deferred': deferred, 'vars': contextvars.copy_context(), 'calls': {}}
     _contexts[ref] = entry
-    interaction = {'surface': surface, 'context_ref': ref, 'tools': [s['function'] for s in schemas],
+    interaction = {'surface': surface, 'context_ref': ref, 'source_snapshot': snapshot, 'tools': [s['function'] for s in schemas],
         'binding_identity':{'owner':owner,'workspace':context.runtime.workspace.workspace_id,'conversation':context.session_id,
             'reading_material':context.metadata.get('reading_material_id'),'mastery_path':context.metadata.get('mastery_path_id')},
         'system_prompt': system, 'history': json.dumps(history, ensure_ascii=False),

@@ -62,7 +62,7 @@ async function fixture(permissionMode = 'exact-action-once') {
   if(permissionMode==='exact-action-once')await host.workspaces.setAccess({default_access:'workspace'});
   const { workspace } = await host.workspaces.register({ path: folder, name: 'Real OS fixture' });
   const { session } = await host.workspaces.createSession({ workspace_id: workspace.id });
-  async function command(name, arguments_, decision = 'allow') {
+  async function command(name, arguments_, decision = 'allow', timeout = 15000) {
     const before = (await host.workspaces.events(session.id)).next_seq;
     await host.workspaces.turn(session.id, { text: 'FIXTURE_TOOL:' + JSON.stringify({ name, arguments: arguments_ }) });
     let approval;
@@ -71,7 +71,7 @@ async function fixture(permissionMode = 'exact-action-once') {
       assert.deepEqual(approval.exact_action.arguments, arguments_);
       await host.workspaces.approve({ approval_id: approval.id, session_id: session.id, decision });
     }
-    const events = await until(async () => { const value = await host.workspaces.events(session.id, { after_seq: before }); return value.session.status === 'idle' && value.events.some(event => event.type === 'turn/end') ? value : false; });
+    const events = await until(async () => { const value = await host.workspaces.events(session.id, { after_seq: before }); return value.session.status === 'idle' && value.events.some(event => event.type === 'turn/end') ? value : false; }, timeout);
     return { result: events.events.findLast(event => event.type === 'tool/result'), events, approval };
   }
   return { host, options, root, profile, folder, outside, workspace, session, command, receivedTools, prompts, requestCount: () => requests,
@@ -196,11 +196,13 @@ test('real inventory protocol catalogs more than 600 files through the agent too
   try {
     await mkdir(join(f.folder, 'catalog'));
     await Promise.all(Array.from({ length: 623 }, (_, i) => writeFile(join(f.folder, 'catalog', `source-${i}.md`), '# Synthetic source ' + i)));
-    const catalog = await f.command('catalog_workspace', { path: 'catalog' });
+    // Resolving 623 real Windows file grants and flushing their journal can
+    // exceed 15s during a concurrent build. Keep the enclosing 60s test bound.
+    const catalog = await f.command('catalog_workspace', { path: 'catalog' }, 'allow', 45000);
     assert.equal(catalog.result.is_error, false, catalog.result.text);
     let state = JSON.parse(catalog.result.text);
     while (state.next_cursor) {
-      const next = await f.command('catalog_workspace', { path: 'catalog', cursor: state.next_cursor });
+      const next = await f.command('catalog_workspace', { path: 'catalog', cursor: state.next_cursor }, 'allow', 45000);
       assert.equal(next.result.is_error, false, next.result.text); state = JSON.parse(next.result.text);
     }
     assert.equal(state.catalog_complete, true, JSON.stringify(state)); assert.equal(state.coverage.source_count, 623);

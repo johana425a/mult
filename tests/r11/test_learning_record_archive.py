@@ -9,9 +9,61 @@ from types import SimpleNamespace as NS
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path[:0]=[str(ROOT),str(ROOT/'upstream/DeepTutor')]
-from integration.harness_turn import _learning_record
+from integration.harness_turn import _learning_record, _source_snapshot
 
 class ArchiveTests(unittest.IsolatedAsyncioTestCase):
+    def test_native_snapshot_uses_store_revision_and_authoritative_grant(self):
+        from fastapi import HTTPException
+        context=NS(runtime=NS(workspace=NS(workspace_id='workspace')),metadata={
+            'reading_material_id':'book','source_index':{'s':'Original source text'}})
+        manifest=NS(revision=1,source_hash='same-bytes')
+        with (patch('integration.execution_workspace_binding.owner_workspace_binding',return_value={'owner':'fixture','path':'original'}) as grant,
+                patch('deeptutor.reading.store.ReadingStore',return_value=NS(manifest=lambda _:manifest))):
+            old=_source_snapshot(context,'fixture')
+            self.assertEqual(_source_snapshot(context,'fixture'),old)
+            manifest.revision=2
+            self.assertNotEqual(_source_snapshot(context,'fixture'),old)
+            context.metadata['reading_material_revision']=1
+            with self.assertRaises(HTTPException):_source_snapshot(context,'fixture')
+            del context.metadata['reading_material_revision'];manifest.revision=1
+            grant.return_value={'owner':'fixture','path':'moved'}
+            self.assertNotEqual(_source_snapshot(context,'fixture'),old)
+            grant.side_effect=HTTPException(403,'revoked')
+            with self.assertRaises(HTTPException):_source_snapshot(context,'fixture')
+    async def test_operation_identity_is_task_scoped_persistent_and_argument_bound(self):
+        from fastapi import HTTPException
+        from copy import deepcopy
+        records=[]
+        def add(_books,_type,title,_input,output,metadata):
+            row={'id':'record-'+str(len(records)),'output':output,'metadata':metadata};records.append(row);return {'record':row}
+        def update(_book,record_id,**fields):
+            next(row for row in records if row['id']==record_id).update(fields)
+        manager=NS(get_or_create_notebook=lambda *a,**k:{'id':'book'},get_records=lambda _:records,add_record=add,update_record=update)
+        def body(task,conversation,content):
+            return {'owner':'fixture','call_id':'call-1','operation':{'task_id':task,'agent_id':'agent','call_id':'call-1'},
+                'arguments':{'workspace_id':'workspace','conversation_id':conversation,'action':'save_summary','content':content}}
+        a,b=body('task-a','chat-a','Summary A'),body('task-b','chat-b','Summary B')
+        with (patch('integration.execution_workspace_binding.owner_workspace_binding'),patch('integration.execution_workspace_binding.native_execution_owner',return_value=NS(id='fixture')),
+            patch('deeptutor.multi_user.paths.user_context',return_value=nullcontext()),patch('deeptutor.services.workspace.context.workspace_context',side_effect=lambda _:nullcontext()),
+            patch('deeptutor.services.notebook.get_notebook_manager',return_value=manager)):
+            await _learning_record(a);await _learning_record(b)
+            self.assertEqual([row['output'] for row in records],['Summary A','Summary B'])
+            # Simulate store rehydration: only persisted metadata may deduplicate.
+            records[:]=json.loads(json.dumps(records))
+            self.assertTrue((await _learning_record(b))['reused'])
+            different=deepcopy(b);different['arguments']['content']='Changed'
+            with self.assertRaises(HTTPException) as raised:await _learning_record(different)
+            self.assertEqual(raised.exception.detail['code'],'record_operation_conflict')
+            append=body('task-append','chat-b','Additional');append['arguments'].update(action='append',record_id=records[1]['id'])
+            await _learning_record(append);self.assertTrue((await _learning_record(append))['reused'])
+            self.assertEqual(records[1]['output'],'Summary B\n\nAdditional')
+            changed=deepcopy(append);changed['arguments']['action']='archive_chat'
+            with self.assertRaises(HTTPException):await _learning_record(changed)
+            legacy=body('ignored','chat-c','Legacy C');del legacy['operation']
+            await _learning_record(legacy)
+            legacy2=deepcopy(legacy);legacy2['arguments'].update(conversation_id='chat-d',content='Legacy D')
+            await _learning_record(legacy2)
+            self.assertEqual(len(records),4)
     async def test_original_message_parts_survive_text_projection_and_repeat(self):
         folder=Path(tempfile.mkdtemp(prefix='archive-review-'));records=[]
         def add_record(_books,_type,title,_input,output,metadata):

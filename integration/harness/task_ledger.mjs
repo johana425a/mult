@@ -6,15 +6,16 @@ import { createHash, randomUUID } from 'node:crypto';
 export async function createTaskLedger(profile, options = {}) {
   const root = join(profile, 'source-ledgers');
   await mkdir(root, { recursive: true });
-  const cache = new Map(); const writes = new Map();
+  const cache = new Map(); const writes = new Map(); const loads = new Map(); const operations = new Map();
   function pathFor(id) { return join(root, createHash('sha256').update(id).digest('hex') + '.json'); }
   async function load(id) {
-    if (!cache.has(id)) {
+    if (!cache.has(id) && !loads.has(id)) loads.set(id, (async () => {
       let value;
       try { value = JSON.parse(await readFile(pathFor(id), 'utf8')); }
       catch (cause) { if (cause.code !== 'ENOENT') throw cause; }
       cache.set(id, value ?? { schema: 1, session_id: id, manifest_complete: false, sources: {}, summary: '', next_steps: [] });
-    }
+    })().finally(() => loads.delete(id)));
+    if (loads.has(id)) await loads.get(id);
     return cache.get(id);
   }
   async function save(id, ledger) {
@@ -51,23 +52,35 @@ export async function createTaskLedger(profile, options = {}) {
     if(!binding)return normalized(path);
     if(!binding.owner||!binding.scope||!binding.source_id||!Array.isArray(binding.aliases))throw new Error('source_identity_invalid');
     ledger.aliases ??= {};
-    const scope=JSON.stringify([binding.owner,binding.scope]);
-    const aliases=[path,...binding.aliases].map(normalized);
+    const scope=JSON.stringify([binding.owner,binding.scope]), aliases=[...new Set([path,...binding.aliases].map(normalized))];
     const priorKeys=[...new Set([...aliases,...aliases.map(alias=>ledger.aliases[scope+':'+alias]).filter(Boolean)])];
-    const existing=aliases.map(alias=>ledger.aliases[scope+':'+alias]).find(key=>key&&ledger.sources[key]
-      && (!binding.sha256||!ledger.sources[key].sha256||binding.sha256===ledger.sources[key].sha256));
-    const key=existing || 'source:'+createHash('sha256').update(JSON.stringify([binding.owner,binding.scope,normalized(binding.source_id)])).digest('hex');
+    // A raw file read has no extraction revision. It may use the latest exact,
+    // broker-registered alias, but cannot transfer evidence across revisions.
+    const existing=aliases.map(alias=>ledger.sources[ledger.aliases[scope+':'+alias]]).find(source=>source && !source.archived
+      && source.source_identity?.owner===binding.owner && source.source_identity?.scope===binding.scope
+      && (!binding.sha256 || source.sha256===binding.sha256));
+    if (binding.version == null && existing) return existing.path;
+    const sourceIdentity={owner:binding.owner,scope:binding.scope,source_id:normalized(binding.source_id),
+      version:binding.version ?? null,sha256:binding.sha256 ?? null};
+    const serialized=JSON.stringify(sourceIdentity);
+    const key='source:'+createHash('sha256').update(serialized).digest('hex');
+    ledger.sources[key] ??= {path:key,units:[],complete:false,status:'pending',source_identity:sourceIdentity,sha256:binding.sha256 ?? null};
     for(const alias of aliases)ledger.aliases[scope+':'+alias]=key;
-    // Migrate only exact broker-registered aliases, never a global hash match.
-    for(const alias of priorKeys)if(alias!==key&&ledger.sources[alias]&&(!binding.sha256||ledger.sources[alias].sha256===binding.sha256)) {
-      if(ledger.sources[key])mergeEvidence(ledger.sources[key],ledger.sources[alias]);
-      else ledger.sources[key] = {...ledger.sources[alias],path:key};
-      delete ledger.sources[alias];
+    ledger.version_aliases ??= {};
+    for(const alias of aliases)ledger.version_aliases[serialized+':'+alias]=key;
+    for(const priorKey of priorKeys)if(priorKey!==key&&ledger.sources[priorKey]) {
+      const prior=ledger.sources[priorKey];
+      // Old unversioned evidence remains available by its saved key. Unknown
+      // provenance never becomes proof for a newly extracted source version.
+      if(JSON.stringify(prior.source_identity)===serialized)mergeEvidence(ledger.sources[key],prior);
+      if(!prior.source_identity || prior.source_identity.owner===binding.owner && prior.source_identity.scope===binding.scope) {
+        prior.archived=true;prior.superseded_by=key;
+      }
     }
     return key;
   }
   function summary(ledger, offset = 0, limit = 30) {
-    const sources = Object.values(ledger.sources);
+    const sources = Object.values(ledger.sources).filter(source=>!source.archived);
     const completed = sources.filter(source => source.complete).length;
     const unsupported = sources.filter(source => source.supported === false).length;
     const rows = sources.slice(offset, offset + limit).map(({ delivered_units, units, pending_units, source_summary, output_references, ...source }) => ({
@@ -76,6 +89,7 @@ export async function createTaskLedger(profile, options = {}) {
       has_saved_summary: Boolean(source_summary), output_reference_count: output_references?.length ?? 0,
       detail_tool: 'read_task_progress(source_path=path)' }));
     return { summary: ledger.summary, next_steps: ledger.next_steps, manifest_complete: ledger.manifest_complete,
+      archived_source_paths:Object.values(ledger.sources).filter(source=>source.archived).map(source=>source.path),
       coverage: { source_count: sources.length, complete_count: completed, unsupported_count: unsupported,
         scope: 'tool_result_delivery', semantic_completeness: 'not_guaranteed',
         pending_count: sources.length - completed - unsupported,
@@ -84,7 +98,7 @@ export async function createTaskLedger(profile, options = {}) {
         reading_complete: ledger.manifest_complete && sources.length === completed && !(ledger.unavailable_entries > 0) },
       sources: rows, offset, next_offset: offset + rows.length < sources.length ? offset + rows.length : null };
   }
-  return {
+  const api = {
     async recordTeaching(id, references) {
       const ledger = await load(id), keys = new Set();
       for(const ref of references || []) {
@@ -208,4 +222,12 @@ export async function createTaskLedger(profile, options = {}) {
       return `Persistent task source ledger (read_task_progress for remaining source pages):\n${JSON.stringify(state)}`;
     },
   };
+  // Serialize the entire read/modify/write operation, including asynchronous
+  // broker resolution, not only the final write of a stale JSON snapshot.
+  return Object.fromEntries(Object.entries(api).map(([name, operation]) => [name, (id, ...args) => {
+    const job=(operations.get(id) ?? Promise.resolve()).then(()=>operation(id,...args));
+    const settled=job.catch(()=>{});operations.set(id,settled);
+    settled.then(()=>{if(operations.get(id)===settled)operations.delete(id);});
+    return job;
+  }]));
 }

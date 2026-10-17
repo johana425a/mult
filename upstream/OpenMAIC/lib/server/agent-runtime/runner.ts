@@ -1459,7 +1459,9 @@ export async function runSession(ctx: RunContext, meta: ClaimedAgentSession): Pr
     const askUserLatch = createAskUserTerminateLatch();
     let toolCalls = 0;
     const agent = buildAgent({
-      harnessContext: {surface:'openmaic-workbench',conversationId:id},
+      harnessContext: {surface:'openmaic-workbench',conversationId:id,sourceSnapshot:{owner:meta.ownerId,session:id,
+        materials:materials.map(material=>({id:material.id,ownerMaterialId:material.ownerMaterialId,session:material.sessionId,
+          textAssetId:material.textAssetId,rawAssetId:material.rawAssetId,extraction:material.extraction})).sort((a,b)=>a.id.localeCompare(b.id))}},
       streamFn,
       systemPrompt: buildRunnerCoursePrompt({
         availableSkills: availableSkillsPromptBlock(installedSkills),

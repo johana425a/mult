@@ -15,6 +15,37 @@ spec.loader.exec_module(upgrade)
 
 
 class TransactionTests(unittest.TestCase):
+    def test_protected_and_journal_overlap_rejected_before_staging(self):
+        for target, protected in [('data/token.json','data/token.json'),('data','data/token.json'),
+                ('data/token.json','data'),('DATA\\token.json','data/token.json')]:
+            folder=Path(tempfile.mkdtemp(prefix='upgrade-overlap-'));root=folder/'live';root.mkdir()
+            candidate=folder/'candidate';candidate.write_text('new')
+            journal=folder/'journal'
+            with self.assertRaisesRegex(ValueError,'overlaps preserved'):
+                upgrade.prepare(root,journal,[{'path':target,'source':str(candidate)}],[protected])
+            self.assertFalse(journal.exists())
+        folder=Path(tempfile.mkdtemp(prefix='upgrade-journal-'));root=folder/'live';root.mkdir()
+        candidate=folder/'candidate';candidate.write_text('new')
+        with self.assertRaisesRegex(ValueError,'journal'):
+            upgrade.prepare(root,root/'program'/'transaction',[{'path':'program','source':str(candidate)}])
+
+    def test_protected_change_and_invalid_old_receipt_never_commit_success(self):
+        root,journal=self.fixture()
+        before=(root/'one.py').read_bytes()
+        (root/'user-data.json').write_text('independent edit')
+        with self.assertRaisesRegex(ValueError,'before mutation'):upgrade.run(journal)
+        self.assertEqual((root/'one.py').read_bytes(),before)
+        self.assertEqual(json.loads((journal/'receipt.json').read_text())['status'],'failed_needs_recovery')
+        root,journal=self.fixture()
+        def changed(_index,phase):
+            if phase=='installed_new':(root/'user-data.json').write_text('external change')
+        with self.assertRaisesRegex(ValueError,'Preserved'):upgrade.run(journal,after_mutation=changed)
+        self.assertNotEqual(json.loads((journal/'receipt.json').read_text())['status'],'applied')
+        root,journal=self.fixture();record=json.loads((journal/'receipt.json').read_text())
+        record['preserved_before']['one.py']=upgrade.snapshot(root/'one.py');upgrade.atomic(journal/'receipt.json',record)
+        with self.assertRaisesRegex(ValueError,'overlaps preserved'):upgrade.run(journal)
+        self.assertEqual((root/'one.py').read_text(),'old')
+
     def fixture(self):
         folder = Path(tempfile.mkdtemp(prefix='ds-upgrade-review-'))
         root, candidate, journal = [folder / name for name in ('live', 'candidate', 'journal')]

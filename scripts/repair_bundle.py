@@ -54,11 +54,39 @@ def scoped(root, name):
 
 
 def redact(value):
+    sensitive = r'(?:api[_-]?key|access[_-]?token|refresh[_-]?token|token|password|secret|authorization|proxy-authorization|cookie|set-cookie)'
+    if isinstance(value, dict):
+        return {key: '[redacted]' if re.fullmatch(sensitive, str(key), re.I) else redact(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [redact(item) for item in value]
+    if not isinstance(value, str):
+        return value
     text = str(value)
+    # Structured output often contains multiple cookies inside a single field.
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, (dict, list)):
+            return json.dumps(redact(parsed), ensure_ascii=False)
+    except (ValueError, TypeError):
+        pass
+    # Quoted fields may occur inside log messages or command source arguments.
+    text = re.sub(r'(?i)([\"\']?(?:cookie|set-cookie|authorization|proxy-authorization)[\"\']?\s*[:=]\s*)([\"\'])(.*?)(\2)',
+        lambda match: match[1] + match[2] + '[redacted]' + match[2], text)
+    # Header values extend to the end of the line, not the first semicolon.
+    text = re.sub(r'(?im)((?:^|\b)(?:cookie|set-cookie|authorization|proxy-authorization)\s*[:=]\s*)[^\r\n]+', r'\1[redacted]', text)
     text = re.sub(r'(?i)\bBearer\s+[^\s\"\']+', 'Bearer [redacted]', text)
     text = re.sub(r'\b(?:sk-|dsexec-|ghp_|github_pat_)[A-Za-z0-9_-]+', '[redacted]', text)
     text = re.sub(r'(?i)((?:api[_-]?key|token|password|secret|authorization|cookie)[\"\']?\s*[:=]\s*[\"\']?)[^\s\"\',;]+', r'\1[redacted]', text)
     return text
+
+
+def redact_command(command):
+    result = []
+    hide_next = False
+    for value in command:
+        result.append('[redacted]' if hide_next else redact(value))
+        hide_next = bool(re.fullmatch(r'--?(?:cookie|set-cookie|authorization|proxy-authorization|api[-_]?key|token|password|secret)', value, re.I))
+    return result
 
 
 def services_stopped():
@@ -176,7 +204,7 @@ def run(args, *, offline=False):
         record['validation'] = {'syntax': 'passed', 'command_check': 'passed' if result.returncode == 0 else 'failed',
             'behavior_fix': 'not_established', 'exit_code': result.returncode,
             'stdout': redact(result.stdout)[-12000:], 'stderr': redact(result.stderr)[-12000:],
-            'command': [redact(value) for value in command],
+            'command': redact_command(command),
             'staged_hashes': {item['path']: item['after'] for item in record['files']}}
         record['status'] = 'checks_passed' if result.returncode == 0 else 'verification_failed'
         save(folder, record)

@@ -329,6 +329,10 @@ export async function createWorkspaceAdapter(ctx, options) {
       return next();
     } catch (cause) {
       if (exec.name === 'present') return {kind:'deny',reason:executionError(cause,'file_validation').message};
+      if (!['workspace_path_invalid','workspace_path_outside','workspace_private_path','workspace_link_denied'].includes(cause.code ?? cause.message)) {
+        const detail=executionError(cause,'workspace_validation');
+        return {kind:'deny',reason:`Workspace validation failed [${detail.code}]: ${detail.message}`};
+      }
       return { kind: 'deny', reason: accessLevel(exec.agent?.id) === 'full'
         ? 'The requested location is protected (credentials or application state) and cannot be used.'
         : 'The requested file or directory is outside the opened workspace. Workspace access is active; ask the user to switch to Full computer access if other folders or drives are needed.' };
@@ -627,7 +631,7 @@ export async function createWorkspaceAdapter(ctx, options) {
         const interaction = modelStates[ledgerId(agent.id)]?.task_context?.interaction;
         // Classroom questions use the classroom's durable ask_user event and
         // next-message semantics instead of a second, disconnected question UI.
-          if (interaction?.surface?.startsWith('openmaic-') && interaction.tools?.some(t => ['ask_user','cue_user'].includes(t.name)) && Array.isArray(request.tools))
+          if (interaction?.surface?.startsWith('openmaic-') && Array.isArray(request.tools))
           request.tools = request.tools.filter(tool => (tool.name || tool.function?.name) !== 'ask_user_question');
       return { ...request, provider: route.provider, model: route.model,
         ...(harnessReasoning(route) != null ? { reasoningEffort: harnessReasoning(route) } : {}),

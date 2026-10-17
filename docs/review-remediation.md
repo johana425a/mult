@@ -1,5 +1,8 @@
 # r11.1 architecture review remediation
 
+Historical first-round evidence. The [r11.3 second-review ledger](second-review-remediation.md)
+records remaining defects, subsequent fixes and narrower current guarantees.
+
 This revision addresses the user-supplied review of the r11 Harness integration.
 The review text is retained privately with SHA-256
 `51653a0134224c9424ea08a9e98967f3b6f46e269729bf5694924f1c9ea7fa2b`.

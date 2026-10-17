@@ -28,6 +28,7 @@ export async function installSurfaceTools(ctx, options) {
       const task=options.context(exec.agent.id);
       if(!task?.owner||!task.native_workspace_id)throw new Error('A native learning space is required to save learning records.');
       return options.invoke({surface:'learning-records',context_ref:'native-records',owner:task.owner,name:'learning_records',call_id:exec.callId,
+        operation:{task_id:task.task_id,agent_id:exec.agent.id,call_id:exec.callId},
         arguments:{...args,workspace_id:task.native_workspace_id,conversation_id:task.conversation_id,source:task.source,
           source_references:task.source_references||[],history:task.interaction?.archive_history||task.interaction?.history||'[]'}},exec.signal);
     }});

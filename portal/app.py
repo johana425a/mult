@@ -681,7 +681,7 @@ async def internal_execution_task_cancel_admission(request: Request):
 @app.post('/api/harness/internal/surface-tools/invoke')
 async def internal_surface_tool(request: Request):
     authenticate_service(request)
-    body = await workspace_input(request, {'owner', 'context_ref', 'surface', 'name', 'arguments', 'call_id'})
+    body = await workspace_input(request, {'owner', 'context_ref', 'surface', 'name', 'arguments', 'call_id', 'operation'})
     if body.get('surface') in {'chat', 'learning', 'reading', 'learning-records'}:
         return await harness_bridge().transport.native_service('POST', 'surface-tools/invoke', body)
     if body.get('surface') in {'openmaic-workbench', 'openmaic-classroom'}:

@@ -1,0 +1,589 @@
+{
+  "schema_version": 1,
+  "version": "2026.10.17-r11.3-review-local",
+  "review_baseline_commit": "9a8dba5c9aadec0cfb02b7f9ab56c03da40d8862",
+  "review_sha256": "492fb780d73aabc1d20f228ce3218e0346c604335622e6083fc9488d6becc6a4",
+  "addressed_findings": [
+    "T1",
+    "O7",
+    "N1",
+    "L1",
+    "L2",
+    "T2",
+    "U1",
+    "R1",
+    "G1",
+    "G2"
+  ],
+  "scope": "Targeted second-review fixes; not a certification of every original feature or every operating condition.",
+  "deterministic_suite": {
+    "method": "deterministic fixtures with real files/processes; no cloud model calls",
+    "identity": {
+      "run_id": "5f50e1f81e174c7ca3453d8281be8ede",
+      "source_tree": "1a906a6756d234b87fdfe6a68e28b7fb6cd9cb07635429d9e22f4317e757c88b",
+      "commit": "9a8dba5c9aadec0cfb02b7f9ab56c03da40d8862",
+      "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+      "node": "v24.19.0"
+    },
+    "full_suite_passed": true,
+    "seconds_sum": 252.537,
+    "groups": [
+      {
+        "case": "test_repair_transactions.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 16.409,
+        "command_sha256": "f54891ac8fc45fbf2a8b8f37c1539f70591693bd5cea0ee636eb4ca3c8026ac0"
+      },
+      {
+        "case": "test_upgrade_transactions.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 8.443,
+        "command_sha256": "9f6fa44456c3f6b4b967312c80184396daa92dacada8808146701a25f597b8f0"
+      },
+      {
+        "case": "test_reading_pagination.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 1.614,
+        "command_sha256": "e2afbbe68ad230d3cda7a471e2d4086ad8da8daa290cc70975ace9c4d12ca34b"
+      },
+      {
+        "case": "test_delivery_gate.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 0.419,
+        "command_sha256": "510ae614c4228c743bcda357da0feca2fc7c868b9f566498ee5585852b8648d5"
+      },
+      {
+        "case": "test_execution_client.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 0.507,
+        "command_sha256": "df281bca81ddf56df836211dae9f1d4feb85b336fce02743b711b6f015ed3d1b"
+      },
+      {
+        "case": "test_harness_result_contract.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 2.94,
+        "command_sha256": "8733bdba6484004728997d082e01c4bb4f01a722c34b922cc660be0988c2ddc3"
+      },
+      {
+        "case": "test_learning_record_archive.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 1.861,
+        "command_sha256": "aeae39485db16504271be0f2ebf7104288ca995a92c2c1be1760d33cf0946e97"
+      },
+      {
+        "case": "test_review_runner.py",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 0.397,
+        "command_sha256": "3f48c3d74fcdd0c20b96fef06759604c0a011fe8e2eee90de5d3d34b0a6b7d4d"
+      },
+      {
+        "case": "harness-real-os",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 206.35,
+        "command_sha256": "8d2f210807afa731e8ee76aa5039a9110fbd1cd2d4bda7d79301b1e0afd728e0"
+      },
+      {
+        "case": "openmaic-adapter",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 1.978,
+        "command_sha256": "31102e7ea555905752071121271dd1bef718f0c4219b89f4ec4cfee45c488f93"
+      },
+      {
+        "case": "installer-hard-death",
+        "status": "passed",
+        "exit_code": 0,
+        "seconds": 11.619,
+        "command_sha256": "ea13c910364964a29c8e9090e1454615c11ab4d46865998d846df9b516e4be3a"
+      }
+    ]
+  },
+  "windows_checks": {
+    "passed": true,
+    "seconds": 1.999,
+    "checks": [
+      {
+        "id": "long-chinese-space-path",
+        "passed": true,
+        "path_characters": 420,
+        "apply_and_rollback": true
+      },
+      {
+        "id": "exclusive-file-lock",
+        "passed": true,
+        "failure": "PermissionError",
+        "retry_after_unlock_and_rollback": true
+      },
+      {
+        "id": "outside-junction-rejected",
+        "passed": true,
+        "outside_unchanged": true
+      }
+    ],
+    "installation_touched": false
+  },
+  "configured_model_checks": [
+    {
+      "id": "chat",
+      "status": "passed",
+      "seconds": 178.612,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 10,
+      "tool_names": [
+        "exec",
+        "load_harness_tools",
+        "load_workspace_dependencies",
+        "present",
+        "read_document",
+        "skill",
+        "todo_write"
+      ],
+      "host_tool_elapsed_sum_seconds": 92.205,
+      "model_step_wall_seconds": 90.342,
+      "tool_errors": [
+        "todo_write"
+      ],
+      "raw_events_sha256": "970a00a9deafc07fc698f37ea94561e5646809d658f83437fa38ce135907c062",
+      "result_sha256": "a0aa483442fd54c81216721ccb3742d41c4281485ad8626f3980712395d4fe73",
+      "note": "Documents passed; an unrelated todo preflight failed and discarded its cause before the later diagnostic patch."
+    },
+    {
+      "id": "chat-edit",
+      "status": "passed",
+      "seconds": 55.863,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 4,
+      "tool_names": [
+        "exec",
+        "present",
+        "read_document",
+        "skill"
+      ],
+      "host_tool_elapsed_sum_seconds": 5.976,
+      "model_step_wall_seconds": 42.232,
+      "tool_errors": [],
+      "raw_events_sha256": "e9ff92fbdf03d79af996f91049c71eff250fb47a9a9ba46e7e26cd84557b80b2",
+      "result_sha256": "e17f77bbb86846225011122f8b15a9ed79742abd71a4dbda20447168aa7f142b"
+    },
+    {
+      "id": "chat-todo",
+      "status": "passed",
+      "seconds": 32.035,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 2,
+      "tool_names": [
+        "todo_write"
+      ],
+      "host_tool_elapsed_sum_seconds": 0.27,
+      "model_step_wall_seconds": 23.851,
+      "tool_errors": [],
+      "raw_events_sha256": "880599796c3d7c1ff6ac1890a8398723531a5d0aba6a6d33c0b2527d2860d3c0",
+      "result_sha256": "a8120df9ca8187529eba3cb84fc4994c2d7165fe0931bbb883137aa92c1e2075"
+    },
+    {
+      "id": "learning",
+      "status": "failed_before_gateway_fix",
+      "seconds": 103.027,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 2,
+      "tool_names": [
+        "learning_records"
+      ],
+      "host_tool_elapsed_sum_seconds": 13.882,
+      "model_step_wall_seconds": 37.329,
+      "tool_errors": [
+        "learning_records",
+        "learning_records"
+      ],
+      "raw_events_sha256": "454c33e56a821ff37584a499df20f274289c7706bceba6a25d1486b9a7bb25cc",
+      "result_sha256": "90f3c1bf96cd61f3e2c3330cc291cc863018e556e72d11850ff80baf577f53b6"
+    },
+    {
+      "id": "learning-retry",
+      "status": "passed",
+      "seconds": 33.372,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 3,
+      "tool_names": [
+        "learning_records"
+      ],
+      "host_tool_elapsed_sum_seconds": 4.073,
+      "model_step_wall_seconds": 25.473,
+      "tool_errors": [],
+      "raw_events_sha256": "a2dd928b715f5fdab771fb8e6f77778fa665838f3a0e82ec32bbc68f5685c7b0",
+      "result_sha256": "747f8a193c318af9df51936eb1bd2543d95fe9b1adc1cfef5c89bd895c0221a0"
+    },
+    {
+      "id": "learning-second",
+      "status": "passed",
+      "seconds": 56.326,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 3,
+      "tool_names": [
+        "learning_records"
+      ],
+      "host_tool_elapsed_sum_seconds": 5.176,
+      "model_step_wall_seconds": 46.598,
+      "tool_errors": [],
+      "raw_events_sha256": "7f99056fe15c3bee68f75b675b5ffe0f53208c8f39e9a7a0df41315fe54973f5",
+      "result_sha256": "84e37eb0cb3f894327bfda9c350246d27ad94aecc82b2599c0a002313fb692eb"
+    },
+    {
+      "id": "reading",
+      "status": "passed",
+      "seconds": 288.348,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 17,
+      "tool_names": [
+        "exec",
+        "invoke_surface_tool",
+        "present",
+        "read_surface_context",
+        "surface_tools"
+      ],
+      "host_tool_elapsed_sum_seconds": 83.923,
+      "model_step_wall_seconds": 197.788,
+      "tool_errors": [],
+      "raw_events_sha256": "ebf74ad1f16765d42abd2a60535c206d0c936f5551a4ac87e9d1ee12a28bf3aa",
+      "result_sha256": "5517065e275adad0e80cbf6e9fe0c8278ea969cf7c75a26e1c71ee0e6f2cf65c",
+      "note": "Thirty real subtitle segments read in two pages; reported range uses first/last start timestamps, not an unprovided last-segment end time."
+    },
+    {
+      "id": "workbench",
+      "status": "passed",
+      "seconds": 66.85,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 1,
+      "tool_names": [
+        "ask_user_question"
+      ],
+      "host_tool_elapsed_sum_seconds": 42.748,
+      "model_step_wall_seconds": 13.549,
+      "tool_errors": [
+        "ask_user_question"
+      ],
+      "raw_events_sha256": "9c5ce77f400549fe43caf527faacd47d89a3cd355496215f9e76955fde07fd5f",
+      "result_sha256": "fe2c05b118e51db94e9a93b67b30430a39d50d34055f8a01eac3eb01c6e2c3fe",
+      "note": "Generic question was transferred to native ask_user; hidden Harness waiter intentionally cancelled without a fabricated answer."
+    },
+    {
+      "id": "workbench-answer",
+      "status": "passed",
+      "seconds": 10.628,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 0,
+      "tool_names": [],
+      "host_tool_elapsed_sum_seconds": 0,
+      "model_step_wall_seconds": 4.309,
+      "tool_errors": [],
+      "raw_events_sha256": "61768b4008158801129d7fae59e27cfb34883483d2ff04d30d1c0a82b50fb06a",
+      "result_sha256": "83a5da9b042f4640f7a9eacf5faf49b7e5f6f52e276f572449c55a5ad95e9388"
+    },
+    {
+      "id": "classroom",
+      "status": "passed",
+      "seconds": 107.088,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 2,
+      "tool_names": [
+        "invoke_surface_tool",
+        "surface_tools"
+      ],
+      "host_tool_elapsed_sum_seconds": 49.456,
+      "model_step_wall_seconds": 21.201,
+      "tool_errors": [],
+      "raw_events_sha256": "7ed16e71ec037c45da02c521aad79ebc25ef1ff6fa3c8d2b8c38327ecc76ae4d",
+      "result_sha256": "db273decc5592667cc34bfbbbb687d14db04fa9c924c4df2214e4508ba8f2cfa"
+    },
+    {
+      "id": "classroom-answer",
+      "status": "passed",
+      "seconds": 44.241,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 5,
+      "tool_names": [
+        "invoke_surface_tool",
+        "surface_tools"
+      ],
+      "host_tool_elapsed_sum_seconds": 14.19,
+      "model_step_wall_seconds": 24.076,
+      "tool_errors": [],
+      "raw_events_sha256": "e50597e099d6192b0a5aaee206cb062a2d0fd9b82976f5169a92cca317c02e75",
+      "result_sha256": "3fe35d23acd2d2b3f0770dc53100e75821325c8834138e9ad3537e21c38838d2"
+    },
+    {
+      "id": "learning-after-restart",
+      "status": "passed",
+      "seconds": 47.632,
+      "model": {
+        "provider": "openai_codex",
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      },
+      "tool_calls": 3,
+      "tool_names": [
+        "learning_records"
+      ],
+      "host_tool_elapsed_sum_seconds": 3.346,
+      "model_step_wall_seconds": 40.188,
+      "tool_errors": [],
+      "raw_events_sha256": "4f1c6b23ad125acc409b90776ebebb426d70c21feb9801dc9a5f77b8edcf5724",
+      "result_sha256": "624199fcd3ec175691cecd6eccbab4d74f8570043db61404ec2c6ec8574899b4"
+    }
+  ],
+  "timing_definition": "Total seconds are endpoint wall time. Model-step wall time runs from step/start to assistant/message, including prompt preparation/provider/queue time. Tool elapsed is the sum of journal call-to-result durations; delegated tool time includes child model time. These sums are not exclusive or additive; provider-only waiting was not independently measured.",
+  "delivery": {
+    "actual_http_downloads": 5,
+    "all_verified": true,
+    "old_word_link_retains_original_bytes": true,
+    "word_structure": [
+      "Heading 1",
+      "two-column table",
+      "bullet list",
+      "PAGE footer"
+    ],
+    "pdf_chinese_text_and_first_page_visual_check": true
+  },
+  "learning_persistence": {
+    "two_distinct_record_ids": true,
+    "both_read_after_backend_restart": true,
+    "first_record_appended_once": true,
+    "second_record_unchanged": true,
+    "mastery_not_asserted": true
+  },
+  "native_ui_testing": "Actual native HTTP/WS/SSE adapters and delivery cards; this round did not operate or visually inspect the desktop client.",
+  "build": {
+    "openmaic_build_id": "dryxwUSkkn1IOtHk46iU8",
+    "production_build_seconds": 351.047,
+    "production_typecheck": "passed",
+    "installed_patch_provenance": "verified",
+    "source_inputs": [
+      {
+        "path": "installer/DeepSteamSetup.cs",
+        "bytes": 232667,
+        "sha256": "5af69df2bace858bde42a4bb614efee1fba173ce6d12d2f34237d7af93e9708b",
+        "lf_sha256": "5af69df2bace858bde42a4bb614efee1fba173ce6d12d2f34237d7af93e9708b"
+      },
+      {
+        "path": "integration/harness/execution_tasks.mjs",
+        "bytes": 18920,
+        "sha256": "1d7569df2281777a60930329469d9f005d7659f67fa1f7856374eec0bc0e943e",
+        "lf_sha256": "1d7569df2281777a60930329469d9f005d7659f67fa1f7856374eec0bc0e943e"
+      },
+      {
+        "path": "integration/harness/surface_tools.mjs",
+        "bytes": 11666,
+        "sha256": "7b1f3c51575e6397173cfca06d51a47494f8d46d2242ec76de681090f409a40c",
+        "lf_sha256": "7b1f3c51575e6397173cfca06d51a47494f8d46d2242ec76de681090f409a40c"
+      },
+      {
+        "path": "integration/harness/task_ledger.mjs",
+        "bytes": 16732,
+        "sha256": "447b3197adfd195590f5e1c94f9846a3f116bdc2783451e72a49953bb476dde2",
+        "lf_sha256": "447b3197adfd195590f5e1c94f9846a3f116bdc2783451e72a49953bb476dde2"
+      },
+      {
+        "path": "integration/harness/test/workspaces.test.mjs",
+        "bytes": 37596,
+        "sha256": "c73936a2a9770dfbd6d2b12eafaa19455392fdc62783becc5632c834615843cf",
+        "lf_sha256": "c73936a2a9770dfbd6d2b12eafaa19455392fdc62783becc5632c834615843cf"
+      },
+      {
+        "path": "integration/harness/workspaces.mjs",
+        "bytes": 73238,
+        "sha256": "bbdb32ca089676a1ede5c96ef5e1bb5aa925928b3ce55ea33506784abbc11d33",
+        "lf_sha256": "bbdb32ca089676a1ede5c96ef5e1bb5aa925928b3ce55ea33506784abbc11d33"
+      },
+      {
+        "path": "integration/harness_turn.py",
+        "bytes": 35893,
+        "sha256": "7de61589923345860fc8fa3cb1c84871c34fde26bf6d578a0e2fb40af8200a22",
+        "lf_sha256": "7de61589923345860fc8fa3cb1c84871c34fde26bf6d578a0e2fb40af8200a22"
+      },
+      {
+        "path": "portal/app.py",
+        "bytes": 83052,
+        "sha256": "179e81e73398c38b3992ff6683a686368d65f077a0ac364d5aa55c30be72b6e6",
+        "lf_sha256": "179e81e73398c38b3992ff6683a686368d65f077a0ac364d5aa55c30be72b6e6"
+      },
+      {
+        "path": "scripts/repair_bundle.py",
+        "bytes": 11437,
+        "sha256": "b9be4e2fb54f228fe6b5973d1b64b66be895affb32ad05f502f09c73b3e0669a",
+        "lf_sha256": "b9be4e2fb54f228fe6b5973d1b64b66be895affb32ad05f502f09c73b3e0669a"
+      },
+      {
+        "path": "scripts/transactional_upgrade.py",
+        "bytes": 12104,
+        "sha256": "50b58a92f062def6c0d7ace5993a6e2d9ed39cf72d3c41303a2c6667cd5bdd9f",
+        "lf_sha256": "50b58a92f062def6c0d7ace5993a6e2d9ed39cf72d3c41303a2c6667cd5bdd9f"
+      },
+      {
+        "path": "scripts/verify_delivery_manifest.py",
+        "bytes": 5117,
+        "sha256": "4f48cbdb70d2c012536793c28022cc2c08f29151b87ee5dbc490b54185f5710b",
+        "lf_sha256": "4f48cbdb70d2c012536793c28022cc2c08f29151b87ee5dbc490b54185f5710b"
+      },
+      {
+        "path": "tests/r11/run_review_checks.py",
+        "bytes": 5499,
+        "sha256": "0e5e874333dca18b9d908acf69d93296f18acbb40a480e441788d049790e499b",
+        "lf_sha256": "0e5e874333dca18b9d908acf69d93296f18acbb40a480e441788d049790e499b"
+      },
+      {
+        "path": "tests/r11/test_delivery_gate.py",
+        "bytes": 3400,
+        "sha256": "c469520cb0a533bd46c3b40d683a83014fe3c8e7ffeb5db53258f69b59caa508",
+        "lf_sha256": "c469520cb0a533bd46c3b40d683a83014fe3c8e7ffeb5db53258f69b59caa508"
+      },
+      {
+        "path": "tests/r11/test_execution_client.py",
+        "bytes": 3927,
+        "sha256": "3528fd6d788034f779574028a2a89ff8aae67f887e0e875c2beb8c37052c05b7",
+        "lf_sha256": "3528fd6d788034f779574028a2a89ff8aae67f887e0e875c2beb8c37052c05b7"
+      },
+      {
+        "path": "tests/r11/test_learning_record_archive.py",
+        "bytes": 9189,
+        "sha256": "496d8f6eedd7560af4af769183ff4fec7fc4b8e5e833d840ac909bf432c1ac46",
+        "lf_sha256": "496d8f6eedd7560af4af769183ff4fec7fc4b8e5e833d840ac909bf432c1ac46"
+      },
+      {
+        "path": "tests/r11/test_repair_transactions.py",
+        "bytes": 8343,
+        "sha256": "079eb4c888497afe85db1314f2825fd838a7fba7bb89cacf86bca9404c935377",
+        "lf_sha256": "079eb4c888497afe85db1314f2825fd838a7fba7bb89cacf86bca9404c935377"
+      },
+      {
+        "path": "tests/r11/test_upgrade_transactions.py",
+        "bytes": 6111,
+        "sha256": "f87fd4b30535b5e9fd9d5b16534a9bf4864c4010779e2da3bdcb579025289df4",
+        "lf_sha256": "f87fd4b30535b5e9fd9d5b16534a9bf4864c4010779e2da3bdcb579025289df4"
+      },
+      {
+        "path": "upstream/OpenMAIC/lib/agent/runtime/harness-agent.ts",
+        "bytes": 23480,
+        "sha256": "3a702767582ffcd85924e8f4511c12343a455185a15b9d6b9c209c047c24ad7c",
+        "lf_sha256": "3a702767582ffcd85924e8f4511c12343a455185a15b9d6b9c209c047c24ad7c"
+      },
+      {
+        "path": "upstream/OpenMAIC/lib/server/agent-runtime/runner.ts",
+        "bytes": 79308,
+        "sha256": "fb09d67a2022cbca0e5584ef61a819d5d9753b839122d10f87a75ec9d7643c6a",
+        "lf_sha256": "fb09d67a2022cbca0e5584ef61a819d5d9753b839122d10f87a75ec9d7643c6a"
+      },
+      {
+        "path": "upstream/OpenMAIC/tests/r11-review-harness.test.ts",
+        "bytes": 11386,
+        "sha256": "8fae18ce21039d1a1839106c8e6e29ce8949c67bfca3d8a8b22f02787ca6780c",
+        "lf_sha256": "8fae18ce21039d1a1839106c8e6e29ce8949c67bfca3d8a8b22f02787ca6780c"
+      }
+    ],
+    "clean_full_installer_rebuild": "not_performed",
+    "published_tree_identity": "Subsequent English docs and release-manifest metadata differ from the tested all-file fingerprint; the listed production inputs retain their verified canonical hashes."
+  },
+  "deployment": [
+    {
+      "version": "2026.10.17-r11.3-review-local",
+      "status": "activated",
+      "seconds": 286.389,
+      "byte_verification": {
+        "passed": true,
+        "targets": 16,
+        "trees_checked": 1,
+        "preserved_paths_checked": 11,
+        "preserved_hashes_equal": true
+      },
+      "http_health": {
+        "3791": 200,
+        "3792": 200,
+        "3793": 200,
+        "3794": 200,
+        "3796": 200,
+        "8011": 200
+      },
+      "native_processes_unchanged_during_activation": true
+    },
+    {
+      "version": "2026.10.17-r11.3-review-local",
+      "status": "activated",
+      "seconds": 56.881,
+      "byte_verification": {
+        "passed": true,
+        "targets": 3,
+        "trees_checked": 0,
+        "preserved_paths_checked": 11,
+        "preserved_hashes_equal": true
+      },
+      "http_health": {
+        "3791": 200,
+        "3792": 200,
+        "3793": 200,
+        "3794": 200,
+        "3796": 200,
+        "8011": 200
+      },
+      "native_processes_unchanged_during_activation": true
+    }
+  ],
+  "boundaries": [
+    "The initial learning-record acceptance failed and was retained; the gateway fix passed subsequent actual checks.",
+    "The first todo preflight original cause was lost; diagnostics and a two-call post-update test passed, not every possible transient.",
+    "No real user installation was uninstalled; uninstall tests used disposable installations and live entry validation.",
+    "No clean full native installer rebuild, unrestricted self-repair, arbitrary Skill-directory crash recovery, multi-account OS isolation, all providers or long unattended runs were certified.",
+    "No desktop/removable-drive distribution archive was replaced."
+  ]
+}
