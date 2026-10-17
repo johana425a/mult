@@ -283,6 +283,8 @@ export type ChartType = 'bar' | 'column' | 'line' | 'pie' | 'ring' | 'area' | 'r
 export interface ChartOptions {
   lineSmooth?: boolean;
   stack?: boolean;
+  /** Explicit generated-slide label size; absent preserves existing chart styling. */
+  fontSize?: number;
   /** Plot category shares while retaining original data for labels and editing. */
   percentStack?: boolean;
 }

@@ -48,6 +48,8 @@ export interface ClassroomSourceMaterial {
   images?: PdfImage[];
   /** Explicit caller permission; absent means source examples only. */
   allowSupplementaryExamples?: boolean;
+  /** Source identity/type context; not scientific teaching evidence. */
+  requestContext?: string;
 }
 
 export type Stage = DslStage & {

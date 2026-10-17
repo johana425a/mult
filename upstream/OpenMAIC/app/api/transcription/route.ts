@@ -12,6 +12,10 @@ import type { ASRProviderId } from '@/lib/audio/types';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { findUnsafeNetworkTargetError, validatePublicUrlForSSRF } from '@/lib/server/ssrf-guard';
+import {
+  rethrowIfGenerationCancelled,
+  throwIfGenerationAborted,
+} from '@/lib/server/generation-cancellation';
 const log = createLogger('Transcription');
 
 export const maxDuration = 60;
@@ -20,7 +24,9 @@ export async function POST(req: NextRequest) {
   let resolvedProviderId: string | undefined;
   let resolvedModelId: string | undefined;
   try {
+    throwIfGenerationAborted(req.signal);
     const formData = await req.formData();
+    throwIfGenerationAborted(req.signal);
     const audioFile = formData.get('audio') as File;
     const providerId = formData.get('providerId') as ASRProviderId | null;
     // Trim the client model id and normalize empty → undefined, matching the
@@ -78,15 +84,18 @@ export async function POST(req: NextRequest) {
       publicOnly,
       // A server-configured provider's endpoint may be on a local network.
       managed,
+      signal: req.signal,
     };
     // Reflect the resolved (possibly server-pinned) model in failure logs.
     resolvedModelId = config.modelId;
 
     // Transcribe using the provider system
     const result = await transcribeAudio(config, audioFile);
+    throwIfGenerationAborted(req.signal);
 
     return apiSuccess({ text: result.text });
   } catch (error) {
+    rethrowIfGenerationCancelled(error, req.signal);
     log.error(
       `Transcription failed [provider=${resolvedProviderId ?? 'unknown'}, model=${resolvedModelId ?? 'default'}]:`,
       error,

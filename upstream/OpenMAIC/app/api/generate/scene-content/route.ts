@@ -11,7 +11,6 @@ import { callLLM } from '@/lib/ai/llm';
 import {
   applyOutlineFallbacks,
   generateSceneContent,
-  buildVisionUserContent,
   partitionImagesForVision,
 } from '@openmaic/generation';
 import type { AgentInfo } from '@openmaic/generation';
@@ -25,6 +24,7 @@ import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { llmApiError } from '@/lib/server/llm-error-response';
 import { resolveModelFromRequest } from '@/lib/server/resolve-model';
+import { assertClassroomImageInput, assertClassroomOutputComplete, classroomUserContent, classroomOutputTokens, classroomContextTokens, hasVerifiedClassroomImageInput } from '@/lib/server/classroom-image-input';
 import { resolveVocationalActive } from '@/lib/config/feature-flags';
 import { MAX_VISION_IMAGES } from '@/lib/constants/generation';
 import { sortDocumentImagesForVision } from '@/lib/document/bundle';
@@ -33,8 +33,9 @@ import {
   type VisionPromptImage,
 } from '@/lib/persistence/resolve-vision-images';
 import { generatePBLV2Project } from '@/lib/pbl/v2/agents/planner';
-import { contractFromMaterial, wrapGroundedAiCall } from '@/lib/server/source-grounding';
+import { contractFromMaterial, createSourceContract, wrapGroundedAiCall } from '@/lib/server/source-grounding';
 import type { ClassroomSourceMaterial } from '@/lib/types/stage';
+import { rethrowIfGenerationCancelled, throwIfGenerationAborted } from '@/lib/server/generation-cancellation';
 
 const log = createLogger('Scene Content API');
 
@@ -62,7 +63,9 @@ export async function POST(req: NextRequest) {
   let outlineTitle: string | undefined;
   let resolvedModelString: string | undefined;
   try {
+    throwIfGenerationAborted(req.signal);
     const body = await req.json();
+    throwIfGenerationAborted(req.signal);
     const {
       outline: rawOutline,
       allOutlines,
@@ -117,12 +120,32 @@ export async function POST(req: NextRequest) {
       modelInfo,
       modelString,
       thinkingConfig,
+      resolvedModel,
     } = await resolveModelFromRequest(req, body, stage);
+    throwIfGenerationAborted(req.signal);
     outlineTitle = rawOutline?.title;
     resolvedModelString = modelString;
 
     // Detect vision capability
-    const hasVision = !!modelInfo?.capabilities?.vision;
+    const imageInputModel = { modelInfo, resolvedModel, thinkingConfig };
+    const hasVision = hasVerifiedClassroomImageInput(imageInputModel);
+    const requiredImages = [...new Map([...(pdfImages ?? []), ...(sourceMaterial?.images ?? [])]
+      .map(image => [image.id, image] as const)).values()];
+    assertClassroomImageInput(imageInputModel, requiredImages);
+    const originalVisionImages = requiredImages.length ? await resolveVisionImagesForPrompt(requiredImages.map(image => ({
+      id: image.id, src: imageMapping?.[image.id] || image.src,
+      width: image.width, height: image.height,
+    })), req.headers) : [];
+    throwIfGenerationAborted(req.signal);
+    if (originalVisionImages.length !== requiredImages.length) throw new Error(
+      'SOURCE_IMAGE_UNAVAILABLE: an original source image could not be resolved. Reopen the material; no image was silently omitted.');
+    const originalById = new Map(originalVisionImages.map(image => [image.id, image] as const));
+    const groundingMaterial = sourceMaterial ? { ...sourceMaterial,
+      images: requiredImages.map(image => ({ ...image, src: originalById.get(image.id)!.src })) } : undefined;
+    const sourceContext = (groundingMaterial?.text?.trim() || requiredImages.length) ? classroomContextTokens(imageInputModel) : undefined;
+    const groundingContract = groundingMaterial ? contractFromMaterial(groundingMaterial, sourceContext)
+      : createSourceContract(undefined, requiredImages.map(image => ({ ...image,
+          src: originalById.get(image.id)!.src })), sourceContext);
 
     // Vision-aware AI call function. On a server-backed transport the
     // `imageMapping` values are allocated asset ids; the N3 pre-resolution
@@ -138,12 +161,16 @@ export async function POST(req: NextRequest) {
       userPrompt: string,
       images?: Array<{ id: string; src: string }>,
     ): Promise<string> => {
-      if (images?.length && hasVision) {
+      throwIfGenerationAborted(req.signal);
+      if (images?.length) {
         // Server-backed transport: `imageMapping` values are allocated asset
         // ids, so the image srcs reach here as ids. Resolve them to the same
         // bytes the base64 path would send BEFORE prompt assembly, keeping the
         // vision prompt byte-identical in both modes (RFC #1153 part 2 B).
         const resolvedImages = await resolveVisionImagesForPrompt(images, req.headers);
+        throwIfGenerationAborted(req.signal);
+        if (resolvedImages.length !== images.length) throw new Error(
+          'SOURCE_IMAGE_UNAVAILABLE: original source pixels are unavailable. No image was silently omitted.');
         const result = await callLLM(
           {
             model: languageModel,
@@ -151,16 +178,19 @@ export async function POST(req: NextRequest) {
             messages: [
               {
                 role: 'user' as const,
-                content: buildVisionUserContent(userPrompt, resolvedImages),
+                content: classroomUserContent(imageInputModel, systemPrompt, userPrompt, resolvedImages),
               },
             ],
-            maxOutputTokens: modelInfo?.outputWindow,
+            maxOutputTokens: classroomOutputTokens(imageInputModel, systemPrompt, userPrompt, resolvedImages),
             maxRetries: 0,
+            abortSignal: req.signal,
           },
           'scene-content',
           undefined,
           thinkingConfig,
         );
+        throwIfGenerationAborted(req.signal);
+        assertClassroomOutputComplete(result.finishReason);
         return result.text;
       }
       const result = await callLLM(
@@ -168,13 +198,16 @@ export async function POST(req: NextRequest) {
           model: languageModel,
           system: systemPrompt,
           prompt: userPrompt,
-          maxOutputTokens: modelInfo?.outputWindow,
+          maxOutputTokens: classroomOutputTokens(imageInputModel, systemPrompt, userPrompt),
           maxRetries: 0,
+          abortSignal: req.signal,
         },
         'scene-content',
         undefined,
         thinkingConfig,
       );
+      throwIfGenerationAborted(req.signal);
+      assertClassroomOutputComplete(result.finishReason);
       return result.text;
     };
 
@@ -242,7 +275,9 @@ export async function POST(req: NextRequest) {
       const resolvedById = new Map<string, VisionPromptImage>();
       let consecutiveUnresolvable = 0;
       let stopReason: 'fuse' | 'budget' | null = null;
+      try {
       for (const candidate of withSrc) {
+        throwIfGenerationAborted(req.signal);
         if (resolvedById.size >= MAX_VISION_IMAGES) break;
         if (consecutiveUnresolvable >= MAX_CONSECUTIVE_UNRESOLVABLE_VISION_IMAGES) {
           stopReason = 'fuse';
@@ -264,7 +299,9 @@ export async function POST(req: NextRequest) {
             ),
             phaseBudget,
           ]);
+          throwIfGenerationAborted(req.signal);
         } catch (error) {
+          rethrowIfGenerationCancelled(error, req.signal);
           // A throwing probe counts as an unresolvable candidate (an errored
           // store must degrade, never fail the request).
           log.error(
@@ -284,7 +321,10 @@ export async function POST(req: NextRequest) {
           consecutiveUnresolvable += 1;
         }
       }
-      if (phaseTimer !== undefined) clearTimeout(phaseTimer);
+      } finally {
+        if (phaseTimer !== undefined) clearTimeout(phaseTimer);
+      }
+      throwIfGenerationAborted(req.signal);
       resolvedVisionImages = [...resolvedById.values()];
       // Every candidate that did not resolve — an unresolvable probe, OR an
       // unprobed one when the fuse/budget stopped the phase — is stripped from
@@ -326,8 +366,7 @@ export async function POST(req: NextRequest) {
     const userLocale = req.headers?.get('x-user-locale') ?? '';
 
     const content = await generateSceneContent(effectiveOutline,
-      wrapGroundedAiCall(aiCall, contractFromMaterial(sourceMaterial,
-        modelInfo?.contextWindow ?? 16384), [], 'content'), {
+      wrapGroundedAiCall(aiCall, groundingContract, [], 'content'), {
       assignedImages,
       imageMapping: visionImageMapping,
       visionEnabled: hasVision,
@@ -341,10 +380,11 @@ export async function POST(req: NextRequest) {
       ...(effectiveOutline.type === 'pbl'
         ? {
             pblLoopFallback: (input) =>
-              generatePBLV2Project(input, languageModel, callLLM, { logger: log }, thinkingConfig),
+              generatePBLV2Project(input, languageModel, callLLM, { logger: log }, thinkingConfig, req.signal),
           }
         : {}),
     });
+    throwIfGenerationAborted(req.signal);
 
     if (!content) {
       log.error(`Failed to generate content for: "${effectiveOutline.title}"`);
@@ -360,6 +400,7 @@ export async function POST(req: NextRequest) {
 
     return apiSuccess({ content, effectiveOutline });
   } catch (error) {
+    rethrowIfGenerationCancelled(error, req.signal);
     log.error(
       `Scene content generation failed [scene="${outlineTitle ?? 'unknown'}", model=${resolvedModelString ?? 'unknown'}]:`,
       error,

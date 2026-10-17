@@ -97,7 +97,7 @@ function portalCreditsUrl(base: string): string {
   }
 }
 
-/** Model plan row: capability/station to plan default model; omit modalities without model choices. */
+/** 「查看模型方案」行：能力（· 环节）→ 套餐默认模型；无模型概念的模态不披露。 */
 interface ModelPlanItem {
   capability: TokenPlanModality;
   stageId?: string;
@@ -208,8 +208,8 @@ export function TokenPlanSettings() {
   const isPresetEnabled = (preset: TokenPlanPreset): boolean =>
     isTokenPlanActive(preset, { tokenPlanEnrollments, providersConfig });
 
-  // Authorization means connected and not disabled. The left status column and model configuration
-  // share this rule so connection alone is not mistaken for active usage.
+  // 授权层：已连接且未被「启用此套餐」关闭。左列状态行与课程模型配置的
+  // 候选口径都看这个，避免「已连接但不参与配置」被误读成已在生效。
   const isPresetUsable = (preset: TokenPlanPreset): boolean =>
     isTokenPlanUsable(preset, { tokenPlanEnrollments, providersConfig, tokenPlanDisabled });
 
@@ -241,7 +241,7 @@ export function TokenPlanSettings() {
       setTokenPlanSeedVersion: (presetId, fingerprint) =>
         useSettingsStore.getState().setTokenPlanSeedVersion(presetId, fingerprint),
       getTokenPlanEnrollments: () => useSettingsStore.getState().tokenPlanEnrollments,
-      // Restoring shared slots requires complete enrollment, provider configuration, and authorization state.
+      // 共享槽位交还需要完整状态（enrollments + providersConfig + 授权开关）。
       getTokenPlanPriorityState: () => {
         const s = useSettingsStore.getState();
         return {
@@ -267,8 +267,8 @@ export function TokenPlanSettings() {
   const toggleAuthorization = (preset: TokenPlanPreset, checked: boolean) => {
     const store = useSettingsStore.getState();
     store.setTokenPlanEnabled(preset.id, checked);
-    // Cascade operations read state after writing the flag, so shared-provider priority
-    // uses the actual active set after the switch.
+    // 级联读的是「写入标志位之后」的状态：这样共享 provider 的避让判定
+    // 看到的是本次切换后的真实生效集合。
     const next = useSettingsStore.getState();
     const nextState = {
       tokenPlanEnrollments: next.tokenPlanEnrollments,
@@ -283,16 +283,16 @@ export function TokenPlanSettings() {
       setWebSearchProviderConfig,
     };
     setTokenPlanAuthorization(preset, checked, writeActions, nextState);
-    // Re-resolve shared slot ownership: disabling excludes this plan and hands slots to the remaining
-    // active plans; enabling must include this plan as a possible highest-priority
-    // owner, or the newly enabled plan cannot reclaim its slots.
+    // 共享槽位归属再解析（review P0-03）：关闭时排除本套餐（槽位交给剩余
+    // 生效套餐）；重新开启时必须**纳入**本套餐——它是此刻最高优先级的候选
+    // owner，排除自己会让刚启用的套餐抢不回槽位（regression #1）。
     restoreSharedProviderCredentials(preset.id, writeActions, nextState, {
       excludeConcerned: !checked,
     });
 
-    // Reseed on enabling: authorization clears stage routes while provider
-    // enabled=false. Resetting the switch alone does not restore routes; clear the fingerprint so
-    // reconciliation reseeds the slots allowed by priorityState.
+    // 重新开启时补种：关闭期间 stage route 会被授权层清理掉（provider 的
+    // enabled=false），仅把开关拨回去并不会让它们回来。清掉指纹让
+    // reconcile 重新播种，并由 priorityState 决定此刻能占到哪些槽位。
     if (checked) {
       useSettingsStore.getState().setTokenPlanSeedVersion(preset.id, null);
       useSettingsStore.getState().reconcileTokenPlanSeeds();
@@ -329,8 +329,8 @@ export function TokenPlanSettings() {
         setTokenPlanSeedVersion: (presetId, fingerprint) =>
           useSettingsStore.getState().setTokenPlanSeedVersion(presetId, fingerprint),
         getTokenPlanEnrollments: () => useSettingsStore.getState().tokenPlanEnrollments,
-        // Exclusive slots follow plan-list order. Connecting a lower-priority plan does not replace
-        // main models, stage routes, or modality selections owned by higher-priority plans.
+        // 独占槽位按套餐列表顺序仲裁：新连一个靠后的套餐不抢占靠前套餐
+        // 已声明的主线模型 / stage route / 各模态选中项。
         getTokenPlanPriorityState: () => {
           const s = useSettingsStore.getState();
           return {
@@ -372,7 +372,7 @@ export function TokenPlanSettings() {
         <p className="text-xs text-muted-foreground">{t(`${tp}.desc`)}</p>
       </div>
 
-      {/* Use a 1:2 split: the provider list is narrow and connection/capability details have more space. */}
+      {/* 1:2 比例分割：服务商列表不需要太宽，右侧密钥/能力详情是主体 */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         {/* Left column: service tablist (collapses to a 3-column grid on small screens) */}
         <div
@@ -444,7 +444,7 @@ export function TokenPlanSettings() {
           })}
         </div>
 
-        {/* Right column: service header, secure key form, and capabilities. */}
+        {/* 右列：服务详情（头部一行制 + 密钥表单 + 能力区块） */}
         {selected && (
           <div
             className="min-w-0 space-y-5 sm:border-l sm:border-border/60 sm:pl-6"
@@ -455,7 +455,7 @@ export function TokenPlanSettings() {
               const usable = isPresetUsable(selected);
               return (
                 <>
-                  {/* Header row: identity, status, and service actions (update key, manage account, more). */}
+                  {/* 头部一行：身份 + 状态 + 服务级动作（更新密钥 / 管理账号 / 更多） */}
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h4 className="break-words text-sm font-semibold leading-5">
@@ -500,9 +500,9 @@ export function TokenPlanSettings() {
                           <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
                         </a>
                       )}
-                      {/* For plans with subscription links, Manage account is a grouping label
-                          and the regional links perform navigation. Plans without subscription links
-                          retain a direct Manage account link. */}
+                      {/* 有订阅入口（如 Kimi）的套餐：「管理账号」只是分组标签
+                          （纯文本），跳转交给后面的国内/海外链接；无订阅入口
+                          的套餐维持「管理账号」外链。 */}
                       {selected.subscribeUrls ? (
                         <span className="text-xs leading-5 text-muted-foreground">
                           {t(`${tp}.manageAccount`)}
@@ -520,8 +520,8 @@ export function TokenPlanSettings() {
                           </a>
                         )
                       )}
-                      {/* Subscription links, such as Kimi Coding Plan, follow Manage account,
-                          with regional destinations and the affiliate information from preset data. */}
+                      {/* 订阅入口（如 Kimi Coding Plan）：紧跟「管理账号」，
+                          国内/海外双链接（aff 跟随 preset 数据）。 */}
                       {selected.subscribeUrls &&
                         (
                           [
@@ -540,12 +540,12 @@ export function TokenPlanSettings() {
                             <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
                           </a>
                         ))}
-                      {/* Authorization switch: disabling removes the plan from course model choices
-                          while retaining credentials and connection. Disconnected plans cannot be enabled. */}
+                      {/* 授权层开关：关闭后此套餐不再出现在课程模型配置中
+                          （凭证与连接保留）。未连接时不可开启。 */}
                       <Tooltip>
-                        {/* Wrap with a span: TooltipTrigger asChild merges its own
-                            data-state into its child. Applying it directly to Switch overrides
-                            checked/unchecked state and breaks selected colors. */}
+                        {/* 垫一层 span：TooltipTrigger asChild 会把自己的
+                            data-state 合并到子元素上，直接套 Switch 会覆盖其
+                            checked/unchecked 状态，导致选中配色失效。 */}
                         <TooltipTrigger asChild>
                           <span className="inline-flex">
                             <Switch
@@ -583,7 +583,7 @@ export function TokenPlanSettings() {
                     </div>
                   </div>
 
-                  {/* Show the secure key form before connection or while updating; saving connects. */}
+                  {/* 密钥表单：未连接或更新密钥时显示；保存即连接 */}
                   {(!enabled || editingKey) && (
                     <form
                       className="space-y-2"
@@ -732,7 +732,7 @@ export function TokenPlanSettings() {
         )}
       </div>
 
-      {/* Disconnect confirmation */}
+      {/* 解除连接确认 */}
       {selected && (
         <AlertDialog open={disconnectOpen} onOpenChange={setDisconnectOpen}>
           <AlertDialogContent>

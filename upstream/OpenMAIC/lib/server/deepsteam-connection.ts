@@ -1,3 +1,4 @@
+import { sharePendingExecution } from './deepsteam-execution-pending.cjs';
 /** DeepSteam integration. Installation-owned credentials stay in the server process.
  * A browser selects a stable shared provider; it never receives the gateway guard,
  * account token, private API endpoint, or internal route model id. */
@@ -113,7 +114,7 @@ export function publicDeepSteamConnection(value: DeepSteamExecution): {
   };
 }
 
-export async function getDeepSteamExecution(options: {
+async function getDeepSteamExecutionUnshared(options: {
   llmSelection?: DeepSteamModelSelection | null; modelSnapshot?: DeepSteamModelSnapshot; executionId?: string;
 } = {}): Promise<DeepSteamExecution> {
   const tokenPath = process.env.DEEPSTEAM_HARNESS_TOKEN_FILE ||
@@ -135,7 +136,7 @@ export async function getDeepSteamExecution(options: {
         ...(options.modelSnapshot ? { model_snapshot: options.modelSnapshot } : {}),
         ...(options.executionId ? { execution_id: options.executionId } : {}),
       }),
-      cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(10000),
+      cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(60000),
     });
     if (!res.ok) throw new DeepSteamConnectionError(res.status === 409
       ? 'connection_unavailable' : 'connection_service_unavailable');
@@ -155,4 +156,8 @@ export async function getDeepSteamExecution(options: {
     // Never expose raw transport errors, response bodies, or credential paths.
     throw new DeepSteamConnectionError('connection_service_unavailable');
   }
+}
+
+export function getDeepSteamExecution(options: Parameters<typeof getDeepSteamExecutionUnshared>[0] = {}): Promise<DeepSteamExecution> {
+  return sharePendingExecution(options, () => getDeepSteamExecutionUnshared(options));
 }

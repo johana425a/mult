@@ -488,7 +488,7 @@ export function createStubProjectV2(title: string, description = ''): PBLProject
     title,
     description,
     proficiency: '',
-    language: 'en-US',
+    language: 'zh-CN',
     tags: [],
     status: 'designing',
     roles: [{ id: roleId, type: 'instructor', name: 'Instructor' }],

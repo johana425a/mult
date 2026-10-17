@@ -176,7 +176,7 @@ function newClientMessageId(): string {
 }
 
 function submissionReceiptText(submission: PBLSubmission, language?: string): string {
-  const lng = language || 'en-US';
+  const lng = language || 'zh-CN';
   const label =
     submission.kind === 'file' && submission.filename
       ? i18n.t('pbl.v2.submission.receiptFile', { lng, filename: submission.filename })
@@ -256,14 +256,27 @@ export function buildRevisionGuidanceMessage(args: {
   revisionAttempt?: number;
 }): PBLChatMessage | null {
   if (!args.instructorId) return null;
+  const zh = args.language === 'zh-CN' || args.language === 'zh-TW';
   const attempt = Math.max(1, args.revisionAttempt ?? 1);
+  const zhOpening =
+    attempt <= 1
+      ? '这版先别急着往下走。'
+      : attempt === 2
+        ? '这次还需要再补一轮。'
+        : '还需要继续改一下。';
   const enOpening =
     attempt <= 1
       ? "Let's pause here before moving on."
       : attempt === 2
         ? 'This still needs one more revision pass.'
         : 'Please keep revising this before we move on.';
-  const content = [
+  const content = zh
+    ? [
+        zhOpening,
+        '',
+        '先参照上面的任务点评，把最影响下一步的一两处改稳。改好后在右侧重新提交，我再帮你看。',
+      ].join('\n')
+    : [
         enOpening,
         '',
         "Use the task review above to tighten the one or two points that most affect the next step. Submit the revision on the right, and I'll review it again.",
@@ -349,7 +362,7 @@ export function PBLV2SubmissionPanel({
   // task eval / stage card) or this panel's own eval is running.
   const submitLocked = isSubmitLockedDuringStream({ instructorStreaming, evaluating });
   // Surfaced when the post-submit evaluation stream fails (HTTP non-2xx /
-  // no body / SSE error), so the learner isn't left with a silent "Submitted"
+  // no body / SSE error), so the learner isn't left with a silent "已提交"
   // and no evaluation, guidance or progress.
   const [evalError, setEvalError] = useState<string | null>(null);
 
@@ -789,7 +802,7 @@ function SubmissionHistory({
                     </span>
                   )}
                   <span className="ml-auto shrink-0">
-                    {new Date(s.createdAt).toLocaleDateString('en-US')}
+                    {new Date(s.createdAt).toLocaleDateString()}
                   </span>
                 </div>
               </button>
@@ -1334,7 +1347,7 @@ function SubmissionModal({
                           </>
                         )}
                         <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
-                          {new Date(s.createdAt).toLocaleString('en-US')}
+                          {new Date(s.createdAt).toLocaleString()}
                         </span>
                       </div>
                       {trimmedPBLText(s.content) && (

@@ -19,7 +19,6 @@ import { buildPrompt, PROMPT_IDS } from '@/lib/prompts';
 import {
   formatImageDescription,
   formatImagePlaceholder,
-  buildVisionUserContent,
   buildOutlinePrompt,
   uniquifyMediaElementIds,
   formatTeacherPersonaForPrompt,
@@ -35,8 +34,10 @@ import type {
   ImageMapping,
 } from '@/lib/types/generation';
 import { apiError } from '@/lib/server/api-response';
+import { llmApiError } from '@/lib/server/llm-error-response';
 import { createLogger } from '@/lib/logger';
 import { resolveModelFromRequest } from '@/lib/server/resolve-model';
+import { assertClassroomImageInput, assertClassroomOutputComplete, ClassroomOutputLimitError, classroomUserContent, classroomOutputTokens, classroomContextTokens, hasVerifiedClassroomImageInput } from '@/lib/server/classroom-image-input';
 import { sortDocumentImagesForVision } from '@/lib/document/bundle';
 import { resolveVisionImagesForPrompt } from '@/lib/persistence/resolve-vision-images';
 import { resolveVocationalActive } from '@/lib/config/feature-flags';
@@ -297,6 +298,7 @@ export async function POST(req: NextRequest) {
       modelInfo,
       modelString,
       thinkingConfig,
+      resolvedModel,
     } = await resolveModelFromRequest(req, body, 'scene-outlines-stream');
     resolvedModelString = modelString;
 
@@ -304,7 +306,7 @@ export async function POST(req: NextRequest) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'Requirements are required');
     }
 
-    const { requirements, pdfText, pdfImages, imageMapping, researchContext, agents } = body as {
+    const { requirements, pdfText, pdfImages, imageMapping: suppliedImageMapping, researchContext, agents } = body as {
       requirements: UserRequirements;
       pdfText?: string;
       pdfImages?: PdfImage[];
@@ -312,6 +314,7 @@ export async function POST(req: NextRequest) {
       researchContext?: string;
       agents?: AgentInfo[];
     };
+    let imageMapping = suppliedImageMapping;
     requirementSnippet = requirements?.requirement?.substring(0, 60);
 
     // Build user profile string for language inference context
@@ -321,7 +324,8 @@ export async function POST(req: NextRequest) {
         : '';
 
     // Detect vision capability
-    const hasVision = !!modelInfo?.capabilities?.vision;
+    const imageInputModel = { modelInfo, resolvedModel, thinkingConfig };
+    const hasVision = hasVerifiedClassroomImageInput(imageInputModel);
 
     // Build prompt (same logic as generateSceneOutlinesFromRequirements)
     let availableImagesText = 'No images available';
@@ -335,13 +339,22 @@ export async function POST(req: NextRequest) {
     let resolvedImageMapping: ImageMapping | undefined;
 
     if (pdfImages && pdfImages.length > 0) {
+      assertClassroomImageInput(imageInputModel, pdfImages);
+      if (pdfImages.length > MAX_VISION_IMAGES) throw new Error(
+        'SOURCE_CONTEXT_LIMIT: select fewer complete source pages or slides. No image was omitted.');
+      const completeSourceImages = await resolveVisionImagesForPrompt(pdfImages.map(image => ({
+        id: image.id, src: imageMapping?.[image.id] || image.src, width: image.width, height: image.height,
+      })), req.headers);
+      if (completeSourceImages.length !== pdfImages.length) throw new Error(
+        'SOURCE_IMAGE_UNAVAILABLE: original source pixels are unavailable. Reopen the material; no image was omitted.');
+      imageMapping = Object.fromEntries(completeSourceImages.map(image => [image.id, image.src]));
       if (hasVision && imageMapping) {
         // Vision mode: split into vision images (first N) and text-only (rest)
         const sortedImages = sortDocumentImagesForVision(pdfImages);
-        const allWithSrc = sortedImages.filter((img) => imageMapping[img.id]);
+        const allWithSrc = sortedImages.filter((img) => imageMapping![img.id]);
         const visionSlice = allWithSrc.slice(0, MAX_VISION_IMAGES);
         const textOnlySlice = allWithSrc.slice(MAX_VISION_IMAGES);
-        const noSrcImages = sortedImages.filter((img) => !imageMapping[img.id]);
+        const noSrcImages = sortedImages.filter((img) => !imageMapping![img.id]);
 
         // Server-backed transport: `imageMapping` values are allocated asset
         // ids, so the vision srcs reach here as ids. Resolve them to the same
@@ -352,7 +365,7 @@ export async function POST(req: NextRequest) {
         const resolvedVisionImages = await resolveVisionImagesForPrompt(
           visionSlice.map((img) => ({
             id: img.id,
-            src: imageMapping[img.id],
+            src: imageMapping![img.id],
             ...(img.width !== undefined ? { width: img.width } : {}),
             ...(img.height !== undefined ? { height: img.height } : {}),
           })),
@@ -452,11 +465,12 @@ export async function POST(req: NextRequest) {
       return apiError('INTERNAL_ERROR', 500, 'Prompt template not found');
     }
     const sourceContract = createSourceContract(pdfText, pdfImages ?? [],
-      modelInfo?.contextWindow ?? 16384);
+      (pdfText?.trim() || pdfImages?.length) ? classroomContextTokens(imageInputModel) : undefined);
     if (sourceContract) {
       prompts.user += sourcePrompt(sourceContract);
       assertPromptFits(prompts.system, prompts.user, visionImages?.length ?? 0, sourceContract.contextTokens);
     }
+    const maxOutputTokens = classroomOutputTokens(imageInputModel, prompts.system, prompts.user, visionImages);
 
     log.info(
       `Generating outlines: "${requirements.requirement.substring(0, 50)}" [model=${modelString}]`,
@@ -490,7 +504,8 @@ export async function POST(req: NextRequest) {
         // Hard ceiling on the accumulated stream buffer. Legitimate outline
         // JSON is small (tens of KB); anything past this is a runaway/degenerate
         // generation and must not be allowed to grow the heap unbounded.
-        const MAX_OUTLINE_STREAM_BYTES = 512 * 1024;
+        const MAX_OUTLINE_STREAM_BYTES = Math.min(32 * 1024 * 1024,
+          Math.max(512 * 1024, (maxOutputTokens ?? 32768) * 16));
 
         try {
           startHeartbeat();
@@ -502,10 +517,10 @@ export async function POST(req: NextRequest) {
                 messages: [
                   {
                     role: 'user' as const,
-                    content: buildVisionUserContent(prompts.user, visionImages),
+                    content: classroomUserContent(imageInputModel, prompts.system, prompts.user, visionImages),
                   },
                 ],
-                maxOutputTokens: modelInfo?.outputWindow,
+                maxOutputTokens,
                 // Tear down the upstream LLM request when the client disconnects,
                 // instead of letting it run to completion for a dead connection.
                 abortSignal: req.signal,
@@ -514,7 +529,7 @@ export async function POST(req: NextRequest) {
                 model: languageModel,
                 system: prompts.system,
                 prompt: prompts.user,
-                maxOutputTokens: modelInfo?.outputWindow,
+                maxOutputTokens,
                 abortSignal: req.signal,
               };
 
@@ -531,11 +546,12 @@ export async function POST(req: NextRequest) {
               languageDirective = null;
               courseTitle = null;
               const usedOutlineIds = new Set<string>();
-              const textStream = streamLLM(
+              const generationStream = streamLLM(
                 streamParams,
                 'scene-outlines-stream',
                 thinkingConfig,
-              ).textStream;
+              );
+              const textStream = generationStream.textStream;
 
               for await (const chunk of textStream) {
                 // Stop doing work the moment the client goes away — otherwise
@@ -548,10 +564,7 @@ export async function POST(req: NextRequest) {
                 fullText += chunk;
 
                 if (fullText.length > MAX_OUTLINE_STREAM_BYTES) {
-                  log.warn(
-                    `Outline stream exceeded ${MAX_OUTLINE_STREAM_BYTES} bytes (len=${fullText.length}); stopping read and finalizing with ${parsedOutlines.length} outline(s)`,
-                  );
-                  break;
+                  throw new Error('SOURCE_CONTEXT_LIMIT: the complete outline exceeded the response assembly memory limit. Select fewer complete chapters or pages; no partial outline was accepted.');
                 }
 
                 // Try to extract language directive early
@@ -606,6 +619,8 @@ export async function POST(req: NextRequest) {
                 }
               }
 
+              assertClassroomOutputComplete(await generationStream.finishReason);
+
               // Validate: got outlines?
               if (parsedOutlines.length > 0) {
                 if (!courseTitle) {
@@ -644,6 +659,8 @@ export async function POST(req: NextRequest) {
                 stopHeartbeat();
                 return;
               }
+              if (error instanceof ClassroomOutputLimitError || (error instanceof Error
+                  && error.message.startsWith('SOURCE_CONTEXT_LIMIT:'))) throw error;
               lastError = error instanceof Error ? error.message : String(error);
               log.warn(
                 `Outlines stream error detail (attempt ${attempt}/${MAX_STREAM_RETRIES + 1}): ${lastError}`,
@@ -689,9 +706,10 @@ export async function POST(req: NextRequest) {
             controller.enqueue(encoder.encode(`data: ${errorEvent}\n\n`));
           }
         } catch (error) {
+          const failure = await llmApiError(error).json();
           const errorEvent = JSON.stringify({
             type: 'error',
-            error: error instanceof Error ? error.message : String(error),
+            error: failure.error, errorCode: failure.errorCode,
           });
           controller.enqueue(encoder.encode(`data: ${errorEvent}\n\n`));
         } finally {
@@ -718,6 +736,6 @@ export async function POST(req: NextRequest) {
       `Outline streaming failed [requirement="${requirementSnippet ?? 'unknown'}...", model=${resolvedModelString ?? 'unknown'}]:`,
       error,
     );
-    return apiError('INTERNAL_ERROR', 500, error instanceof Error ? error.message : String(error));
+    return llmApiError(error);
   }
 }

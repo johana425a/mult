@@ -4,7 +4,6 @@ import resourcesToBackend from 'i18next-resources-to-backend';
 import { supportedLocales } from './locales';
 import { defaultLocale } from './types';
 import { workbenchResourceFor } from './workbench';
-import englishResource from './locales/en-US.json';
 
 type TranslationResource = Record<string, unknown>;
 
@@ -14,7 +13,7 @@ function isRecord(value: unknown): value is TranslationResource {
 
 /**
  * The workbench chat surface's product copy lives in `lib/i18n/workbench.ts`
- * (a hook-free English map, see `workbenchResourceFor`) rather than in the
+ * (a hook-free en/zh map, see `workbenchResourceFor`) rather than in the
  * per-locale JSON files. This loader merges it under the `workbench.*` namespace
  * so the React `t` and the hook-free `WorkbenchTranslator` resolve the same
  * keys: `t('workbench.chat.jumpToBottom')` works everywhere `t` works.
@@ -31,7 +30,8 @@ i18n
   .use(initReactI18next)
   .use(
     resourcesToBackend(async (language: string) => {
-      return deepMerge(englishResource, { workbench: workbenchResourceFor(language) });
+      const localeModule = await import(`./locales/${language}.json`);
+      return deepMerge(localeModule.default, { workbench: workbenchResourceFor(language) });
     }),
   )
   .init({

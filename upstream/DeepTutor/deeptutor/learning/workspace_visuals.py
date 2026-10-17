@@ -26,22 +26,23 @@ class WorkspaceVisualError(ValueError):
 
 def assert_visual_model(*, model: str | None = None, binding: str | None = None) -> None:
     from deeptutor.services.llm.config import get_llm_config
-    from deeptutor.services.llm.capabilities import supports_vision
+    from integration.model_image_verification import require_verified_image_config, image_unverified_message
 
     config = get_llm_config()
     selected = model or config.model
-    declared = (config.capabilities or {}).get("vision") if selected == config.model else None
-    actual = (config.display_model or selected) if selected == config.model else selected
-    if declared is not True and (declared is False or not supports_vision(binding or config.binding, actual)):
-        raise WorkspaceVisualError(
-            "The selected material includes scans or illustrations, but image support has not been verified for this model. Select a verified image-capable model and retry; images have not been dropped."
-        )
+    if selected not in {config.model, config.display_model} or binding and binding.replace('-', '_') != config.binding.replace('-', '_'):
+        raise WorkspaceVisualError("The source image model differs from the frozen selected model; no provider was substituted.")
+    try:
+        require_verified_image_config(config)
+    except ValueError as exc:
+        raise WorkspaceVisualError(image_unverified_message()) from exc
 
 
 @dataclass
 class VisualEvidence:
     content: list[dict[str, Any]]
     manifest: list[dict[str, Any]]
+    formula_review: dict[str, Any] | None = None
 
     def messages(self, system_prompt: str, prompt: str) -> list[dict[str, Any]]:
         return [
@@ -141,4 +142,8 @@ async def collect_workspace_visuals(
             {"type": "text", "text": "Source image " + json.dumps(evidence, ensure_ascii=False)},
             {"type": "image_url", "image_url": {"url": "data:image/png;base64," + encoded}},
         ])
-    return VisualEvidence(content, manifest)
+    from integration.native_formula_review import formula_review_scope, review_native_visuals
+    with formula_review_scope():
+        content, review = await review_native_visuals(content, manifest,
+            source_text='\n\n'.join(source.excerpt for source in sources))
+    return VisualEvidence(content, manifest, review)

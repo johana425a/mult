@@ -177,6 +177,11 @@ def set_scoped_llm_config(config: LLMConfig | None) -> Token[LLMConfig | None]:
     return _SCOPED_LLM_CONFIG.set(config)
 
 
+def get_scoped_llm_config() -> LLMConfig | None:
+    """Read the already frozen request config without resolving a new default."""
+    return _SCOPED_LLM_CONFIG.get()
+
+
 def reset_scoped_llm_config(token: Token[LLMConfig | None]) -> None:
     """Reset a scoped LLM config token returned by ``set_scoped_llm_config``."""
     _SCOPED_LLM_CONFIG.reset(token)

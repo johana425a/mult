@@ -205,7 +205,12 @@ class LLMClient:
 
     def supports_multimodal_images(self) -> bool:
         """Return whether the configured LLM can accept image input."""
-        return supports_vision(getattr(self.config, "binding", "openai"), self.config.model)
+        from integration.model_image_verification import require_verified_image_config
+        try:
+            require_verified_image_config(self.config)
+            return True
+        except ValueError:
+            return False
 
 
 _client: LLMClient | None = None

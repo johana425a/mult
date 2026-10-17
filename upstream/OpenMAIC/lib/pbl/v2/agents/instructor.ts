@@ -533,7 +533,7 @@ export function buildInstructorRuntimeBrief(
     "- The learner's earlier submissions on other tasks/stages, and how each was assessed, are provided above — treat them as known. If the learner refers to something they submitted earlier (a pasted doc, an uploaded file, work from a previous stage), rely on it; never tell them you can only see the current task's submission.",
     '- If the active task has an unevaluated submission, help the learner get it evaluated (or respond to its evaluation) rather than treating the task as finished.',
     '- When the platform completes the last microtask of a milestone it shows a stage-complete card with a Continue button; it does not open the next milestone until the learner clicks it. After that Continue, the platform activates the next milestone and first microtask; open it with a SETUP message grounded in the new milestone.',
-    "- On EVERY learner message, as part of deciding your reply, judge by MEANING — not by keywords or fixed phrasing — whether the learner genuinely wants to change the teaching difficulty OR is telling you their own level. Learners express this in countless ways across languages; these are only illustrative, NOT a match list: 'switch to intermediate' / 'too difficult; explain more slowly' / \"I'm new to all this\" / 'can we go deeper?'. If their intent is to change difficulty, call adjust_difficulty with the matching target (beginner/intermediate/advanced for an absolute level; easier/harder for a relative nudge) in the same turn, AND briefly acknowledge the change in your reply (the learner asked, so it belongs in the answer). This is the ONLY way difficulty changes from a learner request — there is no separate detector. Use judgement: do NOT call it for an incidental level word, a question about the content ('is this an advanced topic?'), or anything that is not a genuine request to change difficulty.",
+    "- On EVERY learner message, as part of deciding your reply, judge by MEANING — not by keywords or fixed phrasing — whether the learner genuinely wants to change the teaching difficulty OR is telling you their own level. Learners express this in countless ways across languages; these are only illustrative, NOT a match list: '改成中级' / '太难了讲慢点' / 'もっと簡単に' / 'сделай проще' / \"I'm new to all this\" / 'can we go deeper?'. If their intent is to change difficulty, call adjust_difficulty with the matching target (beginner/intermediate/advanced for an absolute level; easier/harder for a relative nudge) in the same turn, AND briefly acknowledge the change in your reply (the learner asked, so it belongs in the answer). This is the ONLY way difficulty changes from a learner request — there is no separate detector. Use judgement: do NOT call it for an incidental level word, a question about the content ('is this an advanced topic?'), or anything that is not a genuine request to change difficulty.",
   ]
     .filter(Boolean)
     .join('\n');
@@ -598,13 +598,43 @@ export function buildFirstTaskWorkspaceOrientationBlock(args: {
   ].join('\n');
 }
 
-/** Platform opener uses English instructions while respecting the project language. */
+/** Synthetic platform turn-opener for greeting / setup phases.
+ *  Localised so the LLM doesn't mistake an English imperative for a
+ *  request to respond in English. Falls back to English for any
+ *  locale we haven't translated yet. */
 function syntheticPlatformOpener(phase: 'greeting' | 'setup', language: string): string {
-  const languageDirective = `Respond in the project language: ${language || 'en-US'}.`;
+  const lang = language || 'en-US';
   if (phase === 'greeting') {
-    return `[platform] Learner just opened the project for the first time. Welcome them in your instructor persona and introduce the first microtask naturally. ${languageDirective}`;
+    const m: Record<string, string> = {
+      'zh-CN':
+        '【平台】学习者刚刚进入项目。请用你（导师人设）的口吻欢迎他们，并自然引入第一个微任务。',
+      'zh-TW':
+        '【平台】學習者剛剛進入專案。請以你（導師人設）的口吻歡迎他們，並自然引入第一個微任務。',
+      'ja-JP':
+        '【プラットフォーム】学習者がプロジェクトに入りました。あなた（講師）として歓迎し、最初のマイクロタスクへ自然に案内してください。',
+      'ru-RU':
+        '[Платформа] Учащийся только что открыл проект. Поприветствуйте его в роли наставника и плавно введите в первую микрозадачу.',
+      'ar-SA':
+        '[المنصة] دخل المتعلم المشروع للتو. رحب به بدور المعلم وقدم له المهمة الصغيرة الأولى بطريقة طبيعية.',
+      'en-US': '[platform] Learner just opened the project for the first time. Greet them now.',
+    };
+    return m[lang] ?? m['en-US'];
   }
-  return `[platform] Learner just activated this microtask. Open only the new active microtask: if this is the first task of a new milestone, introduce the milestone goal and why it matters in 1-2 short sentences. Do not recap the previous task; state the concrete next action. ${languageDirective}`;
+  const m: Record<string, string> = {
+    'zh-CN':
+      '【平台】学习者刚刚激活了这个微任务。请只开启当前这个新微任务：如果这是新阶段的第一个任务，先用一两句话介绍整个新阶段的目标和意义；不要再总结上一个任务；然后明确说明现在要做的具体动作。',
+    'zh-TW':
+      '【平台】學習者剛剛啟動了這個微任務。請只開啟目前這個新微任務：如果這是新階段的第一個任務，先用一兩句話介紹整個新階段的目標和意義；不要再總結上一個任務；然後明確說明現在要做的具體動作。',
+    'ja-JP':
+      '【プラットフォーム】学習者がこのマイクロタスクをアクティブにしました。現在の新しいマイクロタスクだけを開いてください。これが新しいマイルストーンの最初のタスクなら、まず新しい段階全体の目標と意味を1〜2文で紹介してください。前のタスクを再評価せず、その後で今やる具体的な行動を伝えてください。',
+    'ru-RU':
+      '[Платформа] Учащийся активировал эту микрозадачу. Откройте только новую активную микрозадачу: если это первая задача нового этапа, сначала в 1-2 коротких предложениях объясните цель и смысл всего нового этапа; не подводите итог предыдущей задаче, затем назовите конкретное следующее действие.',
+    'ar-SA':
+      '[المنصة] قام المتعلم بتفعيل هذه المهمة الصغيرة. افتح المهمة النشطة الجديدة فقط: إذا كانت هذه أول مهمة في مرحلة جديدة، فعرّف هدف المرحلة الجديدة ومعناها في جملة أو جملتين؛ لا تلخص المهمة السابقة مرة أخرى، ثم اذكر الإجراء المحدد الآن.',
+    'en-US':
+      '[platform] Learner just activated this microtask. Open only the new active microtask: if this is the first task of a new milestone, first introduce the whole new milestone goal and why it matters in 1-2 short sentences; do not recap the previous task, then state the concrete next action.',
+  };
+  return m[lang] ?? m['en-US'];
 }
 
 /** Optional instructions injected ONLY on the last microtask of a
@@ -625,7 +655,7 @@ function buildStageSynthesisBlock(milestone: PBLMilestone): string {
     'Frame it explicitly as an optional bonus challenge / extra reflection, not as a requirement for completing the task or moving on.',
     '',
     'Your job this turn:',
-    '1. If it fits the conversation and the learner is not asking for something else, ask exactly ONE optional bonus question — e.g. "Optional challenge: looking back at this stage, why does this concept matter, and what problem does it solve?". Ask it once, then stop and wait. Do not ask a second question, and do not answer it for them.',
+    '1. If it fits the conversation and the learner is not asking for something else, ask exactly ONE optional bonus question — e.g. "加分小挑战：回头看整个阶段，这个核心点为什么重要 / 它解决了什么问题？". Ask it once, then stop and wait. Do not ask a second question, and do not answer it for them.',
     '2. If the learner has ALREADY articulated this whole-stage concept on their own this session, do not make them repeat it — simply acknowledge it.',
     '3. If the platform has already said the task is complete or the learner is ready to move on, do not imply this challenge blocks progress.',
     '',
@@ -668,14 +698,14 @@ export function buildScenarioAwarenessBlock(args: {
       const situation = trimmedPBLText(c.situation);
       const personaShort = persona.length > 140 ? persona.slice(0, 140) + '…' : persona;
       const situationShort = situation.length > 160 ? situation.slice(0, 160) + '…' : situation;
-      const parts = [personaShort, situationShort ? `Current situation: ${situationShort}` : '']
+      const parts = [personaShort, situationShort ? `当下处境：${situationShort}` : '']
         .filter(Boolean)
-        .join('; ');
+        .join('；');
       return `**${c.name}**${parts ? ` — ${parts}` : ''}`;
     })
     .join('\n  · ');
-  const names = characters.map((c) => c.name).join(', ');
-  const roleplayTitles = roleplayMilestones.map((m) => `"${m.title}"`).join(', ');
+  const names = characters.map((c) => c.name).join('、');
+  const roleplayTitles = roleplayMilestones.map((m) => `「${m.title}」`).join('、');
   const stage = args.milestone.scenarioStage;
 
   const lines: string[] = [
@@ -719,13 +749,13 @@ export function buildScenarioAwarenessBlock(args: {
         `5. The character(s) they will interact with: name + who they are + what the learner will do with them (here: ${names}).`,
         rulesPart,
         '7. A brief, light piece of guidance or encouragement as a lead-in (warm, not preachy). It is a one-line morale lead-in ONLY — NOT a warm-up exercise, NOT a practice question, NOT a task.',
-        '8. A closing line: ask them to read it over, tell them they can ask you anything that is unclear, and that when they are ready they should click the button under the Prep stage in the LEFT sidebar to enter the scene. Refer to that button only by what it DOES (e.g. “the button to enter the scene under Prep on the left”); do NOT invent or quote a specific button label like “Ready to start” / “Start” — you do not know its exact wording, so describing its action avoids naming it wrong.',
+        '8. A closing line: ask them to read it over, tell them they can ask you anything that is unclear, and that when they are ready they should click the button under the Prep stage in the LEFT sidebar to enter the scene. Refer to that button only by what it DOES (e.g. “左侧准备阶段下方进入场景的按钮” / “the button to enter the scene”); do NOT invent or quote a specific button label like “准备开始” / “开始” — you do not know its exact wording, so describing its action avoids naming it wrong.',
         // OVERRIDE the general teaching prompt for this prep briefing: the base
         // rules + SETUP phase block push the Instructor to elicit, to "warm up"
         // with a small question, or to hand off a first action. NONE of that
         // belongs in prep — the learner's only job here is to READ and get
         // ready; the real practice happens inside the scene afterwards.
-        'CRITICAL — prep gives the learner NOTHING to do except read and get ready. Do NOT set any task, warm-up, mini-exercise, or quiz. Do NOT ask the learner a question that expects an answer here (no "Answer this warm-up question…", no "What do you think?", no checking their understanding). The ONLY thing you invite is for THEM to ask YOU if something is unclear (part 8). End on part 8 — do not append anything after it.',
+        'CRITICAL — prep gives the learner NOTHING to do except read and get ready. Do NOT set any task, warm-up, mini-exercise, or quiz. Do NOT ask the learner a question that expects an answer here (no "先热个身，回答一下…", no "你觉得…?", no checking their understanding). The ONLY thing you invite is for THEM to ask YOU if something is unclear (part 8). End on part 8 — do not append anything after it.',
         'Pull all concrete content from the scenario data above (setting / each character’s situation / rules / learner role / goal). Do NOT invent facts beyond it. Do NOT impersonate the character or start the role-play here.',
       );
     } else {
@@ -1002,13 +1032,13 @@ export function cleanSetupFollowupText(text: string): { text: string; changed: b
   const body = nextText.slice(leadingWhitespace.length);
   const firstWindow = body.slice(0, 220);
   const transitionMatch =
-    /\b(now(?: we)?(?: need to| will| can| begin| continue)?|next(?: we)?(?: need to| will| can| begin| continue)?|this step|the next step)\b/iu.exec(
+    /(现在(?:我们)?(?:要|来|开始|把|继续)|接下来(?:我们)?(?:要|来|开始|把|继续)|这一步(?:的意义|我们)?|下一步(?:我们)?(?:要|来|开始|把|继续))/u.exec(
       firstWindow,
     );
   if (transitionMatch && transitionMatch.index > 0) {
     const prefix = firstWindow.slice(0, transitionMatch.index);
     if (
-      /\b(good|great|nice|correct|excellent|close|just now|already|previous|completed|done|ready|satisfied)\b/iu.test(
+      /(很好|很棒|不错|可以|对|太好了|接近|刚才|刚刚|已经|上一|上个|上一步|上一个|前面|完成|做完|到位|满足|正确)/u.test(
         prefix,
       )
     ) {
@@ -1019,7 +1049,7 @@ export function cleanSetupFollowupText(text: string): { text: string; changed: b
   }
 
   const withoutVagueLeadIn = nextText.replace(
-    /(^|[\r\n]+)[^\S\r\n]*follow(?: this| the above| the previous)? micro-plan[:;,]?[^\S\r\n]*/giu,
+    /(^|[\r\n]+)[^\S\r\n]*按(?:这个|上面|刚才的)?小计划来[：:，,]?[^\S\r\n]*/gu,
     '$1',
   );
   if (withoutVagueLeadIn !== nextText) {
@@ -1037,7 +1067,7 @@ export function shouldHoldSetupFollowupPreview(
   if (cleaned.changed) return false;
   if (rawText.length >= 220) return false;
   const firstLine = rawText.replace(/\r\n/g, '\n').split('\n')[0] ?? rawText;
-  return /\b(good|great|nice|correct|excellent|close|just now|already|previous|completed|done|ready|satisfied)\b/iu.test(
+  return /(很好|很棒|不错|可以|对|太好了|接近|刚才|刚刚|已经|上一|上个|上一步|上一个|前面|完成|做完|到位|满足|正确)/u.test(
     firstLine,
   );
 }
@@ -1047,14 +1077,14 @@ export function shouldHoldSetupFollowupPreview(
  * message that should end on a statement.
  *
  * Why: old task-review text can occasionally end with a closing check like
- * "…right? / Why?". When that text is used as a final acknowledgement,
+ * "…对吧？/ 为什么呢？". When that text is used as a final acknowledgement,
  * the learner has no clear turn to answer it. This helper keeps the review
  * sentence and removes the dangling closing question.
  *
  * Conservative by design:
  *   - only acts when the message ends on a question mark,
  *   - only removes the trailing question *sentence(s)* (or an explicit
- *     closing lead-in like "One last check…"), never the preceding
+ *     closing lead-in like "最后确认一下…"), never the preceding
  *     review / praise,
  *   - never blanks the message: if the whole message is a single
  *     question with no preceding sentence, it is left untouched.
@@ -1083,14 +1113,14 @@ function lastSentenceBoundaryIndex(s: string): number {
 
 /** Conservative trailing-glue trimmer for the rare case where a closing
  *  lead-in is comma-joined with no preceding sentence boundary AND a
- *  connector word ("…, so one last check…?") sits before it. We strip
+ *  connector word ("…，那我们最后确认…？") sits before it. We strip
  *  trailing punctuation + a SMALL set of clause-glue connectors that are
  *  very unlikely to be legitimate sentence-final content. Common
- *  single-char words (short common discourse words) are deliberately excluded to
+ *  single-char words (好/来/那/现在/再) are deliberately excluded to
  *  avoid eating real content. Loop-stable, bounded. */
 function trimTrailingClauseGlue(s: string): string {
   const PUNCT = /[\s，,、；;：:—-]+$/u;
-  const CONNECTORS = /(?:\bso|\bthen|\band|\bwe|\bnext)$/iu;
+  const CONNECTORS = /(咱们|那我们|我们|那么|接下来|然后|这样)$/u;
   let cur = s.trimEnd();
   for (let i = 0; i < 4; i++) {
     const next = cur.replace(PUNCT, '').replace(CONNECTORS, '');
@@ -1109,15 +1139,15 @@ export function stripOrphanTrailingQuestion(text: string): { text: string; chang
   // Known closing reverse-question lead-ins. When one sits in the tail
   // and what follows is a question, cut from before it even if it is
   // only comma-separated from the preceding praise (the common
-  // "Great, one last check…?" shape that a sentence-boundary scan misses).
+  // "很好，最后确认一下…？" shape that a sentence-boundary scan misses).
   const CLOSING_LEADIN =
-    /(last(?:,)? (?:check|question)|one (?:last|final) (?:check|question)|quick check|just to (?:confirm|check)|before we move on)/iu;
+    /(最后(?:再)?(?:确认|问|检查|想|看)(?:一下|一句|一个小?问题)?|再(?:确认|问)(?:一下|一句)?|顺手再?确认(?:一下)?|顺便(?:再)?(?:问|确认)(?:一下)?|快速确认一下|last(?:,)? (?:check|question)|one (?:last|final) (?:check|question)|quick check|just to (?:confirm|check)|before we move on)/iu;
   let working = text;
   let changed = false;
 
   // Strategy 1: explicit closing lead-in in the tail. Prefer cutting at
   // the sentence boundary BEFORE the lead-in (removes the whole sentence
-  // that contains it — so no dangling "…we"); fall back to a
+  // that contains it — so no dangling "…我们"); fall back to a
   // conservative glue trim only when there is no preceding boundary.
   {
     const trimmed = working.trimEnd();
@@ -1169,9 +1199,9 @@ export function stripPrematureNextTaskSetup(
     .filter((idx) => idx >= 0);
   const titleIndex = titleIndexes.length > 0 ? Math.min(...titleIndexes) : -1;
   const looseTransitionRe =
-    /(Now,?|Next,?|Next stage|Next task|Next milestone|Continue button|Click.*?Continue|Let's (?:move|start|begin)|Let us (?:move|start|begin)|Move on to|We (?:can |will |'ll )?now)/gi;
+    /(现在(?:我们)?(?:可以)?(?:进入|开始|来到|做)?|接下来(?:我们)?|下一步|下一个任务|下一阶段|下个阶段|下一个阶段|下一里程碑|继续按钮|Continue 按钮|点击右侧|点击.*?Continue|进入第[一二三四五六七八九十\d]+步|开始(?:下一个|下一项|下一步)|Now,?|Next,?|Next stage|Continue button|Let's (?:move|start|begin)|Let us (?:move|start|begin)|Move on to|We (?:can |will |'ll )?now)/gi;
   const strongTransitionRe =
-    /(Now,? (?:let's|we can|we will|we'll|move|start|begin)|Next,? (?:let's|we can|we will|we'll|move|start|begin)|Next stage|Next task|Next milestone|Continue button|Click.*?Continue|Let's (?:move|start|begin)|Let us (?:move|start|begin)|Move on to|We (?:can |will |'ll )now)/gi;
+    /(现在(?:我们)?(?:可以)?(?:进入|开始|来到|做)|接下来(?:我们)?(?:进入|开始|做|来)|下一步(?:我们)?(?:进入|开始|来|要|做)|下一个任务|下一阶段|下个阶段|下一个阶段|下一里程碑|继续按钮|Continue 按钮|点击右侧|点击.*?Continue|进入第[一二三四五六七八九十\d]+步|开始(?:下一个|下一项|下一步)|Now,? (?:let's|we can|we will|we'll|move|start|begin)|Next,? (?:let's|we can|we will|we'll|move|start|begin)|Next stage|Continue button|Let's (?:move|start|begin)|Let us (?:move|start|begin)|Move on to|We (?:can |will |'ll )now)/gi;
 
   let transitionStart = -1;
   if (titleIndex >= 0) {
@@ -1226,8 +1256,23 @@ export function stripPrematureNextTaskSetup(
  * named here — this only assures the learner their request was heard, so a
  * tool-only turn never leaves them with a silent, response-less screen.
  */
-function difficultyAdjustAck(_language: string | undefined): string {
-  return "Got it — I'll adjust how I explain things.";
+function difficultyAdjustAck(language: string | undefined): string {
+  switch (language) {
+    case 'zh-CN':
+      return '好的，我来调整一下讲解的方式。';
+    case 'zh-TW':
+      return '好的，我來調整一下講解的方式。';
+    case 'ja-JP':
+      return 'わかりました。説明の仕方を調整しますね。';
+    case 'ru-RU':
+      return 'Хорошо, я скорректирую подачу материала.';
+    case 'pt-BR':
+      return 'Certo, vou ajustar a forma de explicar.';
+    case 'ar-SA':
+      return 'حسنًا، سأعدّل طريقة الشرح.';
+    default:
+      return "Got it — I'll adjust how I explain things.";
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1426,7 +1471,7 @@ export async function* runInstructorTurn(
 
     adjust_difficulty: tool({
       description:
-        "Apply the learner's EXPLICIT request to change the teaching difficulty, or their statement of their own level — in ANY language (e.g. “switch to intermediate”, “make it simpler”, “make it harder”, “I'm a beginner”). Use beginner/intermediate/advanced when they name a level or describe themselves; use easier/harder for a relative nudge. This takes effect immediately and overrides the platform's adaptive estimate (the learner's own word wins). Do NOT call it for an incidental mention or a question about the content (e.g. “is this an advanced topic?”) — only when the learner is actually asking to change difficulty.",
+        "Apply the learner's EXPLICIT request to change the teaching difficulty, or their statement of their own level — in ANY language (e.g. 「改成中级」, 「もっと簡単に」, «сделай сложнее», “deixa mais difícil”, “I'm a beginner”). Use beginner/intermediate/advanced when they name a level or describe themselves; use easier/harder for a relative nudge. This takes effect immediately and overrides the platform's adaptive estimate (the learner's own word wins). Do NOT call it for an incidental mention or a question about the content (e.g. “is this an advanced topic?”) — only when the learner is actually asking to change difficulty.",
       inputSchema: AdjustDifficultyArgs,
       execute: async ({ target }) => {
         const result = applyProficiencyDirective(project, proficiencyDirectiveFromTarget(target));
@@ -1616,7 +1661,7 @@ export async function* runInstructorTurn(
     yield {
       type: 'error',
       code: 'EMPTY_LLM_OUTPUT',
-      message: 'The instructor produced no new content this turn. Try again shortly or describe your question more specifically.',
+      message: '导师本轮没有产生新的内容。请稍后再试，或者把你的问题再说得具体一些。',
     };
   }
 

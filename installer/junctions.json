@@ -1,41 +1,5 @@
 [
   {
-    "path": "runtime/openmaic-standalone/.next/node_modules/@aws-sdk/client-s3-045083c6e46a527a",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/@aws-sdk/client-s3"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/@aws-sdk/s3-request-presigner-6f66ff891c0efc43",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+s3-request-presigner@3.1107.0/node_modules/@aws-sdk/s3-request-presigner"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/@earendil-works/pi-agent-core-90a2a725fb565df6",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-agent-co_a36de0a8d15ca8c8a26221e7d704a3ad/node_modules/@earendil-works/pi-agent-core"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/@earendil-works/pi-ai-740e4bc779e98ad1",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/@earendil-works/pi-ai"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/canvas-5523906d6a581b65",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/canvas@3.2.3/node_modules/canvas"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/pg-4c0d8067d674414d",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pg@8.22.0/node_modules/pg"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/postcss-ecb63f997b8914fb",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/postcss@8.5.15/node_modules/postcss"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/sharp-8e976bbb65e36e44",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/sharp@0.35.4_@types+node@20.19.37/node_modules/sharp"
-  },
-  {
-    "path": "runtime/openmaic-standalone/.next/node_modules/shiki-2963fa3a20578463",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/shiki@3.23.0/node_modules/shiki"
-  },
-  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+checksums@3.1000.26/node_modules/@aws-sdk/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/core"
   },

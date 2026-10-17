@@ -348,9 +348,15 @@ class CodexOAuthClient:
                     rejection = response.json()
                 except ValueError:
                     rejection = None
-                if isinstance(rejection, dict) and rejection.get("error") in {
+                rejection_code = rejection.get("error") if isinstance(rejection, dict) else None
+                if isinstance(rejection_code, dict):
+                    rejection_code = rejection_code.get("code") or rejection_code.get("type")
+                if isinstance(rejection_code, str) and rejection_code in {
                     "invalid_grant",
                     "invalid_token",
+                    "refresh_token_reused",
+                    "refresh_token_expired",
+                    "refresh_token_invalidated",
                 }:
                     raise CodexAuthError(
                         "token_refresh_rejected",

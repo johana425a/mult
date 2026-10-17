@@ -67,7 +67,7 @@ export const WEB_SEARCH_PROVIDERS: Record<WebSearchProviderId, WebSearchProvider
     id: 'doubao',
     name: 'Doubao',
     requiresApiKey: true,
-    // Doubao Search Custom: the Agent Plan key authenticates directly here
+    // 豆包搜索 Custom 版: the Agent Plan key authenticates directly here
     // (verified). The MCP/Skill path wraps this same REST endpoint.
     defaultBaseUrl: 'https://open.feedcoopapi.com',
     endpointPath: '/search_api/web_search',

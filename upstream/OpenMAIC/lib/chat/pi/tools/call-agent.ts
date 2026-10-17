@@ -917,6 +917,7 @@ export function buildCallAgentTool(opts: {
       });
 
       let childErrored = false;
+      let childError = '';
       try {
         await child.prompt(
           buildChildTurnPrompt(params.instruction, agent.role, {
@@ -925,12 +926,14 @@ export function buildCallAgentTool(opts: {
           }),
         );
         await child.waitForIdle();
+        if (child.state.errorMessage) throw new Error(child.state.errorMessage);
       } catch (error) {
         // Propagate genuine aborts; otherwise treat a failed child run as an empty turn
         // so it still records via onAgentDone below (counts toward the turn/retry budget)
         // instead of throwing out of execute and skipping the counter.
         if (opts.abortSignal.aborted || signal?.aborted) throw error;
         childErrored = true;
+        childError = String(error instanceof Error ? error.message : error).slice(0, 1600);
       } finally {
         unsubscribe();
         opts.abortSignal.removeEventListener('abort', abortFromRequest);
@@ -989,7 +992,7 @@ export function buildCallAgentTool(opts: {
         content: [
           {
             type: 'text',
-            text: `${agent.name}: ${finalText || '(no visible response)'}`,
+            text: `${agent.name}: ${childError ? 'Execution failed: ' + childError : finalText || '(no visible response)'}`,
           },
         ],
         details: {
@@ -997,6 +1000,7 @@ export function buildCallAgentTool(opts: {
           agentName: agent.name,
           text: finalText,
           actionWarnings,
+          ...(childErrored ? {error:{code:'classroom_agent_failed',phase:'execution',message:childError,retryable:false}} : {}),
           ...(sceneEvidence ? { sceneEvidence: sceneEvidence.metadata } : {}),
           ...(elementReferenceEvidence?.metadata
             ? {

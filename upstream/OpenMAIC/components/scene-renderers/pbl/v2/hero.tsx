@@ -6,11 +6,11 @@
  * The Hero is the first thing the learner sees when they flip to the
  * PBL scene. It's deliberately light on information — title, short
  * description, the skills they will learn, the rough shape (stage /
- * task counts), and a single big "Start project" call to action. Detail
+ * task counts), and a single big "开始项目" call to action. Detail
  * (microtask list, hints, scripts) lives in the Workspace; opening
  * with all of that on screen would just intimidate.
  *
- * Clicking Start project enters the Workspace immediately. The chat panel
+ * Clicking 开始项目 enters the Workspace immediately. The chat panel
  * then fires the GREETING phase of the Instructor (`/api/pbl/v2/open-task`)
  * so the opener streams in the place where the learner will read it.
  */
@@ -168,7 +168,7 @@ export function PBLV2Hero({
   // `learningObjective` sentence for legacy projects packaged before
   // `gains` existed; hide entirely when neither is set. We never
   // back-fill from task titles — that produced unreadable fragments
-  // ("Feasible architecture", "Clear scenario") that aren't capabilities.
+  // ("架构可行", "场景清晰") that aren't capabilities.
   const plannerGains = (project.gains ?? []).map(trimmedPBLText).filter(Boolean);
   const learningObjective = trimmedPBLText(project.learningObjective);
   const gains =
@@ -482,7 +482,7 @@ function PersonCard({
 
 /** SCENARIO ONLY. Replaces the "stage / task" count tiles with a meaningful
  *  shape of the run: the fixed three acts (prep → roleplay → wrapup). When the
- *  middle has more than one roleplay act we show the count (e.g. "Simulation ×2");
+ *  middle has more than one roleplay act we show the count (e.g. "模拟 ×2");
  *  beats stay hidden. Shares the meta-card footprint so the row aligns. */
 function ScenarioFlowCard({
   label,

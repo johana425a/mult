@@ -1,0 +1,21 @@
+# Keep reviewed manifest bytes identical in Windows and Linux source checkouts.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.mp3 binary
+*.wav binary
+*.mp4 binary
+*.zip binary
+*.gz binary
+*.7z binary
+*.exe binary
+*.dll binary

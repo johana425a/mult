@@ -42,6 +42,9 @@ export interface DiscussionRequest {
 }
 
 interface RoundtableProps {
+  readonly retiring?: boolean;
+  readonly recordingOwnerKey?: string;
+  readonly onRecordingRetirementReady?: (cancel: (() => void) | null) => void;
   readonly mode?: 'playback' | 'autonomous';
   readonly initialParticipants?: Participant[];
   readonly playbackView?: PlaybackView; // Centralised derived state from Stage
@@ -151,6 +154,9 @@ function VoiceWaveformBars({ barClassName }: { readonly barClassName: string }) 
 }
 
 export function Roundtable({
+  retiring = false,
+  recordingOwnerKey,
+  onRecordingRetirementReady,
   mode: _mode = 'autonomous',
   initialParticipants = [],
   playbackView,
@@ -407,6 +413,21 @@ export function Roundtable({
         setIsVoiceOpen(false);
       },
     });
+
+  useEffect(() => {
+    onRecordingRetirementReady?.(cancelRecording);
+    return () => {
+      cancelRecording();
+      onRecordingRetirementReady?.(null);
+    };
+  }, [cancelRecording, onRecordingRetirementReady, recordingOwnerKey]);
+
+  useEffect(() => {
+    if (!retiring) return;
+    cancelRecording();
+    setIsVoiceOpen(false);
+    setIsInputOpen(false);
+  }, [cancelRecording, retiring]);
 
   const handleSendMessage = () => {
     if (!inputValue.trim() || isSendCooldown || canSendMessage?.() === false) return;

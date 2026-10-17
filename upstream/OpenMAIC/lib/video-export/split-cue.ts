@@ -212,7 +212,7 @@ export function splitCueText(text: string): string[] {
  * Join two adjacent cue-text pieces being merged into one cue. A space is
  * inserted only at a Latin word boundary (both sides narrow); CJK text is not
  * space-separated, so if either side of the seam is a wide glyph the pieces are
- * joined directly — otherwise merging e.g. `Let us begin.` + `Look here` would inject a
+ * joined directly — otherwise merging e.g. `我们开始。` + `看这里` would inject a
  * spurious space into the caption.
  */
 function joinCueText(prev: string, next: string): string {

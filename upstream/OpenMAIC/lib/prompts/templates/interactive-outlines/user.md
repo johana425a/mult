@@ -109,7 +109,7 @@ Choose widgets based on the content:
   "widgetType": "game",
   "widgetOutline": {
     "gameType": "action",
-    "challenge": "Control thrust to land the spacecraft safely",
+    "challenge": "控制推力使飞船安全着陆",
     "playerControls": ["thrust_slider"]
   }
 }

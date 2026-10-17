@@ -210,6 +210,12 @@ class UnifiedModelRuntime:
     @staticmethod
     def error(exc):
         from deeptutor.services.llm.provider_core.base import LLMProvider
+        message = str(exc).lower()
+        if message.startswith('error calling codex:') and any(text in message for text in (
+                'sign in', 'sign-in', 'authentication required', 'login expired')):
+            return 401, {'error': {'code':'model_authentication_required','status':401,
+                'phase':'authentication','retryable':False,
+                'message':'The selected model sign-in has expired. Reconnect that account in model settings.'}}
         status = exc.status_code if isinstance(exc, HTTPException) else LLMProvider._status_code_from_exception(exc)
         status = status or LLMProvider._status_code_from_message(str(exc)) or 502
         return status, {'error': {'code': 'model_execution_failed', 'status': status,

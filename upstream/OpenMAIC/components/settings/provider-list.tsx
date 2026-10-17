@@ -19,8 +19,8 @@ interface ProviderListProps {
   onAddProvider: () => void;
 }
 
-// Language-model provider list in Model services, matching the design.
-// model-services-panel uses avatar, name, configuration dot, and outlined selection.
+// 「模型服务」分区内的语言模型服务列表：样式对齐原型
+// model-services-panel（头像 + 名称 + 配置状态点，选中为描边卡片）。
 export function ProviderList({
   providers,
   selectedProviderId,
@@ -44,21 +44,21 @@ export function ProviderList({
           const configured =
             !!provider.isServerConfigured || !!provider.apiKey || provider.requiresApiKey === false;
           const active = selectedProviderId === provider.id;
-          // Promoted providers use an accent outline and the standard darker selected outline,
-          // with an API key link at the row end, routed by locale.
+          // 推广位（如 Kimi）：常驻主色描边强调（选中态沿用更深的选中描边），
+          // 行尾附获取 API key 的跳转（按界面语言分流国内/海外）。
           const promoted = provider.id === PINNED_PROVIDER_ID;
           const signupLinks = PROVIDER_SIGNUP_LINKS[provider.id];
           return (
-            // External links must be button siblings to avoid nested interactive elements; position them
-            // at the row end without forwarding clicks, reserving space in the selection button.
+            // 外链必须是 button 的兄弟节点（交互元素不可嵌套）：绝对定位覆盖在
+            // 行右端，点击不会透传到选择按钮；有链接的行给按钮留出右侧空间。
             <div key={provider.id} className="relative">
               <button
                 onClick={() => onSelect(provider.id)}
                 className={cn(
                   'group flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors',
                   signupLinks && 'pr-8',
-                  // Selected state matches ProviderListColumn;
-                  // promotional emphasis applies only while unselected.
+                  // 选中态与其他服务列（ProviderListColumn）完全一致；
+                  // 推广强调只作用于未选中时，选中后回归标准样式。
                   active
                     ? 'bg-background shadow-sm ring-1 ring-border/70'
                     : cn(
@@ -126,7 +126,7 @@ export function ProviderList({
           );
         })}
 
-        {/* Add Provider (ghost row at the end of the list). */}
+        {/* Add Provider（列表尾部的幽灵行） */}
         <button
           onClick={onAddProvider}
           className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-muted-foreground/70 transition-colors hover:bg-background/60 hover:text-foreground"

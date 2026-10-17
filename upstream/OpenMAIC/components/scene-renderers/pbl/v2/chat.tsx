@@ -192,7 +192,7 @@ export function PBLV2Chat({
   const handoverPending = !!project.pendingHandover && !project.pendingHandover.consumed;
 
   /**
-   * Handler for the MilestoneCard's "Continue to the next stage" button.
+   * Handler for the MilestoneCard's "继续到下一阶段" button.
    *
    * 1. Server-side: POST /api/pbl/v2/task/update with action
    *    continue_handover. The server calls continueAfterHandover()
@@ -995,7 +995,7 @@ function MessageBubble({
   readonly typewriter?: boolean;
   readonly onTypewriterComplete?: (messageId: string) => void;
 }) {
-  // SCENARIO ONLY — neutral system narration (narration): centred, italic, no
+  // SCENARIO ONLY — neutral system narration (旁白): centred, italic, no
   // avatar/name, so it reads as the scene speaking, not a person.
   if (message.roleType === 'system') {
     const narration = trimmedPBLText(message.content);
@@ -1436,9 +1436,9 @@ export function stripLeakedToolJsonPreview(text: string): string {
 }
 
 /**
- * Map the stream's coarse-grained phase to the small "X · Thinking" /
- * "X · Typing…" line that floats above the streaming bubble. Per
- * PR 6 D3-B: keep evaluator labels neutral (no "Let me organize this" filler).
+ * Map the stream's coarse-grained phase to the small "X · 思考中" /
+ * "X · 输入中…" line that floats above the streaming bubble. Per
+ * PR 6 D3-B: keep evaluator labels neutral (no "等我整理一下" filler).
  */
 function streamStatusLabel(
   status: import('./use-instructor-stream').StreamStatus,

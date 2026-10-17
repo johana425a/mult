@@ -2,12 +2,13 @@
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
+import { executionError } from './execution_errors.mjs';
 
 const active = new Set(['queued', 'running', 'cancelling']);
 const terminal = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
 const error = (code, status = 409) => Object.assign(new Error(code), { code, status });
 const identity = value => typeof value === 'string' && /^[A-Za-z0-9_.:-]{1,200}$/.test(value);
-const publicTask = task => structuredClone(Object.fromEntries(Object.entries(task).filter(([key]) => !['prompt', 'fingerprint'].includes(key))));
+const publicTask = task => structuredClone(Object.fromEntries(Object.entries(task).filter(([key]) => !['prompt', 'fingerprint', 'interaction'].includes(key))));
 
 export async function createExecutionTasks({ profile, workspaces, interactions, pollMs = 200 }) {
   const root = join(profile, 'execution-tasks');
@@ -41,10 +42,12 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
     const ending = recent.findLast(event => event.type === 'turn/end');
     if (!ending) return false;
     task.status = task.status === 'cancelling' || ['aborted', 'user', 'cancelled'].includes(ending.outcome)
-      ? 'cancelled' : ending.outcome === 'error' ? 'failed' : 'completed';
+      ? 'cancelled' : ['error', 'blocked'].includes(ending.outcome) ? 'failed' : 'completed';
     task.result = recent.filter(event => event.type === 'assistant/message').map(event => event.text).filter(Boolean).join('\n');
-    task.artifacts = recent.filter(event => event.type === 'tool/result' && !event.is_error)
-      .map(event => ({ seq: event.seq, tool_name: event.tool_name, call_id: event.call_id }));
+    if (task.status === 'failed') task.error = ending.error ?? executionError({ message: 'The agent ended before completing the task.' }, 'agent', task.id);
+    task.artifacts = recent.filter(event => event.type === 'deliverables/presented')
+      .flatMap(event => (event.files ?? []).map((file, index) => ({ ...file, seq: event.seq, index,
+        session_id: task.session_id, url: `/api/harness/sessions/${task.session_id}/deliverables/${event.seq}/files/${index}?mode=download` })));
     task.updated_at = new Date().toISOString();
     return true;
   }
@@ -61,7 +64,9 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
       // Save queued intent before admission. A crash here pauses rather than replays.
       await save();
       const result = await workspaces.turn(task.session_id, { text, llm_selection: task.llm_selection,
-        task_context: { task_id: task.id, owner: task.owner, source: task.source, native_workspace_id: task.native_workspace_id, expected_model: task.resolved_model } });
+        task_context: { task_id: task.id, owner: task.owner, source: task.source, native_workspace_id: task.native_workspace_id,
+          expected_model: task.resolved_model, interaction: task.interaction, source_references: task.source_references,
+          conversation_id: task.conversation_id } });
       task.status = 'running'; task.run_id = result.run_id; task.resolved_model = result.resolved_model;
       task.llm_selection = result.llm_selection ?? task.llm_selection;
       task.updated_at = new Date().toISOString(); await save();
@@ -73,6 +78,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
     } catch (cause) {
       task.status = closed ? 'interrupted' : task.status === 'cancelling' ? 'cancelled' : 'failed';
       task.error_code = /^[A-Za-z0-9_]{1,80}$/.test(cause.code ?? '') ? cause.code : 'execution_interrupted';
+      task.error = executionError(cause, task.run_id ? 'execution' : 'admission', task.id);
       task.updated_at = new Date().toISOString(); await save();
     }
   }
@@ -87,16 +93,24 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
         || typeof input.source !== 'string' || !input.source || input.source.length > 100
         || typeof input.text !== 'string' || !input.text.trim() || input.text.length > 200000) throw error('execution_task_invalid', 422);
       const id = 'task-' + createHash('sha256').update(JSON.stringify([input.owner, input.source, input.task_key])).digest('hex').slice(0, 32);
-      const fingerprint = createHash('sha256').update(JSON.stringify([input.workspace_id, input.text, input.llm_selection ?? null, input.native_workspace_id ?? null, input.continuation_task_id ?? null])).digest('hex');
+      const fingerprint = createHash('sha256').update(JSON.stringify([input.workspace_id, input.text, input.llm_selection ?? null, input.native_workspace_id ?? null, input.continuation_task_id ?? null, input.conversation_id ?? null, input.surface ?? null])).digest('hex');
       if (tasks[id]) {
         if (tasks[id].fingerprint !== fingerprint) throw error('execution_task_key_conflict');
         return { task: publicTask(tasks[id]), reused: true };
       }
       const task = { id, owner: input.owner, source: input.source, task_key: input.task_key,
         workspace_id: input.workspace_id, native_workspace_id: input.native_workspace_id ?? null,
-        llm_selection: input.llm_selection ?? null, source_references: input.source_references ?? [],
+        llm_selection: input.llm_selection ?? null, resolved_model: input.expected_model ?? null, source_references: input.source_references ?? [],
         parent_task_id: input.parent_task_id ?? null, prompt: input.text, fingerprint,
+        conversation_id: input.conversation_id ?? null, surface: input.surface ?? null, interaction: input.interaction ?? null,
         status: 'queued', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      if (input.conversation_id) {
+        if (!identity(input.conversation_id)) throw error('execution_conversation_invalid', 422);
+        const previous = Object.values(tasks).filter(t => t.owner === input.owner && t.workspace_id === input.workspace_id
+          && t.surface === input.surface && t.conversation_id === input.conversation_id).at(-1);
+        if (previous && active.has(previous.status)) throw error('execution_conversation_busy');
+        if (previous?.session_id) task.session_id = previous.session_id;
+      }
       if (task.parent_task_id) find(task.parent_task_id, input.owner);
       if (input.continuation_task_id) {
         const previous = find(input.continuation_task_id, input.owner);
@@ -110,11 +124,16 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
     },
     async get(id, owner, afterSeq = -1) {
       const task = find(id, owner);
-      const snapshot = task.session_id ? await workspaces.events(task.session_id, { after_seq: afterSeq }) : { events: [], next_seq: -1 };
+      const snapshot = task.session_id && task.start_seq !== undefined ? await workspaces.events(task.session_id, { after_seq: Math.max(afterSeq, task.start_seq) }) : { events: [], next_seq: -1 };
       const capabilities = task.session_id && interactions ? await interactions.state(task.session_id) : null;
       const waiting = active.has(task.status) && capabilities?.pending_questions?.length > 0;
+      // Admission can await model resolution before turn() clears the session's
+      // previous live buffer. Never replay that prior answer into a new task.
+      const live = snapshot.live_response;
+      const liveResponse = live && Number.isSafeInteger(task.start_seq)
+        && Number.isSafeInteger(live.start_seq) && live.start_seq > task.start_seq ? live : null;
       return { task: { ...publicTask(task), ...(waiting ? { status: 'awaiting_input', runtime_status: task.status } : {}) },
-        events: snapshot.events, next_seq: snapshot.next_seq, capabilities,
+        events: snapshot.events, next_seq: snapshot.next_seq, live_response: liveResponse, capabilities,
         ...(task.session_id ? { session_id_link: task.session_id } : {}) };
     },
     async list(owner) { return { tasks: Object.values(tasks).filter(task => task.owner === owner).map(publicTask) }; },
@@ -131,7 +150,7 @@ export async function createExecutionTasks({ profile, workspaces, interactions, 
     async resume(id, owner) {
       const task = find(id, owner);
       if (active.has(task.status) || task.status === 'completed') return { task: publicTask(task), reused: true };
-      task.status = 'queued'; delete task.error_code; await save();
+      task.status = 'queued'; delete task.error_code; delete task.error; await save();
       start(task, `Resume the previous task. Check existing tool results and generated files first. Avoid repeating writes, submissions, or commands that already completed. Handle only unfinished work. Original task:\n${task.prompt}`);
       return { task: publicTask(task), reused: false };
     },

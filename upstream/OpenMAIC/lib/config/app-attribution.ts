@@ -1,7 +1,7 @@
 /**
  * App attribution for provider gateways that support it.
  *
- * TokenDance documents "app attribution": the `X-App-URL` request
+ * TokenDance documents "app attribution" (应用归因): the `X-App-URL` request
  * header is the single attribution element — it can also be recorded on an
  * API key, but the per-request header takes precedence. The value only needs
  * to be URL-form and unique + stable for the app; it does not need to be

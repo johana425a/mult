@@ -26,6 +26,7 @@ import {
 } from '@/lib/server/model-routes';
 import { DEEPSTEAM_SHARED_PROVIDER, parseDeepSteamSelection, isRetiredBundledSelection, type DeepSteamModelSelection, type DeepSteamModelSnapshot, type DeepSteamResolvedModel } from '@/lib/config/deepsteam-connection';
 import { getDeepSteamExecution, privateDeepSteamModelFetch, type DeepSteamExecution } from '@/lib/server/deepsteam-connection';
+import { getDefaultThinkingConfig } from '@/lib/ai/thinking-config';
 
 export interface ResolvedModel extends ModelWithInfo {
   resolvedModel?: DeepSteamResolvedModel;
@@ -132,10 +133,12 @@ export async function resolveModel(params: {
         ...(result.modelInfo ?? {}),
         id: connection.model, name: connection.model,
         contextWindow,
-        outputWindow: outputCap ? Math.min(4096, outputCap) : undefined,
+        outputWindow: outputCap,
         capabilities: {
           ...result.modelInfo?.capabilities,
-          vision: connection.vision?.verified === true || connection.vision?.configured === true,
+          // Catalog support is not proof that this connection accepts pixels.
+          // This state belongs to the exact frozen provider configuration.
+          vision: connection.vision?.verified === true,
         },
       },
       modelString: `${DEEPSTEAM_SHARED_PROVIDER}:${connection.model}`,
@@ -225,9 +228,20 @@ export async function resolveModel(params: {
   //  - routed + no thinking  → routed model uses its own default; client thinking
   //    is dropped (it belonged to the client's other model).
   //  - unrouted              → honor the client's thinking config.
-  const thinkingConfig: ThinkingConfig | undefined = routed
+  const requestedThinking: ThinkingConfig | undefined = routed
     ? stageRoute?.thinking
     : params.thinkingConfig;
+  let defaultThinking = process.env.LLM_THINKING_DISABLED === 'true'
+    ? undefined : getDefaultThinkingConfig(modelInfo?.capabilities?.thinking);
+  if (defaultThinking?.budgetTokens && defaultThinking.budgetTokens > 0 && modelInfo?.outputWindow) {
+    // Manual reasoning budgets share the model's actual output allowance.
+    // The API requires space after thinking; preserve every explicit budget.
+    const budget = Math.min(defaultThinking.budgetTokens, modelInfo.outputWindow - 1);
+    const minimum = modelInfo.capabilities?.thinking?.budgetRange?.min ?? 0;
+    if (budget < minimum) throw new Error('SOURCE_CONTEXT_LIMIT: the configured model output ceiling cannot support its minimum reasoning budget. Correct the model output limit or explicitly choose a supported reasoning setting.');
+    defaultThinking = { ...defaultThinking, budgetTokens: budget };
+  }
+  const thinkingConfig = requestedThinking ?? defaultThinking;
 
   return {
     model,

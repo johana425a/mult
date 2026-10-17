@@ -413,7 +413,7 @@ function initializeOpenMaicInteractiveStaticFrames() {
 
 /**
  * One `<count> <unit>` stat tile. The unit is a localized label, so it is used
- * verbatim rather than pluralized in English (`questions` / `questions` / `pts`).
+ * verbatim rather than pluralized in English (`道题` / `questions` / `pts`).
  */
 function statTile(count: number, unit: string): string {
   return `<div class="cover-stat"><strong>${count}</strong><span>${escapeHtml(unit)}</span></div>`;

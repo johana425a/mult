@@ -25,7 +25,9 @@ export async function createCapabilities(ctx, options) {
   await ctx.plugin(Spawn, { providerName: 'spawn' });
   await ctx.plugin(Skills);
   // Default project roots remain available, but user roots belong to DeepSteam.
-  await ctx.plugin(FileSkills, { dshHome: options.profile, agentsHome: join(options.profile, 'agents'), watch: false });
+  await ctx.plugin(FileSkills, { dshHome: options.profile, agentsHome: join(options.profile, 'agents'),
+    bundledSkillDir: join(import.meta.dirname, '../../runtime/deeptutor-packages/deeptutor/skills/builtin'),
+    customSkillDirs: [join(import.meta.dirname, '../../extensions/skills')], watch: true });
   await ctx.plugin(Goals);
   await ctx.plugin(GoalDriver);
   await ctx.plugin(Schedule);
@@ -46,7 +48,11 @@ export async function createCapabilities(ctx, options) {
     if (!CAPABILITY_GROUPS.includes(group)) throw new Error('capability_unknown');
     let loaded = groups.get(agent);
     if (!loaded) { loaded = new Map(); groups.set(agent, loaded); }
-    if (loaded.has(group)) return loaded.get(group);
+    if (loaded.has(group)) {
+      const prior = await loaded.get(group);
+      if (prior.status !== 'configuration_required') return prior;
+      loaded.delete(group);
+    }
     const job = (async () => {
       const scope = agent.ctx;
       if (group === 'subagents') {
@@ -75,7 +81,7 @@ export async function createCapabilities(ctx, options) {
               };
               return Reflect.get(target, name);
             } });
-            await provider.apply(adapter, provider.Config({ mode: 'launch', executablePath, headless: false, toolCallTimeoutMs: 60000 }));
+            await provider.apply(adapter, provider.Config({ mode: 'launch', executablePath, headless: options.browserHeadless !== false, toolCallTimeoutMs: 60000 }));
           } });
           return activations;
         })().catch(cause => { browserRuntime = undefined; throw cause; });

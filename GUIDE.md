@@ -1,5 +1,29 @@
 # DeepSteam user and source guide
 
+This guide accompanies the r11 source snapshot. Read [release notes](RELEASE.md),
+[architecture](docs/architecture.md), [validation](docs/validation.md), and
+[build coverage](docs/source-provenance.md) for the current state. This repository
+does not contain an installable runtime or a newly validated full installer.
+
+## Shared execution and document requests
+
+Chat, personalized learning, immersive reading, OpenMAIC workbench and classroom
+dialogue share Harness execution. In the relevant conversation, request a Markdown,
+Word, PDF, Excel or PowerPoint file and specify its source and desired layout.
+The application supplies its bundled execution environment; a completed file must
+appear as a real preview/download attachment. An empty output folder is not success.
+
+For video-based work, open the material through the reading/library URL-import
+workflow. Bilibili and YouTube are the primary targets. Authorize Bilibili inside
+DeepSteam when needed; a separate browser login is not proof that the application
+has an authorized session. Transcript tools read saved subtitle records with
+timestamps, including content beyond the visible rows. Platform AI subtitle errors
+can remain; transcript retrieval and editorial correction are different tasks.
+
+Ask to save learning notes or archive the current conversation when needed. These
+remain separate from mastery records. Later requests can retrieve or extend them;
+exporting a summary does not overwrite the raw conversation archive.
+
 ## Open and connect
 
 Keep the installer executable beside its matching payload. Run the installer,
@@ -98,6 +122,12 @@ ownership, preserves user data unless deletion was selected, and never recursive
 deletes arbitrary workspace folders.
 
 ## Build and redistribute
+
+The current source contains the execution migration, current OpenMAIC and renderer,
+and available native/installer repair source. Earlier compiled-only native frontend
+patches prevent claiming a complete clean-checkout installer rebuild. Follow the
+component lockfiles and [source provenance](docs/source-provenance.md); validate a
+new distribution separately instead of reusing old payload integrity reports.
 
 Use compatible Python and Node.js runtimes, locked component dependencies, and
 the upstream pins in `RELEASE-IDENTITY.json`. Stage optional licensed parser assets

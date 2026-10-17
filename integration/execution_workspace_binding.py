@@ -65,7 +65,7 @@ def owner_workspace_binding(owner, workspace_id, *, service_factory=None,
                         if item.get('workspace_id') == workspace_id), None)
             if row is None:
                 raise _error(404, 'execution_workspace_missing', 'This account has not registered the workspace.')
-            if row.get('kind') != 'workspace':
+            if row.get('kind') not in {'workspace', 'general'}:
                 raise _error(403, 'execution_workspace_protected', 'Choose a workspace bound to a source folder.')
             if row.get('archived') or row.get('status') != 'ready':
                 raise _error(409, 'execution_workspace_unavailable', 'The workspace is archived or its directory is unavailable.')
@@ -80,7 +80,7 @@ def owner_workspace_binding(owner, workspace_id, *, service_factory=None,
             if not directory.is_dir() or not os.access(directory, os.R_OK):
                 raise _error(409, 'execution_workspace_unavailable', 'The workspace directory cannot be read.')
             return {'owner': user.id, 'native_workspace_id': binding.workspace_id,
-                    'path': str(directory), 'kind': 'workspace', 'archived': False, 'ready': True}
+                    'path': str(directory), 'kind': row['kind'], 'archived': False, 'ready': True}
     except HTTPException:
         raise
     except Exception:

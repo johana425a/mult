@@ -23,8 +23,8 @@
  *     teaching). Same system prompt would fight itself.
  *   - Different output contract (narrative + JSON tail vs
  *     conversational reply with optional tool calls).
- *   - Separate SSE call lets the client display "The instructor is generating stage feed
- *     back…" as a distinct phase, not as a mysterious extra Instructor
+ *   - Separate SSE call lets the client display "导师正在生成阶段反
+ *     馈…" as a distinct phase, not as a mysterious extra Instructor
  *     turn.
  *
  * All three functions are async generators of PBLSSEEvent — the same

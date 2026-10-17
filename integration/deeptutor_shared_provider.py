@@ -117,6 +117,8 @@ def install_routes(app, root=None, token_loader=None, resolver=None,
     install_domestic_routes(app, authenticate)
     from integration.execution_workspace_binding import install_execution_workspace_binding
     install_execution_workspace_binding(app, authenticate, service_factory=workspace_service)
+    from integration.harness_turn import install_routes as install_surface_routes
+    install_surface_routes(app, authenticate)
 
     @app.get('/api/contest/internal/provider')
     async def shared_provider(request: Request):

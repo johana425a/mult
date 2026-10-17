@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@openmaic/dsl": ["./packages/@openmaic/dsl/dist/index.js"],
       "@/*": ["./*"]
     }
   },
@@ -32,6 +33,7 @@
   ],
   "exclude": [
     "node_modules",
+    "node_modules.partial",
     "dist",
     "packages/*/src",
     "packages/docs",

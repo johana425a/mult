@@ -258,6 +258,11 @@ class ReadingStore:
         re-extracted, and its annotations are left untouched.
         """
         path = Path(source)
+        # Large PDFs are indexed without buffering all bytes or parsing every
+        # page before the user can start. Selected pages use the shared reader.
+        if path.suffix.lower() == '.pdf' and path.stat().st_size > 32 * 1024 * 1024:
+            from .pdf_on_demand import ingest_pdf
+            return ingest_pdf(self, path, filename)
         try:
             data = path.read_bytes()
         except OSError as exc:
@@ -641,6 +646,11 @@ class ReadingStore:
         if content_format not in {"plain_text", "web_markdown"}:
             raise ReadingError(f"unsupported content format: {content_format}")
         remote_video = render_mode == "video" and extractor.startswith(("youtube-", "bilibili-"))
+        if render_mode == "video" and extractor == "domestic-video-no-transcript":
+            from deeptutor.reading.domestic_video import domestic_video_source
+
+            remote_video = (source_type == "official_video_metadata"
+                            and domestic_video_source(source_url) is not None)
         carried = carry_source and self._has_raw(material_id)
         if render_mode != "text" and not raw_data and not remote_video and not carried:
             raise ReadingError(f"{render_mode} materials require playable source bytes")
@@ -804,6 +814,8 @@ class ReadingStore:
         material_dir = self._dir(material_id)
         if manifest.unit_count <= 0:
             return False
+        if manifest.extractor == 'pdf-on-demand':
+            return (material_dir / 'pdf-index.json').is_file() and self._find_raw(material_dir) is not None
         if not self._unit_file(material_dir, manifest.unit_count).exists():
             return False
         if manifest.render_mode != "text" and self._find_raw(material_dir) is None:
@@ -870,6 +882,9 @@ class ReadingStore:
                 f"this material has {manifest.unit_count}."
             )
         path = self._unit_file(self._dir(material_id), locator)
+        if manifest.extractor == 'pdf-on-demand':
+            from .pdf_on_demand import read_page
+            return read_page(self, material_id, locator)
         try:
             return path.read_text(encoding="utf-8")
         except FileNotFoundError:
@@ -1067,6 +1082,9 @@ class ReadingStore:
         manifest = self.manifest(material_id)
         if manifest.render_mode == "text":
             return None
+        if manifest.extractor == 'pdf-on-demand':
+            from .pdf_on_demand import browser_pdf
+            return browser_pdf(self, material_id)
         material_dir = self._dir(material_id)
         return self._find_file_in_dir(material_dir / RENDER_DIR) or self._find_raw(material_dir)
 
@@ -1134,6 +1152,18 @@ class ReadingStore:
             if candidate.is_file():
                 return candidate
         return None
+
+    def bilibili_source_evidence(self, material_id: str) -> dict[str, Any]:
+        """Read fixed internal caption provenance without exposing a file API."""
+        self.manifest(material_id)
+        path = self._dir(material_id) / ASSETS_DIR / "bilibili-source.json"
+        if not path.is_file():
+            return {}
+        raw = path.read_bytes()
+        if len(raw) > 16_000:
+            raise ReadingError("Caption provenance exceeded the limit")
+        data = json.loads(raw)
+        return data if isinstance(data, dict) else {}
 
     def asset_path(self, material_id: str, asset_name: str) -> Path | None:
         """Resolve one generated raster without permitting traversal.

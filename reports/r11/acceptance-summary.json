@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "version": "2026.10.17-r11-harness-core",
+  "record_date": "2026-10-17",
+  "evidence": "sanitized aggregates from prior local acceptance; not a new full rerun",
+  "real_model": "gpt-6.1-sol",
+  "reasoning": "high",
+  "real_model_cases": [
+    {
+      "case": "chat-three-formats",
+      "total_seconds": 159.555,
+      "observed_tool_seconds": 24.234,
+      "model_transport_ui_seconds": 135.321,
+      "tools": [
+        "exec",
+        "learning_records",
+        "load_harness_tools",
+        "load_workspace_dependencies",
+        "present",
+        "read_image",
+        "skill",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "edit-existing-word",
+      "total_seconds": 86.729,
+      "observed_tool_seconds": 15.872,
+      "model_transport_ui_seconds": 70.857,
+      "tools": [
+        "exec",
+        "present",
+        "read_document",
+        "skill"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "personalized-learning",
+      "total_seconds": 179.657,
+      "observed_tool_seconds": 23.343,
+      "model_transport_ui_seconds": 156.314,
+      "tools": [
+        "exec",
+        "learning_records",
+        "load_harness_tools",
+        "load_workspace_dependencies",
+        "present",
+        "read_image",
+        "skill",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "resume-learning-records",
+      "total_seconds": 171.181,
+      "observed_tool_seconds": 16.565,
+      "model_transport_ui_seconds": 154.616,
+      "tools": [
+        "exec",
+        "learning_records",
+        "present",
+        "read_image",
+        "skill",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "complete-bilibili-transcript",
+      "total_seconds": 236.751,
+      "observed_tool_seconds": 16.503,
+      "model_transport_ui_seconds": 220.248,
+      "tools": [
+        "exec",
+        "load_harness_tools",
+        "load_workspace_dependencies",
+        "material_outline",
+        "present",
+        "read_image",
+        "read_material",
+        "read_surface_context",
+        "reader_goto",
+        "reading_list_tabs",
+        "save_task_progress",
+        "skill",
+        "surface_tools",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "openmaic-workbench",
+      "total_seconds": 185.831,
+      "observed_tool_seconds": 29.984,
+      "model_transport_ui_seconds": 155.847,
+      "tools": [
+        "exec",
+        "learning_records",
+        "load_workspace_dependencies",
+        "present",
+        "read_image",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "openmaic-classroom-dialogue",
+      "total_seconds": 163.758,
+      "observed_tool_seconds": null,
+      "model_transport_ui_seconds": null,
+      "tools": [],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "course-edit-and-export",
+      "total_seconds": 110.557,
+      "observed_tool_seconds": 0.167,
+      "model_transport_ui_seconds": 110.39,
+      "tools": [
+        "exec",
+        "learning_records",
+        "present",
+        "read_stage",
+        "rename_stage",
+        "surface_tools",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "classroom-chat-archive",
+      "total_seconds": 64.166,
+      "observed_tool_seconds": null,
+      "model_transport_ui_seconds": null,
+      "tools": [],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "disconnect-resume",
+      "total_seconds": 43.505,
+      "observed_tool_seconds": 14.694,
+      "model_transport_ui_seconds": 28.811,
+      "tools": [
+        "exec",
+        "present",
+        "read",
+        "workspace_present"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "question-reply-resume",
+      "total_seconds": 100.489,
+      "observed_tool_seconds": 64.457,
+      "model_transport_ui_seconds": 36.032,
+      "tools": [
+        "ask_user",
+        "ask_user_question",
+        "exec",
+        "present",
+        "read"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "five-document-formats",
+      "total_seconds": 343.541,
+      "observed_tool_seconds": 49.883,
+      "model_transport_ui_seconds": 293.658,
+      "tools": [
+        "exec",
+        "job_output",
+        "learning_status",
+        "learning_update",
+        "load_harness_tools",
+        "load_workspace_dependencies",
+        "present",
+        "pwsh",
+        "read_document",
+        "read_document_image",
+        "read_skill",
+        "skill",
+        "surface_tools",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "installed-three-formats",
+      "total_seconds": 186.095,
+      "observed_tool_seconds": 30.009,
+      "model_transport_ui_seconds": 156.086,
+      "tools": [
+        "exec",
+        "load_harness_tools",
+        "load_workspace_dependencies",
+        "present",
+        "pwsh",
+        "read",
+        "read_document",
+        "read_document_image",
+        "read_image",
+        "skill",
+        "todo_write",
+        "workspace_present",
+        "write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "installed-direct-execution",
+      "total_seconds": 26.728,
+      "observed_tool_seconds": 5.699,
+      "model_transport_ui_seconds": 21.029,
+      "tools": [
+        "exec",
+        "present",
+        "workspace_present"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    },
+    {
+      "case": "installed-workbench-edit-export",
+      "total_seconds": 75.707,
+      "observed_tool_seconds": 15.507,
+      "model_transport_ui_seconds": 60.2,
+      "tools": [
+        "exec",
+        "learning_records",
+        "present",
+        "read_stage",
+        "rename_stage",
+        "surface_tools",
+        "todo_write"
+      ],
+      "method": "real selected model through native WebSocket or OpenMAIC HTTP/SSE"
+    }
+  ],
+  "artifact_parse": {
+    "passed": 31,
+    "total": 31
+  },
+  "downloads": {
+    "passed": 22,
+    "total": 22
+  },
+  "tool_registry": {
+    "direct_count": 33,
+    "loaded_count": 68,
+    "direct_tools": [
+      "read",
+      "write",
+      "edit",
+      "read_image",
+      "glob",
+      "grep",
+      "job_output",
+      "job_list",
+      "job_kill",
+      "pwsh",
+      "todo_write",
+      "learning_records",
+      "surface_tools",
+      "invoke_surface_tool",
+      "read_surface_context",
+      "exec",
+      "manage_extension",
+      "manage_repair",
+      "read_document",
+      "read_document_image",
+      "document_engine_status",
+      "prepare_documents",
+      "document_queue",
+      "load_workspace_dependencies",
+      "read_task_progress",
+      "save_task_progress",
+      "catalog_workspace",
+      "load_harness_tools",
+      "ask_user_question",
+      "exit_plan_mode",
+      "present",
+      "web_search",
+      "web_fetch"
+    ],
+    "every_tool_exercised": false
+  },
+  "bilibili": {
+    "uses_owned_session_copy": true,
+    "subtitle_cues": 189,
+    "tracks": 2,
+    "installed_subtitle_seconds": 3.715,
+    "play_pause_seek_2x_passed": true
+  },
+  "uninstaller": {
+    "form_opened_in_isolated_desktop": true,
+    "actual_uninstall_executed": false
+  },
+  "extension_lifecycle": {
+    "package": "@modelcontextprotocol/server-memory",
+    "version": "1.0.0",
+    "model_decisions": "deterministic",
+    "tools_and_persistence": "real",
+    "install_call_restart_read_remove_rollback": "passed"
+  },
+  "isolated_repair": {
+    "model_decisions": "deterministic",
+    "patch_verify_apply_rollback": "passed"
+  },
+  "later_classroom_pair": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "high",
+    "same_source": true,
+    "runs": {
+      "old": {
+        "total_seconds": 659.803,
+        "engine_seconds": 659.7814634,
+        "scenes": {
+          "slide": 9,
+          "interactive": 1,
+          "quiz": 1
+        }
+      },
+      "new": {
+        "total_seconds": 593.053,
+        "engine_seconds": 585.6076094000001,
+        "scenes": {
+          "slide": 6,
+          "interactive": 1,
+          "quiz": 1
+        }
+      }
+    },
+    "repeated_benchmark": false,
+    "maximum_content_concurrency": 2,
+    "caveats": [
+      "One same-source pair, not a statistically stable speedup benchmark.",
+      "New run had four outlines versus five previously; model output and timing vary.",
+      "One overlapping diagram-label draft required a bounded model retry.",
+      "Six slide pages are improved but the third mechanism page remains sparse.",
+      "Source model audit is not a guarantee of exhaustive teaching completeness.",
+      "Native desktop was not controlled or restarted during this background phase."
+    ]
+  },
+  "privacy": {
+    "accounts": false,
+    "private_paths": false,
+    "session_ids": false,
+    "transcript_content": false
+  },
+  "limitations": [
+    "Timing remainder includes model service/network/UI polling; it is not isolated model inference time.",
+    "Computer control was not operated because the user required background-only work.",
+    "Browser/subagent/goal tools were registered; this run does not claim every action was exercised. get_goal outside an active driver was correctly rejected.",
+    "MCP Memory and repair lifecycle tests used deterministic model decisions with real install/tools/files/restart/rollback.",
+    "Large scanned textbook completeness and indefinite autonomous use are outside this execution migration acceptance.",
+    "Full installed r10.2 clean installer rebuild has not been established; current local upgrade is a verified overlay and rebuilt OpenMAIC."
+  ]
+}

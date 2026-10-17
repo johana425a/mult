@@ -1374,7 +1374,7 @@ function QwenVoiceCloneManager() {
 
       <div className="overflow-hidden rounded-lg border border-border/70 bg-background">
         <div className="grid lg:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]">
-          {/* Left: voice collection and results. */}
+          {/* 左：音色池（结果展示区） */}
           <section className="flex min-h-0 flex-col border-b border-border/50 lg:border-b-0">
             <div className="flex h-12 shrink-0 items-center justify-between border-b border-border/50 px-4">
               <span className="text-sm font-medium">{t('settings.voxcpmVoicePool')}</span>
@@ -1405,7 +1405,7 @@ function QwenVoiceCloneManager() {
             </div>
           </section>
 
-          {/* Right: voice creation form in workflow order. */}
+          {/* 右：创建音色（操作区，浅色卡片，暗表单自上而下按操作顺序） */}
           <section className="p-3">
             <div className="flex h-full flex-col gap-3 rounded-lg bg-muted/40 p-4">
               <div className="grid grid-cols-2 gap-2">

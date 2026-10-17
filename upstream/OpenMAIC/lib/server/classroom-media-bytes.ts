@@ -45,10 +45,9 @@ export async function persistClassroomMediaBytes(input: {
   const hash = createHash('sha256').update(input.bytes).digest('hex');
   const filename = `${input.prefix ?? 'generated'}-${hash}.${extensionForMime(input.mime)}`;
   const mediaDir = path.join(CLASSROOMS_DIR, input.stageId, 'media');
-  await withClassroomWrite(input.stageId, () => fs.mkdir(mediaDir, { recursive: true }));
+  await fs.mkdir(mediaDir, { recursive: true });
   if (input.signal?.aborted) throw new Error('aborted');
-  await withClassroomWrite(input.stageId, () => fs.writeFile(path.join(mediaDir, filename), input.bytes));
+  await fs.writeFile(path.join(mediaDir, filename), input.bytes);
   if (input.signal?.aborted) throw new Error('aborted');
   return `/api/classroom-media/${input.stageId}/media/${filename}`;
 }
-import { withClassroomWrite } from './classroom-lifecycle';

@@ -67,11 +67,11 @@ const BODY_TIMEOUT_MS = 30_000;
 const MAX_PDF_PAGES = 50;
 const MAX_PDF_EXTRACTED_CHARS = 1_000_000;
 const DEFAULT_BLOCKED_MARKERS = [
-  'No content is available here',
-  'environment error',
-  'complete verification',
-  'too many requests',
-  'complete the security check',
+  '你似乎来到了没有知识存在的荒原',
+  '环境异常',
+  '完成验证',
+  '访问过于频繁',
+  '请完成安全验证',
   'captcha',
 ];
 const FETCH_PREVIEW_CHARS = 2_000;

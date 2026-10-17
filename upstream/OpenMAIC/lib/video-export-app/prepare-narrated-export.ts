@@ -13,12 +13,12 @@ export function getNarratedExportTtsHeaders(): Record<string, string> {
   const provider = settings.ttsProviderId;
   if (provider === 'windows-system-tts' || provider === 'browser-native-tts') {
     return { 'x-contest-tts-provider': 'windows-system-tts',
-      'x-contest-tts-voice': provider === 'windows-system-tts' ? settings.ttsVoice || 'auto-en' : 'auto-en' };
+      'x-contest-tts-voice': provider === 'windows-system-tts' ? settings.ttsVoice || 'auto-zh' : 'auto-zh' };
   }
-  if (provider !== 'openai-tts') return { 'x-contest-tts-provider': 'windows-system-tts', 'x-contest-tts-voice': 'auto-en' };
+  if (provider !== 'openai-tts') return { 'x-contest-tts-provider': 'windows-system-tts', 'x-contest-tts-voice': 'auto-zh' };
   const config = settings.ttsProvidersConfig[provider];
   if (!config?.enabled || !config.apiKey || config.isServerConfigured || config.serverDisabled) {
-    return { 'x-contest-tts-provider': 'windows-system-tts', 'x-contest-tts-voice': 'auto-en' };
+    return { 'x-contest-tts-provider': 'windows-system-tts', 'x-contest-tts-voice': 'auto-zh' };
   }
   return { 'x-contest-tts-provider': 'openai-tts', 'x-contest-tts-api-key': config.apiKey,
     'x-contest-tts-model': config.modelId || 'tts-1', 'x-contest-tts-voice': settings.ttsVoice || 'alloy',
@@ -27,7 +27,7 @@ export function getNarratedExportTtsHeaders(): Record<string, string> {
 
 let cached: { signature: string; prepared: Promise<FullNarratedExport> } | undefined;
 export async function prepareNarratedExport(input: {
-  courseId: string; stage?: Stage; scenes: Scene[]; headers?: Record<string, string>;
+  courseId: string; stage?: Stage; scenes: Scene[]; headers?: Record<string, string>; signal?: AbortSignal;
 }): Promise<FullNarratedExport> {
   const headers = input.headers ?? getNarratedExportTtsHeaders();
   const snapshot = structuredClone(input.scenes);
@@ -42,6 +42,7 @@ export async function prepareNarratedExport(input: {
         const response = await fetch('/api/education/narrated-export', {
           method: 'POST', headers: { 'content-type': 'application/json', ...headers },
           body: JSON.stringify({ courseId, scenes: exportSource }),
+          signal: input.signal,
         });
         return { response, result: await response.json().catch(() => null) as
           (FullNarratedExport & { error?: string; reason?: string }) | null };
@@ -55,17 +56,18 @@ export async function prepareNarratedExport(input: {
         // the source or copy an obsolete "verified" source-fidelity flag.
         const stage = input.stage;
         const registration = await fetch('/api/classroom', { method: 'POST',
+          signal: input.signal,
           headers: { 'content-type': 'application/json' }, body: JSON.stringify({
-            stage: { id: courseId, name: stage?.name || 'Classroom video export', description: stage?.description,
+            stage: { id: courseId, name: stage?.name || '课堂视频导出', description: stage?.description,
               sourceMaterial: stage?.sourceMaterial, exportSnapshot: { originalStageId: courseId } },
             scenes: snapshot,
           }) });
         const registered = await registration.json().catch(() => null) as { id?: string } | null;
-        if (!registration.ok || !registered?.id) throw new Error('The independent classroom export snapshot could not be saved. Check local storage and retry.');
+        if (!registration.ok || !registered?.id) throw new Error('无法保存独立的导出课堂快照，请检查本机存储后重试。');
         courseId = registered.id;
-        const read = await fetch(`/api/classroom?id=${encodeURIComponent(courseId)}`);
+        const read = await fetch(`/api/classroom?id=${encodeURIComponent(courseId)}`, {signal: input.signal});
         const saved = await read.json().catch(() => null) as { classroom?: { scenes: Scene[] } } | null;
-        if (!read.ok || !Array.isArray(saved?.classroom?.scenes)) throw new Error('The independent classroom export snapshot could not be read.');
+        if (!read.ok || !Array.isArray(saved?.classroom?.scenes)) throw new Error('无法读取独立的导出课堂快照。');
         exportSource = saved.classroom.scenes;
         submitted = await submit();
       }
@@ -75,7 +77,7 @@ export async function prepareNarratedExport(input: {
         result.coverage?.speechCount !== result.coverage?.voicedSpeechCount ||
         result.coverage?.sceneCount !== result.coverage?.voicedSceneCount) {
         // Only the route's curated user-facing messages enter the render dialog.
-        throw new Error(result?.error || 'Narration for the complete export is not ready. Check the classroom source and speech service.');
+        throw new Error(result?.error || '完整导出配音未准备齐全，请检查课堂来源和语音服务。');
       }
       // Browser pools/media task ownership still belongs to the original UI
       // stage. Only new managed audio references use the snapshot's storage id.
@@ -111,7 +113,7 @@ export function alignNarratedExportTimeline(
     if (sourceById.get(scene.id)?.narratedExport) {
       const list = scene.visuals.find((visual) => visual.kind === 'quiz-question-list');
       if (!list || list.kind !== 'quiz-question-list') {
-        throw new Error(`Quiz scene: ${scene.title} has an incomplete question layout. Complete video export was stopped.`);
+        throw new Error(`测验场景“${scene.title}”的题目布局未完成，已停止完整视频导出。`);
       }
       const authoredDurationMs = scene.durationMs - list.durationMs;
       const topHoldDurationMs = 600;
@@ -159,7 +161,7 @@ export async function assertFullNarrationReady(
   const forbidden = new Set(['missing-audio', 'skipped-media', 'estimated-duration',
     'quiz-layout-unavailable', 'unknown-action', 'invalid-action', 'unsupported-scene']);
   const diagnostic = ir.diagnostics.find((item) => forbidden.has(item.code));
-  if (diagnostic) throw new Error('Classroom narration, question layout, or scene resources are incomplete. Complete video export was stopped.');
+  if (diagnostic) throw new Error('课堂配音、题目布局或场景资源不完整，已停止完整视频导出。');
   let speechCount = 0;
   let spokenCharacters = 0;
   let observedDurationSeconds = 0;
@@ -169,7 +171,7 @@ export async function assertFullNarrationReady(
     const speeches = (source.actions ?? []).map((action, actionIndex) => ({ action, actionIndex }))
       .filter(({ action }) => action.type === 'speech' && action.text.trim());
     if (!scene || !speeches.length || scene.durationMs <= 0) {
-      throw new Error(`Scene: ${source.title} has incomplete narration. Export was stopped.`);
+      throw new Error(`场景“${source.title}”没有完整讲解配音，已停止导出。`);
     }
     for (const { action, actionIndex } of speeches) {
       const segment = scene.narration.find((item) => item.actionIndex === actionIndex);
@@ -177,20 +179,20 @@ export async function assertFullNarrationReady(
       const blob = id ? records.audioById.get(id)?.blob : undefined;
       if (!segment || !id || !blob?.size || !segment.audio.present || !segment.audio.assetRef ||
         segment.audio.source !== 'stored' || segment.durationMs <= 0) {
-        throw new Error(`Scene: ${source.title} has missing narration or an estimated duration. Export was stopped.`);
+        throw new Error(`场景“${source.title}”的配音缺失或使用了估算时长，已停止导出。`);
       }
       let seconds = measured.get(id);
       if (seconds === undefined) {
         const decoded = await measure(blob);
         if (decoded === null || !Number.isFinite(decoded) || decoded <= 0) {
-          throw new Error(`Scene: ${source.title} has audio whose actual duration could not be read. Export was stopped.`);
+          throw new Error(`场景“${source.title}”的音频无法读取实际时长，已停止导出。`);
         }
         seconds = decoded;
         measured.set(id, seconds);
       }
       if (Math.abs(seconds * 1000 - segment.durationMs) > 20 ||
         segment.startMs + segment.durationMs > scene.startMs + scene.durationMs + 1) {
-        throw new Error(`Scene: ${source.title} has audio inconsistent with its timeline. Export was stopped to avoid truncation.`);
+        throw new Error(`场景“${source.title}”的音频与时间轴不一致，已停止导出以避免截断。`);
       }
       speechCount += 1;
       spokenCharacters += (action as SpeechAction).text.length;

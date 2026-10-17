@@ -18,7 +18,7 @@ import { requestCredential } from './credentials.mjs';
 
 const PLAN_READ_TOOLS = new Set(['read', 'read_image', 'read_document', 'read_document_image', 'document_engine_status',
   'catalog_workspace', 'read_task_progress', 'load_workspace_dependencies', 'load_harness_tools', 'glob', 'grep',
-  'web_search', 'web_fetch', 'ask_user_question', 'exit_plan_mode', 'present', 'todo_write', 'job_list', 'job_output']);
+  'web_search', 'web_fetch', 'ask_user_question', 'exit_plan_mode', 'present', 'todo_write', 'job_list', 'job_output', 'surface_tools', 'read_surface_context']);
 const error = (code, status = 409) => Object.assign(new Error(code), { code, status });
 const now = () => new Date().toISOString();
 const clone = value => structuredClone(value);

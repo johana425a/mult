@@ -18,8 +18,8 @@ interface IdMap {
 }
 
 /**
- * Compute the rotated bounding rectangle of a canvas element.
- * @param element Element position, size, and rotation.
+ * 计算元素在画布中的矩形范围旋转后的新位置范围
+ * @param element 元素的位置大小和旋转角度信息
  */
 export const getRectRotatedRange = (element: RotatedElementData) => {
   const { left, top, width, height, rotate = 0 } = element;
@@ -53,8 +53,8 @@ export const getRectRotatedRange = (element: RotatedElementData) => {
 };
 
 /**
- * Compute the offset between an element original and rotated bounding rectangles.
- * @param element Element position, size, and rotation.
+ * 计算元素在画布中的矩形范围旋转后的新位置与旋转之前位置的偏离距离
+ * @param element 元素的位置大小和旋转角度信息
  */
 export const getRectRotatedOffset = (element: RotatedElementData) => {
   const { xRange: originXRange, yRange: originYRange } = getRectRotatedRange({
@@ -78,8 +78,8 @@ export const getRectRotatedOffset = (element: RotatedElementData) => {
 };
 
 /**
- * Compute the canvas bounds of a group of elements.
- * @param elementList Element collection.
+ * 计算一组元素在画布中的位置范围
+ * @param elementList 一组元素信息
  */
 export const getElementListRange = (elementList: PPTElement[]) => {
   const leftValues: number[] = [];
@@ -104,8 +104,8 @@ export const getElementListRange = (elementList: PPTElement[]) => {
 };
 
 /**
- * Compute the length of a line element.
- * @param element Line element.
+ * 计算线条元素的长度
+ * @param element 线条元素
  */
 export const getLineElementLength = (element: PPTLineElement) => {
   const deltaX = element.end[0] - element.start[0];
@@ -120,8 +120,8 @@ export interface AlignLine {
 }
 
 /**
- * Deduplicate alignment guides at the same coordinate, merging their minimum and maximum extents.
- * @param lines Alignment guide collection.
+ * 将一组对齐吸附线进行去重：同位置的的多条对齐吸附线仅留下一条，取该位置所有对齐吸附线的最大值和最小值为新的范围
+ * @param lines 一组对齐吸附线信息
  */
 export const uniqAlignLines = (lines: AlignLine[]) => {
   // Dedupe by `value` in O(n) via a Map keyed on value, instead of an
@@ -149,9 +149,9 @@ export const uniqAlignLines = (lines: AlignLine[]) => {
 };
 
 /**
- * Generate new IDs for every slide and create an old-to-new ID map.
- * Preserve relationships among slide IDs throughout the data.
- * @param slides Slide collection.
+ * 以页面列表为基础，为每一个页面生成新的ID，并关联到旧ID形成一个字典
+ * 主要用于页面元素时，维持数据中各处页面ID原有的关系
+ * @param slides 页面列表
  */
 export const createSlideIdMap = (slides: Slide[]) => {
   const slideIdMap: IdMap = {};
@@ -162,10 +162,10 @@ export const createSlideIdMap = (slides: Slide[]) => {
 };
 
 /**
- * Generate new IDs for elements and create an old-to-new ID map.
- * Preserve element ID relationships while copying.
- * Elements sharing a groupId retain a shared new groupId after copying.
- * @param elements Element collection data.
+ * 以元素列表为基础，为每一个元素生成新的ID，并关联到旧ID形成一个字典
+ * 主要用于复制元素时，维持数据中各处元素ID原有的关系
+ * 例如：原本两个组合的元素拥有相同的groupId，复制后依然会拥有另一个相同的groupId
+ * @param elements 元素列表数据
  */
 export const createElementIdMap = (elements: PPTElement[]) => {
   const groupIdMap: IdMap = {};
@@ -184,8 +184,8 @@ export const createElementIdMap = (elements: PPTElement[]) => {
 };
 
 /**
- * Get palette shades corresponding to a table theme color.
- * @param themeColor Theme color.
+ * 根据表格的主题色，获取对应用于配色的子颜色
+ * @param themeColor 主题色
  */
 export const getTableSubThemeColor = (themeColor: string) => {
   const rgba = tinycolor(themeColor);
@@ -193,9 +193,9 @@ export const getTableSubThemeColor = (themeColor: string) => {
 };
 
 /**
- * Determine whether an element is inside the visible area.
- * @param element Element.
- * @param parent Parent element.
+ * 判断一个元素是否在可视范围内
+ * @param element 元素
+ * @param parent 父元素
  */
 export const isElementInViewport = (element: HTMLElement, parent: HTMLElement): boolean => {
   const elementRect = element.getBoundingClientRect();

@@ -11,6 +11,7 @@ import { executionTaskRequest } from './execution_tasks.mjs';
 import { interactionRequest } from './interaction_http.mjs';
 import sharp from 'sharp';
 import { deploymentProtectedPaths } from './deployment_policy.mjs';
+import { executionError } from './execution_errors.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const profile = process.env.DEEPSTEAM_HARNESS_PROFILE;
@@ -26,8 +27,13 @@ const routes = new Map(); const controllers = new Set(); const loginOperations =
 const same = (left, right) => typeof left === 'string' && Buffer.byteLength(left) === Buffer.byteLength(right) && timingSafeEqual(Buffer.from(left), Buffer.from(right));
 const bearer = req => String(req.headers.authorization ?? '').replace(/^Bearer /, '');
 async function rpc(path, body, signal) {
-  const response = await fetch(portal + path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(body), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error('PORTAL_OPERATION_FAILED');
+  const timeout = AbortSignal.timeout(path.includes('surface-tools') ? 86400000 : 30000);
+  const response = await fetch(portal + path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(body), signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const detail = body.error ?? body.detail ?? {};
+    throw Object.assign(new Error(typeof detail === 'string' ? detail : detail.message ?? `Application service returned HTTP ${response.status}`), {code: detail.code ?? body.code ?? 'PORTAL_OPERATION_FAILED', status: response.status});
+  }
   return response.json();
 }
 const host = await createHost({ profile, sessions: join(profile, 'sessions'), port,
@@ -51,6 +57,9 @@ const host = await createHost({ profile, sessions: join(profile, 'sessions'), po
   },
   async resolveWorkspaceSearchStatus(llm_selection = null) {
     return rpc('/api/harness/internal/workspace-search-status', { llm_selection });
+  },
+  async invokeSurfaceTool(body, signal) {
+    return rpc('/api/harness/internal/surface-tools/invoke', body, signal);
   } });
 const { ctx } = host;
 const metadata = { version: '0.2.1-alpha.2', locale: 'zh-CN', timezoneOffsetSeconds: -new Date().getTimezoneOffset() * 60 };
@@ -191,7 +200,7 @@ async function route(req, res) {
     // Provider and shell exceptions may include private request details. Only
     // a bounded error identity enters operational logs or the error response.
     console.warn('Harness operation failed:', code);
-    if (!res.headersSent && !res.destroyed) json(res, { error: { code, message: 'The operation did not complete. Retry or use the connection steps.' } }, error.status ?? 502);
+    if (!res.headersSent && !res.destroyed) json(res, { error: executionError(error, 'host_request') }, error.status ?? 502);
     else if (!res.writableEnded && !res.destroyed) res.end();
   } finally { controllers.delete(controller); res.removeListener('close', disconnect); }
 }

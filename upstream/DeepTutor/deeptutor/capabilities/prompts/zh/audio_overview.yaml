@@ -27,5 +27,5 @@ instructions: |
   - Put citation IDs in source_ids; do not put bracketed IDs in text.
   - The top-level response must contain JSON and no surrounding prose.
 status:
-  missing_kb: Attach a knowledge base to create an audio overview.
-  missing_workspace: No writable runtime workspace is available.
+  missing_kb: 请先挂载知识库，再生成音频概览。
+  missing_workspace: 当前没有可写的运行时工作区。

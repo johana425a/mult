@@ -211,3 +211,10 @@ __all__ = [
     "looks_like_large_context_model",
     "resolve_effective_context_window",
 ]
+
+
+# --- DeepSteam 2026-10-15 providers: families that all ship >=128k windows, so
+# an un-annotated entry is not squeezed into the 16k fallback.
+KNOWN_LARGE_CONTEXT_MARKERS = KNOWN_LARGE_CONTEXT_MARKERS + (
+    "glm-4", "glm-5", "minimax-m", "command-a", "sonar", "mistral-large", "mistral-medium",
+)

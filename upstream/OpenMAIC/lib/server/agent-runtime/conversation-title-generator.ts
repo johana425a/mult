@@ -26,7 +26,7 @@ function stripQuoteWrapper(value: string): string {
 
 function normalizeTitleLine(line: string): string | null {
   const withoutPrefix = stripQuoteWrapper(line)
-    .replace(/^(?:title)\s*[:：]\s*/i, '')
+    .replace(/^(?:title|标题)\s*[:：]\s*/i, '')
     .trim();
   const normalized = sanitizeSessionTitleText(
     stripQuoteWrapper(withoutPrefix).replace(/\s+/g, ' '),

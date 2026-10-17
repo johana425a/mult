@@ -116,24 +116,24 @@ def _new_material_id() -> str:
 def _schedule_media_captions(
     background_tasks: BackgroundTasks, store: ReadingStore, material_id: str
 ) -> None:
-    """Best-effort: caption a material's embedded figures after ingest.
+    """Keep original media pending; ingest has no frozen conversation model.
 
-    The vision model writes one sentence per image back into the store's media
-    index so a text-only model can still describe every figure in the book.
-    This must never affect the upload result or the ingest status, so any
-    failure is only logged.
+    An old image_caption setting must not cause background calls against a
+    global or independently configured provider. The current task inspects
+    original images directly; explicit caption tasks must supply their frozen
+    selected config through the dedicated caption function.
     """
-    if not captions_enabled():
-        return
-    background_tasks.add_task(_caption_material_best_effort, store, material_id)
+    return
 
 
-async def _caption_material_best_effort(store: ReadingStore, material_id: str) -> None:
+async def _caption_material_best_effort(store: ReadingStore, material_id: str, llm_config=None) -> None:
     """Run the caption pass without ever letting an error escape."""
     if not captions_enabled():
         return
+    if llm_config is None:
+        return
     try:
-        await caption_material_media(material_id, store=store)
+        await caption_material_media(material_id, store=store, llm_config=llm_config)
     except Exception:  # noqa: BLE001 - captioning is best-effort
         logger.warning("Image captioning failed for %s", material_id, exc_info=True)
 
@@ -347,6 +347,8 @@ class BookmarkList(BaseModel):
 class SupportedFormats(BaseModel):
     extensions: list[str]
     max_bytes: int
+    # PDF originals are streamed and indexed, with bounded per-page reads.
+    pdf_max_bytes: int | None = None
     raw_view_extensions: list[str]
 
 
@@ -565,8 +567,7 @@ async def import_urls(
                 or (materials[0].title if materials else "Reading collection"),
                 [row.material_id for row in materials],
             )
-        for material in materials:
-            background_tasks.add_task(service.process_url, material.material_id)
+        background_tasks.add_task(service.process_urls, [material.material_id for material in materials])
         return {
             "materials": [row.to_dict() for row in materials],
             "workspace": workspace.to_dict() if workspace else None,
@@ -1063,11 +1064,12 @@ async def upload_material(
     tmp_dir = Path(tempfile.mkdtemp(prefix="dt-reading-"))
     tmp_path = tmp_dir / Path(filename).name
     written = 0
+    material_limit = None if Path(filename).suffix.lower() == '.pdf' else MAX_MATERIAL_BYTES
     try:
         with tmp_path.open("wb") as sink:
             while chunk := await file.read(_UPLOAD_CHUNK):
                 written += len(chunk)
-                if written > MAX_MATERIAL_BYTES:
+                if material_limit is not None and written > material_limit:
                     raise HTTPException(
                         status_code=413,
                         detail=(
@@ -1236,7 +1238,7 @@ async def get_unit(material_id: str, locator: int) -> UnitText:
         return UnitText(
             locator=locator,
             unit=manifest.unit,
-            text=store.unit_text(material_id, locator),
+            text=await asyncio.to_thread(store.unit_text, material_id, locator),
         )
     except Exception as exc:
         raise _http_error(exc) from exc
@@ -1283,7 +1285,7 @@ async def get_raw(material_id: str) -> FileResponse:
 @router.get("/materials/{material_id}/render")
 async def get_render(material_id: str) -> FileResponse:
     """Serve a browser-ready EPUB archive, or the original for other formats."""
-    return _material_file_response(material_id, browser_ready=True)
+    return await asyncio.to_thread(_material_file_response, material_id, browser_ready=True)
 
 
 def _material_file_response(material_id: str, *, browser_ready: bool) -> FileResponse:

@@ -76,7 +76,7 @@ function speakingCharacter(project: PBLProjectV2): PBLScenarioCharacter | undefi
  *   - 'character' — the in-scene character. It must see ONLY spoken dialogue
  *     (its own past lines as `assistant`, the learner as `user`). System
  *     narration is DELIBERATELY EXCLUDED: feeding the narrator's third-person
- *     prose (stage directions, "He frowned…") into the character's context
+ *     prose (stage directions, "他皱了皱眉…") into the character's context
  *     teaches it to imitate that voice — it starts narrating itself in the
  *     third person and paraphrasing the narration. A live A/B/contagion
  *     experiment confirmed this is the ROOT CAUSE of the role-bleed bug:
@@ -233,7 +233,7 @@ export function buildNarratorSystemPrompt(
       `This beat is resolved once the following is true — let the world keep moving naturally, but NEVER announce it, evaluate the learner, or coach/hint them toward it: ${completionCriteria}`,
     );
   }
-  const castNames = (scenario.characters ?? []).map((c) => c.name).join(', ');
+  const castNames = (scenario.characters ?? []).map((c) => c.name).join('、');
   if (castNames) {
     lines.push(
       `The named characters of this scene: ${castNames}. You MAY describe their visible actions, reactions, expressions and body language (that is part of the scene), but NEVER speak for them or summarize/paraphrase what they SAY — their words come only from their own turn. If the only thing happening next is one of them speaking, output NONE.`,
@@ -373,7 +373,7 @@ function buildActContext(milestone: PBLMilestone, current: PBLMicrotask): PBLMic
     // later beats' developments). `current` is the first non-terminal beat,
     // which at act entry is beat 1.
     characterObjective:
-      objectives.length > 0 ? objectives.join(' | ') : current.characterObjective,
+      objectives.length > 0 ? objectives.join(' ｜ ') : current.characterObjective,
   };
 }
 
@@ -599,7 +599,7 @@ export async function* runSimulatorTurn(
     yield {
       type: 'error',
       code: 'EMPTY_LLM_OUTPUT',
-      message: 'The character did not speak this turn. Please retry.',
+      message: '角色这一轮没有说话，请再试一次。',
     };
     yield { type: 'done' };
     return;

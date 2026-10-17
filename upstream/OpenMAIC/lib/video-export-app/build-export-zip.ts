@@ -77,6 +77,8 @@ function configuredVideoExportCta() {
 async function compileStageIr(options: {
   resolution: VideoResolution;
   locale: Locale;
+  sceneIds?: readonly string[];
+  signal?: AbortSignal;
   labels: ReturnType<typeof getVideoExportCoverLabels>;
   skipGeometry?: boolean;
   skipInteractiveHtml?: boolean;
@@ -96,19 +98,26 @@ async function compileStageIr(options: {
 
   const stage = structuredClone(initial.stage);
   const sourceScenes = structuredClone(initial.scenes);
+  const selectedScenes = options.sceneIds ? sourceScenes.filter(scene => options.sceneIds!.includes(scene.id)) : sourceScenes;
+  if (!selectedScenes.length || (options.sceneIds && selectedScenes.length !== new Set(options.sceneIds).size)) {
+    throw new NoScenesError('The selected scenes are no longer available.');
+  }
   const stageSnapshot = JSON.stringify(stage);
   const sourceSnapshot = JSON.stringify(sourceScenes);
   const assertCurrent = () => {
+    options.signal?.throwIfAborted();
     const current = useStageStore.getState();
     if (JSON.stringify(current.stage) !== stageSnapshot || JSON.stringify(current.scenes) !== sourceSnapshot) {
-      throw new Error('The classroom changed during export preparation. Start the export again.');
+      throw new Error('课堂在导出准备期间已改变，请重新开始导出。');
     }
   };
-  const narration = await prepareNarratedExport({ courseId: stage.id, stage, scenes: sourceScenes });
+  assertCurrent();
+  const narration = await prepareNarratedExport({ courseId: stage.id, stage, scenes: selectedScenes, signal: options.signal });
   assertCurrent();
   const scenes = narration.scenes;
 
-  const stageName = await resolveExportStageName(stage);
+  const originalName = await resolveExportStageName(stage);
+  const stageName = options.sceneIds ? `${originalName} - ${selectedScenes.map(scene => scene.title).join(', ')}` : originalName;
   const { width, height } = VIDEO_RESOLUTIONS[options.resolution];
 
   const [deps, quizLayout] = await Promise.all([
@@ -147,6 +156,8 @@ async function compileStageIr(options: {
 /** Options for a full export-ZIP build. */
 export interface BuildExportZipOptions {
   resolution: VideoResolution;
+  sceneIds?: readonly string[];
+  signal?: AbortSignal;
   /** Burn the subtitle overlay into the video. Default false (sidecar SRT/VTT only). */
   burnInSubtitles?: boolean;
   /** Locale the card chrome and the emitted document are written in. */
@@ -175,6 +186,8 @@ export async function buildExportZip(
     resolution,
     locale,
     labels,
+    sceneIds: options.sceneIds,
+    signal: options.signal,
   });
 
   // 3. emit the Hyperframes project text.
@@ -198,7 +211,7 @@ export async function buildExportZip(
     frameWidth: width,
   });
   assertCurrent();
-  if (missing.length > 0) throw new Error('Complete video visuals or narration resources are missing. Export was stopped.');
+  if (missing.length > 0) throw new Error('完整视频的画面或配音资源缺失，已停止导出。');
 
   // 5. package the self-contained ZIP.
   const zipBlob = await packageVideoZip(project, blobs);
@@ -236,6 +249,7 @@ export interface CompiledSubtitles {
 export interface CompileSubtitlesOptions {
   resolution: VideoResolution;
   locale: Locale;
+  sceneIds?: readonly string[];
 }
 
 export async function compileSubtitles(

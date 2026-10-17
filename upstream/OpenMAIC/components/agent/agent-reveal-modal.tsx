@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
+import { scheduleAgentReveal } from '@/lib/hooks/generation-lifecycle';
 
 interface AgentRevealModalProps {
   agents: Array<{
@@ -60,40 +61,16 @@ export function AgentRevealModal({ agents, open, onClose, onAllRevealed }: Agent
       return;
     }
 
-    let i = 0;
-    const startTimeout = setTimeout(() => {
-      i = 1;
-      setRevealedCount(1);
-
-      if (agents.length <= 1) {
-        setTimeout(() => {
-          if (!allRevealedFiredRef.current) {
-            allRevealedFiredRef.current = true;
-            onAllRevealedRef.current?.();
-          }
-        }, 600);
-        return;
+    setRevealedCount(0);
+    setFlipsComplete(false);
+    allRevealedFiredRef.current = false;
+    return scheduleAgentReveal(agents.length, setRevealedCount, () => {
+      if (!allRevealedFiredRef.current) {
+        allRevealedFiredRef.current = true;
+        onAllRevealedRef.current?.();
       }
-
-      const interval = setInterval(() => {
-        i++;
-        setRevealedCount(i);
-        if (i >= agents.length) {
-          clearInterval(interval);
-          setTimeout(() => {
-            if (!allRevealedFiredRef.current) {
-              allRevealedFiredRef.current = true;
-              onAllRevealedRef.current?.();
-            }
-          }, 600);
-        }
-      }, 500);
-
-      return () => clearInterval(interval);
-    }, 400);
-
-    return () => clearTimeout(startTimeout);
-  }, [open, agents.length]);
+    });
+  }, [open, agents]);
 
   // Switch from preserve-3d to flat after all flip animations complete to enable scrolling
   useEffect(() => {

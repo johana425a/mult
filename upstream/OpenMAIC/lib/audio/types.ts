@@ -101,7 +101,7 @@ export interface TTSVoiceInfo {
   id: string;
   name: string;
   language: string;
-  localeName?: string; // Language name in its native script (e.g., "English (United States)", "Japanese")
+  localeName?: string; // Language name in its native script (e.g., "中文（简体，中国）", "日本語")
   gender?: 'male' | 'female' | 'neutral';
   description?: string;
   /** Model IDs this voice is compatible with. Undefined = all models. */

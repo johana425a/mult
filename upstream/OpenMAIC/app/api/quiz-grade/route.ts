@@ -79,16 +79,14 @@ ${commentPrompt ? `Grading guidance: ${commentPrompt}\n` : ''}Student answer: ${
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('No JSON found');
       const parsed = JSON.parse(jsonMatch[0]);
+      if (typeof parsed.score !== 'number' || !Number.isFinite(parsed.score) || typeof parsed.comment !== 'string' || !parsed.comment.trim()) throw new Error('Invalid grade response');
       gradeResult = {
         score: Math.max(0, Math.min(points, Math.round(Number(parsed.score)))),
         comment: String(parsed.comment || ''),
       };
     } catch {
-      // Fallback: give partial credit with a generic comment
-      gradeResult = {
-        score: Math.round(points * 0.5),
-        comment: 'Answer received. Please refer to the standard answer.',
-      };
+      // Never turn a failed or malformed assessment into an earned score.
+      return apiError('INTERNAL_ERROR', 502, 'The grading response was invalid. Retry grading.');
     }
 
     return apiSuccess({ ...gradeResult });

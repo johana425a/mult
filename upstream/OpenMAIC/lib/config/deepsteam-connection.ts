@@ -20,7 +20,11 @@ export interface DeepSteamResolvedModel {
   provider: string; provider_label: string; model: string; model_name: string;
   selection_source: 'default' | 'override'; reasoning_effort?: string | null;
   configuration_revision?: string; context_window?: number; context_window_source?: string;
-  capabilities?: { tools?: boolean; vision?: boolean; json_output?: boolean };
+  capabilities?: { tools?: boolean; vision?: boolean; vision_verified?: boolean; json_output?: boolean };
+  image_verification?: {
+    verified: boolean; status: string; supported?: boolean;
+    configuration_identity?: string; checked_at?: string;
+  };
 }
 export interface DeepSteamModelSnapshot { selection: DeepSteamModelSelection; resolved_model: DeepSteamResolvedModel }
 
@@ -68,6 +72,6 @@ export function followsDeepSteamConnection(providerId: string): boolean {
 }
 
 export function deepsteamConnectionLabel(connection: DeepSteamConnection): string {
-  const route = connection.route === 'account' ? 'Account login' : connection.route === 'apikey' ? 'API connection' : 'Active connection';
+  const route = connection.route === 'account' ? '账号登录' : connection.route === 'apikey' ? 'API 接入' : '当前连接';
   return `${connection.provider_label} · ${connection.model} · ${route}`;
 }

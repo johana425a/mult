@@ -132,11 +132,42 @@ def build_book_context(
                 page_sections.append(page_text)
 
         if page_sections:
-            sections.append(_serialize_book_header(book) + "\n\n" + "\n\n".join(page_sections))
+            visual_inventory = _book_source_image_inventory(store, book.id)
+            sections.append(_serialize_book_header(book) + visual_inventory + "\n\n" + "\n\n".join(page_sections))
 
     text = _clip("\n\n---\n\n".join(sections), max_chars)
     references = [ref.model_dump() for ref in refs]
     return BookContextResult(text=text, references=references, warnings=warnings)
+
+
+def _book_source_image_inventory(store: BookStorage, book_id: str) -> str:
+    """Let page QA retrieve original pixels instead of treating summaries as vision."""
+    load = getattr(store, 'load_inputs', None)
+    inputs = load(book_id) if callable(load) else None
+    references = getattr(inputs, 'source_refs', []) or []
+    lines = []
+    for source in references:
+        if source.get('kind') != 'workspace_file':
+            continue
+        metadata = source.get('metadata') or {}
+        for unit in metadata.get('units') or []:
+            for asset in unit.get('assets') or []:
+                lines.append('Source image reference: ' + str({
+                    'workspace_id': metadata.get('content_workspace_id') or metadata.get('workspace_id'),
+                    'path': metadata.get('path'), 'document_sha256': metadata.get('document_sha256'),
+                    'asset_id': asset.get('id'), 'locator': asset.get('locator') or unit.get('locator')}))
+                if len(lines) >= 32:
+                    break
+            if len(lines) >= 32:
+                break
+        if len(lines) >= 32:
+            break
+    if not lines:
+        return ''
+    return ('\n[Source image inventory; pixels are not automatically attached to this book-page question. '
+        'Use workspace_document_image for the relevant original asset with the current verified model before '
+        'claiming visual details. Book text and prior source summaries do not prove the current page image was inspected. '
+        'This inventory is bounded; it is not a claim that the whole book was read.]\n' + '\n'.join(lines))
 
 
 def _serialize_book_header(book: Book) -> str:
@@ -357,7 +388,8 @@ def _format_deep_dive(payload: dict[str, Any]) -> str:
 
 
 def _format_visual_summary(payload: dict[str, Any]) -> str:
-    lines = [_join_text_fields(payload, ("description", "summary", "caption", "chart_type"))]
+    lines = ['[Visual block summary only; original pixels are not included in this text context. Retrieve or attach the relevant image before answering pixel-specific details.]',
+             _join_text_fields(payload, ("description", "summary", "caption", "chart_type"))]
     key_points = payload.get("key_points")
     if isinstance(key_points, list):
         for point in key_points[:8]:

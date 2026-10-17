@@ -80,7 +80,7 @@ export function wbClearMs(elementCount: number): number {
  * Ideographs (+ Ext-A), Hiragana, Katakana, Hangul Syllables. Verbatim from the
  * regex in `lib/playback/engine.ts`'s `scheduleReadingTimer`.
  */
-const CJK_REGEX = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu;
+const CJK_REGEX = /[一-鿿㐀-䶿぀-ゟ゠-ヿ가-힯]/g;
 
 /** Text is treated as CJK when this fraction of its characters are CJK. */
 const CJK_RATIO_THRESHOLD = 0.3;

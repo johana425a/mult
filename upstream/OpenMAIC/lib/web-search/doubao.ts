@@ -1,5 +1,5 @@
 /**
- * Doubao Web Search integration (Doubao Search Custom).
+ * Doubao Web Search integration (豆包搜索 Custom 版).
  *
  * The Volcengine Ark Agent Plan exposes web search through the same REST
  * endpoint the `mcp-server-askecho-search-infinity` MCP server wraps:
@@ -63,7 +63,7 @@ function formatDoubaoError(
 }
 
 /**
- * Search the web using Doubao Search (Custom) and return structured results.
+ * Search the web using Doubao Search (Custom 版) and return structured results.
  * Prefers `Summary` (query-relevant 500~1000 char excerpt, recommended for LLM
  * use) over `Snippet` (~200 char list blurb) for each source's content.
  */

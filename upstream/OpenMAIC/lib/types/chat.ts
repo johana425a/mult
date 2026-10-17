@@ -338,6 +338,8 @@ export type ElementReference =
  * All state is sent from the client on each request
  */
 export interface StatelessChatRequest {
+  /** Native conversation identity for the shared standalone execution core. */
+  harnessSessionId?: string;
   /** Conversation history (client-maintained) */
   messages: UIMessage<ChatMessageMetadata>[];
   /** Current application state */

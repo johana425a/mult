@@ -637,6 +637,13 @@ def _reading_viewport(value: Any) -> dict[str, Any]:
     selection = str(value.get("selection") or "").strip()
     if selection:
         viewport["selection"] = selection[:READING_SELECTION_MAX_CHARS]
+    if value.get("time_seconds") is not None:
+        try:
+            seconds = float(value["time_seconds"])
+            if 0 <= seconds < float("inf"):
+                viewport["time_seconds"] = min(24 * 60 * 60, seconds)
+        except (TypeError, ValueError):
+            pass
     return viewport
 
 

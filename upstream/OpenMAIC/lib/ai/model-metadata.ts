@@ -161,7 +161,7 @@ const anthropicFable5Effort: ThinkingCapability = {
 
 const kimiK3Effort = effortCapability('openai', ['low', 'high', 'max'], 'max');
 
-// TokenDance gateway uses reasoning_effort; see the end of THINKING_CAPABILITIES.
+// TokenDance 网关统一 reasoning_effort（见 THINKING_CAPABILITIES 末尾的注释）
 const tokendanceEffort = effortCapability('openai', ['low', 'medium', 'high'], 'medium');
 const grok46Effort = effortCapability('openai', ['low', 'medium', 'high', 'xhigh'], 'high');
 const grok45Effort = effortCapability('openai', ['low', 'medium', 'high'], 'high');
@@ -190,7 +190,7 @@ const glm52Effort: ThinkingCapability = {
 };
 
 // GLM-5.3 / GLM-5.3-Flash always think; depth is controlled by effort only
-// (the API rejects thinking.type "disabled": "This model always reasons and cannot disable reasoning").
+// (the API rejects thinking.type "disabled": "该模型始终思考,不支持关闭思考").
 const glm53Effort: ThinkingCapability = {
   control: 'effort',
   requestAdapter: 'glm',
@@ -397,8 +397,8 @@ const THINKING_CAPABILITIES: Record<string, ThinkingCapability> = {
   [getModelMetadataKey('atlascloud', 'deepseek-ai/deepseek-v4-pro')]: deepseekEffort,
 
   [getModelMetadataKey('kimi', 'kimi-k3')]: kimiK3Effort,
-  // Kimi Coding Plan model IDs (K3 family and K2.8 coding series) share
-  // the official catalog reasoning capabilities so inline controls work after plan seeding.
+  // Kimi Coding Plan 的套餐模型 id（K3 家族与 K2.8 coding 系列）：与对应
+  // 官方目录条目同款思考能力，token plan 播种目录后行内思考控件可用。
   [getModelMetadataKey('kimi', 'k3')]: kimiK3Effort,
   [getModelMetadataKey('kimi', 'k3-256k')]: kimiK3Effort,
   [getModelMetadataKey('kimi', 'kimi-for-coding')]: fixedThinkingCapability,
@@ -436,8 +436,8 @@ const THINKING_CAPABILITIES: Record<string, ThinkingCapability> = {
   [getModelMetadataKey('doubao', 'doubao-seed-2.0-code')]: doubaoSeed20Effort,
   [getModelMetadataKey('doubao', 'doubao-seed-2.0-lite')]: doubaoSeed20Effort,
   [getModelMetadataKey('doubao', 'doubao-seed-2.0-mini')]: doubaoSeed20Effort,
-  // The Seed 2.1 dotted alias added by Agent Plan, the preset main model,
-  // shares the reasoning controls of the 2.0 dotted family.
+  // Agent Plan 新增的 Seed 2.1 dotted 别名（token-plan preset 默认主线模型），
+  // 与 2.0 dotted 系列同族，思考控制一致。
   [getModelMetadataKey('doubao', 'doubao-seed-2.1-turbo')]: doubaoSeed20Effort,
   // Cross-vendor models the Ark Agent Plan also serves through its
   // OpenAI-compatible endpoint (all under the `doubao` provider id). Verified
@@ -492,10 +492,10 @@ const THINKING_CAPABILITIES: Record<string, ThinkingCapability> = {
   [getModelMetadataKey('lemonade', 'gpt-oss-20b')]: lemonadeToggleBudget,
   [getModelMetadataKey('lemonade', 'GPT-OSS-20B-GGUF')]: lemonadeToggleBudget,
 
-  // TokenDance OpenAI-compatible /gateway/v1 forwards the gateway
-  // reasoning_effort field (low/medium/high) for cogevol and
-  // cross-vendor models. Native vendor reasoning transports are not forwarded;
-  // the unified field matches the Volcano Ark cross-vendor plan.
+  // TokenDance 网关（OpenAI 兼容，/gateway/v1）：套餐目录统一透传网关的
+  // reasoning_effort 字段（low/medium/high）——包括网关自有的 cogevol 系列
+  // 和跨厂商模型（各家原生思考传输不经网关透传，统一走网关字段；与火山
+  // Ark 套餐跨厂商模型的口径一致）。
   [getModelMetadataKey('tokendance', 'cogevol-base')]: tokendanceEffort,
   [getModelMetadataKey('tokendance', 'cogevol-slide-0828')]: tokendanceEffort,
   [getModelMetadataKey('tokendance', 'cogevol-interactive-0828')]: tokendanceEffort,

@@ -32,6 +32,10 @@ import { findUnsafeNetworkTargetError, validatePublicUrlForSSRF } from '@/lib/se
 import { VOXCPM_AUTO_VOICE_ID, VOXCPM_TTS_PROVIDER_ID } from '@/lib/audio/voxcpm';
 import { QwenVoiceCloneError, qwenVoiceCloneErrorMessage } from '@/lib/audio/qwen-voice-clone';
 import { isQwenCloneVoice } from '@/lib/audio/constants';
+import {
+  rethrowIfGenerationCancelled,
+  throwIfGenerationAborted,
+} from '@/lib/server/generation-cancellation';
 
 const log = createLogger('TTS API');
 
@@ -42,7 +46,9 @@ export async function POST(req: NextRequest) {
   let ttsVoice: string | undefined;
   let audioId: string | undefined;
   try {
+    throwIfGenerationAborted(req.signal);
     const body = await req.json();
+    throwIfGenerationAborted(req.signal);
     const { text, ttsModelId, ttsSpeed, ttsApiKey, ttsBaseUrl, ttsProviderOptions } = body as {
       text: string;
       audioId: string;
@@ -142,6 +148,18 @@ export async function POST(req: NextRequest) {
       publicOnly,
       // A server-configured provider's endpoint may be on a local network.
       managed,
+      signal: req.signal,
+      // Observe completed provider work before a late cancellation drops audio.
+      // This is the existing local quantity log, not a provider billing receipt.
+      onCompleted: () => {
+        void recordGenerationUsage({
+          kind: 'tts',
+          unit: 'character',
+          providerId: ttsProviderId!,
+          modelId: resolvedModelId,
+          quantity: text.length,
+        });
+      },
       providerOptions: {
         ...(ttsProviderOptions || {}),
         ...(qwenCloneVoice ? { qwenVoiceClone: true } : {}),
@@ -155,14 +173,7 @@ export async function POST(req: NextRequest) {
 
     // Generate audio
     const { audio, format } = await generateTTS(config, text);
-
-    void recordGenerationUsage({
-      kind: 'tts',
-      unit: 'character',
-      providerId: ttsProviderId,
-      modelId: config.modelId,
-      quantity: text.length,
-    });
+    throwIfGenerationAborted(req.signal);
 
     // Convert to base64
     const base64 = Buffer.from(audio).toString('base64');
@@ -173,6 +184,7 @@ export async function POST(req: NextRequest) {
       format,
     });
   } catch (error) {
+    rethrowIfGenerationCancelled(error, req.signal);
     log.error(
       `TTS generation failed [provider=${ttsProviderId ?? 'unknown'}, voice=${ttsVoice ?? 'unknown'}, audioId=${audioId ?? 'unknown'}]:`,
       error,

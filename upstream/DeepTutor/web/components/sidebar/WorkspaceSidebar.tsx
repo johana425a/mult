@@ -1,4 +1,6 @@
 "use client";
+import * as React from 'react';
+import { useRetained, has as hasRetained } from '@/lib/sidebar-view-state.cjs';
 
 import { navigateTask, selectWorkspace } from "@/lib/workspace-scope";
 import { sessionWorkspaceId } from "@/lib/session-api";
@@ -45,14 +47,14 @@ export default function WorkspaceSidebar() {
     sessionStatuses,
     sidebarRefreshToken,
   } = useChatStateAdapter();
-  const [sessions, setSessions] = useState<SessionSummary[]>([]);
-  const [courses, setCourses] = useState<StudyCourse[]>([]);
-  const [masteryTopics, setMasteryTopics] = useState<MasteryTopicLabel[]>([]);
-  const [readingCollections, setReadingCollections] = useState<
+  const [sessions, setSessions] = useRetained<SessionSummary[]>(React, 'sessions', []);
+  const [courses, setCourses] = useRetained<StudyCourse[]>(React, 'courses', []);
+  const [masteryTopics, setMasteryTopics] = useRetained<MasteryTopicLabel[]>(React, 'masteryTopics', []);
+  const [readingCollections, setReadingCollections] = useRetained<
     ReadingCollectionLabel[]
-  >([]);
+  >(React, 'readingCollections', []);
   const [loadingSessions, setLoadingSessions] = useState(false);
-  const hasLoadedSessionsRef = useRef(false);
+  const hasLoadedSessionsRef = useRef(hasRetained('sessions'));
 
   const refreshSessions = useCallback(async () => {
     if (!hasLoadedSessionsRef.current) {

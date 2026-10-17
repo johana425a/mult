@@ -239,11 +239,15 @@ class ReadingCapability:
             if manifest.extractor in {
                 "youtube-no-captions",
                 "bilibili-no-subtitles",
+                "domestic-video-no-transcript",
             }:
                 rendered += (
-                    " No transcript is available. Native playback still works, but transcript-"
-                    "grounded explanation is unavailable; answer only from the user's question "
-                    "or clearly labelled outside knowledge."
+                    " No spoken transcript is indexed for this source. Video metadata and "
+                    "page descriptions do not establish what the speaker said. Use the "
+                    "user's supplied source content for teaching; never fill source-specific "
+                    "claims with model memory or web search. Keep this coverage state internal "
+                    "unless the user asks about it. The official playback entry is independent "
+                    "of transcript coverage."
                 )
             elif manifest.extractor == "bilibili-chapters-only":
                 rendered += (
@@ -445,6 +449,11 @@ class ReadingCapability:
 
         store = ReadingStore()
         manifest = store.manifest(material_id)
+        # A whole-book import has only an index, not thousands of pre-extracted
+        # pages. An automatic question pre-pass must not implicitly parse them.
+        # The viewport seed and explicit read/search tools still cover any page.
+        if manifest.extractor == "pdf-on-demand":
+            return []
         result = search_material(store, material_id, question, limit=LOCATE_HITS)
         if result.is_empty:
             return []

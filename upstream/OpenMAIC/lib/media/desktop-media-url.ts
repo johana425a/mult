@@ -21,7 +21,7 @@ export function normalizeDesktopClassroomMediaUrl(
   try {
     const url = new URL(value, page.href);
     const ownLegacy = url.protocol === 'http:' && url.port === '3793'
-      && ['localhost', '[::1]'].includes(url.hostname);
+      && ['127.0.0.1', 'localhost'].includes(url.hostname);
     const ownDesktop = url.protocol === 'deepsteam:' && url.hostname === 'classroom' && !url.port;
     if ((!ownLegacy && !ownDesktop) || url.username || url.password
       || !url.pathname.startsWith('/api/classroom-media/')) return value;

@@ -25,6 +25,7 @@ import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
 import { normalizeProjectRuntime, normalizeScenario } from '@openmaic/generation';
 import type { ThinkingConfig } from '@/lib/types/provider';
+import { throwIfGenerationAborted } from '@/lib/server/generation-cancellation';
 
 import {
   SCENARIO_SCHEMA_VERSION,
@@ -58,6 +59,7 @@ export type PlannerCallFn = (
     prompt: string;
     tools: ToolSet;
     stopWhen: StopCondition<ToolSet>[];
+    abortSignal?: AbortSignal;
     onStepFinish: (step: Pick<StepResult<ToolSet>, 'toolCalls'>) => void;
   },
   source: 'pbl-v2-planner',
@@ -98,7 +100,9 @@ export async function generatePBLV2Project(
   callLLM: PlannerCallFn,
   callbacks?: PlannerV2Callbacks,
   thinkingConfig?: ThinkingConfig,
+  signal?: AbortSignal,
 ): Promise<PBLProjectV2> {
+  throwIfGenerationAborted(signal);
   // Pull all the fields the prompt needs out of the input bundle so the
   // template substitution is explicit rather than passing `input` as a
   // big object — the prompt is reviewed by humans, every variable name
@@ -138,12 +142,13 @@ export async function generatePBLV2Project(
     contentLanguage,
     scenarioRoleplay,
   );
+  throwIfGenerationAborted(signal);
 
   // Tool implementations. Each one validates its inputs, mutates
   // `project`, fires a progress event, and returns a small result the
   // LLM uses to continue (the result is what's serialized into the
   // tool-call message that the LLM sees on the next turn).
-  const tools = buildTools(project, input, scenarioRoleplay, callbacks);
+  const tools = buildTools(project, input, scenarioRoleplay, callbacks, signal);
 
   log.info(
     `Starting Planner v2: topic="${pblConfig.projectTopic}", proficiency="${input.outline.pblConfig?.issueCount ?? '?'} milestones suggested"`,
@@ -159,8 +164,11 @@ export async function generatePBLV2Project(
       prompt:
         'Design the PBL project now. Call the tools in the documented order; do not write narrative text.',
       tools,
-      stopWhen: [plannerDesignAccepted(), stepCountIs(MAX_PLANNER_STEPS)],
+      abortSignal: signal,
+      stopWhen: [() => { throwIfGenerationAborted(signal); return false; },
+        plannerDesignAccepted(), stepCountIs(MAX_PLANNER_STEPS)],
       onStepFinish: ({ toolCalls }) => {
+        throwIfGenerationAborted(signal);
         // Optional verbose log. Keep at debug-level so production
         // logs don't drown in tool noise.
         if (toolCalls?.length) {
@@ -174,6 +182,7 @@ export async function generatePBLV2Project(
     undefined,
     thinkingConfig,
   );
+  throwIfGenerationAborted(signal);
 
   normalizeProjectRuntime(project);
   normalizeSynthesisChecks(project);
@@ -200,6 +209,7 @@ function buildTools(
   input: PBLPlannerV2Input,
   scenarioRoleplay: boolean,
   callbacks?: PlannerV2Callbacks,
+  signal?: AbortSignal,
 ) {
   // Track whether `set_project_info` has fired so we can require it
   // before downstream tools. The LLM should call them in order
@@ -296,6 +306,7 @@ function buildTools(
           .describe('Inferred from outline context: how much prior knowledge to assume.'),
       }),
       execute: async ({ title, description, learningObjective, gains, proficiency }) => {
+        throwIfGenerationAborted(signal);
         if (projectInfoSet) {
           return {
             ok: false,
@@ -345,6 +356,7 @@ function buildTools(
         systemPrompt: z.string().optional(),
       }),
       execute: async ({ type, name, description, systemPrompt }) => {
+        throwIfGenerationAborted(signal);
         if (!projectInfoSet) {
           return {
             ok: false,
@@ -418,6 +430,7 @@ function buildTools(
         ...milestoneScenarioStageField,
       }),
       execute: async (args) => {
+        throwIfGenerationAborted(signal);
         if (!instructorRoleAdded) {
           return {
             ok: false,
@@ -478,6 +491,7 @@ function buildTools(
         ...microtaskSceneFields,
       }),
       execute: async (args) => {
+        throwIfGenerationAborted(signal);
         const milestone = project.milestones.find((m) => m.id === args.milestoneId);
         if (!milestone) {
           return {
@@ -538,6 +552,7 @@ function buildTools(
         'Call this exactly once at the very end, after every milestone, microtask, and role has been added. Signals the design is complete.',
       inputSchema: z.object({}),
       execute: async (): Promise<PlannerCompletionToolResult> => {
+        throwIfGenerationAborted(signal);
         const gaps = plannerCompletionGaps(project, { scenarioRoleplay });
         if (gaps.length > 0) {
           return {
@@ -636,6 +651,7 @@ function buildTools(
         ),
     }),
     execute: async (args) => {
+      throwIfGenerationAborted(signal);
       if (!projectInfoSet) {
         return { ok: false, error: 'Call set_project_info first.' };
       }
@@ -695,6 +711,7 @@ function buildTools(
         ),
     }),
     execute: async (args) => {
+      throwIfGenerationAborted(signal);
       if (!project.scenario) {
         return { ok: false, error: 'Call set_scenario before set_scene_visual.' };
       }

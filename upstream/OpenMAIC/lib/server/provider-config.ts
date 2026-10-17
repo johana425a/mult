@@ -62,6 +62,7 @@ interface ServerConfig {
  */
 export const LLM_ENV_MAP: Record<string, string> = {
   // DeepSteam's installation-owned loopback model; never reuse a user's key.
+  DEEPSTEAM_LOCAL: 'custom-deepsteam-local',
   OPENAI: 'openai',
   AZURE_OPENAI: 'azure',
   ATLASCLOUD: 'atlascloud',

@@ -63,6 +63,13 @@ const QuizMathText = memo(function QuizMathText({
   allowDisplayMode?: boolean;
 }) {
   const segments = useMemo(() => renderQuizMathText(text), [text]);
+  const imageParts = useMemo(() => text.split(/(!\[[^\]]*\]\(\/api\/classroom-media\/[A-Za-z0-9_-]+\/media\/[A-Za-z0-9_.-]+\))/g), [text]);
+  if (imageParts.length > 1) {
+    return <span className={className}>{imageParts.map((part, index) => {
+      const image = /^!\[([^\]]*)\]\((\/api\/classroom-media\/[A-Za-z0-9_-]+\/media\/[A-Za-z0-9_.-]+)\)$/.exec(part);
+      return image ? <a key={index} href={image[2]} target="_blank" rel="noreferrer" title="Open source figure detail"><img src={image[2]} alt={image[1]} style={{ display: 'block', maxWidth: '100%', maxHeight: 480, width: 'auto', margin: '12px 0' }} /></a> : <QuizMathText key={index} text={part} allowDisplayMode={allowDisplayMode} />;
+    })}</span>;
+  }
   if (segments.length === 1 && segments[0].type === 'text') {
     return <span className={className}>{segments[0].value}</span>;
   }
@@ -123,6 +130,7 @@ async function gradeShortAnswerQuestion(
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as { score: number; comment: string };
+    if (!Number.isFinite(data.score) || typeof data.comment !== 'string' || !data.comment.trim()) throw new Error('Invalid grading response');
     const earned = Math.max(0, Math.min(pts, data.score));
     return {
       questionId: q.id,
@@ -133,14 +141,7 @@ async function gradeShortAnswerQuestion(
     };
   } catch (err) {
     log.error('[quiz-view] AI grading failed for', q.id, err);
-    // Fallback: give half credit
-    return {
-      questionId: q.id,
-      correct: null,
-      status: 'incorrect',
-      earned: Math.round(pts * 0.5),
-      aiComment: 'Grading service unavailable. Base score given.',
-    };
+    throw err;
   }
 }
 
@@ -705,6 +706,7 @@ export function QuizView({ questions, sceneId, stageId }: QuizViewProps) {
   const [runtimeGate, setRuntimeGate] = useState<QuizRuntimeGate>({ status: 'loading' });
   const [hydrationVersion, setHydrationVersion] = useState(0);
   const [retrying, setRetrying] = useState(false);
+  const retryGradingRef = useRef(false);
   const viewLifetimeRef = useRef<QuizViewLifetime | null>(null);
   viewLifetimeRef.current ??= createQuizViewLifetime();
   const viewLifetime = viewLifetimeRef.current;
@@ -728,7 +730,8 @@ export function QuizView({ questions, sceneId, stageId }: QuizViewProps) {
       .then(({ attemptId: nextAttemptId, state }) => {
         if (cancelled) return;
         const next = quizViewStateFromAttempt(state);
-        setPhase(next.phase);
+        setPhase(retryGradingRef.current && state?.phase === 'submitted' ? 'grading' : next.phase);
+        retryGradingRef.current = false;
         setAnswers(next.answers);
         setResults(next.results);
         setRuntimeGate({ status: 'ready', attemptId: nextAttemptId });
@@ -795,10 +798,11 @@ export function QuizView({ questions, sceneId, stageId }: QuizViewProps) {
 
   // When entering grading phase, grade choice questions locally + call API for short-answer
   useEffect(() => {
-    if (phase !== 'grading') return;
+    if (phase !== 'grading' || !attemptId) return;
     let cancelled = false;
 
     (async () => {
+      try {
       // 1. Grade choice questions locally (instant)
       const choiceResults = gradeChoiceQuestions(questions, answers);
 
@@ -836,6 +840,10 @@ export function QuizView({ questions, sceneId, stageId }: QuizViewProps) {
       if (cancelled) return;
       setResults(ordered);
       setPhase('reviewing');
+      } catch (error) {
+        log.warn('Grading incomplete; submitted answers retained for retry:', error);
+        if (!cancelled) setRuntimeGate({ status: 'error' });
+      }
     })();
 
     return () => {
@@ -883,11 +891,14 @@ export function QuizView({ questions, sceneId, stageId }: QuizViewProps) {
       <div className="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
         <button
           type="button"
-          onClick={() => setHydrationVersion((version) => version + 1)}
+          onClick={() => {
+            retryGradingRef.current = phase === 'grading';
+            setHydrationVersion((version) => version + 1);
+          }}
           className="flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700"
         >
           <RotateCcw className="h-4 w-4" />
-          {t('quiz.retry')}
+          {phase === 'grading' ? (locale === 'zh-CN' ? '批改未完成，答案已保存。点击重试批改' : 'Grading incomplete. Answers saved. Retry grading') : t('quiz.retry')}
         </button>
       </div>
     );

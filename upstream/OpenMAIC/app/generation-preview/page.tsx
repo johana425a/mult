@@ -26,6 +26,11 @@ import {
   generateTTSForScene,
 } from '@/lib/hooks/use-scene-generator';
 import { isAbortError } from '@openmaic/generation/browser';
+import {
+  assertGenerationRunCurrent,
+  finishGenerationWhenSaved,
+  waitForGenerationChoice,
+} from '@/lib/hooks/generation-lifecycle';
 import { FOREGROUND_SCENE_RETRY_OPTIONS } from './foreground-retry';
 import {
   loadImageMapping,
@@ -196,30 +201,19 @@ function GenerationPreviewContent() {
     shouldReview: boolean,
     signal: AbortSignal,
   ): Promise<SceneOutline[]> =>
-    new Promise((resolve, reject) => {
-      if (signal.aborted) {
-        reject(new DOMException('Aborted', 'AbortError'));
-        return;
-      }
+    waitForGenerationChoice(signal, (resolve) => {
       outlineReviewResolveRef.current = resolve;
-      // Reject on abort so navigating away (`goBackToHome`) or unmounting
-      // settles this promise instead of leaking the awaiting startGeneration
-      // closure. The catch at the bottom of startGeneration already swallows
-      // AbortError silently.
-      const onAbort = () => {
-        clearOutlineReviewTimer();
-        outlineReviewResolveRef.current = null;
-        reject(new DOMException('Aborted', 'AbortError'));
-      };
-      signal.addEventListener('abort', onAbort, { once: true });
       if (!shouldReview) {
         outlineReviewTimerRef.current = setTimeout(() => {
-          outlineReviewTimerRef.current = null;
-          outlineReviewResolveRef.current = null;
-          signal.removeEventListener('abort', onAbort);
           resolve(outlines);
         }, OUTLINE_REVIEW_AUTO_CONTINUE_MS);
       }
+      return () => {
+        if (outlineReviewResolveRef.current === resolve) {
+          outlineReviewResolveRef.current = null;
+          clearOutlineReviewTimer();
+        }
+      };
     });
 
   // Load session from sessionStorage
@@ -299,6 +293,7 @@ function GenerationPreviewContent() {
     const shouldAutoStart =
       !phase ||
       phase === 'preparing' ||
+      phase === 'outline-ready' ||
       phase === 'generating-content' ||
       // Refresh during early-review: editor is shown but outlines weren't persisted,
       // so kick off SSE again — the editor will receive streaming outlines.
@@ -320,11 +315,13 @@ function GenerationPreviewContent() {
     const controller = new AbortController();
     abortControllerRef.current = controller;
     const signal = controller.signal;
+    const assertCurrent = () => assertGenerationRunCurrent(controller, abortControllerRef.current);
 
     // Use a local mutable copy so we can update it after document extraction
     let currentSession = generationSession;
 
     setError(null);
+    setShowAgentReveal(false);
     setCurrentStepIndex(0);
 
     try {
@@ -360,6 +357,7 @@ function GenerationPreviewContent() {
             ).providerConfig;
             const providerConfig = currentSession.pdfProviderConfig || legacySourceConfig;
             const documentBlob = await loadDocumentBlob(source.storageKey);
+            assertCurrent();
             if (!(documentBlob instanceof Blob) || documentBlob.size === 0) {
               throw new Error(t('generation.courseMaterialLoadFailed'));
             }
@@ -384,8 +382,10 @@ function GenerationPreviewContent() {
               body: parseFormData,
               signal,
             });
+            assertCurrent();
             if (!parseResponse.ok) throw new Error(t('generation.courseMaterialParseFailed'));
             const parseResult = await parseResponse.json();
+            assertCurrent();
             if (!parseResult.success || !parseResult.data) {
               throw new Error(t('generation.courseMaterialParseFailed'));
             }
@@ -427,13 +427,20 @@ function GenerationPreviewContent() {
             };
           }),
         );
+        assertCurrent();
 
         const bundle = buildDocumentBundle(parsedParts);
-        const fullSourceBundle = buildDocumentBundle(parsedParts, { maxChars: Number.MAX_SAFE_INTEGER });
-        const sourceTextStorageKey = await storeDocumentBlob(new File(
-          [fullSourceBundle.text], 'classroom-source.txt', { type: 'text/plain;charset=utf-8' },
-        ));
+        const fullSourceBundle = buildDocumentBundle(parsedParts, {
+          maxChars: Number.MAX_SAFE_INTEGER,
+        });
+        const sourceTextStorageKey = await storeDocumentBlob(
+          new File([fullSourceBundle.text], 'classroom-source.txt', {
+            type: 'text/plain;charset=utf-8',
+          }),
+        );
+        assertCurrent();
         const imageStorageIds = await storeImages(bundle.images);
+        assertCurrent();
 
         const pdfImages: PdfImage[] = bundle.images.map((img, i) => ({
           id: img.id,
@@ -511,6 +518,7 @@ function GenerationPreviewContent() {
           ),
           signal,
         });
+        assertCurrent();
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({ error: 'Web search failed' }));
@@ -518,6 +526,7 @@ function GenerationPreviewContent() {
         }
 
         const searchData = await res.json();
+        assertCurrent();
         const sources = (searchData.sources || []).map((s: { title: string; url: string }) => ({
           title: s.title,
           url: s.url,
@@ -540,6 +549,7 @@ function GenerationPreviewContent() {
       if (currentSession.imageStorageIds && currentSession.imageStorageIds.length > 0) {
         log.debug('Loading images from IndexedDB');
         imageMapping = await loadImageMapping(currentSession.imageStorageIds);
+        assertCurrent();
       } else if (
         currentSession.imageMapping &&
         Object.keys(currentSession.imageMapping).length > 0
@@ -550,18 +560,24 @@ function GenerationPreviewContent() {
 
       // Create stage client-side
       const fullSourceBlob = currentSession.sourceTextStorageKey
-        ? await loadDocumentBlob(currentSession.sourceTextStorageKey) : null;
+        ? await loadDocumentBlob(currentSession.sourceTextStorageKey)
+        : null;
       const sourceText = fullSourceBlob ? await fullSourceBlob.text() : currentSession.pdfText;
+      assertCurrent();
       const stageId = nanoid(10);
       const stage: Stage = {
         id: stageId,
         name: extractTopicFromRequirement(currentSession.requirements.requirement),
         description: '',
-        sourceMaterial: sourceText?.trim() ? {
-          ...createSourceMaterial(sourceText, Boolean(fullSourceBlob))!,
-          images: (currentSession.pdfImages ?? []).map(image => ({ ...image,
-            src: imageMapping[image.id] ?? image.src })),
-        } : undefined,
+        sourceMaterial: sourceText?.trim()
+          ? {
+              ...createSourceMaterial(sourceText, Boolean(fullSourceBlob))!,
+              images: (currentSession.pdfImages ?? []).map((image) => ({
+                ...image,
+                src: imageMapping[image.id] ?? image.src,
+              })),
+            }
+          : undefined,
         style: 'professional',
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -606,8 +622,10 @@ function GenerationPreviewContent() {
             signal,
           })
             .then((res) => {
+              assertCurrent();
               if (!res.ok) {
                 return res.json().then((d) => {
+                  assertCurrent();
                   reject(new Error(d.error || t('generation.outlineGenerateFailed')));
                 });
               }
@@ -623,6 +641,7 @@ function GenerationPreviewContent() {
 
               const pump = (): Promise<void> =>
                 reader.read().then(({ done, value }) => {
+                  assertCurrent();
                   if (value) {
                     sseBuffer += decoder.decode(value, { stream: !done });
                     const lines = sseBuffer.split('\n');
@@ -694,6 +713,7 @@ function GenerationPreviewContent() {
             })
             .catch(reject);
         });
+        assertCurrent();
 
         outlines = outlineResult.outlines;
         languageDirective = outlineResult.languageDirective;
@@ -716,15 +736,20 @@ function GenerationPreviewContent() {
         persistSession(updatedSession);
         currentSession = updatedSession;
         setStreamingOutlines(outlines);
+      }
 
+      // A refresh in outline-ready must restore the same owned review wait,
+      // instead of leaving the preview stranded or starting duplicate generation.
+      if (currentSession.previewPhase !== 'generating-content') {
+        const shouldReviewOutlines = currentSession.previewPhase === 'review';
         setStatusMessage(shouldReviewOutlines ? '' : t('generation.reviewOutlineAutoContinue'));
         setIsConfirmingOutlines(false);
-        outlines = await waitForOutlineReviewChoice(outlines, shouldReviewOutlines, signal);
+        outlines = await waitForOutlineReviewChoice(outlines ?? [], shouldReviewOutlines, signal);
+        assertCurrent();
         clearOutlineReviewTimer();
         currentSession = {
           ...currentSession,
           sceneOutlines: outlines,
-          taskEngineMode: effectiveTaskEngineMode,
           previewPhase: 'generating-content',
         };
         persistSession(currentSession);
@@ -883,9 +908,11 @@ function GenerationPreviewContent() {
             ),
             signal,
           });
+          assertCurrent();
 
           if (!agentResp.ok) throw new Error('Agent generation failed');
           const agentData = await agentResp.json();
+          assertCurrent();
           if (!agentData.success) throw new Error(agentData.error || 'Agent generation failed');
 
           // Embed the roster (including its voice binding) on the stage — it
@@ -896,20 +923,28 @@ function GenerationPreviewContent() {
           // live TTS call.
           const generatedConfigs = agentData.agents as GeneratedAgentConfig[];
           stage.generatedAgentConfigs = generatedConfigs;
+
+          // Show card-reveal modal, continue generation once all cards are revealed
+          setGeneratedAgents(agentData.agents);
+          setShowAgentReveal(true);
+          await waitForGenerationChoice<void>(signal, (resolve) => {
+            agentRevealResolveRef.current = resolve;
+            return () => {
+              if (agentRevealResolveRef.current === resolve) {
+                agentRevealResolveRef.current = null;
+              }
+            };
+          });
+          assertCurrent();
+
           const { applyGeneratedAgentsToRegistry } =
             await import('@/lib/orchestration/registry/store');
+          assertCurrent();
           const savedIds = applyGeneratedAgentsToRegistry(stage.id, generatedConfigs);
           settings.setSelectedAgentIds(savedIds);
           // Stage-derived, not a user choice — must not carry across classrooms.
           settings.setAgentSelectionIsUserSet(false);
           stage.agentIds = savedIds;
-
-          // Show card-reveal modal, continue generation once all cards are revealed
-          setGeneratedAgents(agentData.agents);
-          setShowAgentReveal(true);
-          await new Promise<void>((resolve) => {
-            agentRevealResolveRef.current = resolve;
-          });
 
           agents = savedIds
             .map((id) => useAgentRegistry.getState().getAgent(id))
@@ -921,6 +956,9 @@ function GenerationPreviewContent() {
               persona: a!.persona,
             }));
         } catch (err: unknown) {
+          // Cancellation must not become a fallback that resets another stage.
+          assertCurrent();
+          if (isAbortError(err)) throw err;
           log.warn('[Generation] Agent generation failed, falling back to presets:', err);
           const registry = useAgentRegistry.getState();
           const fallbackIds = settings.selectedAgentIds.filter((id) => {
@@ -965,10 +1003,17 @@ function GenerationPreviewContent() {
       }
 
       // Store stage and outlines
+      assertCurrent();
       const store = useStageStore.getState();
       stage.videoManifest = buildVideoManifestFromOutlines(outlines);
       store.setStage(stage);
       store.setOutlines(outlines);
+      const assertStageCurrent = () => {
+        assertCurrent();
+        if (useStageStore.getState().stage?.id !== stage.id) {
+          throw new DOMException('Classroom changed during generation', 'AbortError');
+        }
+      };
 
       // Advance to slide-content step
       const contentStepIdx = activeSteps.findIndex((s) => s.id === 'slide-content');
@@ -1007,6 +1052,7 @@ function GenerationPreviewContent() {
         signal,
         FOREGROUND_SCENE_RETRY_OPTIONS,
       );
+      assertStageCurrent();
 
       if (!contentData.success || !contentData.content) {
         throw new Error(sceneGenerationErrorMessage(contentData));
@@ -1030,6 +1076,7 @@ function GenerationPreviewContent() {
         signal,
         FOREGROUND_SCENE_RETRY_OPTIONS,
       );
+      assertStageCurrent();
 
       if (!data.success || !data.scene) {
         throw new Error(sceneGenerationErrorMessage(data));
@@ -1051,10 +1098,12 @@ function GenerationPreviewContent() {
           signal,
           FOREGROUND_SCENE_RETRY_OPTIONS,
         );
+        assertStageCurrent();
         if (!ttsResult.success) throw new Error(t('generation.speechFailed'));
       }
 
       // Add scene to store and navigate
+      assertStageCurrent();
       store.addScene(firstScene);
       store.setCurrentSceneId(firstScene.id);
 
@@ -1062,28 +1111,32 @@ function GenerationPreviewContent() {
       const remaining = outlines.filter((o) => o.order !== firstScene.order);
       store.setGeneratingOutlines(remaining);
 
-      // Store generation params for classroom to continue generation
-      sessionStorage.setItem(
-        'generationParams',
-        JSON.stringify({
-          pdfImages: currentSession.pdfImages,
-          agents,
-          userProfile,
-          languageDirective,
-        }),
+      await finishGenerationWhenSaved(
+        () => store.saveToStorage(),
+        assertStageCurrent,
+        () => {
+          // Recovery state is discarded only after the current stage is durable.
+          sessionStorage.setItem(
+            'generationParams',
+            JSON.stringify({
+              pdfImages: currentSession.pdfImages,
+              agents,
+              userProfile,
+              languageDirective,
+            }),
+          );
+          sessionStorage.removeItem('generationSession');
+          router.push(`/classroom/${stage.id}`);
+        },
+        t('generation.sceneGenerateFailed'),
       );
-
-      sessionStorage.removeItem('generationSession');
-      await store.saveToStorage();
-      router.push(`/classroom/${stage.id}`);
     } catch (err) {
-      setIsOutlineStreaming(false);
       // AbortError is expected when navigating away — don't show as error
-      if (isAbortError(err)) {
+      if (isAbortError(err) || signal.aborted || abortControllerRef.current !== controller) {
         log.info('[GenerationPreview] Generation aborted');
         return;
       }
-      sessionStorage.removeItem('generationSession');
+      setIsOutlineStreaming(false);
       setError(err instanceof Error ? err.message : String(err));
     }
   };
@@ -1098,7 +1151,9 @@ function GenerationPreviewContent() {
 
   const goBackToHome = () => {
     abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
     clearOutlineReviewTimer();
+    setShowAgentReveal(false);
     outlineReviewIntentRef.current = false;
     sessionStorage.removeItem('generationSession');
     router.push('/');
@@ -1150,7 +1205,10 @@ function GenerationPreviewContent() {
     // user opened the editor) — fire its resolve via a fresh timeout to match
     // the no-review path's pacing.
     clearOutlineReviewTimer();
+    const owningController = abortControllerRef.current;
     outlineReviewTimerRef.current = setTimeout(() => {
+      if (abortControllerRef.current !== owningController || owningController?.signal.aborted)
+        return;
       outlineReviewTimerRef.current = null;
       const resolve = outlineReviewResolveRef.current;
       outlineReviewResolveRef.current = null;
@@ -1552,10 +1610,12 @@ function GenerationPreviewContent() {
       <AgentRevealModal
         agents={generatedAgents}
         open={showAgentReveal}
-        onClose={() => setShowAgentReveal(false)}
+        onClose={() => {
+          setShowAgentReveal(false);
+          agentRevealResolveRef.current?.();
+        }}
         onAllRevealed={() => {
           agentRevealResolveRef.current?.();
-          agentRevealResolveRef.current = null;
         }}
       />
     </div>

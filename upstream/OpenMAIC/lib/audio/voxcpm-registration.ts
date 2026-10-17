@@ -48,7 +48,7 @@ const VOXCPM_VOICE_CONSENT = 'I confirm I have the right to use this voice sampl
 /** A short neutral sentence used to synthesize the bootstrap reference clip. */
 const BOOTSTRAP_SENTENCE: Record<string, string> = {
   default: 'Hello, welcome to today’s lesson. Let us begin.',
-  zh: 'Hello, welcome to the lesson. Let us begin.',
+  zh: '你好，欢迎来到今天的课程，我们开始吧。',
 };
 
 function bootstrapSentence(language?: string): string {

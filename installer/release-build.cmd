@@ -1,5 +1,5 @@
 @echo off
-rem DeepSteam: build the Windows installer EXE into D:\DeepSteam-Standalone\DeepSteam-Release
+rem DeepSteam: build from a staged installation; output is relative to that installation.
 cd /d "%~dp0.."
 "runtime\python\python.exe" -I -B "installer\build_standalone_release.py"
 pause

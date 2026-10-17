@@ -1459,6 +1459,7 @@ export async function runSession(ctx: RunContext, meta: ClaimedAgentSession): Pr
     const askUserLatch = createAskUserTerminateLatch();
     let toolCalls = 0;
     const agent = buildAgent({
+      harnessContext: {surface:'openmaic-workbench',conversationId:id},
       streamFn,
       systemPrompt: buildRunnerCoursePrompt({
         availableSkills: availableSkillsPromptBlock(installedSkills),
@@ -1491,7 +1492,7 @@ export async function runSession(ctx: RunContext, meta: ClaimedAgentSession): Pr
       ]),
       ...(plan.kind === 'start' ? {} : { history: modelMessages }),
       afterToolCall: (toolContext) => {
-        toolCalls += 1;
+        if(process.env.DEEPSTEAM_HARNESS_CORE !== '1')toolCalls += 1;
         if (askUserLatch.shouldTerminate(toolContext.toolCall.name, toolContext.isError)) {
           return { terminate: true };
         }
@@ -1504,6 +1505,7 @@ export async function runSession(ctx: RunContext, meta: ClaimedAgentSession): Pr
     // failure aborts the loop and prevents a successful settlement.
     const inFlightToolCalls = new Map<string, PendingToolCall>();
     const unsubscribe = agent.subscribe((event: AgentEvent) => {
+      if(process.env.DEEPSTEAM_HARNESS_CORE === '1' && event.type === 'tool_execution_end')toolCalls += 1;
       emit(event.type, event);
       if (event.type === 'message_end') {
         // A tool call becomes pending as soon as its assistant frame is

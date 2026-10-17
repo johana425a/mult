@@ -860,6 +860,25 @@ async def _collect_outcome(
         result_text = str(result["result_text"])
         tool_meta = per_tool_trace_meta[tool_index]
         tool_extra_meta = result.get("metadata") if isinstance(result, dict) else None
+        private_message = result.get("model_message")
+        if isinstance(private_message, dict) and private_message.get("role") == "user":
+            content = private_message.get("content")
+            if isinstance(content, list):
+                image_count = sum(1 for part in content if isinstance(part, dict) and part.get("type") == "image_url")
+                if image_count and model_image_count + image_count <= 2:
+                    model_messages.append({**private_message, "_after_tool_call_id": tool_call_id})
+                    model_image_count += image_count
+                elif image_count:
+                    # Preserve source identity for a later batch and report the
+                    # pending delivery before emitting the UI's tool result.
+                    result_text += (
+                        "\n[Image delivery pending: this tool batch can deliver at most two images. "
+                        "These original pixels were not sent to the model. Inspect this same asset "
+                        "in a later batch with workspace_document_image before answering visual "
+                        "details or claiming this source was fully read.]")
+                    tool_extra_meta = {**(tool_extra_meta if isinstance(tool_extra_meta, dict) else {}),
+                        "visual_status": "pending", "model_image_delivery": "pending",
+                        "image_error_code": "image_delivery_limit"}
         result_event_meta = merge_trace_metadata(tool_meta, {"trace_kind": "tool_result"})
         if isinstance(tool_extra_meta, dict) and tool_extra_meta:
             result_event_meta = merge_trace_metadata(
@@ -883,18 +902,6 @@ async def _collect_outcome(
                 "content": result_text,
             }
         )
-        private_message = result.get("model_message")
-        if isinstance(private_message, dict) and private_message.get("role") == "user":
-            content = private_message.get("content")
-            if isinstance(content, list):
-                image_count = sum(
-                    1
-                    for part in content
-                    if isinstance(part, dict) and part.get("type") == "image_url"
-                )
-                if image_count and model_image_count + image_count <= 2:
-                    model_messages.append({**private_message, "_after_tool_call_id": tool_call_id})
-                    model_image_count += image_count
         if isinstance(tool_extra_meta, dict) and tool_extra_meta:
             tool_metadata_by_id[tool_call_id] = dict(tool_extra_meta)
         if result.get("terminate_turn") and not terminate:

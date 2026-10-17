@@ -43,6 +43,10 @@ export const maxDuration = 60;
  * Response: SSE stream of StatelessEvent
  */
 export async function POST(req: NextRequest) {
+  if (process.env.DEEPSTEAM_HARNESS_CORE === '1') {
+    const shared = await import('./pi/route');
+    return shared.POST(req);
+  }
   const encoder = new TextEncoder();
   let chatModel: string | undefined;
   let chatMessageCount: number | undefined;

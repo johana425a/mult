@@ -403,6 +403,24 @@ class AgenticLoopPipeline:
                 session_id=context.session_id or "direct",
                 turn_id=context.runtime.turn_id or self._workspace_key(context),
             )
+        from integration.harness_turn import enabled as harness_enabled, run_pipeline
+        if harness_enabled():
+            from deeptutor.agents._shared.capability_result import emit_capability_result
+
+            outcome = await run_pipeline(self, context, stream)
+            # Preserve the public pipeline contract even when Harness owns
+            # execution. Partner history and SDK consumers settle from RESULT,
+            # not from transient display chunks.
+            self.last_result = {
+                "response": outcome.final_text,
+                "completed": outcome.completed,
+                "engine": "harness",
+            }
+            if self.emit_result:
+                await emit_capability_result(
+                    stream, self.last_result, source=self.event_source, usage=self.usage
+                )
+            return self.last_result
         await self._prepare_deferred_tools(context)
         await self._prepare_kb_manifests(context)
         self._exec_enabled = await self._exec_allowed(context)

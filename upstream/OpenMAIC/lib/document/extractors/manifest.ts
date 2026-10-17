@@ -75,12 +75,12 @@ const DOCUMENT_EXTRACTOR_MANIFEST: Record<string, DocumentExtractorManifestEntry
     },
   },
   'deepsteam-local': {
-    id: 'deepsteam-local', displayName: 'DeepSteam local reader (ready to use)', version: '1',
+    id: 'deepsteam-local', displayName: 'DeepSteam text and source-image reader', version: '2',
     supportedMimeTypes: DEEPSTEAM_LOCAL_MIMES,
     // Office structures are retained when available. Do not advertise full
     // PDF table/formula/layout reconstruction as a guaranteed capability.
     capabilities: { text: true, images: true, tables: false, formulas: false,
-      layout: false, ocr: true, async: false },
+      layout: false, ocr: false, async: false },
   },
   unpdf: {
     id: 'unpdf',

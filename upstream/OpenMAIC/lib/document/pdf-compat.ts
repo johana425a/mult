@@ -1,5 +1,4 @@
 import type { ParsedPdfContent } from '@/lib/types/pdf';
-import type { ClassroomImageSource } from '@/lib/types/generation';
 import type {
   DocumentArtifact,
   DocumentAsset,
@@ -104,7 +103,7 @@ export function parsedPdfToDocumentArtifact(
   const pdfImages = parsed.metadata?.pdfImages;
   const assets: DocumentAsset[] =
     pdfImages && pdfImages.length > 0
-      ? pdfImages.map((image, index) => ({
+      ? pdfImages.map((image) => ({
           id: image.id,
           type: 'image',
           mimeType: dataUrlMimeType(image.src),
@@ -113,14 +112,12 @@ export function parsedPdfToDocumentArtifact(
           description: image.description,
           width: image.width,
           height: image.height,
-          ...(parsed.image_sources?.[index] ? { metadata: { imageSource: parsed.image_sources[index] } } : {}),
         }))
       : parsed.images.map((src, index) => ({
           id: `img_${index + 1}`,
           type: 'image',
           mimeType: dataUrlMimeType(src),
           data: src,
-          ...(parsed.image_sources?.[index] ? { metadata: { imageSource: parsed.image_sources[index] } } : {}),
         }));
 
   return {
@@ -153,10 +150,6 @@ export function documentArtifactToParsedPdfContent(artifact: DocumentArtifact): 
       asset.type === 'image' && typeof asset.data === 'string',
   );
   const images = imageAssets.map((asset) => asset.data as string);
-  const sources = imageAssets.map((asset, index) => {
-    const source = asset.metadata?.imageSource as ClassroomImageSource | undefined;
-    return source ? { ...source, image_index: index + 1 } : undefined;
-  });
   const imageMapping = Object.fromEntries(imageAssets.map((asset) => [asset.id, asset.data]));
   const tables = artifact.blocks
     .filter((block) => block.type === 'table')
@@ -184,7 +177,6 @@ export function documentArtifactToParsedPdfContent(artifact: DocumentArtifact): 
   return {
     text,
     images,
-    ...(sources.length > 0 && sources.every(Boolean) ? { image_sources: sources as ClassroomImageSource[] } : {}),
     ...(tables.length > 0 ? { tables } : {}),
     ...(formulas.length > 0 ? { formulas } : {}),
     ...(layout.length > 0 ? { layout } : {}),
@@ -196,17 +188,13 @@ export function documentArtifactToParsedPdfContent(artifact: DocumentArtifact): 
       parser: rawMetadata?.parser,
       processingTime: artifact.metadata.processingTime ?? rawMetadata?.processingTime,
       imageMapping,
-      pdfImages: imageAssets.map((asset, index) => ({
+      pdfImages: imageAssets.map((asset) => ({
         id: asset.id,
         src: asset.data as string,
         pageNumber: asset.pageNumber ?? 0,
         description: asset.description,
         width: asset.width,
         height: asset.height,
-        ...(sources[index] ? { originalId: sources[index]!.asset_id,
-          sourceDocumentId: sources[index]!.document_sha256,
-          sourceDocumentName: sources[index]!.source_document_name,
-          sourceLocator: sources[index]!.locator } : {}),
       })),
     },
   };

@@ -6,6 +6,7 @@ import {
   type ConnectableQueryable,
 } from '@openmaic/storage/server/reference';
 import { Pool } from 'pg';
+import {createDeepSteamLocalPool} from './deepsteam-local-pool';
 
 import { validateAppScene, validateAppStage } from '@/lib/document-store/validators';
 import { lazyAssetByteStore } from '@/lib/persistence/asset-byte-store';
@@ -121,7 +122,7 @@ async function createServerPersistenceProvider(
  */
 export function getServerPersistenceProvider(
   connectionString: string,
-  poolFactory: PersistencePoolFactory = (value) => new Pool({ connectionString: value }),
+  poolFactory: PersistencePoolFactory = (value) => value.startsWith('pglite:') ? createDeepSteamLocalPool(value) : new Pool({ connectionString: value }),
 ): Promise<ServerPersistenceProvider> {
   const key = connectionString.trim();
   if (providerState.providerPromise && providerState.connectionString === key) {

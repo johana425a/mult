@@ -58,5 +58,6 @@ def browser_executable() -> Path:
 def add_project_paths() -> None:
     """Embedded Python ignores PYTHONPATH, so add application paths explicitly."""
     for path in (ROOT, ROOT / "scripts", ROOT / "runtime" / "deeptutor-packages"):
-        if str(path) not in sys.path:
-            sys.path.insert(0, str(path))
+        while str(path) in sys.path:
+            sys.path.remove(str(path))
+        sys.path.insert(0, str(path))

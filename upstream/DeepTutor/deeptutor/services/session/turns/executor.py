@@ -557,6 +557,9 @@ class TurnExecutor:
                     raise RuntimeError("The task's saved model configuration has changed. Select a model and restart the task.")
                 llm_scope_token = set_scoped_llm_config(llm_config)
             resolved_model = payload.get("_resolved_model") or resolved_model_snapshot(llm_config, payload.get("llm_selection"))
+            if any(getattr(item, 'type', None) == 'image' for item in attachments):
+                from integration.model_image_verification import require_verified_image_config
+                require_verified_image_config(llm_config, payload.get('language', 'en'))
             await self._publish_live_event(execution, StreamEvent(
                 type=StreamEventType.PROGRESS, source="model", content="",
                 metadata={"resolved_model": resolved_model}))
@@ -1230,11 +1233,24 @@ class TurnExecutor:
                 # open briefly so the later ``session_meta`` title update can
                 # still arrive.
                 try:
-                    await self._maybe_generate_session_title(
-                        execution=execution,
-                        session_id=session_id,
-                        ui_language=str(payload.get("language", "en") or "en"),
+                    # DeepSteam 2026-10-15 responsiveness: the title runs as its own task so a
+                    # message sent right away can take over the session
+                    # (start_turn cancels it) instead of being rejected.
+                    title_task = asyncio.create_task(
+                        self._maybe_generate_session_title(
+                            execution=execution,
+                            session_id=session_id,
+                            ui_language=str(payload.get("language", "en") or "en"),
+                        )
                     )
+                    execution.title_task = title_task
+                    try:
+                        await title_task
+                    except asyncio.CancelledError:
+                        current = asyncio.current_task()
+                        if current is not None and current.cancelling():
+                            title_task.cancel()
+                            raise
                 except Exception:
                     # Not debug: this step is the only thing that names a
                     # conversation, and it has no other error surface. Hiding

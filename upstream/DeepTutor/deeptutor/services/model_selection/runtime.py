@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextvars import Token
 from copy import deepcopy
+from dataclasses import replace
 import hashlib
 import json
 from typing import Any
@@ -39,8 +40,51 @@ def llm_config_from_resolved(resolved: ResolvedLLMConfig) -> LLMConfig:
 def resolve_llm_config_for_selection(selection: Any) -> LLMConfig:
     """Resolve the LLM config for a chat/session selection reference."""
     if selection is None:
-        return llm_config_module.get_llm_config()
-    return llm_config_from_resolved(resolve_llm_runtime_config(llm_selection=selection))
+        config = llm_config_module.get_llm_config()
+    else:
+        config = llm_config_from_resolved(resolve_llm_runtime_config(llm_selection=selection))
+    return with_supported_reasoning_default(config, selection)
+
+
+def with_supported_reasoning_default(config: LLMConfig, selection: Any = None, *, metadata=None) -> LLMConfig:
+    """Default new choices to high only where the wire/model supports it.
+
+    Existing explicit profile/model/conversation choices keep precedence. The
+    returned config is request-owned; global profiles and running tasks are not
+    mutated. Unsupported efforts are omitted, never advertised as performed.
+    """
+    from deeptutor.services.model_selection.reasoning import supported_reasoning_efforts
+    if metadata is None:
+        metadata = {"capabilities": config.capabilities or {}}
+        try:
+            from deeptutor.services.config import get_model_catalog_service
+            from deeptutor.services.model_selection.llm import LLMSelection
+            catalog = get_model_catalog_service().load()
+            bucket = catalog.get("services", {}).get("llm", {})
+            parsed = LLMSelection.from_payload(selection)
+            profile_id = parsed.profile_id if parsed else bucket.get("active_profile_id")
+            model_id = parsed.model_id if parsed else bucket.get("active_model_id")
+            profile = next((item for item in bucket.get("profiles", []) if item.get("id") == profile_id), {})
+            model = next((item for item in profile.get("models", []) if item.get("id") == model_id), {})
+            metadata = {**metadata, **model}
+        except Exception:
+            pass
+    choices = supported_reasoning_efforts(config.binding,
+        str(config.display_model or config.model), metadata=metadata)
+    explicit = str(config.reasoning_effort or "").strip().lower()
+    provider = str(config.binding or "").lower().replace("-", "_")
+    name = str(config.display_model or config.model).lower()
+    # An unknown custom endpoint is not evidence of a reasoning knob. Preserve
+    # an already explicit choice but do not newly inject high from generic UI
+    # choices alone; an explicit capability declaration/model family is needed.
+    known_custom = ((metadata.get("capabilities") or {}).get("reasoning") is True
+        or isinstance(metadata.get("codex_supported_reasoning_levels"), list)
+        or any(part in name for part in ("gpt-5", "gpt-6", "o1", "o3", "o4", "qwen3", "qwq",
+            "qwen-plus", "deepseek-reasoner", "deepseek-v4-pro", "claude-sonnet-4", "claude-opus-4")))
+    default_allowed = provider not in {"custom", "openai_compatible", "custom_anthropic"} or known_custom
+    effort = ((explicit if explicit in choices else None) if explicit else
+              ("high" if default_allowed and "high" in choices else None))
+    return replace(config, reasoning_effort=effort)
 
 
 def activate_llm_selection(selection: Any) -> tuple[LLMConfig, Token[LLMConfig | None]]:
@@ -98,6 +142,13 @@ def resolved_model_snapshot(config: LLMConfig, selection: Any = None) -> dict[st
         "reasoning_effort": config.reasoning_effort, "capabilities": value["capabilities"],
         "context_window": config.context_window,
     }, sort_keys=True).encode()).hexdigest()[:24]
+    # A capability directory describes support, not a successful image request.
+    # Runtime evidence is tied to this owner's exact connection configuration.
+    from integration.model_image_verification import verification_status
+    evidence = verification_status(config, value)
+    value["capabilities"]["vision"] = evidence.get("supported") is True
+    value["capabilities"]["vision_verified"] = evidence["verified"] is True
+    value["image_verification"] = evidence
     return value
 
 
@@ -141,4 +192,5 @@ __all__ = [
     "resolve_llm_config_for_selection",
     "resolved_model_snapshot",
     "resolve_model_selection",
+    "with_supported_reasoning_default",
 ]

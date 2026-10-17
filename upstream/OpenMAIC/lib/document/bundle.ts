@@ -195,8 +195,8 @@ export function buildDocumentBundle(
         ...image,
         id: stableId,
         originalId: image.originalId ?? image.id,
-        sourceDocumentId: image.sourceDocumentId ?? part.source.id,
-        sourceDocumentName: image.sourceDocumentName ?? part.source.name,
+        sourceDocumentId: part.source.id,
+        sourceDocumentName: part.source.name,
         sourceDocumentOrder: part.source.order,
       };
     });

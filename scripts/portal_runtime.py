@@ -360,6 +360,8 @@ def upstream(action, cancelled=None, timings=None, origin=None):
 
 
 def start_services(timeout=STARTUP_TIMEOUT, cancelled=None):
+    from repair_bundle import apply_pending
+    apply_pending()
     origin = time.monotonic()
     timings = []
     exit_code = 1

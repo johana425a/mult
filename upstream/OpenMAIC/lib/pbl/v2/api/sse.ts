@@ -134,7 +134,7 @@ export interface SSEProjectPatchEvent {
 /** SCENARIO ONLY. Marks which sub-phase of a Simulator turn is currently
  *  generating, so the client shows the right loading indicator:
  *    - 'narration' → the SYSTEM narrator is composing scene narration
- *                    (neutral "Generating narration" indicator, no character avatar);
+ *                    (neutral "旁白生成中" indicator, no character avatar);
  *    - 'character' → the in-scene character is about to speak / streaming
  *                    (character avatar + thinking).
  *  Ordinary (non-scenario) streams never emit this. */

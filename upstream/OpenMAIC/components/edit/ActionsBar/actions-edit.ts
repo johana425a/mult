@@ -9,7 +9,7 @@ import type { Action } from '@/lib/types/action';
 
 /**
  * Action types the timeline palette can add by drag — only the ones that stand
- * alone. Whiteboard cues (whiteboard drawing, etc.) need an open→draw→close workflow with
+ * alone. Whiteboard cues (板书 etc.) need an open→draw→close workflow with
  * content/positioning, so they aren't bare-addable here.
  */
 export type AddableType = 'speech' | 'spotlight' | 'laser';

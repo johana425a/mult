@@ -37,7 +37,7 @@ MinerU2.5-Pro: Pushing the Limits of Data-Centric Document Parsing at Scale
 
   - **Enhanced Layout Detection**
     To address the category misclassification issues observed in the 2604 version during layout detection, we conducted a comprehensive data cleaning process. This has substantially reduced category errors in layout detection. Notably, the missed detection rate for the `image_block` category has been significantly reduced.
-  
+
   - **Improved Image Analysis**
     To overcome the limitations of the 2604 version in image analysis, we constructed a large-scale training dataset for this task. As a result, the 2605 version demonstrates markedly enhanced recognition capabilities across a wide range of charts, flowcharts, and even seals.
 
@@ -84,7 +84,7 @@ MinerU2.5-Pro: Pushing the Limits of Data-Centric Document Parsing at Scale
 **MinerU2.5-Pro** is our latest document parsing model (PDF-to-Markdown) that establishes a new industry standard. By focusing entirely on data engineering without altering the original 1.2B-parameter architecture, it delivers exceptional results across the board:
 
 **1. Defeating Leading Models on OmniDocBench v1.6**
-On the newly proposed, highly rigorous OmniDocBench v1.6, MinerU2.5-Pro achieves the absolute **SOTA overall score of 95.69**. It comprehensively outperforms both top-tier specialized OCR models (**GLM-OCR, PaddleOCR-VL-1.5**) and massive frontier VLMs (**Gemini 3 Pro, Qwen3-VL-235B**). 
+On the newly proposed, highly rigorous OmniDocBench v1.6, MinerU2.5-Pro achieves the absolute **SOTA overall score of 95.69**. It comprehensively outperforms both top-tier specialized OCR models (**GLM-OCR, PaddleOCR-VL-1.5**) and massive frontier VLMs (**Gemini 3 Pro, Qwen3-VL-235B**).
 
 **2. Massive Leap from MinerU 2.5 via Data Engineering**
 Compared to the previous MinerU 2.5 baseline, the overall score skyrocketed from **92.98 to 95.69**. This breakthrough was achieved not by scaling model parameters, but through meticulous data engineering—drastically expanding data scale, enriching distribution and difficulty diversity, and systematically elevating annotation quality.
@@ -240,12 +240,12 @@ We would like to thank [Qwen Team](https://github.com/QwenLM), [vLLM](https://gi
 If you find our work useful in your research, please consider giving a star ⭐ and citation 📝 :
 ```BibTeX
 @misc{wang2026mineru25propushinglimitsdatacentric,
-      title={MinerU2.5-Pro: Pushing the Limits of Data-Centric Document Parsing at Scale}, 
+      title={MinerU2.5-Pro: Pushing the Limits of Data-Centric Document Parsing at Scale},
       author={Bin, Wang and Tianyao, He and Linke, Ouyang and Fan, Wu and Zhiyuan, Zhao and Tao, Chu and Yuan, Qu and Zhenjiang, Jin and Weijun, Zeng and Ziyang, Miao and Bangrui, Xu and Junbo, Niu and others},
       year={2026},
       eprint={2604.04771},
       archivePrefix={arXiv},
       primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2604.04771}, 
+      url={https://arxiv.org/abs/2604.04771},
 }
 ```

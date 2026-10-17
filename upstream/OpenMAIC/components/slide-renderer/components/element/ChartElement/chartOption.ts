@@ -20,6 +20,7 @@ export interface ChartOptionPayload {
   lineColor?: string;
   lineSmooth?: boolean;
   stack?: boolean;
+  fontSize?: number;
 }
 
 export const getChartOption = ({
@@ -30,12 +31,9 @@ export const getChartOption = ({
   lineColor,
   lineSmooth,
   stack,
+  fontSize,
 }: ChartOptionPayload): EChartOption | null => {
-  const textStyle = textColor
-    ? {
-        color: textColor,
-      }
-    : {};
+  const textStyle = { ...(textColor ? { color: textColor } : {}), ...(fontSize ? { fontSize } : {}) };
 
   const axisLine = textColor
     ? {
@@ -48,6 +46,7 @@ export const getChartOption = ({
   const axisLabel = {
     show: true,
     color: textColor ?? '#333333',
+    ...(fontSize ? { fontSize } : {}),
   };
 
   const splitLine = lineColor

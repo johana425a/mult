@@ -57,6 +57,7 @@ def copy_tree(source, target):
 def compile_exe(dest):
     command = [str(CSC), '/nologo', '/target:winexe', '/platform:x64', '/optimize+', '/codepage:65001',
                '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll',
+               '/reference:System.Runtime.Serialization.dll',
                '/reference:System.IO.Compression.dll', '/reference:System.IO.Compression.FileSystem.dll',
                '/win32manifest:' + str(BASE / 'DeepSteam.manifest'),
                '/resource:' + str(BASE / 'DeepSteamSetup.cs') + ',DeepSteamSetup.cs', '/out:' + str(dest)]

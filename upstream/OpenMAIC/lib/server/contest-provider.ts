@@ -4,8 +4,8 @@
 import type { NextRequest } from 'next/server';
 import type { TTSModelConfig } from '@/lib/audio/types';
 import { validateClientBaseUrl } from '@/lib/server/ssrf-guard';
-import { DEEPSTEAM_SHARED_PROVIDER, parseDeepSteamSelection, type DeepSteamModelSelection, type DeepSteamModelSnapshot } from '@/lib/config/deepsteam-connection';
-import { getDeepSteamExecution, type DeepSteamExecution } from '@/lib/server/deepsteam-connection';
+import { DEEPSTEAM_SHARED_PROVIDER } from '@/lib/config/deepsteam-connection';
+import { getDeepSteamExecution } from '@/lib/server/deepsteam-connection';
 
 export interface ContestProviderOptions {
   modelConfig?: {
@@ -13,9 +13,6 @@ export interface ContestProviderOptions {
     apiKey?: string;
     baseUrl?: string;
     providerType?: string;
-    llmSelection?: DeepSteamModelSelection | null;
-    modelSnapshot?: DeepSteamModelSnapshot;
-    deepsteamExecution?: DeepSteamExecution;
   };
   ttsConfig?: Pick<TTSModelConfig, 'providerId' | 'modelId' | 'apiKey' | 'baseUrl' | 'voice'>;
 }
@@ -31,7 +28,7 @@ export async function contestProviderFromHeaders(
     return value;
   };
   const modelString = read('x-model');
-  let modelConfig: ContestProviderOptions['modelConfig'] = modelString
+  const modelConfig = modelString
     ? {
         modelString,
         apiKey: read('x-api-key'),
@@ -43,20 +40,10 @@ export async function contestProviderFromHeaders(
   let ttsConfig: ContestProviderOptions['ttsConfig'];
   // One-shot generation follows the same shared resolver as native scene
   // generation and feedback. Keep narration independent of the language model.
-  if (modelString?.startsWith(`${DEEPSTEAM_SHARED_PROVIDER}:`) ||
-      (!modelString && process.env.DEFAULT_MODEL?.startsWith(`${DEEPSTEAM_SHARED_PROVIDER}:`))) {
-    const llmSelection = parseDeepSteamSelection(req.headers.get('x-deepsteam-model-selection'));
-    const rawSnapshot = read('x-deepsteam-model-snapshot');
-    const modelSnapshot: DeepSteamModelSnapshot | undefined = rawSnapshot ? JSON.parse(rawSnapshot) : undefined;
-    if (modelSnapshot && (!modelSnapshot.selection || !modelSnapshot.resolved_model)) {
-      throw new Error('Invalid saved model snapshot');
-    }
-    const execution = await getDeepSteamExecution({ llmSelection, modelSnapshot,
-      executionId: read('x-deepsteam-execution-id') });
-    modelConfig = { ...modelConfig, modelString: modelString || `${DEEPSTEAM_SHARED_PROVIDER}:current`,
-      llmSelection, modelSnapshot: execution.model_snapshot, deepsteamExecution: execution };
-    const { narration } = execution;
-    if (!ttsProvider && narration?.enabled && ['windows-system-tts', 'openai-tts'].includes(narration.provider)) {
+  if (!ttsProvider && (modelString?.startsWith(`${DEEPSTEAM_SHARED_PROVIDER}:`) ||
+      (!modelString && process.env.DEFAULT_MODEL?.startsWith(`${DEEPSTEAM_SHARED_PROVIDER}:`)))) {
+    const { narration } = await getDeepSteamExecution();
+    if (narration?.enabled && ['windows-system-tts', 'openai-tts'].includes(narration.provider)) {
       ttsConfig = {
         providerId: narration.provider as 'windows-system-tts' | 'openai-tts',
         modelId: narration.model, voice: narration.voice,
@@ -73,7 +60,7 @@ export async function contestProviderFromHeaders(
       ttsConfig = {
         providerId: 'windows-system-tts',
         modelId: 'system-speech',
-        voice: read('x-contest-tts-voice') || 'auto-en',
+        voice: read('x-contest-tts-voice') || 'auto-zh',
       };
       return { modelConfig, ttsConfig };
     }

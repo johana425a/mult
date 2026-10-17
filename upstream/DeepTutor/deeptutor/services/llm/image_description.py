@@ -40,7 +40,12 @@ class _ImageDescriptionClient(LLMClient):
 
 
 def get_image_description_client() -> LLMClient:
-    selection = load_document_parsing_settings().get("image_description_model")
-    if not selection:
-        return get_llm_client()
-    return _ImageDescriptionClient(resolve_image_description_config(selection), configure_env=False)
+    # Legacy independent caption settings remain editable but cannot redirect
+    # document pixels away from the model selected for this request.
+    from .config import get_scoped_llm_config
+    from integration.model_image_verification import require_verified_image_config
+    config = get_scoped_llm_config()
+    if config is None:
+        raise ValueError("Document images remain pending; captioning requires a frozen selected-model task.")
+    require_verified_image_config(config)
+    return _ImageDescriptionClient(config, configure_env=False)

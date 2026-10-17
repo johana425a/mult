@@ -13,7 +13,7 @@ export type ProviderCfgLike = {
   /** Operator force-disabled (server precedence, TTS — #665). Never usable. */
   serverDisabled?: boolean;
   /**
-   * User-level authorization toggle (Model services provider switch). An explicitly
+   * User-level authorization toggle (模型服务 provider switch). An explicitly
    * disabled provider must not be (re-)adopted as a selection here — same
    * semantics the LLM mainline resolver applies.
    */
@@ -100,7 +100,7 @@ export interface LLMProviderCfgLike {
   models: Array<{ id: string }>;
   baseUrl?: string;
   defaultBaseUrl?: string;
-  /** User authorization switch: explicitly disabled providers are unavailable, matching isProviderUsable. */
+  /** 用户级授权开关；显式关闭的 provider 不可用（与 isProviderUsable 同语义）。 */
   enabled?: boolean;
 }
 
@@ -150,10 +150,10 @@ export function hasUsableLLMProvider(
  * branch (`fallback[0]`) would resurrect a disabled plan's provider on
  * refresh even though validateProvider just rejected it.
  *
- * `ignoreEnabledForServerConfigured`: image/video enabled:false means
- * not yet adopted, rather than authorization disabled. Server entries must be adopted and enabled
- * by the auto-enable flow (#665), so these modalities do not exclude server-configured entries
- * based on enabled; client-key entries still respect authorization.
+ * `ignoreEnabledForServerConfigured`: image/video 的 `enabled:false` 表示
+ * 「尚未采纳」而非授权关闭——服务端条目要被自动采纳并翻开开关（#665 的
+ * auto-enable 流程），因此这两个模态对 server-configured 条目不按 enabled
+ * 排除；client-key 条目仍尊重授权开关。
  */
 export function buildUsableFallbackOrder<T extends string>(
   config: Record<
@@ -169,10 +169,10 @@ export function buildUsableFallbackOrder<T extends string>(
   return [
     // Server-disabled providers are never fallback targets.
     ...Object.entries(config)
-      .filter(([, c]) => c.isServerConfigured && serverUsable(c))
+      .filter(([, c]) => c && c.isServerConfigured && serverUsable(c))
       .map(([id]) => id as T),
     ...Object.entries(config)
-      .filter(([, c]) => !c.isServerConfigured && clientUsable(c) && !!c.apiKey)
+      .filter(([, c]) => c && !c.isServerConfigured && clientUsable(c) && !!c.apiKey)
       .map(([id]) => id as T),
   ];
 }

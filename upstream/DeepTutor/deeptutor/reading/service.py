@@ -148,7 +148,10 @@ def search_material(
     limit: int = 12,
 ) -> SearchResult:
     """Search one material, streaming its units through the matcher."""
-    store.manifest(material_id)
+    manifest = store.manifest(material_id)
+    if manifest.extractor == "pdf-on-demand":
+        from .pdf_on_demand import search_text_rows
+        return search_units(search_text_rows(store, material_id), query, limit=limit)
     return search_units(store.iter_units(material_id), query, limit=limit)
 
 
@@ -167,7 +170,7 @@ def verify_quote(store: ReadingStore, material_id: str, locator: int, quote: str
     if 1 <= locator <= manifest.unit_count:
         if locate_quote(store.unit_text(material_id, locator), text) >= 0:
             return QuoteCheck(verified=True, locator=locator, quote=text, found_locator=locator)
-    found = search_units(store.iter_units(material_id), text, limit=1)
+    found = search_material(store, material_id, text, limit=1)
     if found.hits and found.mode in ("exact", "normalised"):
         hit = found.hits[0]
         return QuoteCheck(verified=True, locator=locator, quote=text, found_locator=hit.locator)

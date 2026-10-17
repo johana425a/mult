@@ -250,6 +250,44 @@ PROVIDER_CAPABILITIES: dict[str, dict[str, object]] = {
     },
 }
 
+# --- DeepSteam 2026-10-15 providers: capabilities for the added entries ------
+# Regional platforms behave like their original platform.
+for _variant, _origin in (
+    ("moonshot_global", "moonshot"),
+    ("dashscope_intl", "dashscope"),
+    ("dashscope_us", "dashscope"),
+    ("minimax_cn", "minimax"),
+    ("siliconflow_global", "siliconflow"),
+):
+    PROVIDER_CAPABILITIES.setdefault(_variant, dict(PROVIDER_CAPABILITIES[_origin]))
+_DS_OPENAI_LIKE: dict[str, object] = {
+    "supports_response_format": True,
+    "supports_streaming": True,
+    "supports_tools": True,
+    "supports_vision": False,
+    "system_in_messages": True,
+}
+for _name, _extra in (
+    ("xai", {"supports_vision": True}),
+    ("cohere", {}),
+    ("perplexity", {"supports_tools": False}),
+    ("upstage", {}),
+    ("hunyuan", {}),
+    ("baichuan", {}),
+    ("zai_global", {}),
+    ("zhipu", {}),
+    ("gemini", {"supports_vision": True}),
+    ("fireworks", {"supports_vision": True}),
+    ("deepinfra", {}),
+    ("cerebras", {}),
+    ("sambanova", {}),
+    ("huggingface", {}),
+    ("nebius", {}),
+    ("vercel_ai_gateway", {"supports_vision": True}),
+    ("github_models", {"supports_vision": True}),
+):
+    PROVIDER_CAPABILITIES.setdefault(_name, {**_DS_OPENAI_LIKE, **_extra})
+
 # Default capabilities for unknown providers (assume OpenAI-compatible)
 DEFAULT_CAPABILITIES: dict[str, object] = {
     "supports_response_format": True,

@@ -14,7 +14,6 @@ import {
 } from '@/lib/server/classroom-storage';
 import { inspectWindowsPcmWav } from '@/lib/server/windows-system-tts';
 import type { ContestProviderOptions } from '@/lib/server/contest-provider';
-import { withClassroomOperation, withClassroomWrite } from './classroom-lifecycle';
 
 export const NARRATED_EXPORT_VERSION = 1;
 export const EXPORT_PAUSE_MS = 5_000;
@@ -79,11 +78,11 @@ export function narrationSourceHash(scenes: readonly Scene[]): string {
 function answerText(question: QuizQuestion): string {
   const answers = Array.isArray(question.answer)
     ? question.answer.filter((answer) => typeof answer === 'string' && answer.trim()) : [];
-  if (!answers.length) return 'No reference answer was provided for this question.';
-  return `Reference answer: ${answers.map((answer) => {
+  if (!answers.length) return '这道题未提供参考答案。';
+  return `标准答案：${answers.map((answer) => {
     const option = question.options?.find((item) => item.value === answer);
-    return option ? `${answer}, ${option.label}` : answer;
-  }).join('; ')}.`;
+    return option ? `${answer}，${option.label}` : answer;
+  }).join('；')}。`;
 }
 
 /** Answers enter only new, explicitly exported analysis cards, never interactive data. */
@@ -104,20 +103,20 @@ export function createNarratedExportScenes(source: readonly Scene[]): NarratedEx
     if (!(scene.actions ?? []).some((action) => action.type === 'speech' && action.text.trim())) {
       scene.actions = [...(scene.actions ?? []), {
         id: `export-intro-${sha(scene.id).slice(0, 20)}`, type: 'speech',
-        text: `Next is the quiz: ${scene.title}. Answer independently before continuing to the provided answer and explanation.`,
+        text: `接下来是测验：${scene.title}。请先独立作答，再继续查看已有答案和解析。`,
       }];
     }
     result.push(scene);
     questions.forEach((question, index) => {
       const identity = sha(`${scene.id}\n${index}\n${question.id}`).slice(0, 24);
-      const options = (question.options ?? []).map((option) => `Option ${option.value}. ${option.label}.`).join('\n');
-      const questionSpeech = `Question ${index + 1}. ${question.question}\n${options}\nPause the video, think independently, and answer. Continue to the explanation when ready.`;
+      const options = (question.options ?? []).map((option) => `选项 ${option.value}。${option.label}。`).join('\n');
+      const questionSpeech = `第 ${index + 1} 题。${question.question}\n${options}\n请暂停视频，独立思考并完成作答。准备好后再继续查看解析。`;
       const analysis = typeof question.analysis === 'string' && question.analysis.trim()
-        ? `Provided explanation: ${question.analysis}` : 'No explanation was provided for this question.';
+        ? `已有题目解析：${question.analysis}` : '这道题未提供解析。';
       const explanation = `${answerText(question)}\n${analysis}`;
       const card = (kind: 'question' | 'analysis', text: string, prompt: QuizQuestion): NarratedExportScene => ({
         ...structuredClone(original), id: `export-${identity}-${kind}`,
-        title: `${original.title} · Question ${index + 1}${kind === 'analysis' ? ' explanation' : ''}`,
+        title: `${original.title} · 第 ${index + 1} 题${kind === 'analysis' ? '解析' : ''}`,
         content: { type: 'quiz', questions: [prompt] },
         actions: [{ id: `export-${identity}-${kind}-speech`, type: 'speech', text },
           ...(kind === 'question' ? [{ id: `export-${identity}-pause`, type: 'speech', text: '',
@@ -125,7 +124,7 @@ export function createNarratedExportScenes(source: readonly Scene[]): NarratedEx
         narratedExport: { kind, sourceSceneId: original.id, questionId: question.id },
       } as NarratedExportScene);
       result.push(card('question', questionSpeech, structuredClone(question)));
-      result.push(card('analysis', `Question ${index + 1} explanation.\n${explanation}`, {
+      result.push(card('analysis', `第 ${index + 1} 题解析。\n${explanation}`, {
         id: `${question.id}-export-analysis`, type: 'short_answer',
         question: `${question.question}\n\n${explanation}`,
       }));
@@ -133,7 +132,7 @@ export function createNarratedExportScenes(source: readonly Scene[]): NarratedEx
   }
   const ids = new Set<string>();
   result.forEach((scene, order) => {
-    if (ids.has(scene.id)) throw new NarratedExportError('duplicate_scene', 'Classroom scene identifiers are duplicated. The export cannot be compiled safely.');
+    if (ids.has(scene.id)) throw new NarratedExportError('duplicate_scene', '课堂场景编号重复，无法安全编译导出。');
     ids.add(scene.id);
     scene.order = order;
   });
@@ -153,10 +152,10 @@ export interface NarratedExportDeps {
 async function checkedAudioDirectory(courseId: string): Promise<string> {
   const root = path.resolve(CLASSROOMS_DIR);
   const directory = path.join(root, courseId, 'audio');
-  await withClassroomWrite(courseId, () => fs.mkdir(directory, { recursive: true }));
+  await fs.mkdir(directory, { recursive: true });
   const real = await fs.realpath(directory);
   if (!real.startsWith(path.join(root, courseId) + path.sep)) {
-    throw new NarratedExportError('unsafe_audio_path', 'The classroom audio directory is outside the managed course directory.');
+    throw new NarratedExportError('unsafe_audio_path', '课堂音频目录不在受管课程目录内。');
   }
   return real;
 }
@@ -195,19 +194,18 @@ const defaultDeps: NarratedExportDeps = {
     catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; }
   },
   async writeCache(courseId, key, result) {
-    const file = path.join(await checkedAudioDirectory(courseId), `narrated-${key}.json`);
-    await withClassroomWrite(courseId, () => writeJsonFileAtomic(file, result));
+    await writeJsonFileAtomic(path.join(await checkedAudioDirectory(courseId), `narrated-${key}.json`), result);
   },
   async saveAudio(courseId, id, audio, format) {
     if (!['wav', 'mp3', 'ogg', 'aac'].includes(format) || !audio.length) {
-      throw new NarratedExportError('invalid_audio', 'The speech service did not return complete audio suitable for export.');
+      throw new NarratedExportError('invalid_audio', '配音服务没有返回可导出的完整音频。');
     }
     const durationSeconds = format === 'wav' ? inspectWindowsPcmWav(audio).durationSeconds : undefined;
     const filename = `${id}.${format}`;
     const file = path.join(await checkedAudioDirectory(courseId), filename);
-    await withClassroomWrite(courseId, () => fs.writeFile(file, audio, { flag: 'wx' }).catch((error: NodeJS.ErrnoException) => {
+    await fs.writeFile(file, audio, { flag: 'wx' }).catch((error: NodeJS.ErrnoException) => {
       if (error.code !== 'EEXIST') throw error;
-    }));
+    });
     const audioUrl = `/api/classroom-media/${courseId}/audio/${filename}`;
     return { audioId: audioUrl, audioUrl, ...(durationSeconds ? { durationSeconds } : {}) };
   },
@@ -230,8 +228,7 @@ export async function prepareFullNarratedExport(
     model: input.ttsConfig?.modelId, endpoint: input.ttsConfig?.baseUrl }));
   let pending = preparing.get(key);
   if (!pending) {
-    pending = withClassroomOperation(input.courseId, input.signal,
-      signal => prepareFullNarratedExportOnce({ ...input, signal }, deps, course));
+    pending = prepareFullNarratedExportOnce(input, deps, course);
     preparing.set(key, pending);
     const release = () => { if (preparing.get(key) === pending) preparing.delete(key); };
     pending.then(release, release);
@@ -245,11 +242,11 @@ export async function prepareFullNarratedExport(
 async function readCheckedExportCourse(input: FullNarratedExportInput, deps: NarratedExportDeps): Promise<PersistedClassroomData> {
   if (!isValidClassroomId(input.courseId) || input.courseId.length > 128 || !input.scenes.length ||
     input.scenes.length > 200 || input.scenes.some((scene) => scene.stageId !== input.courseId)) {
-    throw new NarratedExportError('invalid_snapshot', 'The course identifier does not match the export scenes, or the classroom snapshot exceeds the limit.', 400);
+    throw new NarratedExportError('invalid_snapshot', '课程编号与导出场景不一致，或课堂快照超出限制。', 400);
   }
   const course = await deps.readCourse(input.courseId);
   if (!course || course.stage.id !== input.courseId) {
-    throw new NarratedExportError('course_not_found', 'The saved source classroom was not found. Save the classroom before exporting.', 404);
+    throw new NarratedExportError('course_not_found', '找不到已保存的来源课堂，请先保存课堂再导出。', 404);
   }
   await assertSourceReviewComplete(course, deps);
   return course;
@@ -259,13 +256,13 @@ async function prepareFullNarratedExportOnce(
 ): Promise<FullNarratedExport> {
   const sourceSha256 = narrationSourceHash(input.scenes);
   if (sourceSha256 !== narrationSourceHash(course.scenes)) {
-    throw new NarratedExportError('source_changed', 'The classroom snapshot differs from the saved source. Save again and restart the export.', 409);
+    throw new NarratedExportError('source_changed', '课堂快照与已保存来源不同，请重新保存并开始导出。', 409);
   }
   const config: TTSModelConfig = input.ttsConfig ?? {
-    providerId: 'windows-system-tts', modelId: 'system-speech', voice: 'auto-en',
+    providerId: 'windows-system-tts', modelId: 'system-speech', voice: 'auto-zh',
   };
   if (!['windows-system-tts', 'openai-tts'].includes(config.providerId)) {
-    throw new NarratedExportError('unsupported_provider', 'Complete export does not support this speech provider.', 400);
+    throw new NarratedExportError('unsupported_provider', '当前完整导出不支持这个配音提供者。', 400);
   }
   const key = sha(JSON.stringify({ version: NARRATED_EXPORT_VERSION, sourceSha256,
     transport: input.scenes.map((scene) => (scene.actions ?? []).filter((a) => a.type === 'speech')
@@ -276,7 +273,7 @@ async function prepareFullNarratedExportOnce(
     // Even a valid persistent manifest must not advertise an evicted/corrupt file.
     for (const clip of cached.coverage.clips) {
       if (clip.generated && !(await deps.loadAudio(input.courseId, clip.audioUrl ?? clip.audioId))) {
-        throw new NarratedExportError('cached_audio_missing', 'Cached export narration files are missing. Restore classroom audio and retry.');
+        throw new NarratedExportError('cached_audio_missing', '已有导出配音文件缺失，请恢复课堂音频后重试。');
       }
     }
     return { ...structuredClone(cached), provenance: exportProvenance(course) };
@@ -284,7 +281,7 @@ async function prepareFullNarratedExportOnce(
   const scenes = createNarratedExportScenes(input.scenes);
   for (const scene of scenes) {
     if (!(scene.actions ?? []).some((a) => a.type === 'speech' && a.text.trim())) {
-      throw new NarratedExportError('missing_scene_narration', `Scene: ${scene.title} has no narration text. A complete narrated video cannot be generated.`);
+      throw new NarratedExportError('missing_scene_narration', `场景“${scene.title}”没有讲解文本，无法生成完整配音视频。`);
     }
   }
   const clips: NarratedExportClip[] = [];
@@ -305,7 +302,7 @@ async function prepareFullNarratedExportOnce(
       if (reference) {
         audio = await deps.loadAudio(input.courseId, reference);
         if (!audio && reference.includes('/api/classroom-media/')) {
-          throw new NarratedExportError('source_audio_missing', `Scene: ${scene.title} source narration could not be read.`);
+          throw new NarratedExportError('source_audio_missing', `场景“${scene.title}”的来源配音无法读取。`);
         }
         // Browser-owned pool/Dexie and remote references are validated against
         // their actual bytes by the client before compiling the complete IR.
@@ -318,10 +315,10 @@ async function prepareFullNarratedExportOnce(
         }
         if (!audio) {
           if (isServerTTSProviderDisabled(config.providerId)) {
-            throw new NarratedExportError('provider_disabled', 'The selected speech provider is disabled.', 403);
+            throw new NarratedExportError('provider_disabled', '所选配音提供者已被关闭。', 403);
           }
           if (config.providerId !== 'windows-system-tts' && !config.apiKey) {
-            throw new NarratedExportError('missing_api_key', 'Cloud narration requires your API key for this request.', 400);
+            throw new NarratedExportError('missing_api_key', '云端配音需要你为本次请求提供自己的 API Key。', 400);
           }
           const result = await deps.synthesize({ ...config, speed: 1, managed: false,
             publicOnly: Boolean(config.baseUrl), signal: input.signal }, speech.text);
@@ -355,7 +352,7 @@ async function assertSourceReviewComplete(course: PersistedClassroomData, deps: 
   while (saved && !visited.has(saved.stage.id)) {
     visited.add(saved.stage.id);
     if (saved.stage.sourceFidelity?.status === 'needs_review') {
-      throw new NarratedExportError('source_review_required', 'Classroom source review has not passed. Complete source review before exporting the full narrated video.', 409);
+      throw new NarratedExportError('source_review_required', '课堂来源审核尚未通过，请先完成来源审核再导出完整配音视频。', 409);
     }
     // Export snapshots deliberately do not copy an audit verdict. Read their
     // actual saved origin instead, including an origin that is itself a snapshot.

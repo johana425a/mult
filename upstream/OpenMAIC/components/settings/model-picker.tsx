@@ -1,9 +1,9 @@
 'use client';
 
-// Course model picker: the popover searches by name/ID, and the selected model row
-// includes InlineThinkingControl from the home toolbar, reusing existing i18n
-// toolbar.* / settings.* keys. Media modalities (TTS/ASR/images/video) pass only
-// groups without a thinking callback, yielding a search-only model picker.
+// 「课程模型配置」的模型选择器：Popover 内支持按名称/ID 搜索，选中的模型行
+// 内联思考强度控制（移植自首页工具栏的 InlineThinkingControl，i18n 沿用
+// toolbar.* / settings.* 既有 key）。媒体模态（TTS/ASR/图像/视频）只传
+// groups，不传 thinking 回调，即为「仅搜索」的纯模型选择。
 
 import { useMemo, useState } from 'react';
 import { Bot, Brain, Check, CornerDownRight, Search } from 'lucide-react';
@@ -33,7 +33,7 @@ import type {
 export interface PickerModel {
   id: string;
   name: string;
-  /** Model reasoning capabilities; omit reasoning controls when absent. */
+  /** 模型的思考能力描述；无则该行不渲染思考控制 */
   thinking?: ThinkingCapability;
 }
 
@@ -41,7 +41,7 @@ export interface ModelPickerGroup {
   id: string;
   name: string;
   models: PickerModel[];
-  /** Token Plan seeded catalog: pin and label its group. */
+  /** Token Plan 套餐播种的目录：置顶展示并带标识 */
   isTokenPlan?: boolean;
 }
 
@@ -62,7 +62,7 @@ function formatCompactThinkingValue(value: string | undefined) {
   return formatThinkingValue(value, () => value);
 }
 
-/** Inline reasoning control: on/off/auto, level, effort, and budget. */
+/** 行内思考强度控制（开/关/自动、档位、effort、budget） */
 function InlineThinkingControl({
   capability,
   config,
@@ -115,7 +115,7 @@ function InlineThinkingControl({
     });
   };
 
-  // SelectValue uses line-clamp-1; a 14px line height prevents clipping the lower half of 10px glyphs.
+  // leading-[14px]：SelectValue 带 line-clamp-1（裁切溢出），10px 字配 1 倍行高会切掉字形下半
   const selectTriggerCls =
     'h-6 min-w-[84px] rounded-full border-0 bg-violet-100 px-2 py-0 !text-[10px] font-medium leading-[14px] text-violet-700 shadow-none focus-visible:ring-0 data-[size=sm]:h-6 dark:bg-violet-900/40 dark:text-violet-200 [&_svg]:size-3';
   const selectItemCls = 'py-1 text-xs';
@@ -292,18 +292,18 @@ export function ModelPicker({
   groups: ModelPickerGroup[];
   value: { providerId: string; modelId: string } | null;
   onSelect: (providerId: string, modelId: string) => void;
-  /** Render an inherited-selection row when provided; select it when value is null. */
+  /** 传入即渲染「跟随」行（value 为 null 时选中它） */
   followLabel?: string;
   followNote?: string;
   onFollow?: () => void;
   placeholder?: string;
   disabled?: boolean;
-  /** Reasoning configuration for the selected model, used only with onThinkingChange. */
+  /** 当前选中模型的思考配置（仅在传 onThinkingChange 时生效） */
   thinkingConfig?: ThinkingConfig;
   onThinkingChange?: (config: ThinkingConfig | undefined) => void;
   size?: 'sm' | 'md';
   className?: string;
-  /** Accessible trigger name. The home toolbar passes Provider / Model for screen readers and end-to-end tests. */
+  /** 触发器的可及名。首页工具栏传 `Provider / Model`，e2e 与读屏都依赖它。 */
   ariaLabel?: string;
   t: (key: string) => string;
 }) {
@@ -403,11 +403,11 @@ export function ModelPicker({
         sideOffset={6}
         collisionPadding={12}
         className="w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden p-0"
-        // The popover portal is outside the Dialog DOM. react-remove-scroll in the settings dialog
-        // treats its wheel events as external and prevents the default, blocking
-        // list scrolling. Stop propagation during React event handling so the event does not reach document
-        // scroll locks and native scrolling works. Events remain local at the list boundary,
-        // preventing accidental scrolling of content behind the dialog.
+        // 弹层 portal 在 Dialog DOM 之外：设置弹窗的 react-remove-scroll 会把
+        // portal 内的 wheel 一律 preventDefault（视作“外部”事件），导致列表
+        // 无法滚轮滚动。在 React 合成阶段截停传播，事件不再冒泡到 document
+        // 级锁监听，原生滚动即可生效。列表自身滚到边界后事件自然停在这里，
+        // 不会意外带动弹窗背后的内容。
         onWheelCapture={(e) => e.stopPropagation()}
       >
         <div className="border-b p-2">
@@ -422,9 +422,9 @@ export function ModelPicker({
           </div>
         </div>
 
-        {/* Adapt list height to the available Radix height minus the search area of about 64px:
-            when the trigger is near the bottom, shrink the popover rather than overflow above the viewport;
-            otherwise the search box may be clipped off screen. */}
+        {/* 列表高度跟随 Radix 给出的可用高度自适应收缩（减去搜索区 ~64px）：
+            trigger 靠近视口底部时弹层变矮而不是向上翻转溢出视口——否则顶部
+            的搜索框会被裁到屏幕外（如第一行站点的检查器）。 */}
         <div className="max-h-[min(320px,calc(var(--radix-popover-content-available-height)-64px))] min-h-0 overflow-y-auto p-1.5">
           {followLabel && onFollow && (
             <button

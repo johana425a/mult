@@ -214,7 +214,7 @@ async function lookupWithTimeout(
 
 /**
  * Assert that a connection address is globally routable unicast.
- * IPv4-mapped IPv6 is classified as IPv4 so an IPv4 loopback endpoint cannot hide.
+ * IPv4-mapped IPv6 is classified as IPv4 so ::ffff:127.0.0.1 cannot hide.
  */
 export function assertSafeIp(value: string): void {
   const canonical = canonicalizeIp(value);

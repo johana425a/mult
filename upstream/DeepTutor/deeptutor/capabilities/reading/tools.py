@@ -244,11 +244,17 @@ class SearchMaterialTool(_ReadingToolBase):
         result = await asyncio.to_thread(search_material, store, material_id, query, limit=limit)
 
         unit = manifest.unit
+        coverage_note = (
+            " Search coverage: existing PDF text layer and already extracted pages only; "
+            "unread scanned pages and formula images were not OCRed or visually verified. "
+            "Use the outline and read_material/read_document_image for the relevant pages."
+            if manifest.extractor == "pdf-on-demand" else ""
+        )
         if result.is_empty:
             return ToolResult(
                 content=(
                     f'No match for "{query}". Try fewer or different words, or '
-                    f"call material_outline to see what the document covers."
+                    f"call material_outline to see what the document covers.{coverage_note}"
                 ),
                 metadata={
                     "material_id": material_id,
@@ -285,6 +291,8 @@ class SearchMaterialTool(_ReadingToolBase):
             "with read_material before quoting, then call reader_goto to show "
             "the user the passage."
         )
+        if coverage_note:
+            lines.append(coverage_note.strip())
 
         return ToolResult(
             content="\n".join(lines),

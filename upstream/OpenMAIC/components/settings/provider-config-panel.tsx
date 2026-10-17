@@ -224,7 +224,7 @@ export function ProviderConfigPanel({
           authoritative and not overridable here, so the editing inputs are hidden. */}
       {!isServerConfigured && (
         <>
-          {/* Promoted providers, such as Kimi, include regional API key acquisition links. */}
+          {/* 推广位（如 Kimi）：获取 API key 的国内/海外双链接。 */}
           {signupLinks && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
               <span className="text-muted-foreground">{t('settings.providerLinks.getApiKey')}</span>

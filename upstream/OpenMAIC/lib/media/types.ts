@@ -57,7 +57,7 @@
  *    case 'dall-e':
  *      return await generateDallEImage(config, options);
  * 4. In i18n.ts:
- *    providerDallEImage: 'DALL-E' / 'DALL-E image generation'
+ *    providerDallEImage: 'DALL-E' / 'DALL-E 图像生成'
  */
 
 // ============================================================================

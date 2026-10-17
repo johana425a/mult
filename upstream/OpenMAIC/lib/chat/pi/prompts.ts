@@ -109,11 +109,11 @@ export function buildDirectorPrompt(
     'Use `cue_user` when the classroom should wait for the user to continue, ask something new, or answer a visible follow-up.',
     'Use `close_session` when the latest user message or immediate history clearly indicates goodbye, no more, thanks-and-done, conclusion, wrap-up, an explicit end, or a request to return to the lesson.',
     '`close_session` closes only the current Q&A/discussion side session. It does NOT mean the whole class is over unless the user explicitly says the lesson/class is over.',
-    'When ending a Q&A/discussion, keep the visible agent response brief and avoid saying "class dismissed", or equivalent whole-class farewell language unless the user explicitly asks to end the entire class.',
-    'Before you call `close_session`, the current turn MUST already contain a short, visible closing line spoken by a classroom agent (normally the teacher). If this turn has not produced any visible agent response yet, first `call_agent` the teacher for ONE short, natural closing sentence such as "We can pause this discussion here. Feel free to ask another question.", and only then call `close_session`. Never make `close_session` the first tool of a turn with no preceding visible agent response.',
-    'Treat low-intent finishers as closure, not continuation: a satisfied acknowledgment after an answer (e.g. I understand / that is clear / no more questions) and any request to return to or resume the lesson (e.g. continue the lesson / return to the lesson / resume the class). For these call `close_session`, not `cue_user`.',
+    'When ending a Q&A/discussion, keep the visible agent response brief and avoid saying "class dismissed", "下课", "再见", or equivalent whole-class farewell language unless the user explicitly asks to end the entire class.',
+    'Before you call `close_session`, the current turn MUST already contain a short, visible closing line spoken by a classroom agent (normally the teacher). If this turn has not produced any visible agent response yet, first `call_agent` the teacher for ONE short, natural closing sentence such as "好的，这次问答先到这里，有问题的话你还可以继续问", and only then call `close_session`. Never make `close_session` the first tool of a turn with no preceding visible agent response.',
+    'Treat low-intent finishers as closure, not continuation: a satisfied acknowledgment after an answer (e.g. 我知道了 / 明白了 / 懂了 / 清楚了 / 没问题了 / 没有其他问题了) and any request to return to or resume the lesson (e.g. 可以继续下课 / 继续课程 / 回到课程 / 继续上课). For these call `close_session`, not `cue_user`.',
     'Use endReason `user_done` for a satisfied/no-more-questions acknowledgment and `back_to_lesson` for a resume-the-lesson request.',
-    'Only route an acknowledgment to `cue_user` when it clearly invites more classroom talk (e.g. I understand; please explain X next). A bare acknowledgment with no new request is closure.',
+    'Only route an acknowledgment to `cue_user` when it clearly invites more classroom talk (e.g. 明白了，那再讲讲X). A bare acknowledgment with no new request is closure.',
     '`cue_user` and `close_session` are mutually exclusive. Never call both in the same loop.',
     'If you call `close_session`, do not call `cue_user` afterward.',
     'For `close_session.endReason`, use a short machine-readable phrase such as `user_goodbye`, `user_done`, `back_to_lesson`, or `lesson_complete`.',
@@ -198,7 +198,7 @@ export function buildChildPrompt(
     buildSmartWhiteboardGuidelines(agent.role, availableActions),
     buildLiveSessionContext(body.piSessionBoundary),
     'Example:',
-    '[{"type":"action","name":"spotlight","params":{"elementId":"text_1"}},{"type":"text","content":"Look here. This step is essential to the mechanism that follows."}]',
+    '[{"type":"action","name":"spotlight","params":{"elementId":"text_1"}},{"type":"text","content":"看这里，这一步是后面机制成立的关键。"}]',
     '',
     '# Current State',
     buildThinChildContext(body),
@@ -300,7 +300,7 @@ function buildRoleGuideline(role: string): string {
 function buildLengthGuidelines(role: string): string {
   if (role === 'teacher') {
     return [
-      '- Keep your TOTAL visible speech within 1-2 short sentences, roughly 35 words.',
+      '- Keep your TOTAL visible speech around 70 Chinese characters or 1-2 short sentences.',
       '- This is a hard cap, not a suggestion.',
       '- Give the key insight in one crisp sentence, then optionally ask one short question.',
       '- Avoid exhaustive explanations unless the user explicitly asks for depth.',
@@ -308,13 +308,13 @@ function buildLengthGuidelines(role: string): string {
   }
   if (role === 'assistant') {
     return [
-      '- Keep your TOTAL visible speech within 1-2 short sentences, roughly 30 words.',
+      '- Keep your TOTAL visible speech around 60 Chinese characters or 1-2 short sentences.',
       '- This is a hard cap, not a suggestion.',
       '- One key point per response. Do not repeat the teacher fully.',
     ].join('\n');
   }
   return [
-    '- Keep your TOTAL visible speech within 1 short sentence, roughly 20 words.',
+    '- Keep your TOTAL visible speech around 40 Chinese characters. Prefer 1 short sentence.',
     '- This is a hard cap, not a suggestion.',
     '- Quick natural reaction only: one misconception, one follow-up question, or one concrete example.',
     '- If your response is as long as the teacher response, it is wrong.',
@@ -518,12 +518,12 @@ export function buildNativeChildTurnPrompt(
 
 function getChildHardCap(role: string): string {
   if (role === 'teacher') {
-    return 'Your visible speech MUST be no more than 35 words or 1-2 short sentences.';
+    return 'Your visible speech MUST be no more than 70 Chinese characters or 1-2 short sentences.';
   }
   if (role === 'assistant') {
-    return 'Your visible speech MUST be no more than 30 words or 1-2 short sentences.';
+    return 'Your visible speech MUST be no more than 60 Chinese characters or 1-2 short sentences.';
   }
-  return 'Your visible speech MUST be no more than 20 words or 1 short sentence.';
+  return 'Your visible speech MUST be no more than 40 Chinese characters or 1 short sentence.';
 }
 
 export function buildUserPrompt(

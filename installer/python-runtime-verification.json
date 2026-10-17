@@ -106,16 +106,17 @@
   "cli_help_exit_code": 0,
   "passed": true,
   "model_calls": false,
-  "home_isolated": "D:\\EduAgent-Contest\\installer\\downloads\\python\\verification",
+  "record_scope": "Historical runtime import check; paths made installation-relative for public source. Not a new r11 installer acceptance.",
+  "home_isolated": "installer/downloads/python/verification",
   "sys_path": [
-    "D:\\EduAgent-Contest\\installer\\runtime-python\\python313.zip",
-    "D:\\EduAgent-Contest\\installer\\runtime-python",
-    "D:\\EduAgent-Contest\\installer\\runtime-python\\Lib\\site-packages",
-    "D:\\EduAgent-Contest",
-    "D:\\EduAgent-Contest\\scripts",
-    "D:\\EduAgent-Contest\\installer\\deeptutor-packages",
-    "D:\\EduAgent-Contest\\installer\\runtime-python\\Lib\\site-packages\\win32",
-    "D:\\EduAgent-Contest\\installer\\runtime-python\\Lib\\site-packages\\win32\\lib",
-    "D:\\EduAgent-Contest\\installer\\runtime-python\\Lib\\site-packages\\pythonwin"
+    "installer/runtime-python/python313.zip",
+    "installer/runtime-python",
+    "installer/runtime-python/Lib/site-packages",
+    ".",
+    "scripts",
+    "installer/deeptutor-packages",
+    "installer/runtime-python/Lib/site-packages/win32",
+    "installer/runtime-python/Lib/site-packages/win32/lib",
+    "installer/runtime-python/Lib/site-packages/pythonwin"
   ]
 }

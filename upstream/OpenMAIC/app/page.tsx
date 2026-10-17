@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { SettingsDialog } from '@/components/settings';
 import { GenerationToolbar } from '@/components/generation/generation-toolbar';
 import { DeepSteamConnectionNotice } from '@/components/deepsteam-connection-notice';
+import { DeepSteamWorkspaceLink } from '@/components/deepsteam-workspace-link';
 import { AgentBar } from '@/components/agent/agent-bar';
 import { useTheme } from '@/lib/hooks/use-theme';
 import { nanoid } from 'nanoid';
@@ -602,7 +603,7 @@ function HomePage() {
         requirement: form.requirement,
         userNickname: userProfile.nickname || undefined,
         userBio: userProfile.bio || undefined,
-        // Course-level web search now lives in settings (Course model configuration → Web research)
+        // Course-level web search now lives in settings (课程模型配置 → 联网调研)
         webSearch: useSettingsStore.getState().webSearchEnabled || undefined,
         interactiveMode: form.vocationalTestMode ? true : form.interactiveMode,
         ...(form.vocationalTestMode ? { taskEngineMode: true } : {}),
@@ -684,7 +685,7 @@ function HomePage() {
     if (diffDays === 0) return t('classroom.today');
     if (diffDays === 1) return t('classroom.yesterday');
     if (diffDays < 7) return `${diffDays} ${t('classroom.daysAgo')}`;
-    return date.toLocaleDateString('en-US');
+    return date.toLocaleDateString();
   };
 
   const canGenerate = !!form.requirement.trim() && hasUsableProvider;
@@ -890,6 +891,7 @@ function HomePage() {
             />
 
             {/* Toolbar row */}
+            <DeepSteamWorkspaceLink />
             <DeepSteamConnectionNotice />
             <div className="px-3 pb-3 flex items-end gap-2">
               <div className="flex-1 min-w-0">
@@ -978,10 +980,10 @@ function HomePage() {
                   )}
                 >
                   <span className="rounded-full bg-cyan-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-normal text-cyan-700 dark:bg-cyan-900/45 dark:text-cyan-300">
-                    Experimental
+                    测试功能
                   </span>
                   <Sparkles className="size-3.5" />
-                  <span>Vocational task</span>
+                  <span>职教任务</span>
                   <span
                     className={cn(
                       'relative h-3.5 w-6 rounded-full transition-colors',
@@ -998,7 +1000,7 @@ function HomePage() {
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
-                Submit a vocational practice task from the current input.
+                从当前输入框提交职教实操训练测试
               </TooltipContent>
             </Tooltip>
           </motion.div>
@@ -1339,7 +1341,7 @@ function HomePage() {
 
       {/* Footer — flows with content, at the very end */}
       <div className="mt-auto pt-12 pb-4 text-center text-xs text-muted-foreground/40">
-        DeepSteam · AI-assisted development · Primary tool: Codex
+        DeepSteam · 本作品由AI辅助生成 · 主要工具：Codex
       </div>
     </div>
   );

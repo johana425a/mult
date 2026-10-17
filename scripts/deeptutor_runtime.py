@@ -50,13 +50,18 @@ def configure_environment():
         "NEXT_TELEMETRY_DISABLED": "1", "HOSTNAME": "127.0.0.1", "PORT": "3792",
         "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1", "PYTHONDONTWRITEBYTECODE": "1",
         "PYTHONNOUSERSITE": "1",
+        "DEEPSTEAM_HARNESS_CORE": "1",
         "TEMP": str(STORAGE.deeptutor_temporary), "TMP": str(STORAGE.deeptutor_temporary),
     })
     os.environ["PATH"] = str(NODE) + os.pathsep + os.environ.get("PATH", "")
     os.environ["PYTHONPATH"] = os.pathsep.join((str(PACKAGES), str(ROOT)))
-    for path in (str(PACKAGES), str(ROOT)):
-        if path not in sys.path:
-            sys.path.insert(0, path)
+    # Embedded Python's ._pth already lists these paths after site-packages.
+    # Move them, rather than merely checking membership, so the app has one
+    # authoritative implementation instead of silently importing a stale copy.
+    for path in (str(ROOT), str(PACKAGES)):
+        while path in sys.path:
+            sys.path.remove(path)
+        sys.path.insert(0, path)
     STORAGE.prepare(HOME, CONTENT, LOGS, STORAGE.deeptutor_temporary, STORAGE.cache)
 
 

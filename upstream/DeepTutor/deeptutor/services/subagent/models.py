@@ -412,8 +412,21 @@ _PROVIDERS: dict[str, Callable[..., Awaitable[BackendOptions]]] = {
 
 async def list_backend_options() -> list[BackendOptions]:
     """Synced model/effort options for every backend (the /settings sync source)."""
-    results = await asyncio.gather(*(provider() for provider in _PROVIDERS.values()))
-    return list(results)
+    # DeepSteam 2026-10-16 subagent options: one broken backend probe must not take down every settings page.
+    kinds = list(_PROVIDERS)
+    results = await asyncio.gather(*(provider() for provider in _PROVIDERS.values()), return_exceptions=True)
+    options: list[BackendOptions] = []
+    for kind, result in zip(kinds, results):
+        if isinstance(result, BaseException):
+            if not isinstance(result, Exception):
+                raise result
+            logger.warning("Subagent backend %s options failed: %s", kind, result, exc_info=result)
+            options.append(BackendOptions(kind=kind, display_name=kind, available=False, version="",
+                models=[], efforts=[], allow_custom_model=True,
+                detail=f"Backend probe failed: {type(result).__name__}: {result}"))
+        else:
+            options.append(result)
+    return options
 
 
 async def sync_backend_options(kind: str) -> BackendOptions:

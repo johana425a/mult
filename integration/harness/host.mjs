@@ -36,14 +36,20 @@ export async function createHost(options) {
   await ctx.plugin(AccountPlatform, { desktopPlatform: 'win32', requestTimeoutMs: 30000, balanceTimeoutMs: 10000 });
   await ctx.plugin(AccountLlm, { reasoningEffort: 'high', retryPolicy: { mode: 'normal', maxRetries: 0 } });
   await ctx.plugin(ApiKeyLlm, { apiKeyEnv: 'DEEPSTEAM_REQUEST_KEY', reasoningEffort: 'high', retryPolicy: { mode: 'normal', maxRetries: 0 } });
-  let piProviders = PiAi.Config({ providers: {} }).providers.get();
+  const providerInputs = {};
+  let piProviders = PiAi.Config({ providers: providerInputs }).providers.get();
   // A single official pi-ai plugin owns its catalog; route additions use its
   // supported volatile-update path instead of mounting duplicate catalogs.
   const dynamicPiAi = child => PiAi.apply(child, { providers: { get: () => piProviders } });
   dynamicPiAi.inject = PiAi.inject;
   await ctx.plugin(dynamicPiAi);
   const configureWorkspaceProvider = (provider, profile) => {
-    const next = PiAi.Config({ providers: { ...piProviders, [provider]: profile } }).providers.get();
+    // Config.get() returns resolved reactive config, not raw input. Feeding
+    // that object back through Config corrupts the nested union schemas when
+    // the second workspace/model is registered.
+    const nextInputs = { ...providerInputs, [provider]: structuredClone(profile) };
+    const next = PiAi.Config({ providers: nextInputs }).providers.get();
+    providerInputs[provider] = structuredClone(profile);
     piProviders = next; ctx.emit('loader/volatile-update');
   };
   await ctx.plugin(SessionStore);

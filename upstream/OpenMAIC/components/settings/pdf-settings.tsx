@@ -107,7 +107,7 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
     <div className="space-y-6 max-w-3xl">
       {selectedProviderId === 'deepsteam-local' && (
         <p className="rounded-lg border p-3 text-sm text-muted-foreground">
-          Documents are read locally without a parsing API. Scanned pages use the bundled OCR. Charts, formulas, and complex layouts may require comparison with the original; reading notes are retained with the result.
+          文档在本机读取，无需配置解析 API。扫描页使用安装包内的 OCR；图表、公式及复杂排版可能需要对照原文核验，读取说明会随结果保留。
         </p>
       )}
       {/* Server-configured notice */}

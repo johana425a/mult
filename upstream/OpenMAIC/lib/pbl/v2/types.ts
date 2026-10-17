@@ -582,7 +582,7 @@ export interface PBLPlannerV2Input {
     nickname?: string;
     bio?: string;
     /** Original free-form course request. Used only for explicit
-     *  learner-level signals such as "I am a beginner" / "I'm advanced". */
+     *  learner-level signals such as "我是零基础" / "I'm advanced". */
     requirement?: string;
   };
   /** Optional snapshot of prior quizzes the learner has attempted in

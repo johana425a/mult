@@ -70,3 +70,8 @@ class DeepSeekHarnessBackend(SubagentBackend):
             success=task['status'] == 'completed', event_count=event_count,
             error='' if task['status'] == 'completed' else '')
 
+
+# DeepSteam 2026-10-16 subagent options: settings code asks whether a Python SDK fallback exists. DeepSteam
+# always goes through the shared Harness Host, so there is none.
+def _sdk_available() -> bool:
+    return False

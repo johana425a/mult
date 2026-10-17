@@ -566,6 +566,29 @@ async def generate_topic_draft(
     language: str,
     must_cover: list[str] | None = None,
 ) -> dict[str, Any]:
+    from deeptutor.services.llm.config import get_scoped_llm_config, set_scoped_llm_config, reset_scoped_llm_config
+    from deeptutor.services.model_selection.runtime import resolve_model_selection
+    scoped = get_scoped_llm_config()
+    config = scoped or resolve_model_selection()[0]
+    token = set_scoped_llm_config(config)
+    try:
+        result = await _generate_topic_draft_impl(name=name, goal=goal, sources=sources,
+            language=language, must_cover=must_cover)
+        from deeptutor.services.model_selection.runtime import resolved_model_snapshot
+        return {**result, 'resolved_model': resolved_model_snapshot(config)}
+    except Exception as exc:
+        from deeptutor.learning.workspace_visuals import WorkspaceVisualError
+        if isinstance(exc, WorkspaceVisualError):
+            raise TopicGenerationError(str(exc)) from exc
+        raise
+    finally:
+        reset_scoped_llm_config(token)
+
+
+async def _generate_topic_draft_impl(
+    *, name: str, goal: str, sources: list[TopicSource], language: str,
+    must_cover: list[str] | None = None,
+) -> dict[str, Any]:
     grounded_sources = await ground_topic_sources(
         name=name,
         goal=goal,
@@ -631,6 +654,12 @@ async def generate_topic_draft(
     visuals = await collect_workspace_visuals([
         source for source in grounded_sources if source.kind == TopicSourceKind.WORKSPACE_FILE
     ])
+    if visuals.formula_review:
+        system_prompt += ('\nFormula review statuses are application quality metadata, not curriculum content. '
+            'Keep unresolved formulas in source notes and original images. Do not turn retaining images, '
+            'waiting for OCR, reporting missing formulas, or checking parser status into student knowledge '
+            'points, graded exercises, or mastery gates. Plan only the requested subject knowledge that '
+            'has readable source support. A source-only formula cannot supply a quiz answer.')
     response = await complete(
         prompt=prompt, system_prompt=system_prompt,
         **({"messages": visuals.messages(system_prompt, prompt), "allow_image_fallback": False}
@@ -667,6 +696,7 @@ async def generate_topic_draft(
                 and item["path"] == source.metadata.get("path")
                 and item["document_sha256"] == source.metadata.get("document_sha256")
             ]
+            source.metadata['formula_review'] = visuals.formula_review
     return {
         "description": str(data.get("description") or "").strip()[:500],
         "modules": [module.model_dump(mode="json") for module in modules],
@@ -677,6 +707,7 @@ async def generate_topic_draft(
         "module_limit": module_limit,
         "coverage": _coverage_report(grounded_sources, raw_modules),
         "visual_evidence": visuals.manifest,
+        "formula_review": visuals.formula_review,
     }
 
 

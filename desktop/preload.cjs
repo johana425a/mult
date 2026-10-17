@@ -163,6 +163,7 @@ contextBridge.exposeInMainWorld('deepsteamDesktop', Object.freeze({
     return () => ipcRenderer.removeListener('deepsteam:bilibili-session-changed', listener);
   },
   openBilibiliLogin: () => ipcRenderer.invoke('deepsteam:bilibili-login'),
+  signOutBilibili: () => ipcRenderer.invoke('deepsteam:bilibili-signout'),
   importBilibiliSubtitles: (options) => ipcRenderer.invoke('deepsteam:bilibili-subtitles', options),
   openOfficial: (url) => ipcRenderer.invoke('deepsteam:open-official', String(url)),
   pickWorkspaceDirectory: () => ipcRenderer.invoke('deepsteam:pick-workspace-directory'),

@@ -1,4 +1,6 @@
 "use client";
+import * as React from 'react';
+import { useRetained, has as hasRetained } from '@/lib/sidebar-view-state.cjs';
 
 import { navigateTask } from "@/lib/workspace-scope";
 import { sessionWorkspaceId } from "@/lib/session-api";
@@ -12,7 +14,7 @@ import { ProfileLink } from "@/components/auth/ProfileLink";
 import { useAppShell } from "@/context/AppShellContext";
 import {
   deleteSession,
-  listSessions,
+  listAllSessions,
   updateSessionOrganization,
   updateSessionTitle,
   type SessionOrganizationPatch,
@@ -34,14 +36,14 @@ export default function UtilitySidebar() {
   const { t } = useTranslation();
   const router = useRouter();
   const { activeSessionId, setActiveSessionId } = useAppShell();
-  const [sessions, setSessions] = useState<SessionSummary[]>([]);
-  const [courses, setCourses] = useState<StudyCourse[]>([]);
-  const [masteryTopics, setMasteryTopics] = useState<MasteryTopicLabel[]>([]);
-  const [readingCollections, setReadingCollections] = useState<
+  const [sessions, setSessions] = useRetained<SessionSummary[]>(React, 'sessions', []);
+  const [courses, setCourses] = useRetained<StudyCourse[]>(React, 'courses', []);
+  const [masteryTopics, setMasteryTopics] = useRetained<MasteryTopicLabel[]>(React, 'masteryTopics', []);
+  const [readingCollections, setReadingCollections] = useRetained<
     ReadingCollectionLabel[]
-  >([]);
+  >(React, 'readingCollections', []);
   const [loadingSessions, setLoadingSessions] = useState(false);
-  const hasLoadedSessionsRef = useRef(false);
+  const hasLoadedSessionsRef = useRef(hasRetained('sessions'));
 
   const refreshSessions = useCallback(async () => {
     if (!hasLoadedSessionsRef.current) {
@@ -51,7 +53,7 @@ export default function UtilitySidebar() {
       // Labels only name a heading, so losing them costs grouping, not the list.
       const [nextSessions, nextCourses, nextTopics, nextCollections] =
         await Promise.all([
-          listSessions(50, 0, { force: true, allWorkspaces: true }),
+          listAllSessions({ force: true, allWorkspaces: true }),
           listCourses({ force: true }).catch(() => [] as StudyCourse[]),
           fetchMasteryTopicIndex().catch(() => [] as MasteryTopicLabel[]),
           fetchReadingCollectionIndex().catch(() => [] as ReadingCollectionLabel[]),

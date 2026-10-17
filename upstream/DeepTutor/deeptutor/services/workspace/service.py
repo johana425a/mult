@@ -13,6 +13,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import tempfile
+import time
 from typing import Any, Iterable, Mapping
 from urllib.parse import quote
 import uuid
@@ -32,6 +33,10 @@ _ALLOWED_ROOTS_ENV = "DEEPTUTOR_WORKSPACE_ALLOWED_ROOTS"
 _INTERNAL_DIR = ".deeptutor"
 _MAX_SEARCH_SCAN_ENTRIES = 10_000
 _SAFE_COMPONENT = re.compile(r"[^A-Za-z0-9._-]+")
+# DeepSteam 2026-10-15 responsiveness: a folder that passed the write check is trusted for a
+# minute instead of creating and deleting a probe file on every request.
+_READY_ROOTS: dict[str, float] = {}
+_READY_TTL_SECONDS = 60.0
 
 
 def _utc_now() -> str:
@@ -208,8 +213,17 @@ class ContentWorkspaceService(WorkspaceCatalogMixin):
     def _ensure_ready(self, binding: WorkspaceBinding) -> None:
         root = binding.root
         if not root.exists() or not root.is_dir():
+            _READY_ROOTS.pop(str(root), None)
             raise WorkspaceError("The selected workspace folder does not exist.")
         self._assert_allowed_root(root)
+        checked = _READY_ROOTS.get(str(root))
+        if (
+            checked is not None
+            and time.monotonic() - checked < _READY_TTL_SECONDS
+            and (root / "outputs").is_dir()
+        ):
+            return
+        _READY_ROOTS.pop(str(root), None)
         if not os.access(root, os.R_OK):
             raise WorkspaceError("The selected workspace folder is not readable.")
         output = root / "outputs"
@@ -224,6 +238,7 @@ class ContentWorkspaceService(WorkspaceCatalogMixin):
             raise WorkspaceError("The workspace outputs folder leaves the workspace.") from exc
         except OSError as exc:
             raise WorkspaceError("The workspace outputs folder is not writable.") from exc
+        _READY_ROOTS[str(root)] = time.monotonic()
 
     def validate(self, path: str | Path | None) -> dict[str, Any]:
         if path is not None and not str(path).strip():
@@ -324,7 +339,9 @@ class ContentWorkspaceService(WorkspaceCatalogMixin):
             _safe_component(turn_id, "turn"),
         ).as_posix()
         output = self.resolve(binding, logical, write=True)
-        output.mkdir(parents=True, exist_ok=True)
+        physical_output = (Path("\\\\?\\" + str(output))
+            if os.name == "nt" and not str(output).startswith("\\\\?\\") else output)
+        physical_output.mkdir(parents=True, exist_ok=True)
         return WorkspaceRuntimeContext(
             workspace_id=binding.workspace_id,
             root=str(binding.root),
@@ -621,6 +638,10 @@ class ContentWorkspaceService(WorkspaceCatalogMixin):
             if _INTERNAL_DIR in PurePosixPath(relative).parts:
                 raise WorkspaceError(f"{PRODUCT_NAME}'s internal workspace files cannot be presented.")
             source = self.resolve(binding, relative)
+            # Apply the Windows extended path only after workspace containment
+            # has been checked, preserving the public relative-path identity.
+            if os.name == "nt" and not str(source).startswith("\\\\?\\"):
+                source = Path("\\\\?\\" + str(source))
             if not source.is_file():
                 raise WorkspaceError(f"Workspace item is not a file: {relative}")
             prepared.append((raw, relative, source))

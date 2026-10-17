@@ -23,6 +23,7 @@ from pathlib import Path
 import shutil
 import stat
 import threading
+import time
 from typing import Iterator
 
 from deeptutor.runtime.home import get_runtime_home
@@ -86,8 +87,20 @@ def migrate_legacy_multi_user_tree() -> None:
             logger.warning("Could not remove legacy multi-user root %s", legacy)
 
 
+# DeepSteam 2026-10-15 responsiveness: the local account's root used to be resolved on
+# every call (dozens of times per request); resolve it at most once a minute.
+_ADMIN_SCOPE_CACHE: tuple[float, UserScope] | None = None
+
+
 def admin_scope() -> UserScope:
-    return UserScope(kind="admin", user_id=LOCAL_ADMIN_ID, root=ADMIN_WORKSPACE_ROOT.resolve())
+    global _ADMIN_SCOPE_CACHE
+    cached = _ADMIN_SCOPE_CACHE
+    now = time.monotonic()
+    if cached is not None and now - cached[0] < 60.0:
+        return cached[1]
+    scope = UserScope(kind="admin", user_id=LOCAL_ADMIN_ID, root=ADMIN_WORKSPACE_ROOT.resolve())
+    _ADMIN_SCOPE_CACHE = (now, scope)
+    return scope
 
 
 def local_admin_user() -> CurrentUser:

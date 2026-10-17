@@ -8,6 +8,7 @@
 import { NextRequest } from 'next/server';
 import { nanoid } from 'nanoid';
 import { callLLM } from '@/lib/ai/llm';
+import { rethrowIfGenerationCancelled, throwIfGenerationAborted } from '@/lib/server/generation-cancellation';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { resolveModelFromRequest } from '@/lib/server/resolve-model';
@@ -131,7 +132,9 @@ export async function POST(req: NextRequest) {
   let stageName: string | undefined;
   let modelString: string | undefined;
   try {
+    throwIfGenerationAborted(req.signal);
     const body = (await req.json()) as RequestBody;
+    throwIfGenerationAborted(req.signal);
     const {
       stageInfo,
       sceneOutlines,
@@ -164,6 +167,7 @@ export async function POST(req: NextRequest) {
       modelString: _modelString,
       thinkingConfig,
     } = await resolveModelFromRequest(req, body, 'agent-profiles');
+    throwIfGenerationAborted(req.signal);
     modelString = _modelString;
 
     // ── Build prompt ──
@@ -263,12 +267,14 @@ Return a JSON object with this exact structure:
           model: languageModel,
           system: systemPrompt,
           prompt: userPrompt,
+          abortSignal: req.signal,
         },
         'agent-profiles',
         undefined,
         thinkingConfig,
       )
     ).text;
+    throwIfGenerationAborted(req.signal);
 
     // ── Parse LLM response ──
     const rawText = stripCodeFences(rawResult);
@@ -359,6 +365,7 @@ Return a JSON object with this exact structure:
 
     return apiSuccess({ agents });
   } catch (error) {
+    rethrowIfGenerationCancelled(error, req.signal);
     log.error(
       `Agent profiles generation failed [stage="${stageName ?? 'unknown'}", model=${modelString ?? 'unknown'}]:`,
       error,

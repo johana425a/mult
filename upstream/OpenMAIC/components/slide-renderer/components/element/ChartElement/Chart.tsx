@@ -7,7 +7,7 @@ import { getChartOption } from './chartOption';
 
 import * as echarts from 'echarts/core';
 import { BarChart, LineChart, PieChart, ScatterChart, RadarChart } from 'echarts/charts';
-import { LegendComponent } from 'echarts/components';
+import { LegendComponent, GridComponent } from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
 
 echarts.use([
@@ -17,6 +17,7 @@ echarts.use([
   ScatterChart,
   RadarChart,
   LegendComponent,
+  GridComponent,
   SVGRenderer,
 ]);
 
@@ -76,6 +77,7 @@ export function Chart({
         lineColor,
         lineSmooth: options?.lineSmooth || false,
         stack: options?.stack || false,
+        fontSize: options?.fontSize,
       });
 
       if (option) {

@@ -39,18 +39,8 @@ const log = createLogger('VideoRenderStore');
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = Math.ceil((60 * 60 * 1000) / POLL_INTERVAL_MS);
-/** Below this percent the extrapolated ETA is too noisy to show. */
-const ETA_MIN_PERCENT = 3;
-/**
- * EMA weight for the newest *speed* sample (percent-per-ms). Lower = smoother
- * and laggier. We smooth speed rather than the whole-run average because this
- * render is not uniform (prep → frame capture, which drops 4→1 worker mid-way,
- * → encode): a recent-speed estimate reacts to those regime changes, and the
- * EMA keeps it from jittering on the producer's uneven percent updates.
- */
-const SPEED_SMOOTHING = 0.3;
 
-export type VideoRenderStatus = 'idle' | 'compiling' | 'rendering' | 'succeeded' | 'failed';
+export type VideoRenderStatus = 'idle' | 'compiling' | 'rendering' | 'cancelling' | 'cancelled' | 'succeeded' | 'failed';
 
 /** Minimal i18n surface the store needs, injected by callers. */
 type Translate = (key: string, options?: Record<string, unknown>) => string;
@@ -65,6 +55,7 @@ export interface RenderOptions {
 
 /** Fully-resolved render options (the store always holds concrete values). */
 type ResolvedOptions = Required<RenderOptions>;
+export type RenderSelection = {stageId:string; sceneIds:string[] | null};
 
 const DEFAULT_OPTIONS: ResolvedOptions = {
   resolution: '1080p',
@@ -80,6 +71,8 @@ interface JobStatusResponse {
   currentStage?: string;
   error?: string;
   done?: boolean;
+  framesRendered?: number;
+  totalFrames?: number;
 }
 
 interface VideoRenderState {
@@ -89,6 +82,9 @@ interface VideoRenderState {
   /** Estimated milliseconds remaining, or null while unknown. */
   etaMs: number | null;
   filename: string | null;
+  selection: RenderSelection | null;
+  jobId: string | null;
+  frameCount: string | null;
   error: string | null;
   /**
    * The user's selected render options. Held in the store (not the menu
@@ -100,13 +96,15 @@ interface VideoRenderState {
   /** True while a render is in flight (compiling or rendering). */
   isActive: () => boolean;
   /** `locale` is the export's, not the store's: it is baked into the emitted card chrome. */
-  startRender: (t: Translate, locale: Locale) => Promise<void>;
+  startRender: (t: Translate, locale: Locale, sceneIds?: readonly string[]) => Promise<void>;
+  cancelRender: () => void;
+  restoreRender: (t: Translate) => Promise<void>;
   reset: () => void;
 }
 
 /** Whether a status means a render is still in flight. */
 function inFlight(status: VideoRenderStatus): boolean {
-  return status === 'compiling' || status === 'rendering';
+  return status === 'compiling' || status === 'rendering' || status === 'cancelling';
 }
 
 // One in-memory retry slot; the active request and the slot share the same Blob.
@@ -115,11 +113,60 @@ let cachedZip: {
   resolution: VideoResolution;
   burnInSubtitles: boolean;
   locale: Locale;
+  sceneKey: string;
   result: BuildExportZipResult;
 } | null = null;
 let exportRevision = 0;
 let activeRenders = 0;
 let stopObserving: (() => void) | undefined;
+let renderController: AbortController | null = null;
+const RENDER_RECEIPT_KEY = 'deepsteam-video-render-v1';
+type RenderReceipt = {jobId: string; filename: string; status: 'rendering' | 'succeeded'; options: ResolvedOptions; selection?:RenderSelection};
+function saveReceipt(receipt: RenderReceipt | null) {
+  try {
+    if (receipt) localStorage.setItem(RENDER_RECEIPT_KEY, JSON.stringify(receipt));
+    else localStorage.removeItem(RENDER_RECEIPT_KEY);
+  } catch { /* Rendering still works if browser storage is unavailable. */ }
+}
+function readReceipt(): RenderReceipt | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(RENDER_RECEIPT_KEY) || 'null');
+    return value && typeof value.filename === 'string' && typeof value.jobId === 'string' &&
+      /^[a-zA-Z0-9_-]{1,128}$/.test(value.jobId) && ['rendering', 'succeeded'].includes(value.status) ? value : null;
+  } catch { return null; }
+}
+
+/** Poll an accepted job without cancelling it merely because the page disconnected. */
+function renderPoll(signal: AbortSignal, update: (patch: Partial<VideoRenderState>) => void) {
+  let networkFailures = 0;
+  return async (jobId: string) => {
+    signal.throwIfAborted();
+    let res: Response;
+    try {
+      res = await fetch(`/api/export-video/render/${jobId}`, {signal});
+      if (res.status >= 500) throw new Error(`HTTP ${res.status}`);
+      networkFailures = 0;
+    } catch (error) {
+      signal.throwIfAborted();
+      if (++networkFailures <= 6) return {status: 'pending' as const};
+      throw error;
+    }
+    const data = await res.json() as JobStatusResponse;
+    if (!res.ok) return {status: 'failed' as const, message: data.error || `HTTP ${res.status}`};
+    update({percent: Math.round((data.progress ?? 0) * 100), etaMs: null,
+      frameCount: data.totalFrames ? `${data.framesRendered ?? 0} / ${data.totalFrames}` : null});
+    if (data.status === 'succeeded') {
+      const dl = await fetch(`/api/export-video/render/${jobId}/download`, {signal});
+      if (!dl.ok) return {status:'failed' as const,message:`download HTTP ${dl.status}`};
+      return {status:'done' as const,result:await dl.blob()};
+    }
+    if (data.status === 'failed' || data.status === 'cancelled') {
+      saveReceipt(null);
+      return {status:'failed' as const,message:data.error || data.status};
+    }
+    return {status:'pending' as const,detail:data.currentStage};
+  };
+}
 
 function releaseIdleObservers() {
   if (activeRenders === 0 && !cachedZip) {
@@ -147,6 +194,9 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
   percent: 0,
   etaMs: null,
   filename: null,
+  selection: null,
+  jobId: null,
+  frameCount: null,
   error: null,
   options: DEFAULT_OPTIONS,
 
@@ -162,27 +212,71 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
   },
 
   isActive: () => inFlight(get().status),
-
-  reset: () => {
-    invalidateCachedZip();
-    set({ status: 'idle', percent: 0, etaMs: null, filename: null, error: null });
+  cancelRender: () => {
+    if (!renderController || !inFlight(get().status)) return;
+    set({status:'cancelling'});
+    renderController.abort();
+  },
+  restoreRender: async (t) => {
+    if (inFlight(get().status) || get().status === 'succeeded') return;
+    const receipt = readReceipt();
+    if (!receipt) return;
+    set({jobId:receipt.jobId,filename:receipt.filename,selection:receipt.selection ?? null,
+      options:{...DEFAULT_OPTIONS,...receipt.options},error:null});
+    if (receipt.status === 'succeeded') { set({status:'succeeded',percent:100}); return; }
+    set({status:'rendering',etaMs:null});
+    const controller = new AbortController();
+    renderController = controller;
+    const toastId = toast.loading(t('export.videoResuming'));
+    try {
+      const mp4 = await runPolledTask<Blob>({label:'resume-video',intervalMs:POLL_INTERVAL_MS,
+        maxAttempts:MAX_POLL_ATTEMPTS,signal:controller.signal,
+        submit:async()=>({status:'submitted',taskId:receipt.jobId}),poll:renderPoll(controller.signal,set)});
+      saveAs(mp4,receipt.filename);
+      saveReceipt({...receipt,status:'succeeded'});
+      set({status:'succeeded',percent:100,etaMs:0});
+      toast.success(t('export.videoMp4Success'),{id:toastId});
+    } catch (error) {
+      if (controller.signal.aborted) {
+        try {
+          const cancelled = await fetch(`/api/export-video/render/${receipt.jobId}`,{method:'DELETE'});
+          if (!cancelled.ok) throw new Error(`HTTP ${cancelled.status}`);
+          saveReceipt(null); set({status:'cancelled',error:null});
+          toast.info(t('export.videoCancelled'),{id:toastId});
+        } catch { set({status:'failed',error:t('export.videoCancelFailed')}); toast.error(t('export.videoCancelFailed'),{id:toastId}); }
+      } else {
+        set({status:'failed',error:error instanceof Error ? error.message : String(error)});
+        toast.error(t('export.videoFailed'),{id:toastId});
+      }
+    } finally { if (renderController === controller) renderController = null; }
   },
 
-  startRender: async (t, locale) => {
+  reset: () => {
+    if (inFlight(get().status)) return;
+    invalidateCachedZip();
+    set({ status: 'idle', percent: 0, etaMs: null, filename: null, selection:null, jobId:null, frameCount:null, error: null });
+  },
+
+  startRender: async (t, locale, sceneIds) => {
     // Guard against a duplicate submit — the whole reason state lives here.
     if (inFlight(get().status)) return;
+    if (readReceipt()?.status === 'rendering') { await get().restoreRender(t); return; }
+    const controller = new AbortController();
+    renderController = controller;
+    const sceneKey = JSON.stringify(sceneIds ?? null);
 
     activeRenders += 1;
     stopObserving ??= observeExportChanges(invalidateCachedZip);
     const { resolution, fps, quality, burnInSubtitles } = get().options;
     const { stage } = useStageStore.getState();
     const stageId = stage?.id;
+    const selection: RenderSelection | undefined = stageId ? {stageId,sceneIds:sceneIds ? [...sceneIds] : null} : undefined;
     if (
       cachedZip &&
       (cachedZip.stageId !== stageId ||
         cachedZip.resolution !== resolution ||
         cachedZip.burnInSubtitles !== burnInSubtitles ||
-        cachedZip.locale !== locale)
+        cachedZip.locale !== locale || cachedZip.sceneKey !== sceneKey)
     )
       invalidateCachedZip();
     const cached = cachedZip?.result;
@@ -192,6 +286,9 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
       percent: 0,
       etaMs: null,
       filename: null,
+      selection: selection ?? null,
+      jobId:null,
+      frameCount:null,
       error: null,
     });
     const toastId = toast.loading(t(cached ? 'export.videoRendering' : 'export.videoCompiling'));
@@ -202,7 +299,7 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
     let errorCount = 0;
     try {
       let built = cached;
-      if (built && stage) {
+      if (built && stage && !sceneIds) {
         const currentName = await resolveExportStageName(stage);
         // The async name read can overlap an edit/reset. Never reuse a slot
         // that was released while reading, even when the name still matches.
@@ -217,7 +314,7 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
         const revision = exportRevision;
         const compileStageId = useStageStore.getState().stage?.id;
         const { buildExportZip } = await import('@/lib/video-export-app/build-export-zip');
-        built = await buildExportZip({ resolution, burnInSubtitles, locale });
+        built = await buildExportZip({ resolution, burnInSubtitles, locale, sceneIds, signal:controller.signal });
         // Changes during compilation (including reset or switching away and
         // back) cannot repopulate the retry slot with an obsolete snapshot.
         if (compileStageId && revision === exportRevision) {
@@ -226,15 +323,18 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
             resolution,
             burnInSubtitles,
             locale,
+            sceneKey,
             result: built,
           };
         }
       }
       ({ zipBlob, stageName, missingCount, errorCount } = built);
+      controller.signal.throwIfAborted();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      set({ status: 'failed', error: message });
-      if (error instanceof NoScenesError) {
+      set({ status: controller.signal.aborted ? 'cancelled' : 'failed', error: controller.signal.aborted ? null : message });
+      if (controller.signal.aborted) toast.info(t('export.videoCancelled'), {id:toastId});
+      else if (error instanceof NoScenesError) {
         toast.error(t('export.videoNoScenes'), { id: toastId });
       } else {
         log.error('Video render (compile) failed:', error);
@@ -242,19 +342,13 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
       }
       activeRenders -= 1;
       releaseIdleObservers();
+      if (renderController === controller) renderController = null;
       return;
     }
 
     const filename = `${sanitizeFilename(stageName)}.mp4`;
     set({ status: 'rendering', filename });
 
-    // ETA via recent speed: track the previous (percent, timestamp) sample,
-    // derive an instantaneous percent-per-ms rate, EMA-smooth it, and project
-    // the remaining percent onto it. Reacts to the render's speed regime
-    // changes (worker drop, encode) far better than a whole-run average.
-    let lastPercent: number | null = null;
-    let lastTs = 0;
-    let smoothedSpeed: number | null = null; // percent per ms
     // Set once the service accepts the job. Lets the catch below distinguish a
     // *submit* failure (nothing started) from a failure after the render began
     // (hard error, and cancel the server job to free its slot).
@@ -276,6 +370,7 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
 
       const mp4 = await runPolledTask<Blob>({
         label: 'render-video',
+        signal: controller.signal,
         intervalMs: POLL_INTERVAL_MS,
         maxAttempts: MAX_POLL_ATTEMPTS,
         submit: async () => {
@@ -293,59 +388,37 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
             return { status: 'failed', message: detail || `HTTP ${res.status}` };
           }
           submittedJobId = data.jobId;
+          set({jobId:data.jobId});
+          saveReceipt({jobId:data.jobId,filename,status:'rendering',options:get().options,selection});
           return { status: 'submitted', taskId: data.jobId };
         },
-        poll: async (jobId) => {
-          const res = await fetch(`/api/export-video/render/${jobId}`);
-          const data = (await res.json().catch(() => ({}))) as JobStatusResponse;
-          if (!res.ok) return { status: 'failed', message: data.error || `HTTP ${res.status}` };
-
-          const percent = Math.round((data.progress ?? 0) * 100);
-
-          // Derive a recent speed (percent/ms) from the delta since the last
-          // sample, EMA-smooth it, then project the remaining percent. Only
-          // forward progress updates the speed; stalls/regressions are ignored
-          // so a paused stage doesn't blow the ETA up to infinity.
-          const now = Date.now();
-          let etaMs = get().etaMs;
-          if (lastPercent != null && percent > lastPercent && now > lastTs) {
-            const sample = (percent - lastPercent) / (now - lastTs);
-            smoothedSpeed =
-              smoothedSpeed == null
-                ? sample
-                : SPEED_SMOOTHING * sample + (1 - SPEED_SMOOTHING) * smoothedSpeed;
-          }
-          if (percent >= ETA_MIN_PERCENT && percent < 100 && smoothedSpeed && smoothedSpeed > 0) {
-            etaMs = (100 - percent) / smoothedSpeed;
-          }
-          if (lastPercent == null || percent > lastPercent) {
-            lastPercent = percent;
-            lastTs = now;
-          }
-          set({ percent, etaMs });
-
-          if (data.status === 'succeeded') {
-            const dl = await fetch(`/api/export-video/render/${jobId}/download`);
-            if (!dl.ok) return { status: 'failed', message: `download HTTP ${dl.status}` };
-            return { status: 'done', result: await dl.blob() };
-          }
-          if (data.status === 'failed' || data.status === 'cancelled') {
-            return { status: 'failed', message: data.error || data.status };
-          }
-          return { status: 'pending', detail: data.currentStage };
-        },
+        poll: renderPoll(controller.signal,set),
       });
 
       saveAs(mp4, filename);
       invalidateCachedZip();
       set({ status: 'succeeded', percent: 100, etaMs: 0 });
+      if (submittedJobId) saveReceipt({jobId:submittedJobId,filename,status:'succeeded',options:get().options,selection});
       toast.success(t('export.videoMp4Success'), { id: toastId });
       if (missingCount > 0 || errorCount > 0) {
         toast.warning(t('export.videoWarnings', { assets: missingCount, diagnostics: errorCount }));
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (submittedJobId == null) {
+      if (controller.signal.aborted) {
+        try {
+          if (submittedJobId) {
+            const cancelled = await fetch(`/api/export-video/render/${submittedJobId}`,{method:'DELETE'});
+            if (!cancelled.ok) throw new Error(`HTTP ${cancelled.status}`);
+          }
+          saveReceipt(null);
+          set({status:'cancelled',error:null,etaMs:null});
+          toast.info(t('export.videoCancelled'),{id:toastId});
+        } catch {
+          set({status:'failed',error:t('export.videoCancelFailed')});
+          toast.error(t('export.videoCancelFailed'),{id:toastId});
+        }
+      } else if (submittedJobId == null) {
         // The submit never succeeded. Only degrade to the ZIP when the service
         // is genuinely unavailable — not configured (501) or unreachable (fetch
         // threw, submitStatus null). For real rejections (429 busy, 413 too
@@ -364,11 +437,8 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
           toast.error(t(key ?? 'export.videoFailed'), { id: toastId });
         }
       } else {
-        // The render started but failed / timed out. Cancel the server job so it
-        // doesn't hold a concurrency slot and scratch space, then surface the error.
-        void fetch(`/api/export-video/render/${submittedJobId}`, { method: 'DELETE' }).catch(
-          () => {},
-        );
+        // Keep the accepted job receipt across a network failure. Reopening the
+        // export dialog resumes polling instead of submitting duplicate work.
         log.error('Video render failed:', error);
         set({ status: 'failed', error: message });
         toast.error(t('export.videoFailed'), { id: toastId });
@@ -376,6 +446,7 @@ export const useVideoRenderStore = create<VideoRenderState>()((set, get) => ({
     } finally {
       activeRenders -= 1;
       releaseIdleObservers();
+      if (renderController === controller) renderController = null;
     }
   },
 }));

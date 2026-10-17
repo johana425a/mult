@@ -46,6 +46,21 @@ export async function createTaskLedger(profile) {
       sources: rows, offset, next_offset: offset + rows.length < sources.length ? offset + rows.length : null };
   }
   return {
+    async recordTeaching(id, references) {
+      const ledger = await load(id), keys = new Set();
+      for(const ref of references || []) {
+        if(ref.type !== 'reading' || typeof ref.material_id !== 'string' || !Number.isInteger(ref.material_revision) || !Number.isInteger(ref.page))continue;
+        const key=`reading:${ref.material_id}@${ref.material_revision}`;keys.add(key);
+        const source=ledger.sources[key] ?? {path:key,title:ref.title,units:[],complete:false,status:'partially_delivered',semantic_completeness:'not_guaranteed'};
+        source.units=[...new Map([...source.units,{page:ref.page}].map(unit=>[unit.page,unit])).values()];
+        // Native references prove these locators were returned. They don't
+        // include character spans or total scope, so never assert completion.
+        source.native_delivered_locators=source.units.map(unit=>unit.page).sort((a,b)=>a-b);
+        source.coverage_source='native_reading_tool_references';ledger.sources[key]=source;
+      }
+      if(keys.size)await save(id,ledger);
+      return [...keys];
+    },
     async recordDocument(id, requestedPath, result) {
       if (!result?.ok) return;
       const ledger = await load(id);
@@ -117,7 +132,8 @@ export async function createTaskLedger(profile) {
       if (input.summary !== undefined && (typeof input.summary !== 'string' || input.summary.length > 12000)) throw invalid();
       if (input.next_steps !== undefined && (!Array.isArray(input.next_steps) || input.next_steps.length > 100
         || input.next_steps.some(value => typeof value !== 'string' || value.length > 1000))) throw invalid();
-      if (input.source_path !== undefined && (typeof input.source_path !== 'string' || !ledger.sources[input.source_path])) throw invalid();
+      if (input.source_path !== undefined && (typeof input.source_path !== 'string' || !ledger.sources[input.source_path]))
+        throw Object.assign(new Error('Unknown source_path. Use read_task_progress to get its recorded path. Known paths: '+Object.keys(ledger.sources).slice(0,12).join(', ')),{code:'task_progress_source_unknown'});
       if (input.source_summary !== undefined && (!input.source_path || typeof input.source_summary !== 'string' || input.source_summary.length > 24000)) throw invalid();
       if (input.output_references !== undefined && (!input.source_path || !Array.isArray(input.output_references) || input.output_references.length > 100
         || input.output_references.some(value => typeof value !== 'string' || value.length > 2000))) throw invalid();

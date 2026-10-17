@@ -35,7 +35,7 @@ EXCLUDED_DIRS = {
 EXCLUDED_DIR_NAMES = {'__pycache__', '.pytest_cache'}
 EXCLUDED_FILES = {
     '.deepsteam-installed', '.deepsteam-installing', '.deepsteam-uninstall-id', 'PORTABLE-MANIFEST.sha256',
-    'CLAUDE-CODEX-协作.md', '安装记录.txt', 'DeepSteam.exe', 'Uninstall-DeepSteam.exe',
+    'CLAUDE-CODEX-协作.md', 'DeepSteam.exe', 'Uninstall-DeepSteam.exe',
     'installer/payload-manifest.json', 'installer/junctions.json', 'installer/uninstall-manifest.json',
     'runtime/deeptutor-processes.json', 'runtime/openmaic-process.json', 'runtime/portal-process.json',
     'runtime/video-follow-cache-version',
@@ -136,6 +136,7 @@ def compile_exe(dest: Path):
                     '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll',
                     '/reference:System.IO.Compression.dll', '/reference:System.IO.Compression.FileSystem.dll',
                     '/win32manifest:' + str(ROOT / 'installer' / 'DeepSteam.manifest'),
+                    '/win32icon:' + str(ROOT / 'DeepSteam.ico'),
                     '/resource:' + str(ROOT / 'installer' / 'DeepSteamSetup.cs') + ',DeepSteamSetup.cs',
                     '/out:' + str(dest), str(ROOT / 'installer' / 'DeepSteamSetup.cs')],
                    check=True, creationflags=0x08000000)

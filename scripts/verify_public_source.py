@@ -7,7 +7,10 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 HAN = re.compile(r'[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]')
-PUBLIC_ENGLISH_DOCS = {'README.md', 'GUIDE.md', 'RELEASE.md', 'installer/DOCUMENT-RELEASE.md', 'installer/UNINSTALL.md'}
+PUBLIC_ENGLISH_DOCS = {'README.md', 'GUIDE.md', 'RELEASE.md', 'PORTABLE-README.md',
+                       'docs/architecture.md', 'docs/validation.md', 'docs/project-status.md',
+                       'docs/source-provenance.md', 'docs/review-guide.md',
+                       'installer/DOCUMENT-RELEASE.md', 'installer/UNINSTALL.md'}
 PRIVATE_PARTS = {'node_modules', '.git', '.next', '.next-github', '__pycache__', '.pytest_cache',
                  '.venv', 'browser-profile', 'userData', 'harness-state', '.cache', '.turbo'}
 PRIVATE_SUFFIXES = {'.log', '.db', '.sqlite', '.sqlite3', '.pem', '.key', '.pfx', '.p12', '.pyc', '.pyo'}
@@ -23,6 +26,9 @@ def main() -> int:
     if manifest.get('default_interface_language') != 'en':
         failures.append({'file': 'PUBLIC-SOURCE-MANIFEST.json', 'reason': 'Public source default language must be English'})
     rows = manifest['files']
+    paths = [row['path'] for row in rows]
+    if len(set(paths)) != len(paths) or manifest.get('file_count') != len(rows):
+        failures.append({'file': 'PUBLIC-SOURCE-MANIFEST.json', 'reason': 'Duplicate paths or inconsistent file count'})
     for row in rows:
         relative = Path(row['path'])
         if relative.is_absolute() or '..' in relative.parts or not row['path'].isascii() or ':' in row['path'] or '\\' in row['path']:
@@ -53,7 +59,7 @@ def main() -> int:
             failures.append({'file': row['path'], 'reason': 'Public user/source documentation must be English'})
     defaults = {
         'upstream/DeepTutor/deeptutor/services/settings/interface_settings.py': ('"language": "en"', '"response_language": "en"'),
-        'upstream/DeepTutor/web/i18n/languages.ts': ('if (typeof value !== "string") return "en";',),
+        'upstream/DeepTutor/web/i18n/languages.ts': ('export function normalizeLanguage(_value: unknown): AppLanguage {\n  return "en";\n}',),
         'upstream/DeepTutor/web/context/AppShellContext.tsx': ('useState<AppLanguage>("en")',),
         'upstream/OpenMAIC/lib/i18n/types.ts': ("defaultLocale: Locale = 'en-US'",),
     }

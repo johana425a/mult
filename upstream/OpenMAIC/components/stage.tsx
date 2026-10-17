@@ -236,7 +236,10 @@ export function Stage({
       activate: () => setMode('edit'),
       // Stay in playback so the failure surfaces rather than half-entering
       // edit mode.
-      onError: (error) => console.error('[Stage] Pro mode entry failed during teardown', error),
+      onError: (error) => {
+        console.error('[Stage] Pro mode entry failed during teardown', error);
+        playbackRef.current?.restoreAfterFailedTransition();
+      },
     });
   }, [mode, setMode]);
 

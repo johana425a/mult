@@ -54,6 +54,12 @@ export async function resolveAgentDriverModel(): Promise<{
   /** Internal compaction output-space estimate; never used as a conversation API limit. */
   reservedOutputTokens: number;
 }> {
+  if(process.env.DEEPSTEAM_HARNESS_CORE === '1') {
+    const connection=await resolveModel({modelString:'custom-deepsteam-shared:current'});
+    return {connection,piModel:buildPiDriverModel(connection,'openai-completions'),
+      wireMaxOutputTokens:connection.modelInfo?.outputWindow,
+      reservedOutputTokens:connection.modelInfo?.outputWindow ?? UNKNOWN_MODEL_RESERVED_OUTPUT_TOKENS};
+  }
   const route = getStageRoute(AGENT_DRIVER_STAGE);
   if (!route) {
     throw new Error(

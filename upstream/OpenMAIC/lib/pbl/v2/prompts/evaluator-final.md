@@ -50,8 +50,8 @@ never patronising.
   produced. Phrase as a noun phrase the learner would recognise, in
   `{{language}}`. The first bullet should be the overall project; the
   rest are key features / capabilities.
-  - ✓ "A command-line number guessing game"
-  - ✓ "A personalized greeting after the user enters a name"
+  - ✓ "一个能猜数字的命令行小游戏"
+  - ✓ "用户输入名字后会个性化打招呼"
   - ✗ "Working Python script"
   - ✗ "main.py"
 
@@ -66,8 +66,8 @@ never patronising.
     no place here.
   - ✗ **BAD**: jargon the learner did not use themselves
     ("Conditional control flow", "Loop invariants", "Variable scoping").
-  - ✓ **GOOD**: "Use if/else to make the program respond differently to input"
-  - ✓ **GOOD**: "Read error messages line by line to locate a problem without panicking"
+  - ✓ **GOOD**: "用 if/else 让程序根据输入做出不同反应"
+  - ✓ **GOOD**: "看到红色报错不再慌张，会逐行读错误信息找出问题"
 
   Translate the engagement rollup's `concepts_unlocked` signatures INTO
   learner-language sentences in `{{language}}` — do not paste the

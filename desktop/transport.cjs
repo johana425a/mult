@@ -6,6 +6,62 @@ const SERVICES = Object.freeze({ app: 3792, portal: 3791, classroom: 3793, gatew
 const SCHEME = 'deepsteam';
 const PRIVILEGES = Object.freeze({ standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true, codeCache: true });
 const HOP_HEADERS = ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade'];
+const http = require('node:http');
+const { Readable } = require('node:stream');
+const { pipeline } = require('node:stream/promises');
+const zlib = require('node:zlib');
+
+// The bundled global fetch can throw an uncaught Undici parser assertion when
+// a slow consumer meets a closing socket. Use Node's HTTP stream for our fixed
+// loopback services only; retain streaming, backpressure and explicit redirects.
+async function loopbackFetch(value, init = {}) {
+  const target = new URL(value instanceof Request ? value.url : value);
+  if (target.protocol !== 'http:' || target.hostname !== '127.0.0.1' ||
+      ![...Object.values(SERVICES), 8011].includes(Number(target.port)) || target.username || target.password)
+    throw new TypeError('Invalid internal service');
+  const request = new Request(value, init);
+  request.signal.throwIfAborted();
+  const headers = new Headers(request.headers);
+  headers.delete('host'); headers.delete('connection'); headers.delete('content-length');
+  headers.set('accept-encoding', 'identity');
+  return new Promise((resolve, reject) => {
+    let responseStream;
+    const outgoing = http.request(target, { method: request.method, headers: Object.fromEntries(headers), agent: false });
+    const abort = () => {
+      const reason = request.signal.reason instanceof Error ? request.signal.reason : new DOMException('Aborted', 'AbortError');
+      responseStream?.destroy(reason); outgoing.destroy(reason);
+    };
+    request.signal.addEventListener('abort', abort, { once: true });
+    outgoing.on('close', () => { if (!responseStream) request.signal.removeEventListener('abort', abort); });
+    outgoing.on('error', error => { responseStream?.destroy(error); reject(error); });
+    outgoing.on('response', incoming => {
+      const status = incoming.statusCode;
+      const responseHeaders = new Headers();
+      for (let i = 0; i < incoming.rawHeaders.length; i += 2) responseHeaders.append(incoming.rawHeaders[i], incoming.rawHeaders[i + 1]);
+      if ([301, 302, 303, 307, 308].includes(status) && request.redirect !== 'manual') {
+        incoming.resume(); reject(new TypeError('Internal redirects require manual handling')); return;
+      }
+      const empty = request.method === 'HEAD' || [204, 205, 304].includes(status);
+      if (empty) { incoming.on('error', reject); incoming.resume(); resolve(new Response(null, { status, headers: responseHeaders })); return; }
+      responseStream = incoming;
+      const encoding = responseHeaders.get('content-encoding')?.trim().toLowerCase();
+      const decoder = encoding === 'gzip' ? zlib.createGunzip() : encoding === 'deflate' ? zlib.createInflate() : encoding === 'br' ? zlib.createBrotliDecompress() : null;
+      if (decoder) {
+        responseStream = decoder;
+        void pipeline(incoming, decoder).catch(error => decoder.destroy(error));
+        decoder.on('close', () => { if (!incoming.complete) incoming.destroy(); });
+        responseHeaders.delete('content-encoding'); responseHeaders.delete('content-length');
+      }
+      responseStream.on('close', () => request.signal.removeEventListener('abort', abort));
+      const body = Readable.toWeb(responseStream, { strategy: { highWaterMark: 65536, size: chunk => chunk.byteLength } });
+      try { resolve(new Response(body, { status, statusText: incoming.statusMessage || '', headers: responseHeaders })); }
+      catch (error) { responseStream.destroy(); reject(error); }
+    });
+    if (request.body) void pipeline(Readable.fromWeb(request.body), outgoing).catch(error => { outgoing.destroy(error); reject(error); });
+    else outgoing.end();
+    if (request.signal.aborted) abort();
+  });
+}
 
 function applicationUrl(value) {
   try {
@@ -76,8 +132,8 @@ function cookieOptions(value, target) {
   return options;
 }
 
-function sessionFetcher(ownedSession, networkFetch = fetch) {
-  // Node fetch supports manual redirects and streaming cancellation. Only the
+function sessionFetcher(ownedSession, networkFetch = loopbackFetch) {
+  // The local transport supports manual redirects and streaming cancellation. Only the
   // product-owned Chromium cookie jar supplies cookies; no renderer can inject
   // a Cookie header or obtain authentication values through this API.
   return async (value, init) => {
@@ -109,7 +165,7 @@ async function verifyRetainedCookies({ session: ownedSession, from, cookies }) {
   return cookies.length;
 }
 
-async function forwardRequest(request, fetcher = fetch) {
+async function forwardRequest(request, fetcher = loopbackFetch) {
   const source = applicationUrl(request.url);
   const target = serviceUrl(request.url);
   if (!source || !target) return new Response(null, { status: 404 });
@@ -207,4 +263,4 @@ function websocketHeaders(details, ownedContents) {
   } catch { return { cancel: true }; }
 }
 
-module.exports = { SCHEME, SERVICES, PRIVILEGES, applicationUrl, applicationOrigin, serviceUrl, publicUrl, forwardRequest, socketUrl, websocketHeaders, sessionFetcher, verifyRetainedCookies, allowApplicationRequest, applicationHeaders };
+module.exports = { SCHEME, SERVICES, PRIVILEGES, applicationUrl, applicationOrigin, serviceUrl, publicUrl, forwardRequest, socketUrl, websocketHeaders, sessionFetcher, verifyRetainedCookies, allowApplicationRequest, applicationHeaders, loopbackFetch };

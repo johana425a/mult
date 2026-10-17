@@ -34,6 +34,8 @@ interface SharedResult {
   units: SharedUnit[];
   images: Array<{ base64: string; mime_type: string; source_asset_id: string; unit_index: number; locator: SourceDocumentLocator }>;
   warnings: string[]; status: string; coverage: Record<string, unknown>;
+  requires_image_reading?: boolean; visual_pending?: boolean; vision_pending?: unknown[];
+  image_reading?: string; next_tool?: string;
 }
 
 export interface DocumentExtractionRecovery {
@@ -210,10 +212,12 @@ function safeName(name?: string) {
   return (name?.split(/[\\/]/).pop() || 'document').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 160) || 'document';
 }
 
-function artifact(result: SharedResult, input: DocumentExtractorInput): DocumentArtifact {
+export function deepsteamDocumentArtifact(result: SharedResult, input: DocumentExtractorInput): DocumentArtifact {
   const digest = createHash('sha256').update(input.buffer).digest('hex');
+  const imageReady = result.requires_image_reading === true && result.coverage?.source_units_enumerated === true
+    && result.coverage?.text_layer_complete === true && result.images?.length > 0;
   if (result.document?.sha256 !== digest || !Array.isArray(result.units)
-      || result.units.length !== result.document.unit_count || result.coverage?.document_fully_read !== true
+      || result.units.length !== result.document.unit_count || (result.coverage?.document_fully_read !== true && !imageReady)
       || !Array.isArray(result.images) || !Array.isArray(result.warnings)) throw new Error('The document result is missing completeness information.');
   const name = safeName(input.fileName);
   const sources: ClassroomImageSource[] = [];
@@ -257,7 +261,10 @@ function artifact(result: SharedResult, input: DocumentExtractorInput): Document
     diagnostics: result.warnings.map(message => ({ severity: 'warning', message, providerId: 'deepsteam-local' })),
     providerRaw: { text: '', images: [], image_sources: sources, metadata: { parser: 'deepsteam-local', pageCount,
       documentSha256: digest, documentUnitCount: result.document.unit_count,
-      readingStatus: result.status, coverage: result.coverage, warnings: result.warnings } },
+      readingStatus: result.status, coverage: result.coverage, warnings: result.warnings,
+      requiresImageReading: result.requires_image_reading === true,
+      visualPending: result.visual_pending === true, visionPending: result.vision_pending,
+      imageReading: result.image_reading, nextTool: result.next_tool } },
   };
 }
 
@@ -300,6 +307,6 @@ export const deepsteamLocalDocumentExtractor: DocumentExtractorProvider = {
   async extract(input) {
     const result = await executeShared(input);
     if (result.ok === false) throw new DocumentExtractionError(result.error || 'Reading was stopped; the original document is retained.', result.recovery);
-    return artifact(result, input);
+    return deepsteamDocumentArtifact(result, input);
   },
 };

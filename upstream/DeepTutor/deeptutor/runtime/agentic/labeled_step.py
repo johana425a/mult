@@ -54,9 +54,7 @@ from deeptutor.runtime.agentic.usage import (
 )
 from deeptutor.runtime.stream_bus import StreamBus
 from deeptutor.services.llm import clean_thinking_tags
-from deeptutor.services.llm.multimodal import should_degrade_to_text, strip_image_parts_inplace
 from deeptutor.services.llm.request_compat import (
-    is_image_input_unsupported,
     is_stream_options_unsupported,
     is_tool_schema_unsupported,
 )
@@ -185,6 +183,10 @@ async def run_labeled_step(
         "stream": True,
         **completion_kwargs,
     }
+    from deeptutor.services.llm.multimodal import has_image_parts
+    if has_image_parts(kwargs["messages"]):
+        from deeptutor.learning.workspace_visuals import assert_visual_model
+        assert_visual_model(model=model, binding=binding)
     auto_stream_options_added = False
     if usage is not None and "stream_options" not in kwargs:
         kwargs["stream_options"] = {"include_usage": True}
@@ -471,24 +473,8 @@ async def run_labeled_step(
                 retry_kwargs.pop("tools", None)
                 retry_kwargs.pop("tool_choice", None)
                 return await client.chat.completions.create(**retry_kwargs)
-            # Stage-2 vision fallback: the model rejected our image content and
-            # it is not in the known-vision allowlist. Strip images in place
-            # (so they aren't re-sent on later loop iterations) and retry the
-            # turn text-only rather than hard-failing.
-            if is_image_input_unsupported(exc) and should_degrade_to_text(
-                binding, model, kwargs.get("messages") or []
-            ):
-                strip_image_parts_inplace(kwargs["messages"])
-                await stream.progress(
-                    "Model does not support image input; retrying without images.",
-                    source=source,
-                    stage=stage,
-                    metadata=merge_trace_metadata(
-                        iter_meta,
-                        {"trace_kind": "warning", "image_fallback": True},
-                    ),
-                )
-                return await client.chat.completions.create(**kwargs)
+            # Surface image rejection with the original pixels intact. A
+            # text-only retry would falsely look like successful source reading.
             raise
 
     response_stream = await _create_response_stream()

@@ -21,6 +21,7 @@ import { makeAllowlistGate } from './allowlist';
 import { makeQuotaHook } from './quota';
 import { hasLengthToolCallProvenance } from './stream-fn';
 import { withAgentToolTimeout } from './tool-timeout';
+import { createHarnessAgent, harnessCoreEnabled, type HarnessContext } from './harness-agent';
 
 // pi needs *a* model object on state; the injected StreamFn ignores it and uses
 // OpenMAIC's resolved model, so this is a metadata stub (high contextWindow so
@@ -39,6 +40,7 @@ const STUB_MODEL = {
 } as unknown as Model<Api>;
 
 export interface BuildAgentOptions {
+  harnessContext?: HarnessContext;
   streamFn: StreamFn;
   systemPrompt: string;
   tools: AgentTool[];
@@ -63,6 +65,7 @@ export interface BuildAgentOptions {
 }
 
 export function buildAgent(opts: BuildAgentOptions): Agent {
+  if (harnessCoreEnabled()) return createHarnessAgent(opts);
   const quotaHook = makeQuotaHook({ remaining: () => Number.MAX_SAFE_INTEGER });
   const agent = new Agent({
     streamFn: opts.streamFn,

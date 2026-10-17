@@ -27,5 +27,11 @@ class ExecuteWorkspaceTaskTool(BaseTool):
         result = await execute_native_task(prompt, workspace_id=runtime['workspace_id'],
             source=runtime['source'], task_key=stable_task_key(runtime['session_id'], runtime['turn_id'], text),
             model_config=runtime['model_config'])
-        return ToolResult(content=result.get('result') or json.dumps({key: result.get(key) for key in ('id', 'status', 'recovery')}, ensure_ascii=False),
+        if result['status'] == 'awaiting_input':
+            return ToolResult(content=json.dumps({
+                'status': 'awaiting_input', 'id': result['id'], 'session_id': result.get('session_id'),
+                'message': 'The file task is waiting for your answer in the displayed question or plan card. '
+                    'It remains active in the same session. Answer or cancel the existing card; do not start the task again.'}, ensure_ascii=False),
+                success=True, metadata={'execution_task': result})
+        return ToolResult(content=result.get('result') if result['status'] == 'completed' else json.dumps({key: result.get(key) for key in ('id', 'status', 'error', 'error_code', 'recovery', 'result')}, ensure_ascii=False),
             success=result['status'] == 'completed', metadata={'execution_task': result})

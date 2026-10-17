@@ -28,7 +28,7 @@ import {
   TTS_PROVIDERS,
 } from '@/lib/audio/constants';
 import { DEFAULT_VOXCPM_BACKEND, VOXCPM_MODEL_ID, VOXCPM_VLLM_MODEL_ID } from '@/lib/audio/voxcpm';
-import { PDF_PROVIDERS, isDisabledRemotePdfProvider } from '@/lib/pdf/constants';
+import { PDF_PROVIDERS } from '@/lib/pdf/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
 import {
   MODALITY_ORDER,
@@ -52,7 +52,7 @@ import {
 import { createKVPersistStorage, purgeLegacyPersistKey } from '@/lib/store/kv-persist';
 import { isTTSProviderEnabled } from '@/lib/audio/provider-enablement';
 import {
-  DEEPSTEAM_SHARED_PROVIDER, followsDeepSteamConnection, isRetiredBundledSelection,
+  DEEPSTEAM_SHARED_PROVIDER, followsDeepSteamConnection,
   type DeepSteamConnection, type DeepSteamNarration,
 } from '@/lib/config/deepsteam-connection';
 
@@ -228,10 +228,10 @@ export interface SettingsState {
   tokenPlanEnrollments: Record<string, string>;
   setTokenPlanEnrolled: (presetId: string, llmProviderId: string | null) => void;
   /**
-   * Authorization stores explicitly disabled plan IDs with true values. It matches
-   * provider enabled in Model services: credentials and connection remain, but the plan is excluded
-   * from model candidates and overrides. Store disabled plans rather than enabled ones, so new
-   * and historical plans are enabled by default without migration.
+   * 授权层开关：被显式关闭的套餐 id 集合（值恒为 true）。与「模型服务」里
+   * provider 的 `enabled` 同层语义——凭证仍在、连接仍在，只是不再参与课程
+   * 模型配置的候选与覆盖。用「关闭集合」而非「启用集合」存储，这样新连接
+   * 的套餐与历史数据都默认启用，无需迁移回填。
    */
   tokenPlanDisabled: Record<string, boolean>;
   setTokenPlanEnabled: (presetId: string, enabled: boolean) => void;
@@ -243,9 +243,9 @@ export interface SettingsState {
    */
   reconcileTokenPlanSeeds: () => void;
   /**
-   * Idempotently fill saved catalogs with static reasoning metadata. When catalog entries
-   * gain reasoning controls, old catalogs of active plans receive those capabilities
-   * without reseeding or changing API keys and model selections.
+   * 将静态目录中的思考能力元数据补写进已保存的模型目录（幂等）。目录条目
+   * 后来新增时（例如为 token plan 模型补 thinking 控制），已启用套餐的旧
+   * 目录不重种也能获得思考强度调节；key 与模型选择不受影响。
    */
   applyCatalogThinkingMetadata: () => void;
 
@@ -570,7 +570,7 @@ const getDefaultProvidersConfig = (): ProvidersConfig => {
       apiKey: '',
       // The bundled local runtime is ready without user API configuration.
       // Every existing cloud provider retains its original credential fields.
-      baseUrl: '',
+      baseUrl: pid === 'custom-deepsteam-local' ? provider.defaultBaseUrl || '' : '',
       models: provider.models,
       name: provider.name,
       type: provider.type,
@@ -674,7 +674,7 @@ const getDefaultAudioConfig = () => ({
   ttsVoice: 'default',
   ttsSpeed: 1.0,
   asrProviderId: 'browser-native' as ASRProviderId,
-  asrLanguage: 'en-US',
+  asrLanguage: 'zh-CN',
   ttsProvidersConfig: {
     // Built-in providers default enabled:true — they only ever surface once
     // configured (API key or server-managed), so "enabled" is a user opt-OUT,
@@ -720,7 +720,7 @@ const getDefaultAudioConfig = () => ({
 
 // Initialize default PDF config
 const getDefaultPDFConfig = () => ({
-  pdfProviderId: 'deepsteam-local' as PDFProviderId,
+  pdfProviderId: 'unpdf' as PDFProviderId,
   pdfProvidersConfig: {
     'deepsteam-local': { apiKey: '', baseUrl: '', enabled: true },
     unpdf: { apiKey: '', baseUrl: '', enabled: true },
@@ -853,7 +853,7 @@ function ensureValidProviderSelections(state: Partial<SettingsState>): void {
   const defaultVideoConfig = getDefaultVideoConfig();
   const defaultWebSearchConfig = getDefaultWebSearchConfig();
 
-  if (!hasProviderId(PDF_PROVIDERS, state.pdfProviderId) || isDisabledRemotePdfProvider(state.pdfProviderId)) {
+  if (!hasProviderId(PDF_PROVIDERS, state.pdfProviderId)) {
     state.pdfProviderId = defaultPdfConfig.pdfProviderId;
   }
 
@@ -1187,7 +1187,7 @@ export const useSettingsStore = create<SettingsState>()(
         setTokenPlanEnabled: (presetId, enabled) =>
           set((state) => {
             const next = { ...state.tokenPlanDisabled };
-            // Store only disabled plans. Removing an entry restores the default enabled state.
+            // 只记录「被关掉的」：启用是默认态，删除条目即可恢复默认。
             if (enabled) delete next[presetId];
             else next[presetId] = true;
             return { tokenPlanDisabled: next };
@@ -1195,13 +1195,13 @@ export const useSettingsStore = create<SettingsState>()(
 
         reconcileTokenPlanSeeds: () => {
           const state = get();
-          // Traverse TOKEN_PLAN_PRESETS order with priorityState deference,
-          // so main-model, stage-route, and modality-selection slots consistently belong
-          // to the earliest active plan regardless of reconciliation order.
-          // Use isTokenPlanUsable rather than isTokenPlanActive: authorization-disabled
-          // plans must not seed; otherwise changed preset data would route stages back to
-          // an enabled:false provider. setStageRoute does not prune, so a dead route
-          // would remain in llmStageRoutes. Re-enabling resets the fingerprint and reseeds.
+          // 按 TOKEN_PLAN_PRESETS 顺序遍历，配合 priorityState 的让位判定，
+          // 使得独占槽位（主线模型 / stage route / 各模态选中项）稳定归属
+          // 列表中最靠前的生效套餐，与 reconcile 的先后无关。
+          // 用 isTokenPlanUsable 而非 isTokenPlanActive：被授权开关关掉的
+          // 套餐不参与播种——否则 preset 数据一变，stage route 会被写回一个
+          // enabled:false 的 provider，且 setStageRoute 不经过 prune，死路由
+          // 会一直留在 llmStageRoutes 里。重新开启时由开关清指纹触发补种。
           for (const preset of TOKEN_PLAN_PRESETS) {
             if (!isTokenPlanUsable(preset, state)) continue;
             if (state.tokenPlanSeedVersions[preset.id] === tokenPlanSeedFingerprint(preset)) {
@@ -1243,7 +1243,7 @@ export const useSettingsStore = create<SettingsState>()(
             const models = cfg.models.map((model) => {
               const thinking = getCatalogThinkingCapability(pid, model.id);
               if (!thinking) return model;
-              // Catalog entries are module constants; matching references/deep equality means metadata is present.
+              // 目录条目是模块常量，新旧引用/深比较一致即已补写
               if (model.capabilities?.thinking === thinking) return model;
               touched = true;
               return {
@@ -1256,7 +1256,7 @@ export const useSettingsStore = create<SettingsState>()(
               next[pid as ProviderId] = { ...cfg, models };
             }
           }
-          // The model ID set is unchanged; write directly without resolving selection again.
+          // 模型 id 集合未变，直接写入即可，无需重跑 LLM 选择解析
           if (changed) set({ providersConfig: next });
         },
 
@@ -1628,7 +1628,7 @@ export const useSettingsStore = create<SettingsState>()(
         setImageGenerationEnabled: (enabled) => {
           if (enabled) {
             const cfg = get().imageProvidersConfig;
-            // Match the course model guard: both credentials and authorization must pass.
+            // 与课程模型配置的提示守卫同口径：凭证 + 授权开关都要过。
             const hasUsable = Object.values(cfg).some(
               (c) => (c.isServerConfigured || c.apiKey) && c.enabled !== false,
             );
@@ -1757,7 +1757,7 @@ export const useSettingsStore = create<SettingsState>()(
             const res = await fetch('/api/server-providers');
             if (!res.ok) {
               if (requestId === serverProviderRequest) set({ deepsteamConnection: undefined,
-                deepsteamConnectionError: 'The active connection cannot be read right now. Check that desktop services are running and retry.' });
+                deepsteamConnectionError: '暂时无法读取当前连接，请确认桌面服务已启动后重试。' });
               return;
             }
             // Managed providers expose only their allowed model list (LLM/image)
@@ -1834,11 +1834,11 @@ export const useSettingsStore = create<SettingsState>()(
                 const connection = data.deepsteam?.connection;
                 newProvidersConfig[DEEPSTEAM_SHARED_PROVIDER] = {
                   ...shared, apiKey: '', baseUrl: '', defaultBaseUrl: undefined,
-                  name: connection ? `${connection.provider_label} (follows DeepSteam)` : 'DeepSteam active model',
+                  name: connection ? `${connection.provider_label}（跟随 DeepSteam）` : 'DeepSteam 当前模型',
                   icon: connection ? PROVIDERS[connection.provider as ProviderId]?.icon || shared.icon : shared.icon,
                   models: [{
                     id: connection?.model || 'current',
-                    name: connection?.model || 'Selected automatically after connection',
+                    name: connection?.model || '连接后自动选择',
                     contextWindow: connection?.context_window,
                     // Provider capacity is not the output reserve per request.
                     outputWindow: connection?.max_output_tokens
@@ -2017,8 +2017,8 @@ export const useSettingsStore = create<SettingsState>()(
               const ttsFallback = buildUsableFallbackOrder<TTSProviderId>(newTTSConfig);
               const asrFallback = buildUsableFallbackOrder<ASRProviderId>(newASRConfig);
               const pdfFallback = buildUsableFallbackOrder<PDFProviderId>(newPDFConfig);
-              // For image/video, enabled:false means not yet adopted; server entries
-              // can be adopted and enabled by the auto-enable flow rather than excluded by authorization.
+              // image/video 的 enabled:false 是「尚未采纳」态，服务端条目
+              // 允许被采纳后翻开（auto-enable 流程），不按授权排除。
               const imageFallback = buildUsableFallbackOrder<ImageProviderId>(newImageConfig, {
                 ignoreEnabledForServerConfigured: true,
               });
@@ -2027,11 +2027,7 @@ export const useSettingsStore = create<SettingsState>()(
               });
               const webSearchFallback = buildWebSearchFallbackOrder(newWebSearchConfig);
 
-              // Keep a retired product selection visibly unavailable rather
-              // than charge an unrelated provider on the next operation.
-              const retiredBundledModel = isRetiredBundledSelection(state.providerId, state.modelId,
-                newProvidersConfig[state.providerId]?.baseUrl);
-              let validLLMProvider = retiredBundledModel ? state.providerId : validateProvider(
+              let validLLMProvider = validateProvider(
                 state.providerId,
                 newProvidersConfig,
                 llmFallback,
@@ -2057,7 +2053,7 @@ export const useSettingsStore = create<SettingsState>()(
                 state.pdfProviderId,
                 newPDFConfig,
                 pdfFallback,
-                'deepsteam-local' as PDFProviderId,
+                'unpdf' as PDFProviderId,
               );
               let validImageProvider = validateProvider(
                 state.imageProviderId,
@@ -2080,7 +2076,7 @@ export const useSettingsStore = create<SettingsState>()(
               // a usable one exists, adopt the first usable fallback. Applied
               // symmetrically to LLM/image/video so that "usable provider ⇒ a
               // concrete model is selected" holds for every modality (#580).
-              if (!retiredBundledModel && !validLLMProvider && llmFallback.length > 0) {
+              if (!validLLMProvider && llmFallback.length > 0) {
                 validLLMProvider = llmFallback[0];
               }
               if (!validImageProvider && imageFallback.length > 0) {
@@ -2096,7 +2092,7 @@ export const useSettingsStore = create<SettingsState>()(
               const llmModels = validLLMProvider
                 ? (newProvidersConfig[validLLMProvider as ProviderId]?.models ?? [])
                 : [];
-              const validLLMModel = retiredBundledModel ? state.modelId : validLLMProvider
+              const validLLMModel = validLLMProvider
                 ? resolveSelectedLLMModel(validLLMProvider as ProviderId, state.modelId, llmModels)
                 : '';
               const imageModels = validImageProvider
@@ -2146,7 +2142,14 @@ export const useSettingsStore = create<SettingsState>()(
               let autoTtsEnabled: boolean | undefined;
 
               if (!state.autoConfigApplied) {
-                // PDF: DeepSteam keeps parsing local; remote MinerU is never auto-selected.
+                // PDF: unpdf → mineru-cloud or mineru if server has it
+                if (state.pdfProviderId === 'unpdf') {
+                  if (newPDFConfig['mineru-cloud']?.isServerConfigured) {
+                    autoPdfProvider = 'mineru-cloud' as PDFProviderId;
+                  } else if (newPDFConfig.mineru?.isServerConfigured) {
+                    autoPdfProvider = 'mineru' as PDFProviderId;
+                  }
+                }
 
                 // TTS: select first server provider if current is not server-configured.
                 // Skip server-disabled entries — they are force-off, not selectable.
@@ -2309,7 +2312,7 @@ export const useSettingsStore = create<SettingsState>()(
             });
           } catch (e) {
             if (requestId === serverProviderRequest) set({ deepsteamConnection: undefined,
-              deepsteamConnectionError: 'The active connection cannot be read right now. Check that desktop services are running and retry.' });
+              deepsteamConnectionError: '暂时无法读取当前连接，请确认桌面服务已启动后重试。' });
             // Silently fail — server providers are optional
             log.warn('Failed to fetch server providers:', e);
           }
@@ -2551,7 +2554,7 @@ export const useSettingsStore = create<SettingsState>()(
       merge: (persistedState, currentState) => {
         // One-time import of the pre-refactor web-search toggle: the homepage
         // used to persist it in localStorage['webSearchEnabled']; without
-        // this, users who had Web research enabled would silently lose it.
+        // this, users who had 联网调研 enabled would silently lose it.
         if (typeof window !== 'undefined') {
           try {
             const legacyWebSearch = window.localStorage.getItem('webSearchEnabled');

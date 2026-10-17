@@ -103,8 +103,9 @@ export async function runPiDirectorLoop(opts: {
     piAgentResponses.some(isTeachingSubstantiveTurn);
   const hasVisibleAgentTurn = (): boolean =>
     piAgentResponses.some((summary) => summary.contentPreview.trim().length > 0);
+  let harnessVisibleContent = false;
   const hasAgentContent = (): boolean =>
-    piAgentResponses.some(
+    harnessVisibleContent || piAgentResponses.some(
       (summary) => summary.contentPreview.trim().length > 0 || summary.actionCount > 0,
     );
   const cueUser = async (
@@ -214,7 +215,17 @@ export async function runPiDirectorLoop(opts: {
     }),
   ];
 
+  const harnessSpeaker = opts.agentConfigs.find(agent=>agent.role === 'teacher') || opts.agentConfigs[0];
+  const showHarnessText = async (text:string) => {
+    if(!text.trim())return;
+    const messageId='harness-'+crypto.randomUUID();
+    await opts.send({type:'agent_start',data:{messageId,agentId:harnessSpeaker.id,agentName:harnessSpeaker.name}});
+    await opts.send({type:'text_delta',data:{messageId,content:text}});
+    await opts.send({type:'agent_end',data:{messageId,agentId:harnessSpeaker.id}});
+    harnessVisibleContent=true;agentHadContent=true;totalAgents+=1;
+  };
   const director = buildAgent({
+    harnessContext: {surface:'openmaic-classroom',conversationId:`classroom:${opts.nativeWhiteboardStageId || opts.body.storeState.stage?.id || 'default'}:${opts.body.harnessSessionId || 'legacy'}`,context:opts.body.storeState,onDeliveries:showHarnessText},
     streamFn,
     systemPrompt: buildDirectorPrompt(opts.body, opts.agentConfigs, opts.maxAgentTurns),
     tools,
@@ -251,6 +262,12 @@ export async function runPiDirectorLoop(opts: {
     },
   });
 
+  const stopHarnessOutput = process.env.DEEPSTEAM_HARNESS_CORE === '1' ? director.subscribe(async event=>{
+    if(event.type !== 'message_end' || event.message.role !== 'assistant')return;
+    const content=event.message.content.filter(part=>part.type==='text').map(part=>part.text).join('\n');
+    if(content)await showHarnessText(content);
+  }) : ()=>{};
+
   try {
     const directorEvidence = [opts.elementReference?.directorSummary, opts.interactiveStateNote]
       .filter(Boolean)
@@ -258,6 +275,7 @@ export async function runPiDirectorLoop(opts: {
     await director.prompt(buildUserPrompt(opts.body, directorEvidence || undefined));
     await director.waitForIdle();
   } finally {
+    stopHarnessOutput();
     compactionRuntime.dispose();
   }
 

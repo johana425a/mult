@@ -209,6 +209,9 @@ def _sandbox_available(kind: str) -> bool:
     fails closed when the sandbox service is absent or disabled.
     """
     try:
+        from integration.harness_turn import enabled, execution_available
+        if enabled():
+            return execution_available(kind)
         from deeptutor.services.sandbox import exec_capability_available
 
         return exec_capability_available(kind)

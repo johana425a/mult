@@ -322,12 +322,12 @@ function detectLegacyLanguage(config: PBLProjectConfig): string {
 
 function legacyCompletionCriteria(language: string): string {
   return language.startsWith('zh')
-    ? 'The learner completes the task and explains the reasoning.'
+    ? '学习者完成该任务，并能解释自己的解决思路。'
     : 'The learner completes this task and can explain their reasoning.';
 }
 
 function legacyDebrief(language: string): string {
   return language.startsWith('zh')
-    ? 'Summarize the key learning from this task and prepare for the next step.'
+    ? '总结本任务的关键收获，并准备进入下一步。'
     : 'Summarize the key takeaways from this task and prepare for the next step.';
 }

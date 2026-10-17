@@ -1,4 +1,5 @@
 import { apiFetch, apiUrl, setRuntimeAuthEnabled } from "@/lib/api";
+import { clear as clearSidebarViewState } from '@/lib/sidebar-view-state.cjs';
 
 // Auth state is resolved at runtime from the backend (`/api/auth/status`),
 // not from a build-time/env constant: the browser bundle never sees
@@ -38,6 +39,7 @@ let cachedAuthStatus: { value: AuthStatus | null; expiresAt: number } | null =
   null;
 
 export function invalidateAuthStatusCache(): void {
+  clearSidebarViewState();
   authStatusRequest = null;
   cachedAuthStatus = null;
 }

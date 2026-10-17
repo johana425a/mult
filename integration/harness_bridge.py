@@ -41,9 +41,10 @@ _UNSET_SELECTION = object()
 
 
 class HarnessError(RuntimeError):
-    def __init__(self, code, message, status=409):
+    def __init__(self, code, message, status=409, diagnostic=None):
         super().__init__(message)
         self.code, self.message, self.status = code, message, status
+        self.diagnostic = diagnostic or {}
 
 
 def public_operation(op):
@@ -95,13 +96,19 @@ class HarnessTransport:
                     headers={'Authorization': 'Bearer ' + self.token()}, json=body)
             if response.status_code >= 400:
                 data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
-                code = safe_code(data.get('code') or (data.get('error') or {}).get('code') or ('unauthorized' if response.status_code == 401 else 'upstream_error'))
+                diagnostic = data.get('error') if isinstance(data.get('error'), dict) else {}
+                code = safe_code(data.get('code') or diagnostic.get('code') or ('unauthorized' if response.status_code == 401 else 'upstream_error'))
                 message = {'workspace_busy': 'This workspace has a running task, pending confirmation, or background command. Stop it before managing the workspace.',
                     'workspace_recovery_required': 'Workspace management is incomplete. Refresh and retry. Files and sessions are retained.',
                     'workspace_archived': 'This workspace was removed. Restore it in workspace management first.',
                     'workspace_protected': 'The default workspace cannot be renamed or removed.',
                     'workspace_unknown': 'The workspace is not registered.'}.get(code, 'The model service request failed. Check connection status.')
-                raise HarnessError(code, message, response.status_code)
+                # The authenticated Host returns redacted structured diagnostics.
+                # Keep the actual failing phase and cause across the UI bridge.
+                reason = diagnostic.get('message')
+                if isinstance(reason, str) and reason.strip():
+                    message = re.sub(r'Bearer\s+\S+', 'Bearer [redacted]', reason)[:2400]
+                raise HarnessError(code, message, response.status_code, diagnostic)
             return response.json()
         except HarnessError:
             raise
@@ -160,7 +167,7 @@ class HarnessTransport:
 
     async def native_service(self, method, path, body=None):
         try:
-            async with httpx.AsyncClient(timeout=20, trust_env=False) as client:
+            async with httpx.AsyncClient(timeout=None if path == 'surface-tools/invoke' else 20, trust_env=False) as client:
                 response = await client.request(method, self.dt_url + '/api/contest/internal/' + path,
                     headers={'Authorization': 'Bearer ' + self.token()}, json=body)
             if response.status_code != 200:
@@ -176,6 +183,8 @@ class HarnessTransport:
                 }
                 if code in messages:
                     raise HarnessError(code, messages[code], response.status_code)
+                if path in {'surface-tools/invoke', 'harness-surface-binding'} and isinstance(detail, dict):
+                    raise HarnessError(code or 'surface_tool_failed', detail.get('message') or 'The teaching tool failed.', response.status_code)
                 raise HarnessError('learning_defaults_unavailable', 'The default model selection did not synchronize. Check the learning service.', response.status_code)
             return response.json()
         except HarnessError:

@@ -324,6 +324,9 @@ async function ensureConnected(): Promise<void> {
 }
 
 export function startAgentEventNotifyBus(): AgentEventNotifyBusHandle {
+  // Embedded standalone storage is single-connection. Durable cursors and the
+  // existing fallback poll provide delivery without opening a TCP PG client.
+  if(process.env.DATABASE_URL?.startsWith('pglite:')) return {stop:async()=>{},connecting:Promise.resolve()};
   state.stopped = false;
   const connecting = ensureConnected();
   return { stop: stopAgentEventNotifyBus, connecting };

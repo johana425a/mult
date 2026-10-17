@@ -7,12 +7,12 @@ import '@/lib/i18n/config';
 
 const LOCALE_STORAGE_KEY = 'locale';
 
-/** Match a stored language code (e.g. 'en') to a supported locale. */
+/** Match a browser language code (e.g. 'en', 'zh-TW') to a supported locale */
 function resolveLocale(lang: string): Locale {
   // Exact match
   const exact = supportedLocales.find((l) => l.code === lang);
   if (exact) return exact.code;
-  // Prefix match: 'en' → 'en-US'. Unsupported preferences use the English default.
+  // Prefix match: 'en' → 'en-US', 'zh' → 'zh-CN'
   const prefix = lang.split('-')[0].toLowerCase();
   const match = supportedLocales.find((l) => l.code.toLowerCase().startsWith(prefix));
   return match?.code ?? defaultLocale;
@@ -31,13 +31,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const locale = (i18n.language || defaultLocale) as Locale;
 
-  // Restore the saved preference after hydration to avoid SSR mismatch.
-  // i18next handles fallback automatically: if the saved language
+  // Detect language after hydration to avoid SSR mismatch.
+  // i18next handles fallback automatically: if the detected language
   // has no matching JSON file, it falls back to fallbackLng.
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-      const raw = stored || defaultLocale;
+      const raw = stored || navigator.language || defaultLocale;
       const target = resolveLocale(raw);
       if (target !== i18n.language) i18n.changeLanguage(target);
     } catch {

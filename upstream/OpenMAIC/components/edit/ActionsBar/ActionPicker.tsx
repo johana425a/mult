@@ -2,7 +2,7 @@
 
 /**
  * ActionPicker — portal popover listing the cue types insertable at a given
- * timeline slot (narration/spotlight/laser/discussion). Shared by the header "add" pill and the
+ * timeline slot (旁白/聚光/激光/讨论). Shared by the header "add" pill and the
  * inline "+" affordance (wired in Task 5); this component only renders the
  * list and reports the chosen type back via `onSelect`.
  *

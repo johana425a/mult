@@ -8,7 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { isLocalPage, canonicalLocalPage, isOfficialLink, isExternalPage } = require('./policy.cjs');
-const { SCHEME, PRIVILEGES, SERVICES, applicationOrigin, forwardRequest, socketUrl, websocketHeaders, sessionFetcher, verifyRetainedCookies, allowApplicationRequest, applicationHeaders } = require('./transport.cjs');
+const { SCHEME, PRIVILEGES, SERVICES, applicationOrigin, forwardRequest, socketUrl, websocketHeaders, sessionFetcher, verifyRetainedCookies, allowApplicationRequest, applicationHeaders, loopbackFetch } = require('./transport.cjs');
 const { MIGRATION_PATH, MIGRATION_HTML, migrateOwnedOriginStorage } = require('./storage-migration.cjs');
 const { createBilibiliBridge } = require('./bilibili.cjs');
 const { createEmbeddedMediaBridge } = require('./embedded-media.cjs');
@@ -458,10 +458,10 @@ async function openRegisteredWorkspaceDirectory(event, workspaceId) {
     // to the renderer, a model, an external server, or the application log.
     const token = fs.readFileSync(path.join(stateRoot, 'runtime', 'harness-state', 'control-token'), 'utf8').trim();
     if (!/^[A-Za-z0-9_-]{24,200}$/.test(token)) return false;
-    const response = await fetch(`http://127.0.0.1:3791/api/harness/internal/workspaces/${encodeURIComponent(workspaceId)}`, {
+    const response = await loopbackFetch(`http://127.0.0.1:3791/api/harness/internal/workspaces/${encodeURIComponent(workspaceId)}`, {
       headers: { Authorization: `Bearer ${token}` }, redirect: 'error', signal: AbortSignal.timeout(5000),
     });
-    if (!response.ok || Number(response.headers.get('content-length') || 0) > 65536) return false;
+    if (!response.ok || Number(response.headers.get('content-length') || 0) > 65536) { await response.body?.cancel(); return false; }
     const body = await response.text();
     if (body.length > 65536) return false;
     const registration = JSON.parse(body);
@@ -535,10 +535,13 @@ function makeWindow() {
     if (local) void window.loadURL(local);
   });
   window.webContents.session.setPermissionRequestHandler((contents, permission, callback, details) => {
+    // User-initiated lesson and video fullscreen is a local display action.
+    // Automatic fullscreen and requests from external frames stay denied.
+    if (permission === 'fullscreen') return callback(contents === window?.webContents && isLocalPage(details.requestingUrl || contents.getURL()));
     if (contents !== window?.webContents || permission !== 'media' || !isLocalPage(details.requestingUrl || contents.getURL()) || !details.mediaTypes?.length || details.mediaTypes.some(type => type !== 'audio')) return callback(false);
     void dialog.showMessageBox(window, { type: 'question', title: 'DeepSteam 麦克风访问', message: '是否允许这次学习使用麦克风？', detail: '仅用于你打开的本机学习页面。', buttons: ['不允许', '允许'], defaultId: 0, cancelId: 0 }).then(({ response }) => callback(response === 1)).catch(() => callback(false));
   });
-  window.webContents.session.setPermissionCheckHandler((contents, permission, requestingOrigin) => permission === 'media' && contents === window?.webContents && isLocalPage(requestingOrigin));
+  window.webContents.session.setPermissionCheckHandler((contents, permission, requestingOrigin) => (permission === 'media' || permission === 'fullscreen') && contents === window?.webContents && isLocalPage(requestingOrigin));
   window.webContents.on('did-finish-load', () => { updateStartupStage(startupStage); sendStartupServices(); });
   void window.loadFile(startupFile).catch((error) => recordStartupFailure('page_open', error));
   window.on('close', (event) => {
@@ -562,11 +565,11 @@ else {
     serviceRequest: async (route, options = {}) => {
       const token = fs.readFileSync(path.join(stateRoot, 'runtime', 'harness-state', 'control-token'), 'utf8').trim();
       if (!/^[A-Za-z0-9_-]{24,200}$/.test(token)) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
-      const response = await fetch('http://127.0.0.1:8011' + route, {
+      const response = await loopbackFetch('http://127.0.0.1:8011' + route, {
         method: options.method || 'GET', redirect: 'error', signal: AbortSignal.timeout(15000),
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         ...(options.body ? { body: JSON.stringify(options.body) } : {}) });
-      if (!response.ok) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
+      if (!response.ok) { await response.body?.cancel(); throw new Error('INTERNAL_SERVICE_UNAVAILABLE'); }
       return response.json();
     } });
   ipcMain.handle('deepsteam:domestic-video', domesticMedia.handle);
@@ -582,15 +585,15 @@ else {
     serviceRequest: async (route, options = {}) => {
       const token = fs.readFileSync(path.join(stateRoot, 'runtime', 'harness-state', 'control-token'), 'utf8').trim();
       if (!/^[A-Za-z0-9_-]{24,200}$/.test(token)) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
-      const response = await fetch('http://127.0.0.1:8011' + route, {
+      const response = await loopbackFetch('http://127.0.0.1:8011' + route, {
         method: options.method || 'GET', redirect: 'error', signal: AbortSignal.timeout(15000),
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         ...(options.body ? { body: JSON.stringify(options.body) } : {}) });
       recordCaptionEvent('internal_response', { http_status: response.status });
-      if (!response.ok) throw new Error('INTERNAL_SERVICE_UNAVAILABLE');
+      if (!response.ok) { await response.body?.cancel(); throw new Error('INTERNAL_SERVICE_UNAVAILABLE'); }
       return response.json();
     } });
-  for (const [channel, action] of [['deepsteam:bilibili-login', bilibiliBridge.openLogin], ['deepsteam:bilibili-subtitles', bilibiliBridge.importSubtitles], ['deepsteam:bilibili-status', bilibiliBridge.sessionStatus]]) {
+  for (const [channel, action] of [['deepsteam:bilibili-login', bilibiliBridge.openLogin], ['deepsteam:bilibili-signout', bilibiliBridge.signOut], ['deepsteam:bilibili-subtitles', bilibiliBridge.importSubtitles], ['deepsteam:bilibili-status', bilibiliBridge.sessionStatus]]) {
     ipcMain.handle(channel, async (event, options) => {
       recordCaptionEvent('bridge_request', { channel, authorized: isWorkspaceDirectorySender(event) });
       try {
@@ -624,9 +627,9 @@ else {
   });
   app.whenReady().then(async () => {
     const cacheVersionFile=path.join(stateRoot,'runtime','video-follow-cache-version');
-    if(!fs.existsSync(cacheVersionFile)||fs.readFileSync(cacheVersionFile,'utf8')!=='20261016-domestic-5'){
+    if(!fs.existsSync(cacheVersionFile)||fs.readFileSync(cacheVersionFile,'utf8')!=='20261016-bilibili-login-r10.2'){
       await session.defaultSession.clearCache();
-      fs.writeFileSync(cacheVersionFile,'20261016-domestic-5');
+      fs.writeFileSync(cacheVersionFile,'20261016-bilibili-login-r10.2');
     }
     installApplicationTransport();
     makeWindow();

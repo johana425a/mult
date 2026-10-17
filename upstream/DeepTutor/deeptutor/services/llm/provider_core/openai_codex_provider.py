@@ -26,6 +26,54 @@ from deeptutor.services.llm.request_compat import is_transient_transport_error
 
 DEFAULT_ORIGINATOR = "DeepTutor"
 
+# DeepSteam 2026-10-15 responsiveness: callers send "none" to switch reasoning off, but most
+# Codex models accept only their own levels and reject the whole request
+# ("'none' is not supported with the 'gpt-6.1-sol' model").
+_CODEX_EFFORT_ORDER = ("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
+_CODEX_OFF_EFFORTS = frozenset({"none", "minimal", "minimum", "off"})
+
+
+def _declared_codex_levels(model_slug: str) -> list[str] | None:
+    try:
+        from deeptutor.services.config.model_catalog import get_model_catalog_service
+
+        catalog = get_model_catalog_service().load()
+    except Exception:
+        return None
+    profiles = ((catalog.get("services") or {}).get("llm") or {}).get("profiles") or []
+    for profile in profiles:
+        if not isinstance(profile, dict) or profile.get("binding") != "openai_codex":
+            continue
+        for model in profile.get("models") or []:
+            if isinstance(model, dict) and model.get("model") == model_slug:
+                levels = model.get("codex_supported_reasoning_levels")
+                if isinstance(levels, list):
+                    return [str(level).strip().lower() for level in levels if str(level).strip()]
+    return None
+
+
+def _codex_reasoning_effort(model_slug: str, requested: str | None) -> str | None:
+    """Map a requested level onto one the model declares."""
+    if not requested:
+        return requested
+    effort = str(requested).strip().lower()
+    levels = _declared_codex_levels(model_slug)
+    if not levels:
+        # Unknown support: leave the level out rather than risk "off".
+        return None if effort in _CODEX_OFF_EFFORTS else requested
+    if effort in levels:
+        return effort
+    ordered = [level for level in _CODEX_EFFORT_ORDER if level in levels] or levels
+    if effort in _CODEX_OFF_EFFORTS or effort not in _CODEX_EFFORT_ORDER:
+        return ordered[0]
+    rank = _CODEX_EFFORT_ORDER.index(effort)
+    lower = [
+        level
+        for level in ordered
+        if level in _CODEX_EFFORT_ORDER and _CODEX_EFFORT_ORDER.index(level) < rank
+    ]
+    return lower[-1] if lower else ordered[0]
+
 
 class CodexHTTPError(RuntimeError):
     def __init__(self, status_code: int, safe_message: str) -> None:
@@ -54,6 +102,7 @@ class OpenAICodexProvider(LLMProvider):
     ) -> LLMResponse:
         model_name = model or self.default_model
         model_slug = _strip_model_prefix(model_name)
+        reasoning_effort = _codex_reasoning_effort(model_slug, reasoning_effort)
         system_prompt, input_items = convert_messages(messages)
 
         body: dict[str, Any] = {

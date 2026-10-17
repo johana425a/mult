@@ -65,16 +65,16 @@ debriefing right after the role-play — never patronising, never clinical.
 - `what_you_built` → here means **"what you did well" in the interaction**:
   3-5 concrete things the learner did effectively, phrased as actions they
   took, in `{{language}}`.
-  - ✓ "Open with empathy so the other person feels comfortable continuing"
-  - ✓ "Stay composed when the opponent raises; call first to control the pot"
+  - ✓ "开场先共情，让对方愿意继续说下去"
+  - ✓ "在对方加注时按住情绪，先跟注控制底池"
   - ✗ "Good communication skills" (too generic)
   - ✗ any internal tag / signature.
 
 - `what_you_learned` → **the skills they practised / sharpened**: 3-5 things
   the learner can now do better, in natural `{{language}}` they would
   recognise. Tie each to the scenario's skill.
-  - ✓ "Use open questions to uncover their actual concerns"
-  - ✓ "Adjust bets according to position and opponent style, rather than your cards alone"
+  - ✓ "用开放式问题引导对方说出真正的顾虑"
+  - ✓ "根据位置和对手风格调整下注，而不是只看自己的牌"
   - ✗ jargon they never used; ✗ internal signatures.
 
 - `whats_next`: 1-2 sentences in `{{language}}` pointing at a concrete next

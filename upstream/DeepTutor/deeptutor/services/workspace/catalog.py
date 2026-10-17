@@ -17,6 +17,8 @@ import re
 import shutil
 import socket
 import sqlite3
+import threading
+import time
 from typing import TYPE_CHECKING, Any
 import uuid
 
@@ -27,6 +29,26 @@ from deeptutor.utils.secret_files import ensure_private_directory
 logger = logging.getLogger(__name__)
 
 _INTERNAL_DIR = ".deeptutor"
+
+# DeepSteam 2026-10-15 responsiveness: scoped requests read this registry several times each, with a
+# fresh SQLite connection every time. Keep the raw rows per database file and
+# read again whenever the file changes or this process writes to it.
+_CATALOG_CACHE: dict[str, tuple[tuple[int, int], float, list[str], dict[str, str]]] = {}
+_CATALOG_CACHE_LOCK = threading.Lock()
+_CATALOG_CACHE_MAX_AGE = 5.0
+
+
+def _catalog_signature(path: Path) -> tuple[int, int] | None:
+    try:
+        stat = path.stat()
+    except OSError:
+        return None
+    return (stat.st_mtime_ns, stat.st_size)
+
+
+def _forget_catalog(path: Path) -> None:
+    with _CATALOG_CACHE_LOCK:
+        _CATALOG_CACHE.pop(str(path), None)
 
 
 def _owner_id() -> str:
@@ -96,17 +118,35 @@ class WorkspaceCatalogMixin:
             with conn:
                 yield conn
         finally:
+            changed = conn.total_changes
             conn.close()
+            if changed:
+                _forget_catalog(path)
+
+    def _catalog_snapshot(self) -> tuple[list[str], dict[str, str]] | None:
+        path = self._catalog_file()
+        signature = _catalog_signature(path)
+        if signature is None:
+            return None
+        key = str(path)
+        now = time.monotonic()
+        with _CATALOG_CACHE_LOCK:
+            cached = _CATALOG_CACHE.get(key)
+        if cached is not None and cached[0] == signature and now - cached[1] < _CATALOG_CACHE_MAX_AGE:
+            return cached[2], cached[3]
+        with self._catalog_connection() as conn:
+            payloads = [row[0] for row in conn.execute("SELECT payload FROM workspaces ORDER BY rowid")]
+            metadata = {row[0]: row[1] for row in conn.execute("SELECT key, value FROM metadata")}
+        with _CATALOG_CACHE_LOCK:
+            _CATALOG_CACHE[key] = (signature, now, payloads, metadata)
+        return payloads, metadata
 
     def _catalog(self) -> list[dict[str, Any]]:
         if not self._catalog_file().exists():
             return []
         try:
-            with self._catalog_connection() as conn:
-                rows = [
-                    json.loads(row[0])
-                    for row in conn.execute("SELECT payload FROM workspaces ORDER BY rowid")
-                ]
+            snapshot = self._catalog_snapshot()
+            rows = [json.loads(payload) for payload in (snapshot[0] if snapshot else [])]
         except (sqlite3.Error, ValueError) as exc:
             raise WorkspaceError("The workspace registry could not be read.") from exc
         return [row for row in rows if row.get("owner_id") == _owner_id()]
@@ -162,9 +202,9 @@ class WorkspaceCatalogMixin:
     def _catalog_metadata(self, key: str) -> Any:
         if not self._catalog_file().exists():
             return None
-        with self._catalog_connection() as conn:
-            row = conn.execute("SELECT value FROM metadata WHERE key = ?", (key,)).fetchone()
-        return json.loads(row[0]) if row else None
+        snapshot = self._catalog_snapshot()
+        value = snapshot[1].get(key) if snapshot else None
+        return json.loads(value) if value is not None else None
 
     def _builtin_id(self, kind: str) -> str:
         return f"ws_{uuid.uuid5(uuid.NAMESPACE_URL, f'{_owner_id()}:workspace:{kind}').hex}"

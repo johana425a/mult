@@ -216,6 +216,7 @@ class MasteryLoopCapability:
             # The tutor calls this tool on its own schedule instead.
             updated = dict(kwargs)
             updated["source_index"] = context.metadata.get("mastery_topic_source_index") or {}
+            updated['_mastery_path_id'] = path_id
             return updated
         if tool_name in MASTERY_TOOL_NAMES:
             updated = dict(kwargs)

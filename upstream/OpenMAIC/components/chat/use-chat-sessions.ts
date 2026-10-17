@@ -462,7 +462,7 @@ export async function runPiSingleRequest(
   const response = await fetch('/api/chat/pi', {
     method: 'POST',
     headers: withStageRoutesHeader({ 'Content-Type': 'application/json', ...persistenceHeaders }),
-    body: JSON.stringify({ ...requestTemplate, ...(interactiveState ? { interactiveState } : {}) }),
+    body: JSON.stringify({ ...requestTemplate, harnessSessionId: sessionId, ...(interactiveState ? { interactiveState } : {}) }),
     signal: controller.signal,
   });
 

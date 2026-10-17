@@ -219,7 +219,7 @@ export const TOKEN_PLAN_PRESETS: TokenPlanPreset[] = [
     // may not include every model below — those simply error at generation, no
     // silent pruning.
     id: 'volcengine-ark',
-    name: 'Volcano Ark Agent Plan',
+    name: '火山方舟 Agent Plan',
     websiteUrl: 'https://console.volcengine.com/ark',
     apiKeyPlaceholder: 'ark-...',
     icon: '/logos/volcengine.svg',
@@ -270,7 +270,7 @@ export const TOKEN_PLAN_PRESETS: TokenPlanPreset[] = [
           'doubao-seedance-1.5-pro',
         ],
       },
-      // Web search: Doubao Search (Custom). Unlike the LLM/image/video modalities,
+      // Web search: 豆包搜索 (Custom 版). Unlike the LLM/image/video modalities,
       // this lives on its OWN host (open.feedcoopapi.com, not the ark plan
       // endpoint) and authenticates with the same Agent Plan key as a Bearer
       // token (verified). 500 free calls/month per Volcengine account.
@@ -291,7 +291,7 @@ export const TOKEN_PLAN_PRESETS: TokenPlanPreset[] = [
       },
     },
   },
-  // ── Kimi Coding Plan (last position means lowest priority)────────────────────────────────
+  // ── Kimi Coding Plan（末位 = 最低优先级）────────────────────────────────
   // LLM-only: the Coding Plan key authenticates against the plan's DEDICATED
   // endpoint (https://www.kimi.com/code/docs/) — api.kimi.com/coding/v1,
   // international api.kimi.ai/coding/v1 — NOT Moonshot's Open Platform

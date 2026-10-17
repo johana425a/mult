@@ -48,6 +48,12 @@ def environment() -> dict[str, str]:
         # installation so the folder can live at any path.
         "OPENMAIC_PROMPTS_DIR": str(STANDALONE / "packages" / "@openmaic" / "generation"),
         "DEEPSTEAM_APP_ROOT": str(ROOT),
+        "DEEPSTEAM_HARNESS_CORE": "1",
+        "OPENMAIC_AGENT_RUNTIME_ENABLED": "true",
+        # This service is bound to loopback HTTP. Secure cookies would not be
+        # sent back by some clients, losing the owner between POST and SSE.
+        "COOKIE_SECURE": "0",
+        "DATABASE_URL": "pglite:" + str(STORAGE.openmaic_data / 'embedded-postgres'),
         "OPENMAIC_CLASSROOMS_DIR": str(STORAGE.openmaic_classrooms),
         "ALLOWED_FRAME_ANCESTORS": "deepsteam://portal deepsteam://app http://127.0.0.1:3791 http://127.0.0.1:3792",
         "RENDER_SERVICE_URL": "http://127.0.0.1:3794",

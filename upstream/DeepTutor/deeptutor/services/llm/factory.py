@@ -377,11 +377,12 @@ async def _complete_with_resolved_config(
     extra_kwargs = _sanitize_call_kwargs(
         binding=capability_binding, model=config.model, kwargs=kwargs
     )
-    image_fallback_enabled = (
-        not supports_vision(capability_binding, config.model)
-        if allow_image_fallback is None
-        else allow_image_fallback
-    )
+    from .multimodal import has_image_parts
+    if has_image_parts(request_messages):
+        from integration.model_image_verification import require_verified_image_config
+        require_verified_image_config(config)
+    # Original document pixels must never silently become a text-only retry.
+    image_fallback_enabled = False
 
     try:
         response = await provider.chat_with_retry(
@@ -574,11 +575,11 @@ async def stream(
     extra_kwargs = _sanitize_call_kwargs(
         binding=capability_binding, model=config.model, kwargs=kwargs
     )
-    image_fallback_enabled = (
-        not supports_vision(capability_binding, config.model)
-        if allow_image_fallback is None
-        else allow_image_fallback
-    )
+    from .multimodal import has_image_parts
+    if has_image_parts(request_messages):
+        from integration.model_image_verification import require_verified_image_config
+        require_verified_image_config(config)
+    image_fallback_enabled = False
 
     queue: asyncio.Queue[str | BaseException | None] = asyncio.Queue()
     saw_output = False

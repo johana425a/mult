@@ -30,10 +30,10 @@ const CARD_WIDTH = 256; // w-64
 const VIEWPORT_PAD = 12;
 
 /**
- * Proactive discussion card component
+ * 主动讨论卡片组件
  *
- * Rendered into document.body through a React Portal with fixed positioning,
- * independent of the parent overflow and z-index stacking context.
+ * 通过 React Portal 渲染到 document.body，使用 fixed 定位，
+ * 不受父级 overflow/z-index stacking context 影响。
  */
 export const ProactiveCard = ({
   action,

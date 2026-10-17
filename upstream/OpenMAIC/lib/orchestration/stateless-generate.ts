@@ -269,14 +269,14 @@ export function looksLikeStructuredFragment(raw: string): boolean {
   // buffer. Anchoring to the start is deliberate: it still catches residue and
   // brace-less truncated tails like `type":"text","content":"...`, but does NOT
   // fire on natural speech that merely mentions a JSON example mid-sentence,
-  // e.g. `The object {"name":"tree"} represents a tree.` — which must stay visible.
+  // e.g. `我们用对象 {"name":"树"} 表示一棵树。` — which must stay visible.
   const hasSchemaKey =
     /^"?type"?\s*:\s*"(text|action)"/.test(trimmed) ||
     /^"(content|name|params|action_id)"\s*:/.test(trimmed);
   if (hasSchemaKey) return true;
   // A bare `{`/`[` opener counts only when it is immediately structural
   // (another opener, a quoted key, a closer, or end-of-string) — NOT any
-  // sentence that merely starts with a bracket, e.g. "[Key point] ..." or set
+  // sentence that merely starts with a bracket, e.g. "[重点] ..." or set
   // notation "{x | x > 0}".
   return /^[[{]\s*([[{"\]}]|$)/.test(trimmed);
 }

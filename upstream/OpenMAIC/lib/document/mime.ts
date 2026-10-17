@@ -152,6 +152,12 @@ for (const f of DOCUMENT_FORMATS) {
 
 const M = DOCUMENT_MIME_TYPES;
 
+/** Formats parsed by the bundled DeepSteam document reader. */
+export const DEEPSTEAM_LOCAL_MIMES: readonly string[] = [
+  M.pdf, M.docx, M.pptx, M.xlsx, M.txt, M.markdown, M.csv,
+  M.png, M.jpeg, M.webp, M.gif, M.bmp,
+];
+
 /** MinerU image formats — supported by both self-host (v3.1+) and cloud. */
 export const MINERU_IMAGE_MIMES: readonly string[] = [M.png, M.jpeg, M.webp, M.gif, M.bmp, M.jp2];
 
@@ -174,11 +180,6 @@ export const MINERU_CLOUD_MIMES: readonly string[] = [
 
 /** Local text extractor — no external dependency. */
 export const PLAIN_TEXT_MIMES: readonly string[] = [M.txt, M.markdown, 'text/x-markdown'];
-
-/** Bundled offline reader; legacy Office and JP2 require an explicit alternative. */
-export const DEEPSTEAM_LOCAL_MIMES: readonly string[] = [
-  M.pdf, M.docx, M.pptx, M.xlsx, M.png, M.jpeg, M.webp, M.gif, M.bmp,
-];
 
 /**
  * AliDocMind (LLM version) image formats per the official contract:

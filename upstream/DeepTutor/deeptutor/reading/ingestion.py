@@ -11,6 +11,7 @@ import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 import hashlib
+import json
 import logging
 import mimetypes
 from pathlib import Path
@@ -32,6 +33,7 @@ from deeptutor.reading.catalog_store import ReadingCatalogStore
 from deeptutor.reading.extract import split_markdown_by_headings
 from deeptutor.reading.models import OutlineEntry, ReadingError, UnitReference
 from deeptutor.reading.store import ReadingStore, content_hash
+from deeptutor.reading.domestic_video import domestic_video_source, load_domestic_video
 from deeptutor.services.web_source.markdown import strip_leading_snapshot_provenance
 from deeptutor.services.web_source.snapshot_assets import (
     ImageFetcher,
@@ -183,6 +185,8 @@ class ReadingIngestionService:
             source_kind = SourceKind.YOUTUBE
         elif bilibili_video_id(normalized):
             source_kind = SourceKind.BILIBILI
+        elif domestic_video_source(normalized):
+            source_kind = SourceKind.EXTERNAL_VIDEO
         else:
             source_kind = SourceKind.WEB
         material_id = url_material_id(normalized)
@@ -196,7 +200,9 @@ class ReadingIngestionService:
             source_url=normalized,
             mime="text/html" if source_kind is SourceKind.WEB else "text/vtt",
             render_mode=(
-                "video" if source_kind in {SourceKind.YOUTUBE, SourceKind.BILIBILI} else "text"
+                "video" if source_kind in {
+                    SourceKind.YOUTUBE, SourceKind.BILIBILI, SourceKind.EXTERNAL_VIDEO
+                } else "text"
             ),
             status=IngestionStatus.QUEUED,
         )
@@ -214,6 +220,8 @@ class ReadingIngestionService:
                 return await self._process_youtube(record, preferred_languages)
             if record.source_kind is SourceKind.BILIBILI:
                 return await self._process_bilibili(record, preferred_languages)
+            if record.source_kind is SourceKind.EXTERNAL_VIDEO:
+                return await self._process_domestic_video(record)
             return await self._process_web(record)
         except Exception as exc:
             logger.exception(
@@ -224,6 +232,7 @@ class ReadingIngestionService:
             code = {
                 SourceKind.YOUTUBE: "youtube_transcript_failed",
                 SourceKind.BILIBILI: "bilibili_metadata_failed",
+                SourceKind.EXTERNAL_VIDEO: "domestic_video_metadata_failed",
             }.get(record.source_kind, "web_fetch_failed")
             return self.catalog.update_material_status(
                 material_id,
@@ -231,6 +240,14 @@ class ReadingIngestionService:
                 error_code=code,
                 error_detail=str(exc),
             )
+
+    async def process_urls(self, material_ids: Sequence[str]) -> list[MaterialRecord]:
+        """Bound public imports to three concurrent sources; deduplicate work."""
+        semaphore = asyncio.Semaphore(3)
+        async def process(material_id):
+            async with semaphore:
+                return await self.process_url(material_id)
+        return await asyncio.gather(*(process(identifier) for identifier in dict.fromkeys(material_ids)))
 
     async def retry(self, material_id: str) -> MaterialRecord:
         record = self.catalog.get_material(material_id)
@@ -240,6 +257,7 @@ class ReadingIngestionService:
             SourceKind.WEB,
             SourceKind.YOUTUBE,
             SourceKind.BILIBILI,
+            SourceKind.EXTERNAL_VIDEO,
         }:
             return await self.process_url(material_id)
         if record.source_kind in {SourceKind.VIDEO, SourceKind.AUDIO}:
@@ -352,6 +370,22 @@ class ReadingIngestionService:
         media = await self._bilibili_loader(record.source_url, preferred_languages)
         segments = [row for row in media.segments if row.text.strip()]
         chapters = [row for row in media.chapters if row.text.strip()]
+        if not segments:
+            # A later anonymous metadata refresh must not erase captions read
+            # in the user's authenticated desktop session for this exact CID.
+            try:
+                existing = self.reading_store.manifest(record.material_id)
+                evidence = self.reading_store.bilibili_source_evidence(record.material_id)
+                if (existing.source_type == "bilibili_authenticated_subtitles"
+                        and existing.source_url == request.canonical_url
+                        and evidence.get("cid") == media.cid and evidence.get("page") == media.page_number):
+                    return self.catalog.upsert_material(content_id=record.content_id,
+                        material_id=record.material_id, filename=existing.filename, title=media.title,
+                        source_kind=SourceKind.BILIBILI, source_url=record.source_url, mime="text/vtt",
+                        render_mode="video", cover_url=media.cover_url,
+                        duration_seconds=media.duration_seconds, status=IngestionStatus.READY)
+            except (ReadingError, OSError, ValueError, TypeError):
+                pass
         if segments:
             stored_segments = segments
             extractor = "bilibili-subtitles"
@@ -407,6 +441,39 @@ class ReadingIngestionService:
             filename=filename,
             title=media.title or record.title,
             source_kind=SourceKind.BILIBILI,
+            source_url=record.source_url,
+            mime="text/vtt",
+            render_mode="video",
+            cover_url=media.cover_url,
+            duration_seconds=media.duration_seconds,
+            status=IngestionStatus.READY,
+        )
+
+    async def _process_domestic_video(self, record: MaterialRecord) -> MaterialRecord:
+        media = await load_domestic_video(record.source_url)
+        self.reading_store.ingest_units(
+            record.material_id,
+            filename=f"{media.platform}-{record.material_id}.vtt",
+            units=[TRANSCRIPT_UNAVAILABLE_TEXT],
+            unit="segment",
+            title=media.title,
+            mime="text/vtt",
+            extractor="domestic-video-no-transcript",
+            assets={"domestic-source.json": json.dumps({"platform": media.platform,
+                "metadata_status": media.metadata_status, "playback_verified": False,
+                "transcript_available": False}).encode()},
+            render_mode="video",
+            source_type="official_video_metadata",
+            source_url=record.source_url,
+            outline=[OutlineEntry(locator=1, title="00:00")],
+            unit_refs=[UnitReference(locator=1, source_href="#t=0", title="00:00")],
+        )
+        return self.catalog.upsert_material(
+            content_id=record.content_id,
+            material_id=record.material_id,
+            filename=f"{media.platform}-{record.material_id}.vtt",
+            title=media.title,
+            source_kind=SourceKind.EXTERNAL_VIDEO,
             source_url=record.source_url,
             mime="text/vtt",
             render_mode="video",
@@ -834,7 +901,9 @@ async def _load_bilibili_media(url: str, languages: Sequence[str]) -> BilibiliMe
     headers = {
         "Accept": "application/json",
         "Referer": request.canonical_url,
-        "User-Agent": "Mozilla/5.0 DeepTutor/ImmersiveReading",
+        # Identify this application honestly. The old malformed browser UA
+        # triggers HTTP 412 on otherwise publicly available Bilibili metadata.
+        "User-Agent": "DeepSteam/ImmersiveReading",
     }
     async with httpx.AsyncClient(
         timeout=10,
@@ -849,7 +918,9 @@ async def _load_bilibili_media(url: str, languages: Sequence[str]) -> BilibiliMe
         pages = view.get("pages") if isinstance(view.get("pages"), list) else []
         if not pages:
             raise ReadingError("Bilibili returned no playable pages")
-        page_index = min(request.page_number, len(pages)) - 1
+        if request.page_number > len(pages):
+            raise ReadingError("Bilibili requested page does not exist")
+        page_index = request.page_number - 1
         page = pages[page_index] if isinstance(pages[page_index], dict) else {}
         try:
             cid = int(page.get("cid") or 0)
@@ -872,11 +943,19 @@ async def _load_bilibili_media(url: str, languages: Sequence[str]) -> BilibiliMe
         elif cover.startswith("//"):
             cover = f"https:{cover}"
 
-        player_response = await client.get(
-            "https://api.bilibili.com/x/player/v2",
-            params={"bvid": request.bvid, "cid": cid},
-        )
-        player = _bilibili_api_data(player_response, "player metadata")
+        # Captions and chapter labels are optional for the official player.
+        # A timeout, invalid payload or login response must not discard valid
+        # video metadata. The no-subtitles extractor retains the grounding gate.
+        player: dict[str, Any] = {}
+        try:
+            player_response = await client.get(
+                "https://api.bilibili.com/x/player/v2",
+                params={"bvid": request.bvid, "cid": cid},
+            )
+            player = _bilibili_api_data(player_response, "player metadata")
+        except (httpx.HTTPError, ReadingError, ValueError, TypeError) as exc:
+            logger.warning("Bilibili optional player metadata unavailable for %s: %s",
+                           request.bvid, type(exc).__name__)
         chapters = build_transcript_segments(
             normalize_transcript_segments(player.get("view_points") or [])
         )
@@ -892,23 +971,23 @@ async def _load_bilibili_media(url: str, languages: Sequence[str]) -> BilibiliMe
             subtitle_url = str(subtitle.get("subtitle_url") or "").strip()
             if subtitle_url.startswith("//"):
                 subtitle_url = f"https:{subtitle_url}"
-            subtitle_parsed = urlparse(subtitle_url)
-            subtitle_host = (subtitle_parsed.hostname or "").lower().rstrip(".")
-            if subtitle_parsed.scheme == "https" and (
-                subtitle_host == "hdslb.com" or subtitle_host.endswith(".hdslb.com")
-            ):
-                subtitle_response = await client.get(subtitle_url)
-                if len(subtitle_response.content) > MAX_TRANSCRIPT_BYTES * 2:
-                    raise ReadingError("Bilibili subtitle response exceeded the size limit")
-                subtitle_response.raise_for_status()
-                subtitle_payload = subtitle_response.json()
-                body = (
-                    subtitle_payload.get("body")
-                    if isinstance(subtitle_payload, dict)
-                    and isinstance(subtitle_payload.get("body"), list)
-                    else []
-                )
-                segments = build_transcript_segments(normalize_transcript_segments(body))
+            if _bilibili_subtitle_url_allowed(subtitle_url):
+                try:
+                    subtitle_response = await client.get(subtitle_url)
+                    if len(subtitle_response.content) > MAX_TRANSCRIPT_BYTES * 2:
+                        raise ReadingError("Bilibili subtitle response exceeded the size limit")
+                    subtitle_response.raise_for_status()
+                    subtitle_payload = subtitle_response.json()
+                    body = (
+                        subtitle_payload.get("body")
+                        if isinstance(subtitle_payload, dict)
+                        and isinstance(subtitle_payload.get("body"), list)
+                        else []
+                    )
+                    segments = build_transcript_segments(normalize_transcript_segments(body))
+                except (httpx.HTTPError, ReadingError, ValueError, TypeError) as exc:
+                    logger.warning("Bilibili optional subtitles unavailable for %s: %s",
+                                   request.bvid, type(exc).__name__)
 
     return BilibiliMedia(
         title=title,
@@ -919,6 +998,17 @@ async def _load_bilibili_media(url: str, languages: Sequence[str]) -> BilibiliMe
         segments=segments,
         chapters=chapters,
     )
+
+
+def _bilibili_subtitle_url_allowed(value: str) -> bool:
+    try:
+        parsed = urlparse(value)
+        host = (parsed.hostname or "").lower().rstrip(".")
+        return (parsed.scheme == "https" and not parsed.username and not parsed.password
+                and parsed.port in {None, 443}
+                and (host == "hdslb.com" or host.endswith(".hdslb.com")))
+    except ValueError:
+        return False
 
 
 def _bilibili_api_data(response: Any, label: str) -> dict[str, Any]:

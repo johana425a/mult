@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 from pathlib import Path
 from urllib.parse import urlencode
 import httpx
@@ -15,7 +16,7 @@ import httpx
 from integration.harness_bridge import HarnessError, HarnessTransport
 
 ROOT = Path(__file__).resolve().parents[1]
-PORTAL = 'http://127.0.0.1:3791'
+PORTAL = os.environ.get('DEEPSTEAM_PORTAL_ORIGIN', 'http://127.0.0.1:3791')
 
 
 def selection_for_config(config=None):
@@ -61,18 +62,27 @@ class ExecutionClient:
                     raise HarnessError('execution_connection_interrupted', 'Task progress is saved. Continue when the connection is restored.', 503) from None
             await asyncio.sleep(min(2, .25 * 2 ** attempt))
         if response.status_code >= 400:
-            raise HarnessError('execution_connection_interrupted', 'The task connection was interrupted. Saved progress can be resumed.', response.status_code)
+            try:
+                detail = response.json().get('error') or response.json().get('detail') or {}
+            except ValueError:
+                detail = {}
+            if not isinstance(detail, dict):
+                detail = {'message': str(detail)}
+            raise HarnessError(detail.get('code', 'execution_connection_interrupted'),
+                detail.get('message', 'The task connection was interrupted. Saved progress can be resumed.'), response.status_code)
         return response.json()
 
     async def execute(self, *, text, workspace_id, source, task_key, llm_selection=None,
-                      owner=None, on_event=None, source_references=None, parent_task_id=None, continuation_task_id=None):
+                      owner=None, on_event=None, source_references=None, parent_task_id=None, continuation_task_id=None,
+                      conversation_id=None, surface=None, interaction=None, on_live=None, expected_model=None, on_question=None):
         if owner is None:
             from deeptutor.multi_user.context import get_current_user
             owner = get_current_user().id
         payload = {'owner': owner, 'native_workspace_id': workspace_id, 'source': source,
                    'task_key': task_key, 'text': text, 'llm_selection': llm_selection,
                    'source_references': source_references or [], 'parent_task_id': parent_task_id,
-                   'continuation_task_id': continuation_task_id}
+                   'continuation_task_id': continuation_task_id, 'conversation_id': conversation_id,
+                   'surface': surface, 'interaction': interaction, 'expected_model': expected_model}
         accepted = await self.request('POST', '', payload)
         task = accepted['task']; task_id = task['id']; after = -1
         try:
@@ -82,8 +92,17 @@ class ExecutionClient:
                 for event in value.get('events', []):
                     if on_event:
                         await on_event(event)
+                if on_live and value.get('live_response'):
+                    await on_live(value['live_response'])
                 after = value.get('next_seq', after)
                 if task.get('status') == 'awaiting_input' or (value.get('capabilities') or {}).get('pending_questions'):
+                    if on_question:
+                        for question in (value.get('capabilities') or {}).get('pending_questions', []):
+                            reply = await on_question(question)
+                            await self.request('POST', '/' + task_id + '/answer', {'owner':owner,
+                                'question_id':question['id'], **reply})
+                        await asyncio.sleep(.1)
+                        continue
                     # Release this native tool invocation so the user can see
                     # and answer the actual Host question. The owned task and
                     # its foreground question remain live; no cancellation or

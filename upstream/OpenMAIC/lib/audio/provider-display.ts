@@ -2,8 +2,8 @@
  * Localized display names for the built-in audio providers.
  *
  * The `name` field in `ASR_PROVIDERS` / `TTS_PROVIDERS` is a registry label, not
- * a UI string: several are written in Chinese (`Browser-native ASR (Web Speech API)`,
- * `Qwen ASR (Alibaba Cloud Model Studio)`). Rendering it directly leaks Chinese into every other
+ * a UI string: several are written in Chinese (`浏览器原生 ASR (Web Speech API)`,
+ * `Qwen ASR (阿里云百炼)`). Rendering it directly leaks Chinese into every other
  * locale, so any surface that shows a provider to the user must resolve the
  * name through i18n instead.
  *

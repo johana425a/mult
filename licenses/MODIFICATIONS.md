@@ -2,6 +2,24 @@
 
 This is a modified integration of the pinned projects listed in `NOTICE.md`. Original license files, source ownership, and applicable third-party notices are retained.
 
+## October 17 r11 update
+
+Interactive chat, personalized learning, immersive reading, OpenMAIC workbench and
+classroom dialogue now share the Harness execution host. Surface adapters, model
+snapshots, task/session mapping, source tools, file presentation, learning records,
+managed extensions and staged repair services were added or modified. OpenMAIC's
+event facade delegates model/tool turns to Harness while retaining course services.
+
+Subsequent changes repair answer persistence, original-source references, classroom
+layout and export, trusted fullscreen, sidebar state and bounded content prefetch.
+The current renderer and available installer/launcher source are included. The
+public publication restores English defaults, adds portable focused regressions,
+sanitized validation records and an updated Harness runtime staging list. These
+publication changes do not modify saved settings in an existing installation.
+
+See `docs/source-provenance.md` for source inputs and the remaining compiled-only
+native frontend gap. The source snapshot is not a newly rebuilt binary release.
+
 ## Integration changes
 
 - `desktop/` adds the desktop shell, internal transport, managed startup and shutdown, storage migration, and uninstall entry point.

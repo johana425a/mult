@@ -876,11 +876,11 @@ function resolveAzureVoiceLocale(voice: string): string {
   // Azure voice IDs conventionally start with a BCP-47 locale (for example,
   // `en-US-JennyNeural` or `sr-Latn-RS-SophieNeural`). Preserve optional
   // script and variant subtags for voices outside the small configured list
-  // while using the English default for an unrecognised ID.
+  // while retaining the existing Chinese default for an unrecognised ID.
   return (
     voice.match(
       /^[a-z]{2,3}(?:-[A-Z][a-z]{3})?-(?:[A-Z]{2}|\d{3})(?:-(?:[a-z0-9]{5,8}|\d[a-z0-9]{3}))*(?=-[A-Z]|$)/,
-    )?.[0] ?? 'en-US'
+    )?.[0] ?? 'zh-CN'
   );
 }
 
@@ -986,7 +986,7 @@ async function generateQwenTTS(
         input: {
           text,
           voice: config.voice,
-          language_type: 'Auto', // Infer the input language instead of forcing a locale.
+          language_type: 'Chinese', // Default to Chinese, can be made configurable
         },
         parameters: {
           rate, // Speech rate from -500 to 500

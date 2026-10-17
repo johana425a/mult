@@ -1,55 +1,37 @@
-# DeepSteam r9: selected-model vision and Harness capabilities
+# DeepSteam r11 source update
 
-Version: `2026.10.13-r9-selected-model-vision`.
-Previous distribution: `2026.10.13-r8-adaptive-vlm`.
+Source version: `2026.10.17-r11-harness-core`.
+Paired installed version: `2026.10.17-r11-harness-core-local`.
+Current paired OpenMAIC build: `w_YlqwSMVFIPwGLN1gLy_`.
 
-## Document reading changes
+This publication incorporates the Harness migration and the subsequent October 17 experience fixes. It is based on the existing `standalone-2026-10-16` history. No new installer, desktop distribution ZIP, or removable-drive package is produced by this source update.
 
-- Text PDF, Word and PowerPoint extraction remains local and does not start a VLM.
-- Scans, screenshots and embedded pictures retain original pixels for the current
-  selected model. There is no separate implicit vision model or forced OCR step.
-- Local MinerU is disabled by default. Only a user-owned advanced setting enables
-  it; explicit model tool arguments cannot override that setting. Existing parser
-  caches and reading state remain available, with disabled queues paused.
-- Image input is gated by real connection verification, independent of a catalog
-  support flag and without a DeepSeek-only model allowlist. Verification uses a
-  small synthetic image only after the user confirms the request. Changed
-  connection identity invalidates stale verification.
-- Classroom and native learning ingestion retain image-only material, source
-  positions and pending visual coverage. Complete text extraction is not recorded
-  as complete understanding of the original document.
+## Shared execution
 
-## Workspace and model changes
+All five interactive entry points use Harness for model/tool turns. Surface adapters retain teaching operations, route actual context and source references, freeze the selected model, map native sessions, and expose progress, questions, cancellation, completion, and structured failures. Ordinary file tasks no longer require a DeepTutor agent to delegate to a second general-purpose agent loop.
 
-- Load official pinned Harness web fetch/search, interactive questions, plan mode,
-  presented files and real workspace changes. Search requires a compatible
-  selected DeepSeek connection; ordinary public-page fetch remains distinct.
-- Questions persist and await actual user answers or cancellation. Plan mode
-  blocks mutating execution tools until an actual user action leaves that mode.
-- Declared deliverables support authenticated preview/download. File changes use
-  actual diffs, with pending interaction and change state retained after restart.
-- Default reasoning is High when the selected model supports that value and no
-  explicit value was saved. Unsupported models keep native behavior. Existing
-  explicit choices remain unchanged.
-- Models remain frozen per request. Tool, image, streaming, context and usage
-  metadata refer to the actual selection rather than a local-model fallback.
+Document skills resolve the bundled Python/Node environment. Execution failures preserve useful diagnostics. Generated files must exist, be nonempty, and parse before becoming attachments; links survive recorded session recovery. MD, Word, PDF, XLSX, and PPTX were exercised with the actual configured model. Plugin and staged-repair lifecycle checks used deterministic decisions with real tools and files.
 
-## Distribution and validation
+## Preserved standalone repairs
 
-The D-drive update replaces program files only. User data remains in its selected
-data directory. The E-drive distribution contains the matching installer,
-program payload, public source, required licenses and checksums; it excludes user
-databases, accounts, credentials and private source materials.
+- Bilibili account/session integration, avatar/sign-out state, backend subtitles, local playback and timestamp/rate controls are retained. Bilibili and YouTube are the primary supported video targets; no claim of complete support for every domestic platform is made.
+- Desktop transport, immersive reading, current launcher/installer source, and uninstall ownership/integrity handling remain included.
+- Gold spiral icons, localized installation behavior, and retained user-data settings are preserved in the paired local installation. The public source keeps English defaults.
 
-`RELEASE-IDENTITY.json` records the component pins and final build IDs.
-`BUILD-INFO.json` and the package manifests describe the exact shipped artifacts.
-Fixture tests cover routing, image verification, parsing policy, interactive tool
-state, source images, recovery and API boundaries without paid model generation.
-They are software checks, not claims that every cloud model or another physical
-computer was tested. The current host's startup checks and installer self-test
-are recorded separately by the release workflow.
+## Subsequent experience fixes
 
-The public source defaults to English. This local distribution keeps the Chinese
-interface and current DeepSteam dark/orange design. Upstream licenses and real
-technical attribution remain under `licenses/`; product-facing branding stays
-DeepSteam.
+- Restore the public Harness pipeline result contract so Partner answers persist after streaming and reopening.
+- Retain sidebar state within the correct workspace/account scope; reject stale responses after unmount, workspace change, or authentication invalidation.
+- Resolve trusted persisted source IDs and publish verified original-image references through the existing immutable file service.
+- Repair formula/table/diagram layout, classroom return navigation, video-export lifecycle, and trusted user-initiated fullscreen.
+- Refill bounded classroom content prefetch before narration when the buffered result is already complete. At most two content jobs run concurrently; order, failure and cancellation remain enforced.
+
+A same-source real-model classroom pair measured 659.803 s before and 593.053 s after, with nine versus six slide pages. This is one observation, with different generated outlines, not a stable speed guarantee. Sparse pages and occasional layout retries remain.
+
+## Validation and remaining work
+
+[Validation](docs/validation.md) records 15 real-model execution cases, 31 parsed artifacts and 22 successful downloads, plus follow-up experience tests. [Project status](docs/project-status.md) explicitly retains pending video-follow checks, task-board dragging, provider-dependent services, long-run performance, and remaining classroom layout issues.
+
+The public-source manifest is regenerated from this publication. Older runtime verification reports in `installer/` are historical component checks, not proof of a new r11 installer. The local upgrade and rebuilt OpenMAIC have been tested; a complete clean-checkout native installer rebuild is still unproven. See [source provenance](docs/source-provenance.md).
+
+For independent review, use this commit's source and [review guide](docs/review-guide.md). External Pro review was requested separately; its completion is not asserted by these release notes.

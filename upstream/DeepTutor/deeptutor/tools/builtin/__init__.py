@@ -912,7 +912,9 @@ class ReadSourceTool(_PromptHintsMixin, BaseTool):
             description=(
                 "Load the full text of one attached source by id. Use ONLY when "
                 "the preview shown in the Attached Sources manifest is "
-                "insufficient to answer the user's question. The id must be "
+                "insufficient to answer the user's question. For a workspace source in "
+                "personalized learning this also supplies selected original images and "
+                "formula-review notes; use it before answering visual formula details. The id must be "
                 "copied verbatim from the manifest — do not invent ids. Do not "
                 "call this on every source 'just in case'."
             ),
@@ -924,7 +926,8 @@ class ReadSourceTool(_PromptHintsMixin, BaseTool):
                         "The source identifier from the Attached Sources "
                         "manifest. Begins with one of: nb- (notebook record), "
                         "bk- (book reference), rd- (reading unit), hs- (history "
-                        "session), qb- (question-bank entry), at- (document attachment)."
+                        "session), qb- (question-bank entry), at- (document attachment), "
+                        "wf- (selected workspace source)."
                     ),
                 ),
             ],
@@ -946,7 +949,18 @@ class ReadSourceTool(_PromptHintsMixin, BaseTool):
                     content="Error: source_id is required when multiple sources are available.",
                     success=False,
                 )
+        requested_source_id = source_id
         full_text = source_index.get(source_id)
+        if not full_text and source_id.startswith('source_') and kwargs.get('_mastery_path_id'):
+            from integration.native_formula_review import resolve_mastery_source_id
+            try:
+                resolved = await resolve_mastery_source_id(
+                    kwargs['_mastery_path_id'], source_id, source_index)
+            except Exception:
+                resolved = None
+            if resolved:
+                source_id = resolved
+                full_text = source_index[source_id]
         if not full_text:
             available = ", ".join(sorted(source_index.keys()))
             return ToolResult(
@@ -956,6 +970,29 @@ class ReadSourceTool(_PromptHintsMixin, BaseTool):
                 ),
                 success=False,
             )
+        if source_id.startswith('wf-') and kwargs.get('_mastery_path_id'):
+            from integration.native_formula_review import mastery_source_evidence, present_mastery_source
+            try:
+                grounded, visuals = await mastery_source_evidence(kwargs['_mastery_path_id'], source_id)
+            except Exception:
+                return ToolResult(content='The selected source images could not be verified. The original document is retained; do not reconstruct its formulas from memory.',
+                                  success=False, metadata={'source_id': source_id, 'visual_status': 'unavailable'})
+            workspace_items = []
+            preview_note = ''
+            if visuals.manifest:
+                try:
+                    workspace_items = await present_mastery_source(grounded)
+                except Exception:
+                    preview_note = ('\nOriginal source preview is unavailable. The original file is retained; '
+                                    'do not present a raw relative path as a clickable link.')
+            return ToolResult(content=grounded.excerpt + preview_note,
+                metadata={'source_id': source_id, 'requested_source_id': requested_source_id,
+                          'char_count': len(grounded.excerpt),
+                          'formula_review': visuals.formula_review, 'visual_evidence': visuals.manifest,
+                          'workspace_items': workspace_items},
+                sources=[{'type': 'workspace_file', **entry} for entry in visuals.manifest]
+                    + [{'type': 'workspace_item', **entry} for entry in workspace_items],
+                model_message={'role': 'user', 'content': visuals.content} if visuals.manifest else None)
         return ToolResult(
             content=str(full_text),
             metadata={"source_id": source_id, "char_count": len(str(full_text))},

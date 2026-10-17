@@ -1,4 +1,6 @@
 "use client";
+import * as React from 'react';
+import { useRetained } from '@/lib/sidebar-view-state.cjs';
 
 import { useEffect, useState } from "react";
 
@@ -19,7 +21,7 @@ import {
  * each keeping its own idea of what exists.
  */
 export function useChatWorkspaces() {
-  const [workspaces, setWorkspaces] = useState<ChatWorkspaceRegistration[]>([]);
+  const [workspaces, setWorkspaces] = useRetained<ChatWorkspaceRegistration[]>(React, 'workspaces', []);
   const [error, setError] = useState("");
 
   useEffect(() => {

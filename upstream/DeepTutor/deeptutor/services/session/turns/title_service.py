@@ -118,8 +118,14 @@ class SessionTitleService:
 
             # The scope is entered before the task is created so `wait_for`'s
             # inner task copies it; with no task model configured it is a no-op.
-            with task_llm_scope(TaskKind.SESSION_TITLE):
-                raw_title = await asyncio.wait_for(_collect_title(), timeout=20.0)
+            # DeepSteam 2026-10-16 titles: without a dedicated task model the title
+            # used to run on the conversation's own model (often a slow
+            # reasoning model, up to 20 s and paid). Use the first message then.
+            with task_llm_scope(TaskKind.SESSION_TITLE) as task_config:
+                if task_config is None:
+                    raw_title = ""
+                else:
+                    raw_title = await asyncio.wait_for(_collect_title(), timeout=20.0)
             if _looks_like_error_payload(raw_title):
                 logger.debug("Title model streamed an error payload — falling back")
                 raw_title = ""

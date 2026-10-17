@@ -13,5 +13,4 @@ export const MAX_VISION_IMAGES = 20;
 // route on both the multipart and asset-id forms and by the vision-image
 // resolution (`resolveVisionImagesForPrompt`) so an oversized asset is
 // rejected at `identify` — before any bytes are materialized.
-// DeepSteam: keep native uploads and asset-id extraction aligned with the shared reader.
-export const MAX_EXTRACT_DOCUMENT_FILE_SIZE_BYTES = 200 * 1024 * 1024;
+export const MAX_EXTRACT_DOCUMENT_FILE_SIZE_BYTES = 50 * 1024 * 1024;

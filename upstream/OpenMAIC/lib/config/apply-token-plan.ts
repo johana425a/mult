@@ -88,9 +88,9 @@ export interface TokenPlanActions {
    */
   setTokenPlanEnrolled?: (presetId: string, llmProviderId: string | null) => void;
   /**
-   * Authorization bookkeeping. Connecting (apply) clears stale disabled flags; reconnecting
-   * reauthorizes the plan. Removing a connection also clears them so flags do not leak across
-   * connection lifetimes and create a contradictory Connected (off) state.
+   * 授权开关的记账。连接（apply）时清除可能残留的「已关闭」标记——重新连接
+   * 即重新授权；解除连接（remove）时同样清除，让标志位不携带跨连接状态的
+   * 残影（否则「关闭→断开→重连」的套餐会以 Connected (off) 的矛盾姿态回来）。
    */
   setTokenPlanEnabled?: (presetId: string, enabled: boolean) => void;
   /**
@@ -102,9 +102,9 @@ export interface TokenPlanActions {
    *  to skip clearing providers another enrolled plan still owns. */
   getTokenPlanEnrollments?: () => Record<string, string>;
   /**
-   * State snapshot for seeding priority: enrollments, providersConfig, and authorization switches.
-   * When provided, exclusive slots defer to active plans earlier in the list. Without it, retain
-   * the previous last-write-wins behavior.
+   * 供播种做优先级仲裁的状态快照（enrollments + providersConfig + 授权开关）。
+   * 提供后，独占槽位会让位给列表中更靠前且生效的套餐；不提供时退化为旧行为
+   * （后写覆盖先写）。
    */
   getTokenPlanPriorityState?: () => TokenPlanEnrollmentState;
 }
@@ -113,7 +113,7 @@ export interface TokenPlanActions {
 export interface TokenPlanEnrollmentState {
   tokenPlanEnrollments: Record<string, string>;
   providersConfig: Record<string, { apiKey?: string }>;
-  /** Authorization switch: explicitly disabled plans; absent means enabled. */
+  /** 授权层开关：被显式关闭的套餐。缺省视为启用。 */
   tokenPlanDisabled?: Record<string, boolean>;
 }
 
@@ -139,9 +139,9 @@ export function isTokenPlanActive(
 }
 
 /**
- * Authorization means connected and not disabled. Course model candidates,
- * ordering, and overrides use this rule, matching provider enabled !== false
- * in Model services.
+ * 授权层判定：已连接**且**未被「启用此套餐」开关关闭。课程模型配置的候选、
+ * 排序与覆盖一律走这个口径——与「模型服务」里 provider 的 `enabled !== false`
+ * 同层。
  */
 export function isTokenPlanUsable(
   preset: TokenPlanPreset,
@@ -152,10 +152,10 @@ export function isTokenPlanUsable(
 }
 
 /**
- * Return active plans in TOKEN_PLAN_PRESETS declaration order, the only application-wide
- * plan-priority source. Earlier active plans have higher priority for
- * stage-route/main-model ownership and for ordering plan groups
- * in model pickers.
+ * 当前生效的套餐，按 TOKEN_PLAN_PRESETS 的声明顺序返回——这是全站唯一的
+ * 套餐优先级来源。多个套餐同时开启时：列表中靠前者优先级更高，既决定课程
+ * 模型配置里覆盖（stage routes / 主线模型）的归属，也决定选择列表中各套餐
+ * 模型组的先后。
  */
 export function activeTokenPlansInPriorityOrder(
   state: TokenPlanEnrollmentState,
@@ -190,8 +190,8 @@ export function setTokenPlanAuthorization(
   for (const modality of MODALITY_ORDER) {
     const target = preset.modalities[modality];
     if (!target) continue;
-    // Only disabling requires deference. Enabling a shared provider is also desired by another
-    // active plan that uses it.
+    // 关闭时才需要避让：开启本套餐不会伤到别人（同一 provider 被另一个
+    // 生效套餐用着，把它打开也是对方想要的状态）。
     if (!enabled && ownedByOtherUsablePlan(target.providerId)) continue;
 
     try {
@@ -213,14 +213,14 @@ export function setTokenPlanAuthorization(
           break;
       }
     } catch {
-      // A failed modality write must not block other modalities, consistent with apply/remove isolation.
+      // 单个模态写失败不应阻断其余模态——与 apply/remove 的隔离口径一致。
     }
   }
 }
 
 /**
- * Current shared-provider owner: when multiple plans declare the provider for a modality,
- * return the earliest active plan excluding excludedPresetId, or undefined.
+ * 共享 provider 的当前归属者：目标 provider 在该模态下被多个套餐声明时，
+ * 返回列表中更靠前的生效套餐（排除 excludedPresetId）；无则 undefined。
  */
 function sharedModalityOwner(
   modality: TokenPlanModality,
@@ -237,7 +237,7 @@ function sharedModalityOwner(
   );
 }
 
-/** Credential deference on apply: a higher-priority active plan owns this modality/provider. */
+/** apply 时的凭证让位判定：更高优先级的生效套餐已占用同模态同 provider。 */
 function sharedOwnerYields(
   preset: TokenPlanPreset,
   modality: TokenPlanModality,
@@ -251,16 +251,16 @@ function sharedOwnerYields(
 }
 
 /**
- * Re-resolve shared credentials after any authorization change (review P0-03):
- * the highest-priority active plan owns the slot; rewrite credentials, baseUrl, and catalog together
- * using the owner gateway key saved in its LLM provider slot during enrollment.
+ * 共享 provider 凭证归属的再解析（review P0-03）：共享槽位在任一授权变更后
+ * 都必须归属于「生效套餐中优先级最高者」——凭证、baseUrl 与目录一并重写
+ * （owner 的网关 key 取自其 LLM provider 槽位，即连接时写入的同一把 key）。
  *
- * excludeConcerned semantics, preserving regression #2:
- * - Disable/remove (true): exclude this plan and hand slots to the remaining active plans;
- * - Re-enable (false): include this plan when resolving ownership; otherwise a newly enabled
- *   higher-priority plan would exclude itself and leave its slots with a lower-priority plan.
- * Do not write without an owner: disabling cascades authorization to the provider; removing
- * uses usability checks and removeModality cleanup.
+ * excludeConcerned 语义（regression #2 的教训）：
+ * - 关闭/移除（true）：排除被关注的套餐，槽位交给剩余生效套餐；
+ * - 重新开启（false）：**纳入**被关注的套餐参与归属解析——否则刚刚启用的
+ *   高优先级套餐会被自己排除，槽位继续留在低优先级套餐手里。
+ * 没有剩余 owner 时不写：disable 路径由授权级联关闭该 provider；remove 路径
+ * 由 usable 判定走 removeModality 清理。
  */
 export function restoreSharedProviderCredentials(
   concernedPresetId: string,
@@ -276,12 +276,12 @@ export function restoreSharedProviderCredentials(
   for (const modality of MODALITY_ORDER) {
     const target = concerned.modalities[modality];
     if (!target) continue;
-    // Only shared slots need re-resolution; exclusive slots use removeModality/authorization cascades.
+    // 仅共享槽位需要再解析：独占槽位由 removeModality/授权级联处理。
     const owner = sharedModalityOwner(modality, target.providerId, state, excludedId);
     if (!owner) continue;
     const ownerTarget = owner.modalities[modality];
     if (!ownerTarget) continue;
-    // The owner gateway key resides in its LLM provider slot, an enrollment invariant.
+    // owner 的网关 key 落在其 LLM provider 槽位（enrollment 不变量）。
     const ownerKey = state.providersConfig[owner.modalities.llm?.providerId ?? '']?.apiKey;
     if (!ownerKey) continue;
 
@@ -289,7 +289,7 @@ export function restoreSharedProviderCredentials(
       applyModality(modality, ownerTarget, owner, ownerKey, actions);
       seedPlanModels(owner, actions, { modalities: [modality], priorityState: state });
     } catch {
-      // As in apply/remove, one failed modality does not block other rewrites.
+      // 与 apply/remove 同口径：单模态失败不阻断其余重写。
     }
   }
 }
@@ -317,17 +317,17 @@ export function applyTokenPlan(
   actions: TokenPlanActions,
 ): ApplyResult[] {
   const results: ApplyResult[] = [];
-  // Priority snapshot read before enrollment, naturally excluding this plan.
+  // 优先级仲裁快照（连接前读取——本套餐尚未 enrollment，天然排除自身）。
   const priorityState = actions.getTokenPlanPriorityState?.();
 
   for (const modality of MODALITY_ORDER) {
     const target = preset.modalities[modality];
     if (!target) continue;
 
-    // Shared-provider credentials (review P0-03): when a higher-priority active plan owns
-    // the same modality/provider, do not override credentials or catalog regardless of connection order;
-    // the earliest active plan owns the slot. Still mark the shared slot lit (connection
-    // succeeded); ownership remains with the owner and selection follows seed priority.
+    // 共享 provider 凭证归属（review P0-03）：同模态同 provider 已被更高
+    // 优先级的生效套餐占用时，本套餐不覆盖其凭证/目录——无论连接顺序如何，
+    // 共享槽位始终属于列表中更靠前的生效套餐。共享槽位仍记录为 lit（连接
+    // 成功），凭证与目录归 owner，选中态由 seed 的让位仲裁决定。
     const ownerYields = sharedOwnerYields(preset, modality, priorityState);
     if (ownerYields) {
       results.push({ modality, status: 'lit', providerId: target.providerId });
@@ -356,7 +356,7 @@ export function applyTokenPlan(
       preset.id,
       preset.modalities.llm?.providerId ?? results[0].providerId,
     );
-    // Reconnecting reauthorizes the plan and clears stale disabled flags.
+    // 重新连接即重新授权：清掉上一连接周期可能残留的「已关闭」标记。
     actions.setTokenPlanEnabled?.(preset.id, true);
   }
 
@@ -364,8 +364,8 @@ export function applyTokenPlan(
   // modality would switch its active selection onto a keyless provider. The
   // fingerprint is recorded only on seed success, so a failed seed is retried.
   try {
-    // Exclusive slots (main model, stage route, modality selection) defer to higher-priority
-    // active plans; connecting a later plan must not take slots owned by an earlier plan.
+    // 独占槽位（主线模型 / stage route / 各模态选中项）让位给更高优先级的
+    // 生效套餐：新连一个靠后的套餐，不应抢走靠前套餐已占的位置。
     seedPlanModels(preset, actions, {
       modalities: lit,
       priorityState: actions.getTokenPlanPriorityState?.(),
@@ -432,16 +432,16 @@ export interface SeedPlanModelsOptions {
    *  were just written). Omit to seed every declared modality. */
   modalities?: TokenPlanModality[];
   /**
-   * When multiple plans are active, exclusive main-model and stage-route slots
-   * belong to earlier plans in TOKEN_PLAN_PRESETS and the Token Plan list.
-   * With current state, seeding skips slots owned by higher-priority plans so
-   * results do not depend on seeding order, whether connecting a lower-priority plan or
-   * reconciling plans at startup in any order.
+   * 优先级仲裁：多个套餐同时生效时，主线模型与 stage route 这类「独占槽位」
+   * 归属更靠前的套餐（顺序即 TOKEN_PLAN_PRESETS / Token Plan 列表顺序）。
+   * 传入当前状态后，本次播种会跳过那些已被更高优先级套餐声明的槽位，使得
+   * 结果与播种先后无关——无论是新连接一个低优先级套餐，还是启动时按任意
+   * 顺序 reconcile，高优先级套餐的声明都不会被覆盖。
    */
   priorityState?: TokenPlanEnrollmentState;
 }
 
-/** Currently active plans with higher priority than the preset. */
+/** 比 preset 更高优先级（列表更靠前）且当前生效的套餐。 */
 function higherPriorityPlans(
   preset: TokenPlanPreset,
   state: TokenPlanEnrollmentState,
@@ -460,8 +460,8 @@ export function seedPlanModels(
   const allowed = (modality: TokenPlanModality) =>
     !opts?.modalities || opts.modalities.includes(modality);
 
-  // Exclusive-slot deference. Without priorityState, as in stateless calls or tests,
-  // preserve existing behavior without deference.
+  // 独占槽位的让位判定。没有传 priorityState 时（单元测试 / 无状态调用）
+  // 退化为「不让位」，保持既有行为。
   const rivals = opts?.priorityState ? higherPriorityPlans(preset, opts.priorityState) : [];
   const mainModelTaken = rivals.some((p) => {
     const llm = p.modalities.llm;
@@ -474,7 +474,7 @@ export function seedPlanModels(
     const target = m.llm;
     // Only overwrite the catalogue when the preset curates one — an LLM-only
     // plan without defaultModels keeps the provider's existing model list.
-    // Catalogs are per-provider rather than exclusive slots and do not defer.
+    // 目录不是独占槽位（每个 provider 一份），不参与让位。
     if (target.defaultModels?.length) {
       actions.setProviderConfig(target.providerId as ProviderId, {
         models: target.defaultModels.map((id) => tokenPlanModelInfo(target, id)),
@@ -493,14 +493,14 @@ export function seedPlanModels(
     }
   }
 
-  // A modality selected provider is also exclusive; if a higher-priority plan claims it,
-  // write only this plan catalog/credentials without taking the selection.
+  // 各模态的「当前选用 provider」同样是独占槽位：高优先级套餐已声明该模态
+  // 时，本套餐只写自己的目录/凭证，不抢走选中态。
   const selectionTaken = (modality: TokenPlanModality) =>
     rivals.some((p) => !!p.modalities[modality]);
 
-  // Shared-provider deference (review P0-03): when a higher-priority active plan owns
-  // the provider, do not write the catalog either; customModels would overwrite the owner
-  // catalog. Both apply and startup reconciliation use this path.
+  // 共享 provider 让位（review P0-03）：该模态的 provider 已被更高优先级
+  // 生效套餐占用时，连目录都不写——否则本套餐的 customModels 会反噬 owner
+  // 的目录（apply 与启动 reconcile 两条路都走这里）。
   const providerYields = (modality: TokenPlanModality) =>
     sharedOwnerYields(preset, modality, opts?.priorityState);
 
@@ -685,9 +685,9 @@ export function removeTokenPlan(preset: TokenPlanPreset, actions: TokenPlanActio
   actions.setTokenPlanEnabled?.(preset.id, true);
   actions.setTokenPlanSeedVersion?.(preset.id, null);
 
-  // Restore shared slots (review P0-03): return credentials and catalogs previously used by
-  // the removed plan to the highest-priority remaining active plan; retained slots may contain
-  // the removed key. The pre-removal snapshot is equivalent because restore excludes its ID.
+  // 共享槽位交还（review P0-03）：被移除套餐占用过的共享 provider，凭证与
+  // 目录归还给剩余生效套餐中优先级最高者（跳过清理的那些槽位此前可能写着
+  // 本套餐的 key）。状态是移除前读的快照——restore 以 id 排除本套餐，语义等价。
   if (priorityState) {
     restoreSharedProviderCredentials(preset.id, actions, priorityState);
   }
@@ -720,9 +720,9 @@ function removeModality(
           requiresApiKey: builtIn.requiresApiKey,
           isBuiltIn: true,
           modelsUrl: undefined,
-          // applyModality forces enabled:true on connection; disconnecting restores it symmetrically
-          // so disabling then disconnecting does not leave a built-in provider enabled:false
-          // and require an extra switch after entering a personal API key.
+          // 连接时 applyModality 强制 enabled:true（见其注释），解除连接对称
+          // 恢复——否则「关开关→断开」后内置 provider 残留 enabled:false，
+          // 之后填个人 key 还得手动再开一次。
           enabled: true,
         });
       } else {

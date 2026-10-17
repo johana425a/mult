@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import hmac
 import json
 import os
 import re
@@ -141,13 +143,24 @@ app.add_middleware(CORSMiddleware, allow_origins=['http://127.0.0.1:3792'],
 @app.middleware('http')
 async def local_origin(request: Request, call_next):
     origin = request.headers.get('origin')
+    # A clicked download link does not carry an Origin header. Permit only
+    # this exact, HMAC-authorized immutable deliverable, never other APIs.
+    match = re.fullmatch(r'/api/harness/sessions/(workspace-[a-f0-9-]+)/deliverables/(\d+)/files/(\d+)', request.url.path)
+    signed_delivery = False
+    if match and request.method in ('GET', 'HEAD'):
+        message = ':'.join((*match.groups(), request.query_params.get('mode', 'preview')))
+        expected = hmac.new(harness_bridge().transport.token().encode(), message.encode(), hashlib.sha256).hexdigest()
+        signed_delivery = hmac.compare_digest(expected, request.query_params.get('delivery_key', ''))
+        # Backward compatibility for existing links opened from the owned UI.
+        ref = urlparse(request.headers.get('referer', ''))
+        signed_delivery |= f'{ref.scheme}://{ref.netloc}' in ALLOWED_ORIGINS | {'http://127.0.0.1:3793'}
     if request.method not in ('GET', 'HEAD', 'OPTIONS') and origin and origin not in ALLOWED_ORIGINS:
         return JSONResponse({'detail': 'Changes are accepted only from the local workbench.'}, status_code=403)
     workspace_request = any(request.url.path.startswith('/api/harness/' + prefix)
                             for prefix in ('workspaces', 'workspace-management', 'sessions', 'approvals'))
     if (request.url.path.startswith('/api/harness/') and '/internal/' not in request.url.path
             and (request.method not in ('GET', 'HEAD', 'OPTIONS') or workspace_request)
-            and request.method != 'OPTIONS' and origin not in ALLOWED_ORIGINS):
+            and request.method != 'OPTIONS' and origin not in ALLOWED_ORIGINS and not signed_delivery):
         return JSONResponse({'detail': 'Use the local model connection page for this operation.', 'code': 'origin_required'}, status_code=403)
     if (request.url.path == '/api/document-policy' and request.method not in ('GET', 'HEAD', 'OPTIONS')
             and origin not in ALLOWED_ORIGINS):
@@ -536,7 +549,11 @@ async def settings():
 
 @app.exception_handler(HarnessError)
 async def harness_failure(request, exc):
-    return JSONResponse({'detail': exc.message, 'code': exc.code}, status_code=exc.status)
+    diagnostic = {**getattr(exc, 'diagnostic', {}), 'code':exc.code, 'message':exc.message}
+    diagnostic.setdefault('phase', 'service_bridge')
+    diagnostic.setdefault('trace_id', identifier('diagnostic'))
+    diagnostic.setdefault('retryable', False)
+    return JSONResponse({'detail': exc.message, 'code': exc.code, 'error':diagnostic}, status_code=exc.status)
 
 
 class HarnessOperationInput(BaseModel):
@@ -601,7 +618,17 @@ async def harness_workspace_search_status(request: Request):
     return await harness_bridge().workspace_search_status(**body)
 
 
+_execution_binding_lock = asyncio.Lock()
+
+
 async def execution_workspace_binding(owner, native_workspace_id):
+    # Multiple surfaces may open the same general workspace at once. Serialize
+    # the check-and-register operation against the one Host workspace catalog.
+    async with _execution_binding_lock:
+        return await _execution_workspace_binding(owner, native_workspace_id)
+
+
+async def _execution_workspace_binding(owner, native_workspace_id):
     owner = workspace_identifier(owner)
     identity = workspace_identifier(native_workspace_id)
     # The service token establishes the caller, while Native validates the
@@ -610,7 +637,7 @@ async def execution_workspace_binding(owner, native_workspace_id):
     native = await harness_bridge().transport.native_service('POST', 'workspace-binding',
         {'owner': owner, 'native_workspace_id': identity})
     if (native.get('owner') != owner or native.get('native_workspace_id') != identity
-            or native.get('kind') != 'workspace' or not native.get('ready')
+            or native.get('kind') not in {'workspace', 'general'} or not native.get('ready')
             or native.get('archived') or not isinstance(native.get('path'), str)):
         raise HarnessError('workspace_binding_invalid', 'Choose a workspace accessible to the current account.', 403)
     result = await harness_bridge().transport.host('GET', '/workspaces')
@@ -632,15 +659,43 @@ async def execution_workspace_binding(owner, native_workspace_id):
 async def internal_execution_task_create(request: Request):
     authenticate_service(request)
     body = await workspace_input(request, {'owner', 'native_workspace_id', 'source', 'task_key',
-        'text', 'llm_selection', 'source_references', 'parent_task_id', 'continuation_task_id'})
+        'text', 'llm_selection', 'source_references', 'parent_task_id', 'continuation_task_id',
+        'conversation_id', 'surface', 'interaction', 'expected_model'})
     if (not isinstance(body.get('owner'), str) or not isinstance(body.get('native_workspace_id'), str)
-            or not isinstance(body.get('text'), str) or not 1 <= len(body['text'].strip()) <= 24000
+            or not isinstance(body.get('text'), str) or not 1 <= len(body['text'].strip()) <= 200000
             or not isinstance(body.get('source'), str) or not 1 <= len(body['source']) <= 100
             or not isinstance(body.get('task_key'), str) or not 1 <= len(body['task_key']) <= 200
             or not isinstance(body.get('source_references', []), list)):
         raise HarnessError('workspace_input_invalid', 'Invalid task request. Start again.', 422)
     body['workspace_id'] = await execution_workspace_binding(body['owner'], body['native_workspace_id'])
     return await harness_bridge().transport.host('POST', '/execution-tasks', body)
+
+
+@app.post('/api/harness/internal/surface-tools/invoke')
+async def internal_surface_tool(request: Request):
+    authenticate_service(request)
+    body = await workspace_input(request, {'owner', 'context_ref', 'surface', 'name', 'arguments', 'call_id'})
+    if body.get('surface') in {'chat', 'learning', 'reading', 'learning-records'}:
+        return await harness_bridge().transport.native_service('POST', 'surface-tools/invoke', body)
+    if body.get('surface') in {'openmaic-workbench', 'openmaic-classroom'}:
+        async with httpx.AsyncClient(timeout=600, trust_env=False) as client:
+            response = await client.post('http://127.0.0.1:3793/api/harness-surface', json=body,
+                headers={'Authorization': 'Bearer ' + harness_bridge().transport.token()})
+        if response.status_code != 200:
+            try:
+                error = response.json().get('error') or {}
+            except ValueError:
+                error = {}
+            raise HarnessError(error.get('code', 'surface_tool_failed'), error.get('message', 'The classroom tool could not complete.'), response.status_code)
+        return response.json()
+    raise HarnessError('surface_unknown', 'Unknown interaction surface.', 422)
+
+
+@app.post('/api/harness/internal/surface-binding')
+async def internal_surface_binding(request: Request):
+    authenticate_service(request)
+    body = await workspace_input(request, {'surface', 'conversation_id', 'turn_id'})
+    return await harness_bridge().transport.native_service('POST', 'harness-surface-binding', body)
 
 
 @app.get('/api/harness/internal/execution-tasks')
@@ -661,12 +716,19 @@ async def internal_execution_task(request: Request, task_id: str, owner: str, af
 @app.post('/api/harness/internal/execution-tasks/{task_id}/{action}')
 async def internal_execution_task_action(request: Request, task_id: str, action: str):
     authenticate_service(request)
-    if action not in {'cancel', 'resume'}:
+    if action not in {'cancel', 'resume', 'answer'}:
         raise HarnessError('execution_action_invalid', 'Task operation not found.', 404)
-    body = await workspace_input(request, {'owner'})
+    body = await workspace_input(request, {'owner', 'question_id', 'answers', 'cancel'} if action == 'answer' else {'owner'})
     if not isinstance(body.get('owner'), str):
         raise HarnessError('workspace_input_invalid', 'Invalid task account.', 422)
     body['owner'] = workspace_identifier(body['owner'])
+    if action == 'answer':
+        value = await harness_bridge().transport.host('GET', '/execution-tasks/' + workspace_identifier(task_id) + '?' + urlencode({'owner': body['owner']}))
+        session_id = value['task'].get('session_id')
+        if not session_id:
+            raise HarnessError('question_session_missing', 'The task has no active question session.', 409)
+        return await harness_bridge().answer_question(session_id, workspace_identifier(body.get('question_id', '')),
+            answers=body.get('answers'), cancel=body.get('cancel') is True)
     return await harness_bridge().transport.host('POST', '/execution-tasks/' + workspace_identifier(task_id) + '/' + action, body)
 
 
@@ -733,7 +795,7 @@ async def workspace_input(request, allowed):
         # Bounded manual parsing does not reflect accidentally pasted keys in
         # Pydantic's validation error JSON.
         raw = await request.body()
-        if len(raw) > 100000:
+        if len(raw) > 8 * 1024 * 1024:
             raise ValueError('too large')
         body = json.loads(raw or b'{}')
         if not isinstance(body, dict) or set(body) - set(allowed):
@@ -1195,6 +1257,25 @@ async def generate_lesson(lesson_id, resume=False, frozen_provider=None, retry_f
                 store.update('lessons', lesson_id, source_snapshot=json.dumps(parsed, ensure_ascii=False))
             if lesson_deleting(lesson_id):
                 return
+            # Review only selected formula regions with a bounded extra wait.
+            # Reuse this lesson's frozen model and retain every original image.
+            from integration.formula_review import review_snapshot, teaching_notes
+            store.update('lessons', lesson_id, progress='Checking selected formulas; uncertain expressions keep their original images.', updated_at=now())
+            try:
+                parsed = await review_snapshot(parsed, provider, model_snapshot=provider.get('model_snapshot'), source=source)
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                parsed = {**parsed, 'formula_review': {'version': 1, 'status': 'partial_source_preserved',
+                    'candidates': [], 'unscanned_images': list(range(1, len(parsed.get('images', [])) + 1)),
+                    'all_original_images_retained': True}}
+            store.update('lessons', lesson_id, source_snapshot=json.dumps(parsed, ensure_ascii=False), updated_at=now())
+            if lesson_deleting(lesson_id):
+                return
+            formula_report = parsed.get('formula_review') or {}
+            if ((formula_report.get('counts') or {}).get('source_only') or formula_report.get('unscanned_images')):
+                note = 'Some formulas remain unverified. Their original images are retained; missing expressions are not reconstructed.'
+                parsed['warning'] = '; '.join(filter(None, (parsed.get('warning'), note)))
             if parsed.get('truncated') or parsed.get('warning'):
                 store.update('lessons', lesson_id, warning=str(parsed.get('warning') or 'Parsing results were truncated. Complete source coverage has not been confirmed.'))
             text = parsed.get('text', '')
@@ -1204,6 +1285,7 @@ async def generate_lesson(lesson_id, resume=False, frozen_provider=None, retry_f
             image_scope = json.dumps([{'image_index': entry['image_index'], 'locator': entry['locator']}
                                       for entry in parsed.get('image_sources', [])], ensure_ascii=False)
             requirement = f"Lesson title: {item['title']}\nLearning goal: {item['goal']}\nSelected material: {source['filename']}\nMaterial version: {parsed.get('document', {}).get('sha256', '')}\nReading scope: {source_scope}\nAttached image order and source mapping: {image_scope}\nCover only the attached selected scope; do not claim full-book coverage. Generate a Chinese visual lesson (use another language only when explicitly requested) from the attached materials and preserve relevant source images. Distinguish source content from supplementary explanation and never invent source references. End with questions that check understanding."
+            requirement += '\n' + teaching_notes(parsed)
             if config.get('tts_mode', 'local') == 'local':
                 tts = {'provider': 'windows-system-tts', 'model': 'system-speech', 'voice': 'auto'}
             else:

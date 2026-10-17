@@ -236,3 +236,15 @@ __all__ = [
     "build_openai_compatible_reasoning_kwargs",
     "default_reasoning_effort_for",
 ]
+
+
+# --- DeepSteam 2026-10-15 providers: regional platforms reason like the original
+_PROVIDER_THINKING_STYLES.update({
+    "dashscope_intl": "enable_thinking",
+    "dashscope_us": "enable_thinking",
+    "minimax_cn": "reasoning_split",
+})
+_PROVIDER_REASONING_PATTERNS.update({
+    "dashscope_intl": _PROVIDER_REASONING_PATTERNS["dashscope"],
+    "dashscope_us": _PROVIDER_REASONING_PATTERNS["dashscope"],
+})

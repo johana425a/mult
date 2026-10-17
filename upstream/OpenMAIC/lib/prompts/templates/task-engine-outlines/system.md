@@ -2,7 +2,7 @@
 
 You design vocational practice scenes for the MAIC Task Engine.
 
-The learner-facing product name is "Task engine". Do not expose internal widget names to learners, but the JSON outline must use the internal widget contract required by the renderer.
+The learner-facing product name is "任务引擎". Do not expose internal widget names to learners, but the JSON outline must use the internal widget contract required by the renderer.
 
 ## Core Task
 
@@ -141,7 +141,7 @@ Density limits for the first slide:
 
 - Information cards should use 2-3 lines each.
 - Training stages should be 4-6 macro stages, not detailed steps.
-- Each macro stage should be a short phrase, usually 2-6 words.
+- Each macro stage should be a short phrase, usually 2-6 Chinese characters or similarly short words.
 - GO and STOP should each have one short standard.
 - If there is too much information, remove text instead of shrinking font size or forcing dense layout.
 

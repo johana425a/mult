@@ -4,7 +4,7 @@ import path from 'node:path';
 
 export const WINDOWS_TTS_PROVIDER_ID = 'windows-system-tts' as const;
 export const WINDOWS_TTS_MODEL_ID = 'system-speech';
-export const WINDOWS_TTS_AUTO_VOICE = 'auto-en';
+export const WINDOWS_TTS_AUTO_VOICE = 'auto';
 export const WINDOWS_TTS_MAX_TEXT_LENGTH = 2_000;
 const MAX_OUTPUT_BYTES = 32 * 1024 * 1024;
 const CAPABILITY_TIMEOUT_MS = 10_000;
@@ -53,13 +53,18 @@ try {
     $info = $_.VoiceInfo
     @{ id = $info.Name; name = $info.Name; language = $info.Culture.Name; gender = ([string]$info.Gender).ToLowerInvariant() }
   })
-  $english = @($installed | Where-Object { $_.VoiceInfo.Culture.TwoLetterISOLanguageName -eq 'en' } | Sort-Object @{Expression={if ($_.VoiceInfo.Culture.Name -eq 'en-US') {0} else {1}}}, @{Expression={if ($_.VoiceInfo.Name -like '*Desktop*') {0} else {1}}}, @{Expression={$_.VoiceInfo.Name}})
   if ($request.operation -eq 'capability') {
-    $result = @{ voices = $voices; available = ($english.Count -gt 0) }
+    $result = @{ voices = $voices; available = ($installed.Count -gt 0) }
   } else {
-    if ($english.Count -eq 0) { throw 'LOCAL_TTS_NO_ENGLISH_VOICE' }
-    $chosen = $english[0].VoiceInfo
-    if ($request.voice -and $request.voice -ne 'auto-en' -and $request.voice -ne 'default') {
+    if ($installed.Count -eq 0) { throw 'LOCAL_TTS_NO_VOICE' }
+    $automatic = (-not $request.voice) -or (@('auto', 'auto-en', 'auto-zh', 'default') -contains [string]$request.voice)
+    if ($automatic) {
+      $language = 'en'
+      if ($request.voice -eq 'auto-zh' -or ($request.voice -ne 'auto-en' -and [string]$request.text -match '[\u3400-\u9fff]')) { $language = 'zh' }
+      $preferred = @($installed | Where-Object { $_.VoiceInfo.Culture.TwoLetterISOLanguageName -eq $language } | Sort-Object @{Expression={if ($_.VoiceInfo.Name -like '*Desktop*') {0} else {1}}}, @{Expression={$_.VoiceInfo.Name}})
+      if ($preferred.Count -eq 0) { throw 'LOCAL_TTS_VOICE_UNAVAILABLE' }
+      $chosen = $preferred[0].VoiceInfo
+    } else {
       $matches = @($installed | Where-Object { $_.VoiceInfo.Name -eq $request.voice })
       if ($matches.Count -eq 0) { throw 'LOCAL_TTS_VOICE_UNAVAILABLE' }
       $chosen = $matches[0].VoiceInfo
@@ -75,7 +80,7 @@ try {
   [Console]::Out.Write(($result | ConvertTo-Json -Depth 6 -Compress))
 } catch {
   $code = 'LOCAL_TTS_SYNTHESIS_FAILED'
-  if ($_.Exception.Message -like '*LOCAL_TTS_NO_ENGLISH_VOICE*') { $code = 'LOCAL_TTS_NO_ENGLISH_VOICE' }
+  if ($_.Exception.Message -like '*LOCAL_TTS_NO_VOICE*') { $code = 'LOCAL_TTS_NO_VOICE' }
   if ($_.Exception.Message -like '*LOCAL_TTS_VOICE_UNAVAILABLE*') { $code = 'LOCAL_TTS_VOICE_UNAVAILABLE' }
   [Console]::Out.Write((@{ errorCode = $code } | ConvertTo-Json -Compress))
   exit 1
@@ -96,7 +101,7 @@ async function runSpeechProgram(
   signal?: AbortSignal,
 ): Promise<Record<string, unknown>> {
   if (process.platform !== 'win32') {
-    throw unavailable('LOCAL_TTS_WINDOWS_REQUIRED', 'Local narration requires Windows system speech.');
+    throw unavailable('LOCAL_TTS_WINDOWS_REQUIRED', '本机配音需要 Windows 系统语音。');
   }
   signal?.throwIfAborted();
   const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || 'C:\\Windows';
@@ -126,7 +131,7 @@ async function runSpeechProgram(
     };
     const abort = () => stop(signal?.reason ?? new DOMException('Aborted', 'AbortError'));
     const timeout = setTimeout(
-      () => stop(unavailable('LOCAL_TTS_TIMEOUT', 'Local speech synthesis timed out. Shorten this narration segment and retry.')),
+      () => stop(unavailable('LOCAL_TTS_TIMEOUT', '本机语音合成超时，请缩短这一段讲解后重试。')),
       timeoutMs,
     );
     const clean = () => {
@@ -146,7 +151,7 @@ async function runSpeechProgram(
     child.stdout.on('data', (chunk: Buffer) => {
       outputBytes += chunk.length;
       if (outputBytes > MAX_OUTPUT_BYTES) {
-        stop(unavailable('LOCAL_TTS_OUTPUT_LIMIT', 'The local narration file exceeds the per-segment size limit.'));
+        stop(unavailable('LOCAL_TTS_OUTPUT_LIMIT', '本机配音文件超过单段大小限制。'));
         return;
       }
       chunks.push(chunk);
@@ -154,10 +159,10 @@ async function runSpeechProgram(
     // Native error text is not returned or logged; it may contain host paths.
     child.stderr.resume();
     child.stdin.on('error', () => {
-      stop(unavailable('LOCAL_TTS_PROCESS_FAILED', 'Narration could not be passed to Windows system speech.'));
+      stop(unavailable('LOCAL_TTS_PROCESS_FAILED', '无法向 Windows 系统语音传递讲解内容。'));
     });
     child.on('error', () => {
-      finish(unavailable('LOCAL_TTS_PROCESS_FAILED', 'Windows system speech could not be started.'));
+      finish(unavailable('LOCAL_TTS_PROCESS_FAILED', '无法启动 Windows PowerShell 系统语音。'));
     });
     child.on('close', (exitCode) => {
       if (stopError) return finish(stopError);
@@ -170,14 +175,14 @@ async function runSpeechProgram(
         );
       } catch {
         return finish(
-          unavailable('LOCAL_TTS_INVALID_RESPONSE', 'Windows system speech did not return valid audio.'),
+          unavailable('LOCAL_TTS_INVALID_RESPONSE', 'Windows 系统语音没有返回有效音频。'),
         );
       }
-      if (result.errorCode === 'LOCAL_TTS_NO_ENGLISH_VOICE') {
+      if (result.errorCode === 'LOCAL_TTS_NO_VOICE') {
         return finish(
           unavailable(
-            'LOCAL_TTS_NO_ENGLISH_VOICE',
-            'No English system voice is available on this computer. Install an English Windows voice or select a configured speech service.',
+            'LOCAL_TTS_NO_VOICE',
+            '这台电脑没有可用系统声音。请安装 Windows 系统语音，或自行选择已配置的语音服务。',
           ),
         );
       }
@@ -185,7 +190,7 @@ async function runSpeechProgram(
         return finish(
           unavailable(
             'LOCAL_TTS_VOICE_UNAVAILABLE',
-            'The selected system voice is unavailable on this computer. Use automatic selection.',
+            '选择的系统声音在这台电脑上不可用，请改用自动选择。',
           ),
         );
       }
@@ -193,7 +198,7 @@ async function runSpeechProgram(
         return finish(
           unavailable(
             'LOCAL_TTS_SYNTHESIS_FAILED',
-            'Windows system speech synthesis failed. Check the installed English voices.',
+            'Windows 系统语音合成失败，请检查本机系统声音。',
           ),
         );
       }
@@ -212,7 +217,7 @@ export function inspectWindowsPcmWav(audio: Uint8Array): {
 } {
   const bytes = Buffer.from(audio.buffer, audio.byteOffset, audio.byteLength);
   const bad = () =>
-    unavailable('LOCAL_TTS_INVALID_AUDIO', 'Local narration is not a complete, audible PCM WAV file.');
+    unavailable('LOCAL_TTS_INVALID_AUDIO', '本机配音不是完整且有声的 PCM WAV 文件。');
   if (
     bytes.length < 44 ||
     bytes.toString('ascii', 0, 4) !== 'RIFF' ||
@@ -285,7 +290,7 @@ export async function getWindowsTtsCapability(signal?: AbortSignal): Promise<Win
         ];
       },
     );
-    const available = voices.some((voice) => /^en(?:-|$)/i.test(voice.language));
+    const available = voices.length > 0;
     return {
       ...base,
       available,
@@ -295,9 +300,9 @@ export async function getWindowsTtsCapability(signal?: AbortSignal): Promise<Win
         ? {}
         : {
             unavailableReason: {
-              code: 'LOCAL_TTS_NO_ENGLISH_VOICE',
+              code: 'LOCAL_TTS_NO_VOICE',
               message:
-                'No English system voice is available on this computer. Install an English Windows voice or select a configured speech service.',
+                '这台电脑没有可用系统声音。请安装 Windows 系统语音，或自行选择已配置的语音服务。',
             },
           }),
     };
@@ -306,7 +311,7 @@ export async function getWindowsTtsCapability(signal?: AbortSignal): Promise<Win
     const failure =
       error instanceof WindowsTtsError
         ? error
-        : unavailable('LOCAL_TTS_UNAVAILABLE', 'Local system speech is temporarily unavailable.');
+        : unavailable('LOCAL_TTS_UNAVAILABLE', '本机系统语音暂不可用。');
     return {
       ...base,
       available: false,
@@ -327,14 +332,14 @@ export async function generateWindowsSystemTts(input: {
   if (!text || text.length > WINDOWS_TTS_MAX_TEXT_LENGTH)
     throw new WindowsTtsError(
       'LOCAL_TTS_INVALID_TEXT',
-      `Each local narration segment must contain 1–${WINDOWS_TTS_MAX_TEXT_LENGTH} characters. Split longer narration into segments.`,
+      `本机单段配音须为 1–${WINDOWS_TTS_MAX_TEXT_LENGTH} 个字符，请将长讲解分段。`,
       400,
     );
   if (
     input.speed !== undefined &&
     (!Number.isFinite(input.speed) || input.speed < 0.5 || input.speed > 2)
   )
-    throw new WindowsTtsError('LOCAL_TTS_INVALID_SPEED', 'Local narration speed must be between 0.5 and 2.', 400);
+    throw new WindowsTtsError('LOCAL_TTS_INVALID_SPEED', '本机配音语速必须在 0.5 到 2 之间。', 400);
   // System.Speech Rate is an integer -10..10. Use its exponential rate scale.
   const rate = Math.max(-10, Math.min(10, Math.round(Math.log2(input.speed ?? 1) * 10)));
   const result = await runSpeechProgram(
@@ -344,7 +349,7 @@ export async function generateWindowsSystemTts(input: {
   );
   input.signal?.throwIfAborted();
   if (typeof result.base64 !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(result.base64))
-    throw unavailable('LOCAL_TTS_INVALID_RESPONSE', 'Windows system speech did not return valid audio.');
+    throw unavailable('LOCAL_TTS_INVALID_RESPONSE', 'Windows 系统语音没有返回有效音频。');
   const audio = Buffer.from(result.base64, 'base64');
   const { durationSeconds } = inspectWindowsPcmWav(audio);
   return { audio, format: 'wav', durationSeconds, voiceName: String(result.voiceName || '') };

@@ -6,7 +6,6 @@ import { nanoid } from 'nanoid';
 import type { NextRequest } from 'next/server';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { createLogger } from '@/lib/logger';
-import { withClassroomWrite } from './classroom-lifecycle';
 
 const log = createLogger('ClassroomStorage');
 
@@ -204,7 +203,7 @@ export async function reserveClassroom(id: string, stage: Stage): Promise<void> 
     createdAt: new Date().toISOString(),
     reserved: true,
   };
-  await withClassroomWrite(id, () => writeJsonFileExclusive(resolveClassroomFilePath(id), placeholder), true);
+  await writeJsonFileExclusive(resolveClassroomFilePath(id), placeholder);
 }
 
 /**
@@ -258,11 +257,12 @@ export async function persistClassroom(
   };
 
   const filePath = resolveClassroomFilePath(data.id);
-  await withClassroomWrite(data.id, async () => {
-    await ensureClassroomsDir();
-    if (options.exclusive) await writeJsonFileExclusive(filePath, classroomData);
-    else await writeJsonFileAtomic(filePath, classroomData);
-  });
+  await ensureClassroomsDir();
+  if (options.exclusive) {
+    await writeJsonFileExclusive(filePath, classroomData);
+  } else {
+    await writeJsonFileAtomic(filePath, classroomData);
+  }
 
   return {
     ...classroomData,

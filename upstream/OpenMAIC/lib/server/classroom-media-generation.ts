@@ -9,7 +9,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { createLogger } from '@/lib/logger';
 import { CLASSROOMS_DIR } from '@/lib/server/classroom-storage';
-import { withClassroomWrite } from './classroom-lifecycle';
 import { generateImage } from '@/lib/media/image-providers';
 import { generateVideo, normalizeVideoOptions } from '@/lib/media/video-providers';
 import { managedMediaProviderFetch } from '@/lib/server/media-provider-fetch';
@@ -145,7 +144,7 @@ export async function generateMediaForClassroom(
   baseUrl: string,
 ): Promise<Record<string, string>> {
   const mediaDir = path.join(CLASSROOMS_DIR, classroomId, 'media');
-  await withClassroomWrite(classroomId, () => ensureDir(mediaDir));
+  await ensureDir(mediaDir);
 
   // Collect all media generation requests from outlines
   const requests = outlines.flatMap((o) => o.mediaGenerations ?? []);
@@ -228,7 +227,7 @@ export async function generateMediaForClassroom(
         }
 
         const filename = `${req.elementId}.${ext}`;
-        await withClassroomWrite(classroomId, () => fs.writeFile(path.join(mediaDir, filename), buf));
+        await fs.writeFile(path.join(mediaDir, filename), buf);
         mediaMap[req.elementId] = mediaServingUrl(baseUrl, classroomId, `media/${filename}`);
         log.info(`Generated image: ${filename}`);
       } catch (err) {
@@ -274,7 +273,7 @@ export async function generateMediaForClassroom(
 
         const buf = await downloadToBuffer(result.url);
         const filename = `${req.elementId}.mp4`;
-        await withClassroomWrite(classroomId, () => fs.writeFile(path.join(mediaDir, filename), buf));
+        await fs.writeFile(path.join(mediaDir, filename), buf);
         mediaMap[req.elementId] = mediaServingUrl(baseUrl, classroomId, `media/${filename}`);
         log.info(`Generated video: ${filename}`);
       } catch (err) {
@@ -475,7 +474,7 @@ export async function generateTTSForClassroom(
   requestConfig?: ContestProviderOptions['ttsConfig'],
 ): Promise<ClassroomTtsCoverage> {
   const audioDir = path.join(CLASSROOMS_DIR, classroomId, 'audio');
-  await withClassroomWrite(classroomId, () => ensureDir(audioDir));
+  await ensureDir(audioDir);
 
   // Resolve TTS provider (exclude browser-native-tts and operator force-disabled
   // providers — server precedence, #665).
@@ -574,7 +573,7 @@ export async function generateTTSForClassroom(
           );
 
           const filename = `${audioId}.${result.format || format}`;
-          await withClassroomWrite(classroomId, () => fs.writeFile(path.join(audioDir, filename), result.audio));
+          await fs.writeFile(path.join(audioDir, filename), result.audio);
 
           speechAction.audioId = audioId;
           speechAction.audioUrl = mediaServingUrl(baseUrl, classroomId, `audio/${filename}`);

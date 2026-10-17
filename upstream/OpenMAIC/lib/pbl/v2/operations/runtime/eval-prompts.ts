@@ -131,7 +131,7 @@ export function buildTaskEvalPrompt(
  *  per-microtask block is the difference between generic "Great
  *  work!" feedback and feedback that actually references what the
  *  learner did — see the user's repeated requirement that milestone
- *  feedback come from observations that emerge naturally during the stage. */
+ *  feedback come from data that "自然涌现" during the stage. */
 export function buildMilestoneEvalPrompt(
   project: PBLProjectV2,
   milestone: PBLMilestone,

@@ -144,7 +144,7 @@ export function sanitizeMilestoneEvaluationFeedback(text: string): string {
   const { narrative, tail } = splitLastFencedJsonTail(text);
   const normalized = narrative.replace(/\r\n/g, '\n');
   const disallowedSectionRe =
-    /(^|\n)\s*(?:#{1,6}\s*)?(?:First microtask|Next (?:stage|task|plan|content|guidance)|Current stage goal|Your (?:current )?code should look like|Reference code|Code template|Starter code)[^\n]*/i;
+    /(^|\n)\s*(?:#{1,6}\s*)?(?:当前阶段目标|下(?:一|个|一个)阶段(?:目标|任务|计划|内容|引导)|你目前的代码应该长这样|目前的代码应该长这样|参考代码|起始代码|代码模板|第(?:一|1)个微任务|第(?:一|1)个任务|First microtask|Next task|Current stage goal|Your code should look like|Starter code)[^\n]*/i;
   const sectionMatch = disallowedSectionRe.exec(normalized);
   const keptNarrative = sectionMatch
     ? normalized.slice(0, Math.max(0, sectionMatch.index)).trimEnd()

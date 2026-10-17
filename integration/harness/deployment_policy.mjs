@@ -3,7 +3,10 @@ import { dirname, join } from 'node:path';
 
 export function deploymentProtectedPaths(programRoot, stateRoot, tokenFile) {
   const state = stateRoot || programRoot;
-  return [dirname(tokenFile), join(state, 'runtime', 'deeptutor-home'), join(state, 'data')];
+  const home = join(state, 'runtime', 'deeptutor-home', 'data');
+  return [dirname(tokenFile), join(home, 'system'), join(home, 'user', 'private'),
+    join(home, 'user', 'settings'), join(state, 'runtime', 'desktop-profile'),
+    join(state, 'cache', 'desktop-session')];
 }
 
 export function routeSupportsImages(route) {

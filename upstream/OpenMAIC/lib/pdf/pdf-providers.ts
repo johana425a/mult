@@ -210,7 +210,7 @@ const SELF_HOSTED_MINERU_INVALID_RESPONSE =
 export async function parsePDF(
   config: PDFParserConfig,
   pdfBuffer: Buffer,
-  options?: { fileName?: string; mimeType?: string; serverContext?: { ownerScope: string } },
+  options?: { fileName?: string; mimeType?: string },
 ): Promise<ParsedPdfContent> {
   const provider = PDF_PROVIDERS[config.providerId];
   if (!provider) {
@@ -231,17 +231,6 @@ export async function parsePDF(
   let result: ParsedPdfContent;
 
   switch (config.providerId) {
-    case 'deepsteam-local': {
-      const [{ deepsteamLocalDocumentExtractor }, { documentArtifactToParsedPdfContent }] = await Promise.all([
-        import('@/lib/document/extractors/deepsteam-local'), import('@/lib/document/pdf-compat'),
-      ]);
-      result = documentArtifactToParsedPdfContent(await deepsteamLocalDocumentExtractor.extract({
-        buffer: pdfBuffer, fileName: options?.fileName, fileSize: pdfBuffer.length,
-        mimeType: options?.mimeType ?? 'application/pdf', config: { providerId: 'deepsteam-local', textOnly: config.textOnly },
-        serverContext: options?.serverContext,
-      }));
-      break;
-    }
     case 'unpdf':
       result = await parseWithUnpdf(pdfBuffer, config.textOnly === true);
       break;

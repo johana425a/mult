@@ -14,7 +14,7 @@
  * Visual scope:
  *  - tight, fits inside a chat bubble (max-width ~80%)
  *  - strengths on top (green-ish accent), improvements below
- *    (amber accent for "Can be improved" — keep it light, not negative)
+ *    (amber accent for "可以更好" — keep it light, not negative)
  *  - score chip, top-right, hidden when score is undefined
  *
  * Design choice: we do NOT show stars on task eval. Stars are for

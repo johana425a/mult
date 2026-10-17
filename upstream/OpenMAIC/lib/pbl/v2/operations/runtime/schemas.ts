@@ -97,7 +97,7 @@ export const AdjustDifficultyArgs = z.object({
   target: z
     .enum(['beginner', 'intermediate', 'advanced', 'easier', 'harder'])
     .describe(
-      "The level the learner asked for. Use the absolute tiers (beginner/intermediate/advanced) when they name a level or describe their own ('I'm a beginner', 'switch to intermediate', 'for advanced learners'); use easier/harder for a relative nudge ('make it easier', 'make it harder', 'too hard') — that shifts one step from the current level.",
+      "The level the learner asked for. Use the absolute tiers (beginner/intermediate/advanced) when they name a level or describe their own ('I'm a beginner', '改成中级', '上級者向けに'); use easier/harder for a relative nudge ('简单一点', 'сделай сложнее', 'too hard') — that shifts one step from the current level.",
     ),
 });
 export type AdjustDifficultyInput = z.infer<typeof AdjustDifficultyArgs>;

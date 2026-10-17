@@ -95,22 +95,22 @@ function extractLearnerMemory(messages: PBLChatMessage[]): string[] {
   const buckets: Array<{ label: string; re: RegExp; max: number }> = [
     {
       label: 'Environment/tools',
-      re: /(vscode|vs code|pycharm|cursor|ide|terminal|command line|python|node|npm|pnpm|browser|mac|windows|jupyter)/i,
+      re: /(vscode|vs code|pycharm|cursor|ide|terminal|终端|命令行|python|node|npm|pnpm|浏览器|mac|windows|jupyter)/i,
       max: 3,
     },
     {
       label: 'Level/preference',
-      re: /(new learner|novice|basic|simplest|do not understand|do not know|intermediate|slower|detail|direct|beginner|advanced|explain|simple)/i,
+      re: /(零基础|0基础|小白|新手|初学|最简单|不懂|不会|有基础|高级|慢一点|详细|直接|中文|英文|beginner|advanced|explain|simple)/i,
       max: 4,
     },
     {
       label: 'Blocker/confusion',
-      re: /(failure|blocked|do not understand|error|failed|traceback|stuck|confused|cannot|can't)/i,
+      re: /(报错|错误|失败|卡住|不懂|不会|error|failed|traceback|stuck|confused|cannot|can't)/i,
       max: 4,
     },
     {
       label: 'Progress/evidence',
-      re: /(finished|ready|success|done|works|worked|passed|submitted|saved)/i,
+      re: /(完成|好了|可以了|通过|成功|提交|保存|done|works|worked|passed|submitted|saved)/i,
       max: 4,
     },
   ];

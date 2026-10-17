@@ -34,7 +34,7 @@ The JSON object must have this EXACT shape:
 
 - `learned`: 2-4 short bullets. Phrase them as skills / understandings the
   learner now has, **in `{{language}}` the learner would recognise**
-  (e.g. "Handle two cases using if/else" not "Conditional control flow"). Skip
+  (e.g. "用 if/else 处理两种情况" not "Conditional control flow"). Skip
   jargon unless the learner used it themselves.
 - `performance`: 1-2 sentences in `{{language}}`, human and specific.
   Mention something they actually did. **NOT** "good job" / "keep it up".

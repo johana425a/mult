@@ -7,19 +7,19 @@ interface LinePresetPickerProps {
 }
 
 function getPresetLabel(preset: LinePoolItem) {
-  if (preset.isCubic) return 'Cubic curve';
-  if (preset.isCurve) return 'Curve';
-  if (preset.isBroken2) return 'Double elbow line';
-  if (preset.isBroken) return 'Elbow line';
-  if (preset.points[1] === 'arrow') return 'Arrow line';
-  if (preset.points[1] === 'dot') return 'Dot-ended line';
-  return preset.style === 'dashed' ? 'Dashed line' : 'Straight line';
+  if (preset.isCubic) return '三次曲线';
+  if (preset.isCurve) return '曲线';
+  if (preset.isBroken2) return '双折线';
+  if (preset.isBroken) return '折线';
+  if (preset.points[1] === 'arrow') return '箭头直线';
+  if (preset.points[1] === 'dot') return '圆点直线';
+  return preset.style === 'dashed' ? '虚线' : '直线';
 }
 
 /** Renderer-editor insert palette for the existing DSL line presets. */
 export function LinePresetPicker({ onPick }: LinePresetPickerProps) {
   return (
-    <div className="grid grid-cols-5 gap-2" role="group" aria-label="Line presets">
+    <div className="grid grid-cols-5 gap-2" role="group" aria-label="线条预设">
       {LINE_LIST.flatMap((group) => group.children).map((preset, index) => {
         const label = getPresetLabel(preset);
         return (

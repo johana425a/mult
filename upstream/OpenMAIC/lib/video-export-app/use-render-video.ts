@@ -22,11 +22,19 @@ export function useRenderVideo() {
   const setOptions = useVideoRenderStore((s) => s.setOptions);
   const startRender = useVideoRenderStore((s) => s.startRender);
   const error = useVideoRenderStore((s) => s.error);
+  const jobId = useVideoRenderStore((s) => s.jobId);
+  const frameCount = useVideoRenderStore((s) => s.frameCount);
+  const filename = useVideoRenderStore((s) => s.filename);
+  const selection = useVideoRenderStore((s) => s.selection);
+  const cancelRender = useVideoRenderStore((s) => s.cancelRender);
+  const restoreRender = useVideoRenderStore((s) => s.restoreRender);
 
-  const renderVideo = useCallback(() => startRender(t, locale), [startRender, t, locale]);
+  const renderVideo = useCallback((sceneIds?: readonly string[]) => startRender(t, locale, sceneIds), [startRender, t, locale]);
+  const resumeRender = useCallback(() => restoreRender(t), [restoreRender,t]);
 
   return {
-    rendering: status === 'compiling' || status === 'rendering',
+    rendering: status === 'compiling' || status === 'rendering' || status === 'cancelling',
+    status, jobId, frameCount, filename, selection, cancelRender, resumeRender,
     percent,
     etaMs,
     options,

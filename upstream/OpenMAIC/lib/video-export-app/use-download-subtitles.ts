@@ -31,7 +31,7 @@ export function useDownloadSubtitles() {
   const resolution = useVideoRenderStore((state) => state.options.resolution);
 
   const downloadSubtitles = useCallback(
-    async (format: SubtitleFormat = 'srt') => {
+    async (format: SubtitleFormat = 'srt', sceneIds?: readonly string[]) => {
       if (downloading) return;
       // Shared with the ZIP export: both funnel through the same stage-store /
       // Dexie compile, so only one export operation runs at a time.
@@ -43,6 +43,7 @@ export function useDownloadSubtitles() {
         const { srt, vtt, stageName, cueCount } = await compileSubtitles({
           resolution,
           locale,
+          sceneIds,
         });
         if (cueCount === 0) {
           toast.error(t('export.subtitlesEmpty'), { id: toastId });

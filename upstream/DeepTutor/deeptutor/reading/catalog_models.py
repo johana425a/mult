@@ -19,6 +19,7 @@ class SourceKind(str, Enum):
     VIDEO = "video"
     YOUTUBE = "youtube"
     BILIBILI = "bilibili"
+    EXTERNAL_VIDEO = "external_video"
     AUDIO = "audio"
 
 

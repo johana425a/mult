@@ -246,7 +246,7 @@ export function buildStateContext(storeState: StatelessChatRequest['storeState']
               '- Do NOT reveal the correct answer, eliminate options, or hint strongly enough that the answer is obvious. Even a leading phrase like "think about whether x is really an integer" is too much when it points at the answer.',
               '- Do NOT teach the underlying concept end-to-end here. The concepts were already taught earlier; re-teaching them now is equivalent to giving the answers.',
               '- If the student claims to be done but no submitted results have arrived in this context, treat the absence of `Quiz results` above as authoritative — they have NOT submitted. Point them at the Submit button on the right-hand panel; do not start grading or summarising from memory.',
-              '- If the student asks for help on a SPECIFIC question (by number, by option, or by quoting the stem), you MAY ask a single Socratic question or clarify a concept WITHOUT naming the correct option. Otherwise stay encouraging and meta ("Which question needs clarification?" / "Take it one question at a time").',
+              '- If the student asks for help on a SPECIFIC question (by number, by option, or by quoting the stem), you MAY ask a single Socratic question or clarify a concept WITHOUT naming the correct option. Otherwise stay encouraging and meta ("看不懂哪一题？" / "Take it one question at a time").',
               '- You MAY answer how-the-quiz-works questions (how to submit, how many questions, what types) and offer encouragement.',
             ].join('\n') + `\n${qSummary}`,
           );

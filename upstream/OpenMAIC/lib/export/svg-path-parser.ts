@@ -18,8 +18,8 @@ const typeMap = {
 };
 
 /**
- * Parse a simple SVG path.
- * @param d SVG path d attribute
+ * 简单解析SVG路径
+ * @param d SVG path d属性
  */
 export const parseSvgPath = (d: string) => {
   const pathData = new SVGPathData(d);
@@ -33,8 +33,8 @@ export const parseSvgPath = (d: string) => {
 export type SvgPath = ReturnType<typeof parseSvgPath>;
 
 /**
- * Parse SVG paths and convert arc (A) segments to cubic Bezier (C) segments.
- * @param d SVG path d attribute
+ * 解析SVG路径，并将圆弧（A）类型的路径转为三次贝塞尔（C）类型的路径
+ * @param d SVG path d属性
  *
  * Returns an empty array if the path is malformed (e.g. unrecognised commands).
  * Mirrors the defensive behaviour of {@link getSvgPathRange}: a single bad path

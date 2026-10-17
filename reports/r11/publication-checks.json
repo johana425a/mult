@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "date": "2026-10-17",
+  "scope": "focused source-publication regression; no new full installer or paid model run",
+  "previously_run_this_publication": [
+    {
+      "test": "test_sidebar_view_state.cjs",
+      "passed": 8,
+      "dependency_reuse": "existing web dependencies; tested source from this checkout"
+    },
+    {
+      "test": "test_prefetch_refill.mjs",
+      "passed": 8,
+      "tested_source": "published TypeScript scheduler"
+    },
+    {
+      "test": "test_harness_result_contract.py",
+      "passed": 5,
+      "tested_source": "published pipeline; only Harness outcome mocked"
+    }
+  ],
+  "checks": [
+    {
+      "name": "generation-compiled-from-publication",
+      "passed": true,
+      "seconds": 3.084,
+      "method": "published source compiled locally; existing locked dependencies reused; root type dependencies required"
+    },
+    {
+      "name": "test_compact_flow.mjs",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.622,
+      "dependency_reuse": "published source freshly compiled; existing locked third-party dependencies reused"
+    },
+    {
+      "name": "test_semantic_slide_layout.mjs",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.997,
+      "dependency_reuse": "published source freshly compiled; existing locked third-party dependencies reused"
+    },
+    {
+      "name": "test_table_layout.mjs",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.01,
+      "dependency_reuse": "published source freshly compiled; existing locked third-party dependencies reused"
+    },
+    {
+      "name": "changed-python-syntax",
+      "files": 66,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "changed-node-syntax",
+      "files": 34,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "harness-staging-import-closure",
+      "files": 24,
+      "passed": true,
+      "missing": []
+    },
+    {
+      "name": "documentation-links",
+      "passed": true,
+      "broken": []
+    }
+  ],
+  "failures": [],
+  "external_build_not_reused": {
+    "source_differences": [
+      "src/slide-layout.ts"
+    ],
+    "reason": "concurrent unpublished layout refinement; compile this snapshot instead"
+  }
+}

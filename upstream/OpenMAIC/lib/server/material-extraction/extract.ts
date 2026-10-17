@@ -24,12 +24,10 @@ import {
   resolveSessionMaterialRawAsset,
   storeSessionMaterialRawAsset,
 } from '@/lib/server/agent-runtime/session-materials';
-import { getAgentSessionStore } from '@/lib/server/agent-runtime/store';
 
 import { isTransientExtractionError, MaterialExtractionError } from './errors';
 
 export interface MaterialExtractionExecutionDependencies {
-  resolveOwner?: (sessionId: string) => Promise<string | undefined>;
   resolveSource?: (
     sessionId: string,
     assetId: string,
@@ -217,13 +215,6 @@ export async function extractClaimedSessionMaterial(
   const candidates = extractorCandidates(raw.mime, providers, configuredIds);
   if (candidates.length === 0) throw new Error(`no document extractor supports ${raw.mime}`);
 
-  // A claimed material is already scoped to a persisted session. Never invent
-  // an anonymous/shared identity for background work without a browser request.
-  const needsOwner = candidates.some(provider => provider.id === 'deepsteam-local');
-  const ownerScope = needsOwner ? await (dependencies.resolveOwner ?? (async sessionId =>
-    (await (await getAgentSessionStore()).getSession(sessionId))?.ownerId))(source.sessionId) : undefined;
-  if (needsOwner && !ownerScope) throw new MaterialExtractionError('The material owner session does not exist, so it cannot be read.', false);
-
   const errors: string[] = [];
   const failures: unknown[] = [];
   let artifact: DocumentArtifact | undefined;
@@ -235,7 +226,6 @@ export async function extractClaimedSessionMaterial(
         fileName: source.title ?? undefined,
         fileSize: raw.bytes.byteLength,
         mimeType: raw.mime,
-        ...(provider.id === 'deepsteam-local' ? { serverContext: { ownerScope: ownerScope! } } : {}),
         config: {
           providerId: provider.id,
           apiKey: resolvePDFApiKey(provider.id) || undefined,

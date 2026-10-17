@@ -78,9 +78,27 @@ export const MONO_LOGO_PROVIDERS: ReadonlySet<string> = new Set(['openai', 'open
 export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
   // Shared desktop connection; secrets and the actual gateway route are server-only.
   'custom-deepsteam-shared': {
-    id: 'custom-deepsteam-shared', name: 'DeepSteam active model', type: 'openai',
+    id: 'custom-deepsteam-shared', name: 'DeepSteam 当前模型', type: 'openai',
     requiresApiKey: true, supportsModelDiscovery: false, icon: '/deepsteam-mark.svg',
-    models: [{ id: 'current', name: 'Follow the active DeepSteam connection' }],
+    models: [{ id: 'current', name: '跟随 DeepSteam 当前连接' }],
+  },
+  // DeepSteam desktop addition: independent from every user API provider.
+  'custom-deepsteam-local': {
+    id: 'custom-deepsteam-local',
+    name: '内置千问（本机运行）',
+    type: 'openai',
+    defaultBaseUrl: 'http://127.0.0.1:3795/v1',
+    requiresApiKey: false,
+    supportsModelDiscovery: true,
+    icon: '/deepsteam-mark.svg',
+    models: [{
+      id: 'qwen3.5-4b-local',
+      name: '千问 3.5 · 4B 本地',
+      contextWindow: 16384,
+      outputWindow: 4096,
+      capabilities: { streaming: true, tools: true, vision: true,
+        thinking: { control: 'none', defaultMode: 'disabled', defaultEnabled: false } },
+    }],
   },
   openai: {
     id: 'openai',
@@ -1164,7 +1182,7 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
 
   siliconflow: {
     id: 'siliconflow',
-    name: 'SiliconFlow',
+    name: '硅基流动',
     type: 'openai',
     defaultBaseUrl: 'https://api.siliconflow.cn/v1',
     requiresApiKey: true,
@@ -1228,7 +1246,7 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
 
   doubao: {
     id: 'doubao',
-    name: 'Doubao',
+    name: '豆包',
     type: 'openai',
     defaultBaseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
     requiresApiKey: true,
@@ -1812,7 +1830,7 @@ function getCompatThinkingBodyParams(
       if (capability.control === 'effort') {
         if (mode === 'disabled' || config.effort === 'none') {
           // Forced-thinking models (GLM-5.3/5.3-Flash) reject
-          // {type:'disabled'} ("This model always reasons and cannot disable reasoning"); use the
+          // {type:'disabled'} ("该模型始终思考,不支持关闭思考"); use the
           // lightest effort instead of failing the whole request.
           if (capability.toggleable === false) {
             const lightest = capability.effortValues?.[0];

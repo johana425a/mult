@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_PI_CHAT_ENABLED: process.env.NEXT_PUBLIC_PI_CHAT_ENABLED ?? '',
   },
   output: process.env.VERCEL ? undefined : 'standalone',
+  outputFileTracingExcludes: {'/*':['node_modules.partial/**/*']},
   outputFileTracingIncludes: {
     '/*': [
       'lib/server/agent-runtime/import-pptx-worker.mjs',
@@ -18,6 +19,7 @@ const nextConfig: NextConfig = {
       // dispatcher in lib/ai/providers.ts and the Google proxy transport), so
       // the output tracer never sees it and standalone builds ship without it.
       'node_modules/undici/**',
+      'node_modules/.pnpm/canvas@3.2.3/node_modules/canvas/build/Release/**',
       // sharp's native libvips libraries are loaded via dlopen and are not
       // statically analyzable, so Next.js standalone tracing omits them. Two
       // sharp versions resolve in the tree (0.34.5 transitive -> libvips
@@ -45,6 +47,8 @@ const nextConfig: NextConfig = {
   // Mark them server-external so Next loads them natively and the dynamic
   // import resolves as a real Node call.
   serverExternalPackages: [
+    'canvas',
+    'linkedom',
     '@earendil-works/pi-ai',
     '@earendil-works/pi-agent-core',
     '@openmaic/generation',

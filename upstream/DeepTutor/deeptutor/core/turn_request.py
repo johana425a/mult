@@ -69,6 +69,9 @@ class ReadingViewport(BaseModel):
 
     locator: int | None = Field(default=None, ge=0)
     selection: str | None = None
+    # Reading owns online video as well as document pages. A video viewport
+    # must retain its timestamp through admission, persistence and replay.
+    time_seconds: float | None = Field(default=None, ge=0, allow_inf_nan=False)
 
 
 class TimedMediaViewport(BaseModel):

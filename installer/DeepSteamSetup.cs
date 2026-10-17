@@ -10,6 +10,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,9 +24,35 @@ namespace DeepSteamInstaller
 {
     internal static class Program
     {
-        internal const string Version = "2026.10.16-r10-standalone";
+        internal const string Version = "2026.10.16-r10.2-local";
         internal const string InstallingMarker = ".deepsteam-installing";
         internal const string InstalledMarker = ".deepsteam-installed";
+
+        // The installed runtime can be updated independently of this launcher.
+        // This is display-only; installer/uninstaller ownership stays pinned.
+        internal static string DisplayVersion(string root)
+        {
+            try
+            {
+                if (!File.Exists(Path.Combine(root, InstalledMarker))) return Version;
+                using (FileStream file = File.OpenRead(Path.Combine(root, "RELEASE-IDENTITY.json")))
+                {
+                    ReleaseDisplay identity = new DataContractJsonSerializer(typeof(ReleaseDisplay)).ReadObject(file) as ReleaseDisplay;
+                    if (identity != null && identity.Product == "DeepSteam" && identity.Version != null &&
+                        Regex.IsMatch(identity.Version, @"^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$"))
+                        return identity.Version;
+                }
+            }
+            catch { }
+            return Version;
+        }
+
+        [DataContract]
+        private sealed class ReleaseDisplay
+        {
+            [DataMember(Name = "product")] public string Product { get; set; }
+            [DataMember(Name = "version")] public string Version { get; set; }
+        }
 
         [STAThread]
         private static int Main(string[] args)
@@ -222,6 +250,31 @@ namespace DeepSteamInstaller
             catch { file.Dispose(); throw; }
         }
 
+        internal static void WriteBootstrap(string source, string destination)
+        {
+            // The uninstaller needs only the small PE prefix. Copying an entire
+            // appended distribution makes the installed entry fail its size gate.
+            using (FileStream file = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                long length = file.Length;
+                if (length > 4 * 1024 * 1024)
+                {
+                    file.Seek(-64, SeekOrigin.End);
+                    byte[] trailer = new byte[64]; ReadExactly(file, trailer, 0, 64);
+                    long offset = BitConverter.ToInt64(trailer, 16), payloadLength = BitConverter.ToInt64(trailer, 24);
+                    if (!HasTrailerMagic(trailer) || offset < 64 || offset > 4 * 1024 * 1024 ||
+                        payloadLength < 22 || payloadLength != file.Length - offset - 64)
+                        throw new InvalidDataException("无法确定卸载组件的有效程序边界。");
+                    length = offset;
+                }
+                if (length < 64) throw new InvalidDataException("卸载组件不完整。");
+                file.Position = 0;
+                byte[] bootstrap = new byte[(int)length]; ReadExactly(file, bootstrap, 0, bootstrap.Length);
+                if (bootstrap[0] != 'M' || bootstrap[1] != 'Z') throw new InvalidDataException("卸载组件不是有效程序。");
+                File.WriteAllBytes(destination, bootstrap);
+            }
+        }
+
         private static bool HasTrailerMagic(byte[] trailer)
         {
             for (int i = 0; i < TrailerMagic.Length; i++) if (trailer[i] != TrailerMagic[i]) return false;
@@ -343,7 +396,7 @@ namespace DeepSteamInstaller
                     string relative = EntryPath(entry.FullName).Replace('/', Path.DirectorySeparatorChar);
                     string target = Path.GetFullPath(Path.Combine(root, relative));
                     if (!target.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidDataException("An installation file path escapes the destination folder.");
+                        throw new InvalidDataException("安装文件路径超出了所选文件夹。");
                     string folder = relative.EndsWith(Path.DirectorySeparatorChar.ToString()) ? target : Path.GetDirectoryName(target);
                     EnsureNoReparsePoint(folder);
                     Directory.CreateDirectory(Extended(folder));
@@ -352,7 +405,7 @@ namespace DeepSteamInstaller
                     if (File.Exists(extendedTarget))
                     {
                         if ((File.GetAttributes(extendedTarget) & FileAttributes.ReparsePoint) != 0)
-                            throw new IOException("The destination contains a file link. Choose a new installation directory.");
+                            throw new IOException("安装位置含文件链接，请选择新的普通文件夹。");
                         // Never overwrite a prior installation's local edits or user data.
                         skipped++;
                     }
@@ -370,7 +423,7 @@ namespace DeepSteamInstaller
                                     if (cancelled()) throw new OperationCanceledException();
                                     output.Write(buffer, 0, read);
                                 }
-                                if (output.Length != entry.Length) throw new InvalidDataException("The extracted file length does not match the manifest.");
+                                if (output.Length != entry.Length) throw new InvalidDataException("解压文件长度与清单不一致，请重新获取安装包。");
                             }
                             File.Move(temporary, extendedTarget);
                         }
@@ -722,7 +775,7 @@ namespace DeepSteamInstaller
         {
             motion = new SetupMotion(Step);
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
-            AccessibleName = "Operation progress";
+            AccessibleName = "操作进度";
             AccessibleRole = AccessibleRole.ProgressBar;
         }
         protected override void OnPaint(PaintEventArgs e)
@@ -838,7 +891,7 @@ namespace DeepSteamInstaller
         internal SetupHero()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
-            AccessibleName = "DeepSteam · Keep curiosity growing.";
+            AccessibleName = "DeepSteam 金色圆点旋涡标志";
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -852,7 +905,7 @@ namespace DeepSteamInstaller
             {
                 TextRenderer.DrawText(g, "D E E P S T E A M   /   D E S K T O P", eyebrow, new Point(0, (int)(5 * scale)), SetupTheme.Muted);
                 TextRenderer.DrawText(g, "DeepSteam", wordmark, new Point(-3, (int)(24 * scale)), SetupTheme.Ink);
-                TextRenderer.DrawText(g, "Keep curiosity growing.", tagline, new Point(0, (int)(89 * scale)), SetupTheme.Muted);
+                TextRenderer.DrawText(g, "让好奇心持续生长", tagline, new Point(0, (int)(89 * scale)), SetupTheme.Muted);
             }
             if (Width < 530 * scale) return;
             bool motion = SetupTheme.Motion;
@@ -931,7 +984,7 @@ namespace DeepSteamInstaller
         private readonly Panel detailsPanel = new Panel();
         private readonly System.Windows.Forms.Timer animation = new System.Windows.Forms.Timer();
         private readonly Stopwatch motionClock = new Stopwatch();
-        private readonly string[] tips = { "Connect your chosen model and turn questions into understanding.", "Open a folder and make your materials the starting point for learning.", "Continue conversations, practice, and review in one workspace.", "Expand operation details whenever you need diagnostics." };
+        private readonly string[] tips = { "连接你选择的模型，围绕问题展开学习。", "打开资料文件夹，从自己的教材和文档开始学习。", "在同一工作区中继续对话、练习和复习。", "如需了解处理情况，可展开操作详情。" };
         private int tipIndex = -1;
         private readonly BackgroundWorker worker = new BackgroundWorker();
         private readonly string startupAction;
@@ -947,9 +1000,10 @@ namespace DeepSteamInstaller
         internal InstallerForm(string action)
         {
             SuspendLayout();
+            Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             startupAction = action;
             SetupWindowMotion.Prepare(this);
-            Text = "DeepSteam · Install and launch";
+            Text = "DeepSteam 安装与启动";
             StartPosition = FormStartPosition.CenterScreen;
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -996,10 +1050,10 @@ namespace DeepSteamInstaller
             settings.BackColor = SetupTheme.Panel;
             for (int i = 0; i < 4; i++) settings.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             setup.Controls.Add(settings);
-            Label directoryLabel = MakeLabel("Your learning space starts here", 12F, true);
+            Label directoryLabel = MakeLabel("设置 DeepSteam 安装位置", 12F, true);
             directoryLabel.Margin = new Padding(0, 0, 0, 7);
             settings.Controls.Add(directoryLabel, 0, 0);
-            Label directoryHint = MakeLabel("Installation directory · Choose a dedicated folder on a fixed local drive", 9F, false);
+            Label directoryHint = MakeLabel("请选择本机磁盘中的专用文件夹", 9F, false);
             directoryHint.ForeColor = SetupTheme.Muted;
             directoryHint.Margin = new Padding(0, 0, 0, 12);
             settings.Controls.Add(directoryHint, 0, 1);
@@ -1021,11 +1075,11 @@ namespace DeepSteamInstaller
             directory.BorderStyle = BorderStyle.None;
             directory.BackColor = SetupTheme.Paper;
             directory.ForeColor = SetupTheme.Ink;
-            directory.AccessibleName = "DeepSteam installation directory";
+            directory.AccessibleName = "DeepSteam 安装位置";
             directory.Text = DefaultRoot();
             directory.TextChanged += delegate { UpdateButtons(); };
             input.Controls.Add(directory);
-            ConfigureButton(browse, "Choose folder", 108);
+            ConfigureButton(browse, "选择文件夹", 108);
             browse.Margin = Padding.Empty;
             browse.Click += delegate { ChooseFolder(); };
             folderRow.Controls.Add(input, 0, 0);
@@ -1037,11 +1091,11 @@ namespace DeepSteamInstaller
             options.AutoSize = true;
             options.Margin = Padding.Empty;
             options.BackColor = SetupTheme.Panel;
-            shortcuts.Text = "Create desktop shortcuts";
+            shortcuts.Text = "创建桌面快捷方式";
             shortcuts.Checked = true;
             shortcuts.AutoSize = true;
             shortcuts.Margin = new Padding(0, 0, 24, 0);
-            openAfter.Text = "Open DeepSteam after installation";
+            openAfter.Text = "安装完成后打开 DeepSteam";
             openAfter.Checked = true;
             openAfter.AutoSize = true;
             openAfter.Margin = Padding.Empty;
@@ -1054,11 +1108,11 @@ namespace DeepSteamInstaller
             buttons.Dock = DockStyle.Top;
             buttons.AutoSize = true;
             buttons.Margin = new Padding(0, 0, 0, 20);
-            ConfigureButton(install, "Install DeepSteam", 152);
+            ConfigureButton(install, "安装 DeepSteam", 152);
             ((SetupButton)install).Primary = true;
-            ConfigureButton(start, "Open app", 106);
-            ConfigureButton(stop, "Stop services", 106);
-            ConfigureButton(cancel, "Cancel installation", 106);
+            ConfigureButton(start, "打开软件", 106);
+            ConfigureButton(stop, "停止服务", 106);
+            ConfigureButton(cancel, "取消安装", 106);
             install.Click += delegate { BeginInstall(); };
             start.Click += delegate { BeginService(false); };
             stop.Click += delegate { BeginService(true); };
@@ -1081,7 +1135,7 @@ namespace DeepSteamInstaller
             statusLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             statusLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             for (int i = 0; i < 4; i++) statusLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            phaseLabel.Text = "Ready";
+            phaseLabel.Text = "准备就绪";
             phaseLabel.Font = new Font(Font, FontStyle.Bold);
             phaseLabel.AutoSize = true;
             phaseLabel.Margin = new Padding(0, 0, 0, 7);
@@ -1090,7 +1144,7 @@ namespace DeepSteamInstaller
             progressValue.Margin = Padding.Empty;
             statusLayout.Controls.Add(phaseLabel, 0, 0);
             statusLayout.Controls.Add(progressValue, 1, 0);
-            state.Text = "Choose an installation directory to begin. The runtime and document tools are included.";
+            state.Text = "选择安装位置后即可开始。安装包已包含运行环境和本地文档工具。";
             state.AutoSize = true;
             state.Dock = DockStyle.Top;
             state.ForeColor = SetupTheme.Muted;
@@ -1127,18 +1181,18 @@ namespace DeepSteamInstaller
             diagnostics.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             diagnostics.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             diagnostics.Margin = Padding.Empty;
-            details.Text = "Show operation details +";
+            details.Text = "展开操作详情 +";
             details.AutoSize = true;
             details.LinkColor = details.ActiveLinkColor = SetupTheme.Muted;
             details.LinkBehavior = LinkBehavior.HoverUnderline;
             details.Margin = new Padding(0, 2, 0, 8);
             details.LinkClicked += delegate { SetDetails(!detailsPanel.Visible); };
-            copyLog.Text = "Copy details";
+            copyLog.Text = "复制详情";
             copyLog.AutoSize = true;
             copyLog.Visible = false;
             copyLog.LinkColor = copyLog.ActiveLinkColor = SetupTheme.Muted;
             copyLog.LinkBehavior = LinkBehavior.HoverUnderline;
-            copyLog.LinkClicked += delegate { try { if (output.TextLength > 0) Clipboard.SetText(output.Text); } catch (ExternalException) { state.Text = "Copy failed. Try again or select the text in the details panel."; } };
+            copyLog.LinkClicked += delegate { try { if (output.TextLength > 0) Clipboard.SetText(output.Text); } catch (ExternalException) { state.Text = "复制未完成，请重试或在详情中选择文字。"; } };
             diagnostics.Controls.Add(details, 0, 0);
             diagnostics.Controls.Add(copyLog, 1, 0);
             detailsPanel.Dock = DockStyle.Top;
@@ -1154,12 +1208,12 @@ namespace DeepSteamInstaller
             output.BackColor = SetupTheme.Panel;
             output.ForeColor = SetupTheme.Ink;
             output.Font = new Font("Microsoft YaHei UI", 8.5F);
-            output.AccessibleName = "Operation details for diagnostics";
+            output.AccessibleName = "操作详情与诊断信息";
             detailsPanel.Controls.Add(output);
             diagnostics.Controls.Add(detailsPanel, 0, 1);
             diagnostics.SetColumnSpan(detailsPanel, 2);
             layout.Controls.Add(diagnostics, 0, 4);
-            Label version = MakeLabel("WINDOWS  ·  " + Program.Version, 8F, false);
+            Label version = MakeLabel("WINDOWS  ·  " + Program.DisplayVersion(Path.GetDirectoryName(Application.ExecutablePath)), 8F, false);
             version.ForeColor = SetupTheme.Muted;
             version.Margin = new Padding(0, 16, 0, 0);
             layout.Controls.Add(version, 0, 5);
@@ -1196,7 +1250,7 @@ namespace DeepSteamInstaller
                 motionClock.Start();
                 if (SetupTheme.Motion) animation.Start();
                 UpdateButtons();
-                if (IsComplete(directory.Text)) { phaseLabel.Text = "Ready when you are"; state.Text = "DeepSteam is installed. Open the app and continue learning."; }
+                if (IsComplete(directory.Text)) { phaseLabel.Text = "已安装，可直接使用"; state.Text = "DeepSteam 已安装，打开软件即可继续学习。"; }
                 if (startupAction == "--launch") BeginService(false);
                 else if (startupAction == "--stop") BeginService(true);
             };
@@ -1224,7 +1278,7 @@ namespace DeepSteamInstaller
         private void SetDetails(bool visible)
         {
             detailsPanel.Visible = copyLog.Visible = visible;
-            details.Text = visible ? "Hide operation details -" : "Show operation details +";
+            details.Text = visible ? "收起操作详情 -" : "展开操作详情 +";
         }
 
         [DllImport("dwmapi.dll")]
@@ -1262,7 +1316,7 @@ namespace DeepSteamInstaller
         {
             using (FolderBrowserDialog picker = new FolderBrowserDialog())
             {
-                picker.Description = "Choose a dedicated DeepSteam installation folder. Existing personal files will not be overwritten.";
+                picker.Description = "请选择 DeepSteam 专用安装文件夹，不会覆盖已有的个人文件。";
                 picker.ShowNewFolderButton = true;
                 if (Directory.Exists(directory.Text)) picker.SelectedPath = directory.Text;
                 if (picker.ShowDialog(this) == DialogResult.OK)
@@ -1290,7 +1344,7 @@ namespace DeepSteamInstaller
             try { resumable = !complete && File.Exists(Path.Combine(directory.Text, Program.InstallingMarker)); }
             catch (ArgumentException) { }
             catch (NotSupportedException) { }
-            install.Text = resumable ? "Resume installation" : "Install DeepSteam";
+            install.Text = resumable ? "继续安装" : "安装 DeepSteam";
             install.Invalidate();
             start.Invalidate();
         }
@@ -1306,7 +1360,7 @@ namespace DeepSteamInstaller
         {
             string root = Path.GetFullPath(directory.Text.Trim()).TrimEnd('\\');
             if (!Path.IsPathRooted(root) || root.StartsWith("\\\\") || root.Length <= 3)
-                throw new IOException("Choose a dedicated folder on a local drive, not a drive root or network share.");
+                throw new IOException("请选择本机磁盘中的专用文件夹，不要选择磁盘根目录或网络共享位置。");
             if (root.Length > 100) throw new IOException("安装位置过长，请选择较短路径，例如 D:\\DeepSteam。");
             Package.EnsureNoReparsePoint(root);
             return root;
@@ -1320,7 +1374,7 @@ namespace DeepSteamInstaller
                 operationRoot = ValidatedRoot();
                 if (Directory.Exists(operationRoot) && Directory.GetFileSystemEntries(operationRoot).Length > 0 &&
                     !File.Exists(Path.Combine(operationRoot, Program.InstallingMarker)))
-                    throw new IOException("This folder already contains files. Choose a new dedicated DeepSteam directory; existing content will not be overwritten.");
+                    throw new IOException("此文件夹中已有文件，请选择新的 DeepSteam 专用文件夹；已有内容不会被覆盖。");
                 requestedLaunch = openAfter.Checked;
                 BeginOperation(true, "install");
             }
@@ -1334,7 +1388,7 @@ namespace DeepSteamInstaller
             {
                 operationRoot = ValidatedRoot();
                 if (!File.Exists(Path.Combine(operationRoot, Program.InstalledMarker)))
-                    throw new IOException("Installation is unfinished at this location. Click Install or Resume installation first.");
+                    throw new IOException("此位置的安装尚未完成，请先点击安装或继续安装。");
                 BeginOperation(false, stopping ? "stop" : "start");
             }
             catch (Exception ex) { ShowError(ex.Message); }
@@ -1348,10 +1402,10 @@ namespace DeepSteamInstaller
             progress.Value = 0;
             progress.Failed = false;
             progress.Style = ProgressBarStyle.Marquee;
-            progressValue.Text = "In progress";
+            progressValue.Text = "进行中";
             phaseLabel.ForeColor = SetupTheme.Ink;
-            phaseLabel.Text = isInstall ? "Checking installer" : action == "stop" ? "Stopping" : "Preparing to launch";
-            state.Text = isInstall ? "Verifying installer integrity before extraction." : action == "stop" ? "Stopping local services safely. Please wait." : "Checking the local runtime and opening the desktop window.";
+            phaseLabel.Text = isInstall ? "正在校验安装包" : action == "stop" ? "正在停止" : "准备启动";
+            state.Text = isInstall ? "正在校验安装包完整性，通过后开始解压。" : action == "stop" ? "正在安全停止本地服务，请稍候。" : "正在检查运行环境并打开软件窗口。";
             tipIndex = -1;
             motionClock.Restart();
             if (SetupTheme.Motion) animation.Start();
@@ -1369,11 +1423,11 @@ namespace DeepSteamInstaller
                 Package.EnsureDiskSpace(op.Root, summary.Bytes);
                 Directory.CreateDirectory(op.Root);
                 File.WriteAllText(Path.Combine(op.Root, Program.InstallingMarker), "DeepSteam " + Program.Version, new UTF8Encoding(false));
-                SetStatus("Extracting the application, runtime, and document tools into the selected folder.", false);
+                SetStatus("正在将程序、运行环境和文档工具解压到所选文件夹。", false);
                 Package.Extract(op.Root, Log, SetProgress, delegate { return cancelled; });
                 if (cancelled) throw new OperationCanceledException();
                 CopyLauncher(op.Root);
-                SetStatus("Verifying and configuring the runtime. The first installation may take a few minutes.", true);
+                SetStatus("正在校验和配置运行环境，首次安装可能需要几分钟。", true);
                 RunScript(op.Root, "Install-DeepSteam.ps1", true);
                 if (cancelled) throw new OperationCanceledException();
                 File.WriteAllText(Path.Combine(op.Root, Program.InstalledMarker), "DeepSteam " + Program.Version + "\r\n" + DateTime.UtcNow.ToString("o"), new UTF8Encoding(false));
@@ -1400,7 +1454,7 @@ namespace DeepSteamInstaller
         private void RunScript(string root, string scriptName, bool cancellable)
         {
             string script = Path.Combine(root, "installer", scriptName);
-            if (!File.Exists(script)) throw new FileNotFoundException("A launch file is missing. Check the installation package.", scriptName);
+            if (!File.Exists(script)) throw new FileNotFoundException("缺少启动文件，请检查安装包是否完整。", scriptName);
             ProcessStartInfo info = new ProcessStartInfo();
             info.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "WindowsPowerShell", "v1.0", "powershell.exe");
             info.Arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File " + Quote(script) + " -InstallRoot " + Quote(root);
@@ -1431,7 +1485,7 @@ namespace DeepSteamInstaller
                     process.BeginErrorReadLine();
                     process.WaitForExit();
                     if (cancelled) throw new OperationCanceledException();
-                    if (process.ExitCode != 0) throw new IOException("Operation failed (exit code " + process.ExitCode + "). Expand operation details. Completed files are preserved so installation can resume.");
+                    if (process.ExitCode != 0) throw new IOException("操作未完成（退出代码 " + process.ExitCode + "）。请展开操作详情。已完成的文件会保留，可继续安装。");
                 }
                 finally
                 {
@@ -1445,8 +1499,8 @@ namespace DeepSteamInstaller
             if (!busy || !installing) return;
             cancelled = true;
             lock (processLock) { if (activeJob != null) activeJob.Dispose(); }
-            state.Text = "Stopping installation. Completed files are preserved so you can resume later.";
-            phaseLabel.Text = "Canceling";
+            state.Text = "正在停止安装，已完成的文件会保留，之后可继续安装。";
+            phaseLabel.Text = "正在取消";
             UpdateButtons();
         }
 
@@ -1458,10 +1512,10 @@ namespace DeepSteamInstaller
             progress.Style = ProgressBarStyle.Continuous;
             if (cancelled || e.Error is OperationCanceledException)
             {
-                state.Text = "Installation canceled. Select the same folder to resume. Existing files were not deleted.";
-                phaseLabel.Text = "Installation paused";
-                progressValue.Text = "Canceled";
-                tip.Text = "Completed files are preserved. You can resume later.";
+                state.Text = "安装已取消。再次选择此文件夹即可继续，已有文件未删除。";
+                phaseLabel.Text = "安装已暂停";
+                progressValue.Text = "已取消";
+                tip.Text = "已完成的文件已保留，可稍后继续安装。";
                 Log(state.Text);
             }
             else if (e.Error != null) ShowError(e.Error.Message);
@@ -1469,10 +1523,10 @@ namespace DeepSteamInstaller
             {
                 progress.Value = 100;
                 string action = e.Result as string;
-                state.Text = action == "install" ? "DeepSteam is installed. Open the app to start learning." : action == "stop" ? "Local services are stopped. Reopen DeepSteam from the desktop when ready." : "The DeepSteam desktop window is open. Service startup progress will continue there.";
-                phaseLabel.Text = action == "install" ? "Installation complete" : action == "stop" ? "Safely stopped" : "Desktop window opened";
-                progressValue.Text = "Complete";
-                tip.Text = action == "stop" ? "Your learning records stay in place for your next session." : "Keep curiosity growing.";
+                state.Text = action == "install" ? "DeepSteam 安装完成，打开软件即可开始学习。" : action == "stop" ? "本地服务已停止，需要时可从桌面重新打开 DeepSteam。" : "DeepSteam 窗口已打开，后续启动进度将在软件中显示。";
+                phaseLabel.Text = action == "install" ? "安装完成" : action == "stop" ? "已安全停止" : "软件窗口已打开";
+                progressValue.Text = "已完成";
+                tip.Text = action == "stop" ? "学习记录已保留，下次打开可继续使用。" : "让好奇心持续生长";
                 Log(state.Text);
             }
             UpdateButtons();
@@ -1489,32 +1543,32 @@ namespace DeepSteamInstaller
         {
             if (!busy) return;
             e.Cancel = true;
-            if (installing && MessageBox.Show(this, "Installation is still running. Cancel and close? Completed files will be preserved.", "DeepSteam", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (installing && MessageBox.Show(this, "安装仍在进行，是否取消并关闭？已完成的文件将保留。", "DeepSteam", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 closeAfterCancel = true;
                 CancelInstall();
             }
-            else if (!installing) state.Text = "Wait for the current launch or stop operation to finish.";
+            else if (!installing) state.Text = "请等待当前启动或停止操作完成。";
         }
 
         private void SetProgress(int value)
         {
-            UI(delegate { progress.Style = ProgressBarStyle.Continuous; progress.Value = Math.Max(0, Math.Min(100, value)); progressValue.Text = progress.Value + "%"; phaseLabel.Text = "Extracting"; });
+            UI(delegate { progress.Style = ProgressBarStyle.Continuous; progress.Value = Math.Max(0, Math.Min(100, value)); progressValue.Text = progress.Value + "%"; phaseLabel.Text = "正在解压"; });
         }
 
         private void SetStatus(string message, bool indeterminate)
         {
-            UI(delegate { state.Text = message; phaseLabel.Text = indeterminate ? "Configuring runtime" : "Extracting"; progressValue.Text = indeterminate ? "In progress" : "0%"; progress.Style = indeterminate ? ProgressBarStyle.Marquee : ProgressBarStyle.Continuous; });
+            UI(delegate { state.Text = message; phaseLabel.Text = indeterminate ? "正在配置运行环境" : "正在解压"; progressValue.Text = indeterminate ? "进行中" : "0%"; progress.Style = indeterminate ? ProgressBarStyle.Marquee : ProgressBarStyle.Continuous; });
         }
 
         private void ShowError(string message)
         {
-            state.Text = "Incomplete: " + message;
-            phaseLabel.Text = "Action required";
+            state.Text = "尚未完成：" + message;
+            phaseLabel.Text = "需要处理";
             phaseLabel.ForeColor = Color.FromArgb(231, 140, 124);
             progress.Failed = true;
-            progressValue.Text = "Incomplete";
-            tip.Text = "See the details below. Existing files and learning records are preserved.";
+            progressValue.Text = "尚未完成";
+            tip.Text = "请查看下方详情，已有文件和学习记录会保留。";
             SetDetails(true);
             Log(state.Text);
         }
@@ -1580,7 +1634,7 @@ namespace DeepSteamInstaller
                 type.InvokeMember("Arguments", BindingFlags.SetProperty, null, shortcut, new object[] { args });
                 type.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, shortcut, new object[] { root });
                 type.InvokeMember("Description", BindingFlags.SetProperty, null, shortcut, new object[] { description });
-                type.InvokeMember("IconLocation", BindingFlags.SetProperty, null, shortcut, new object[] { Path.Combine(root, "DeepSteam.exe") + ",0" });
+                type.InvokeMember("IconLocation", BindingFlags.SetProperty, null, shortcut, new object[] { Path.Combine(root, "DeepSteam.ico") + ",0" });
                 type.InvokeMember("Save", BindingFlags.InvokeMethod, null, shortcut, null);
             }
             finally { if (shortcut != null && Marshal.IsComObject(shortcut)) Marshal.FinalReleaseComObject(shortcut); }
@@ -1716,7 +1770,7 @@ namespace DeepSteamInstaller
             }
             PlainPath(executable);
             if (File.Exists(executable)) File.Delete(executable);
-            File.Copy(Application.ExecutablePath, executable, false);
+            Package.WriteBootstrap(Application.ExecutablePath, executable);
             string id = Guid.NewGuid().ToString("N");
             string previousId = File.Exists(Path.Combine(root, IdName)) ? File.ReadAllText(Path.Combine(root, IdName)).Trim() : null;
             UninstallContext context = new UninstallContext { Root = root, Id = previousId ?? id, Version = firstLine.Substring(10),
@@ -1777,7 +1831,7 @@ namespace DeepSteamInstaller
             File.WriteAllText(Path.Combine(context.Root, IdName), context.Id, new UTF8Encoding(false));
             using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryName(context.Id)))
             {
-                key.SetValue("DisplayName", "DeepSteam Learning Agent"); key.SetValue("Publisher", "DeepSteam");
+                key.SetValue("DisplayName", "DeepSteam 学习助手"); key.SetValue("Publisher", "DeepSteam");
                 key.SetValue("DisplayVersion", context.Version); key.SetValue("InstallLocation", context.Root);
                 key.SetValue("DisplayIcon", Path.Combine(context.Root, "DeepSteam.exe"));
                 key.SetValue("UninstallString", InstallerForm.Quote(Path.Combine(context.Root, "Uninstall-DeepSteam.exe")));
@@ -1912,7 +1966,7 @@ namespace DeepSteamInstaller
                 type.InvokeMember("Arguments", BindingFlags.SetProperty, null, link, new object[] { "" });
                 type.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, link, new object[] { root });
                 type.InvokeMember("Description", BindingFlags.SetProperty, null, link, new object[] { "Uninstall DeepSteam; preserve learning records and user workspaces by default" });
-                type.InvokeMember("IconLocation", BindingFlags.SetProperty, null, link, new object[] { Path.Combine(root, "Uninstall-DeepSteam.exe") + ",0" });
+                type.InvokeMember("IconLocation", BindingFlags.SetProperty, null, link, new object[] { Path.Combine(root, "Uninstall-DeepSteam.ico") + ",0" });
                 type.InvokeMember("Save", BindingFlags.InvokeMethod, null, link, null);
             }
             finally
@@ -1982,7 +2036,7 @@ namespace DeepSteamInstaller
             bool publicCaBundle = value == "runtime/mineru/lib/site-packages/certifi/cacert.pem";
             if (value.EndsWith(".sqlite") || value.EndsWith(".db") || (value.EndsWith(".pem") && !publicCaBundle) || value.EndsWith(".key")) return false;
             if (FactoryMineruModel(value)) return true;
-            foreach (string file in new string[] { "main.cjs", "preload.cjs", "policy.cjs", "transport.cjs", "storage-migration.cjs", "oauth-placeholder.cjs", "starting.html", "package.json" })
+            foreach (string file in new string[] { "main.cjs", "preload.cjs", "bilibili.cjs", "policy.cjs", "transport.cjs", "storage-migration.cjs", "oauth-placeholder.cjs", "starting.html", "package.json" })
                 if (value == "desktop/" + file) return true;
             foreach (string prefix in new string[] { "portal/", "integration/", "scripts/", "installer/", "licenses/", "upstream/",
                 "runtime/python/", "runtime/deeptutor-packages/", "runtime/native-frontends/", "runtime/openmaic-standalone/",
@@ -2015,6 +2069,7 @@ namespace DeepSteamInstaller
         internal static void Check(string root, string report)
         {
             UninstallContext context = UninstallRegistration.Verify(root);
+            VerifyBootstrap(context);
             foreach (string relative in new string[] { "DeepSteam.exe", "Uninstall-DeepSteam.exe" })
             {
                 UninstallFile row = context.Files.Find(delegate(UninstallFile item) { return String.Equals(item.Path, relative, StringComparison.OrdinalIgnoreCase); });
@@ -2047,6 +2102,16 @@ namespace DeepSteamInstaller
                 registered_files = context.Files.Count, registered_links = context.Links.Count, data_roots = context.DataRoots.Count,
                 shortcut = shortcut, defaults_preserve_data = true, program_files_deleted = 0, data_files_deleted = 0,
                 services_stopped = false, real_model_calls = 0 }, context.Root);
+        }
+        internal static void VerifyBootstrap(UninstallContext context)
+        {
+            string file = UninstallRegistration.Child(context.Root, "Uninstall-DeepSteam.exe");
+            UninstallRegistration.PlainPath(file);
+            UninstallFile row = context.Files.Find(delegate(UninstallFile item) { return item.Path == "Uninstall-DeepSteam.exe"; });
+            if (!File.Exists(file) || new FileInfo(file).Length > 4 * 1024 * 1024)
+                throw new IOException("旧版卸载组件的打包格式不正确，请先更新 DeepSteam。");
+            if (row == null || new FileInfo(file).Length != row.Bytes || UninstallRegistration.Sha(file) != row.Hash)
+                throw new IOException("卸载组件与安装记录不一致，请修复或更新 DeepSteam。");
         }
         internal static void Refresh(string root, string receiptPath, string receiptHash, string report, bool dryRun)
         {
@@ -2273,9 +2338,7 @@ namespace DeepSteamInstaller
                     Directory.CreateDirectory(temporary);
                     string copy = Path.Combine(temporary, "Uninstall-DeepSteam.exe");
                     string source = Path.Combine(root, "Uninstall-DeepSteam.exe");
-                    UninstallFile record = context.Files.Find(delegate(UninstallFile row) { return row.Path == "Uninstall-DeepSteam.exe"; });
-                    if (new FileInfo(source).Length > 4 * 1024 * 1024 || UninstallRegistration.Sha(source) != record.Hash)
-                        throw new IOException("The uninstaller was modified. Download the installation package again.");
+                    UninstallUpgrade.VerifyBootstrap(context);
                     File.Copy(source, copy, false);
                     Process.Start(new ProcessStartInfo { FileName = copy, Arguments = "--uninstall-worker " + InstallerForm.Quote(root) + " " + context.Id,
                         WorkingDirectory = temporary, UseShellExecute = false });
@@ -2298,7 +2361,7 @@ namespace DeepSteamInstaller
                 ScheduleTemporaryCleanup();
                 return 0;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message, "DeepSteam uninstall incomplete", MessageBoxButtons.OK, MessageBoxIcon.Warning); return 1; }
+            catch (Exception ex) { MessageBox.Show(ex.Message, "DeepSteam 卸载尚未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); return 1; }
         }
         private static void ScheduleTemporaryCleanup()
         {
@@ -2352,7 +2415,7 @@ namespace DeepSteamInstaller
         private readonly int runId;
         private long lastPublished = -1000, lastRateTime, lastRateCompleted, lastAdvance;
         private readonly Queue<double> rates = new Queue<double>();
-        private string phase = "verify", message = "Verifying uninstall registration...";
+        private string phase = "verify", message = "正在核验卸载登记……";
         private long completed, attempted, total = -1, pending, retained, bytes;
         internal UninstallProgressReporter(Action<UninstallProgress> sink, int run) : this(sink, run, ProductionClock()) { }
         internal UninstallProgressReporter(Action<UninstallProgress> sink, int run, Func<long> now)
@@ -2361,14 +2424,14 @@ namespace DeepSteamInstaller
         internal void Phase(string value, string text, long count)
         { phase = value; message = text; total = count; completed = attempted = 0; rates.Clear(); lastRateTime = lastAdvance = clock(); lastRateCompleted = 0; Emit(true); }
         internal void Finalizing()
-        { phase = "finalize"; message = "Finalizing uninstall entries and registration..."; rates.Clear(); Emit(true); }
+        { phase = "finalize"; message = "正在完成卸载入口和登记处理……"; rates.Clear(); Emit(true); }
         internal void Counts(long done, long tried, long blocked, long kept)
         { if (done != completed) lastAdvance = clock(); completed = done; attempted = tried; pending = blocked; retained = kept; Emit(false); }
         internal void ReadBytes(int count) { bytes += count; Emit(false); }
         internal void Discovered(long count) { attempted = count; Emit(false); }
         internal void Waiting(string text) { message = text; rates.Clear(); lastRateTime = clock(); lastRateCompleted = completed; Emit(true); }
         internal void Complete()
-        { if (pending != 0 || total < 1) throw new InvalidOperationException("Pending items remain. Uninstallation cannot be reported as complete."); completed = attempted = total; phase = "complete"; message = "Uninstall complete"; Emit(true); }
+        { if (pending != 0 || total < 1) throw new InvalidOperationException("Pending items remain. Uninstallation cannot be reported as complete."); completed = attempted = total; phase = "complete"; message = "卸载完成"; Emit(true); }
         internal void Emit(bool force)
         {
             long now = clock(); if (!force && now - lastPublished < 200) return;
@@ -2418,7 +2481,8 @@ namespace DeepSteamInstaller
         internal UninstallForm(UninstallContext value, bool testNoDialogValue)
         {
             SuspendLayout();
-            testNoDialog = testNoDialogValue; context = value; Text = "Uninstall DeepSteam";
+            Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+            testNoDialog = testNoDialogValue; context = value; Text = "卸载 DeepSteam";
             if (!testNoDialog) SetupWindowMotion.Prepare(this);
             AutoScaleDimensions = new SizeF(96F, 96F); AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = SetupTheme.Paper; ForeColor = SetupTheme.Ink; Font = new Font("Microsoft YaHei UI", 10);
@@ -2431,20 +2495,20 @@ namespace DeepSteamInstaller
             Panel viewport = new Panel { Dock = DockStyle.Fill, AutoScroll = true, Margin = Padding.Empty, Name = "uninstall-scroll-body" };
             TableLayoutPanel body = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 1, Margin = Padding.Empty };
             body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            Label title = TextBlock("Uninstall DeepSteam", SetupTheme.Ink, 0, 18);
+            Label title = TextBlock("卸载 DeepSteam", SetupTheme.Ink, 0, 18);
             title.Font = new Font(Font.FontFamily, 19, FontStyle.Bold);
-            Label description = TextBlock("Remove the app and preserve your learning content.\r\nLearning records, model settings, imported files, and workspaces are kept by default.", SetupTheme.Ink, 0, 22);
-            Label path = TextBlock("Version: " + context.Version + "\r\nInstallation directory: " + context.Root, SetupTheme.Muted, 0, 22);
+            Label description = TextBlock("移除软件并保留学习内容。\r\n默认保留学习记录、模型设置、导入文件和工作区。", SetupTheme.Ink, 0, 22);
+            Label path = TextBlock("版本：" + context.Version + "\r\n安装位置：" + context.Root, SetupTheme.Muted, 0, 22);
             TableLayoutPanel choice = new TableLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Top,
                 ColumnCount = 2, Margin = new Padding(0, 0, 0, 20), Padding = new Padding(16), BackColor = SetupTheme.Panel };
             choice.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); choice.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             removeData.Text = ""; removeData.AutoSize = true; removeData.Checked = false; removeData.Margin = new Padding(0, 4, 12, 0);
-            removeData.AccessibleName = "Also remove application records, settings, and cache";
-            Label choiceText = TextBlock("Also remove application records, settings, and cache", SetupTheme.Ink, 0, 4);
-            Label choiceHint = TextBlock("Imported files and workspaces will still be preserved.", SetupTheme.Muted, 0, 0);
+            removeData.AccessibleName = "同时移除应用记录、设置和缓存";
+            Label choiceText = TextBlock("同时移除应用记录、设置和缓存", SetupTheme.Ink, 0, 4);
+            Label choiceHint = TextBlock("导入文件和工作区仍会保留。", SetupTheme.Muted, 0, 0);
             choiceText.Cursor = Cursors.Hand; choiceText.Click += delegate { if (removeData.Enabled) removeData.Checked = !removeData.Checked; };
             choice.Controls.Add(removeData, 0, 0); choice.Controls.Add(choiceText, 1, 0); choice.Controls.Add(choiceHint, 1, 1);
-            status.Text = "Confirm to close DeepSteam and remove the application."; status.ForeColor = SetupTheme.Muted;
+            status.Text = "确认后将关闭 DeepSteam 并移除软件。"; status.ForeColor = SetupTheme.Muted;
             status.AutoSize = true; status.Dock = DockStyle.Top; status.Margin = new Padding(0, 0, 0, 12);
             body.Controls.Add(title, 0, 0); body.Controls.Add(description, 0, 1); body.Controls.Add(path, 0, 2); body.Controls.Add(choice, 0, 3); body.Controls.Add(status, 0, 4);
             viewport.Controls.Add(body); outer.Controls.Add(viewport, 0, 0);
@@ -2459,8 +2523,8 @@ namespace DeepSteamInstaller
             progressRefresh.Tick += delegate { FlushLatestProgress(); };
             FlowLayoutPanel actions = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 FlowDirection = FlowDirection.RightToLeft, WrapContents = true, Margin = Padding.Empty, Padding = Padding.Empty, Name = "uninstall-actions" };
-            cancel.Text = "Cancel"; cancel.MinimumSize = new Size(100, 44); cancel.Margin = new Padding(0, 0, 12, 0); cancel.Click += delegate { if (!busy) Close(); };
-            start.Text = "Uninstall DeepSteam"; start.MinimumSize = new Size(160, 44); start.Margin = Padding.Empty;
+            cancel.Text = "取消"; cancel.MinimumSize = new Size(100, 44); cancel.Margin = new Padding(0, 0, 12, 0); cancel.Click += delegate { if (!busy) Close(); };
+            start.Text = "卸载 DeepSteam"; start.MinimumSize = new Size(160, 44); start.Margin = Padding.Empty;
             actions.Controls.Add(start); actions.Controls.Add(cancel);
             footer.Controls.Add(progressDetails, 0, 0); footer.Controls.Add(progress, 0, 1); footer.Controls.Add(actions, 0, 2); outer.Controls.Add(footer, 0, 1);
             Controls.Add(outer);
@@ -2506,14 +2570,14 @@ namespace DeepSteamInstaller
         private void Begin()
         {
             if (busy) return;
-            if (start.Text == "Close") { Close(); return; }
+            if (start.Text == "关闭") { Close(); return; }
             busy = true; Failure = null; TestFailureStack = null; start.Enabled = false; cancel.Enabled = false; removeData.Enabled = false; bool deleteData = removeData.Checked;
             ResetProgress(progressRun + 1); progress.Visible = true; if (SetupTheme.Motion) progressAnimation.Start(); progressRefresh.Start();
             UninstallProgressReporter reporter = new UninstallProgressReporter(QueueProgress, progressRun);
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += delegate(object sender, DoWorkEventArgs e)
             {
-                reporter.Phase("verify", "Verifying uninstall registration...", -1);
+                reporter.Phase("verify", "正在核验卸载登记……", -1);
                 UninstallContext fresh = UninstallRegistration.Verify(context.Root);
                 e.Result = UninstallCore.RemoveWithProgress(fresh, deleteData, delegate(UninstallContext item) { UninstallCore.Stop(item, reporter); }, reporter, true);
             };
@@ -2521,19 +2585,19 @@ namespace DeepSteamInstaller
             {
                 FlushLatestProgress(); progressRefresh.Stop(); progressAnimation.Stop();
                 busy = false; start.Enabled = true; cancel.Enabled = true;
-                if (e.Error != null) { status.Text = e.Error is UninstallPendingException ? "Removable items were processed and remaining items were preserved. Close programs using those files, then retry." : "Uninstallation is incomplete. Registration was preserved for retry."; start.Text = "Retry uninstall"; removeData.Enabled = true; Failure = e.Error.Message;
+                if (e.Error != null) { status.Text = e.Error is UninstallPendingException ? "可移除项目已处理，其余项目已保留。请关闭占用文件的程序后重试。" : "卸载尚未完成，已保留卸载入口，可稍后重试。"; start.Text = "重试卸载"; removeData.Enabled = true; Failure = e.Error.Message;
                     UninstallPendingException remaining = e.Error as UninstallPendingException;
                     FinishProgress(false, status.Text, remaining == null ? (long?)null : remaining.PendingCount);
                     if (testNoDialog) TestFailureStack = e.Error.StackTrace;
-                    if (!testNoDialog) MessageBox.Show(e.Error.Message, "DeepSteam uninstall incomplete", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-                status.Text = (string)e.Result; start.Text = "Close"; FinishProgress(true, status.Text);
+                    if (!testNoDialog) MessageBox.Show(e.Error.Message, "DeepSteam 卸载尚未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+                status.Text = (string)e.Result; start.Text = "关闭"; FinishProgress(true, status.Text);
             };
             worker.RunWorkerAsync();
         }
         internal void ResetProgress(int run)
         {
             lock (progressGate) { progressRun = run; progressFinished = false; latestProgress = null; lastAppliedProgress = null; }
-            progress.Value = 0; progress.Style = ProgressBarStyle.Marquee; progressDetails.Text = "Preparing uninstall · Total not yet known";
+            progress.Value = 0; progress.Style = ProgressBarStyle.Marquee; progressDetails.Text = "正在准备卸载，正在统计项目";
         }
         internal void QueueProgress(UninstallProgress value)
         { lock (progressGate) { if (!progressFinished && value.RunId == progressRun) latestProgress = value; } }
@@ -2547,8 +2611,8 @@ namespace DeepSteamInstaller
                 long silent = (long)(1000.0 * (Stopwatch.GetTimestamp() - lastAppliedTicks) / Stopwatch.Frequency);
                 if (silent >= 1500)
                 {
-                    progressDetails.Text = Regex.Replace(progressDetails.Text, "Estimated remaining in this phase: [^\\r\\n]*seconds", "Waiting · Remaining time is not yet available");
-                    progressDetails.Text = Regex.Replace(progressDetails.Text, "Elapsed: [0-9]+ seconds", "Elapsed: " + ((lastAppliedProgress.ElapsedMilliseconds + silent) / 1000) + " seconds");
+                    progressDetails.Text = Regex.Replace(progressDetails.Text, "此阶段预计剩余：[^\\r\\n]*秒", "正在等待 · 剩余时间暂不可用");
+                    progressDetails.Text = Regex.Replace(progressDetails.Text, "已用时：[0-9]+ 秒", "已用时：" + ((lastAppliedProgress.ElapsedMilliseconds + silent) / 1000) + " 秒");
                 }
             }
         }
@@ -2560,15 +2624,15 @@ namespace DeepSteamInstaller
             bool fixedTotal = value.Total > 0 && (value.Phase == "check" || value.Phase == "remove" || value.Phase == "finalize" || value.Phase == "complete");
             progress.Style = fixedTotal ? ProgressBarStyle.Continuous : ProgressBarStyle.Marquee;
             progress.Value = fixedTotal ? value.Percent.Value : 0;
-            string label = value.Phase == "check" ? "Checking manifest" : value.Phase == "finalize" ? "Finalizing registration" : "Verified items";
-            string detail = fixedTotal ? label + " " + value.Percent + "% · Completed " + value.Completed + " / " + value.Total + " items" :
-                "Total not yet known" + (value.Phase == "discover" || value.Phase == "workspaces" ? " · Discovered " + value.Attempted + " items" : "");
-            if (value.Phase == "remove" || value.Phase == "finalize") detail += " · Attempted " + value.Attempted + " items (including directories and registration)";
-            if (value.Pending > 0) detail += " · Pending " + value.Pending + " items";
-            if (value.Retained > 0) detail += " · Protected " + value.Retained + " items";
-            if (value.Phase == "check") detail += " · Read " + (value.BytesRead / (1024.0 * 1024.0)).ToString("0.0") + " MB";
-            detail += "\r\nElapsed: " + (value.ElapsedMilliseconds / 1000) + " seconds · " +
-                (value.EtaMinimumSeconds.HasValue ? "Estimated remaining in this phase: " + value.EtaMinimumSeconds.Value.ToString("0") + "–" + value.EtaMaximumSeconds.Value.ToString("0") + " seconds" : "Remaining time is not yet available");
+            string label = value.Phase == "check" ? "正在核验清单" : value.Phase == "finalize" ? "正在完成卸载登记" : "已核验项目";
+            string detail = fixedTotal ? label + " " + value.Percent + "% · 已完成 " + value.Completed + " / " + value.Total + " 项" :
+                "正在统计项目" + (value.Phase == "discover" || value.Phase == "workspaces" ? " · 已发现 " + value.Attempted + " 项" : "");
+            if (value.Phase == "remove" || value.Phase == "finalize") detail += " · 已处理 " + value.Attempted + " 项（含文件夹和登记信息）";
+            if (value.Pending > 0) detail += " · 待处理 " + value.Pending + " 项";
+            if (value.Retained > 0) detail += " · 已保护 " + value.Retained + " 项";
+            if (value.Phase == "check") detail += " · 已读取 " + (value.BytesRead / (1024.0 * 1024.0)).ToString("0.0") + " MB";
+            detail += "\r\n已用时：" + (value.ElapsedMilliseconds / 1000) + " 秒 · " +
+                (value.EtaMinimumSeconds.HasValue ? "此阶段预计剩余：" + value.EtaMinimumSeconds.Value.ToString("0") + "–" + value.EtaMaximumSeconds.Value.ToString("0") + " 秒" : "剩余时间暂不可用");
             progressDetails.Text = detail;
         }
         internal void FinishProgress(bool success, string message)
@@ -2577,15 +2641,15 @@ namespace DeepSteamInstaller
         {
             lock (progressGate) { progressFinished = true; latestProgress = null; }
             progress.Style = ProgressBarStyle.Continuous; status.Text = message;
-            if (success) { progress.Value = 100; progressDetails.Text = "100% · Uninstall complete"; }
+            if (success) { progress.Value = 100; progressDetails.Text = "100% · 卸载完成"; }
             else
             {
                 progress.Value = 0; progress.Visible = false;
                 string counts = lastAppliedProgress != null && (lastAppliedProgress.Phase == "remove" || lastAppliedProgress.Phase == "finalize") ?
-                    " · Completed " + lastAppliedProgress.Completed + " / " + lastAppliedProgress.Total + " items" : "";
+                    " · 已完成 " + lastAppliedProgress.Completed + " / " + lastAppliedProgress.Total + " 项" : "";
                 long blocked = pendingCount ?? (lastAppliedProgress == null ? 0 : lastAppliedProgress.Pending);
-                if (blocked > 0) counts += " · Pending " + blocked + " items";
-                progressDetails.Text = "Incomplete" + counts + " · Remaining items and the retry entry were preserved; remaining time is not yet available";
+                if (blocked > 0) counts += " · 待处理 " + blocked + " 项";
+                progressDetails.Text = "尚未完成" + counts + " · 已保留待处理项目和重试入口，剩余时间暂不可用";
             }
         }
     }

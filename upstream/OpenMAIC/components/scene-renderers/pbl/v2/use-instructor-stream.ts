@@ -371,7 +371,7 @@ export function assertNotStreamError(event: PBLSSEEvent): void {
  * flow chains a best-effort instructor REACTION turn (`streamStatus`
  * 'instructor') after a task evaluation that already succeeded and is recorded.
  * If that reaction goes empty, the correct outcome is "no wrap-up bubble", NOT
- * "Evaluation failed" — the evaluation stands. So only that specific soft signal on the
+ * "评测失败" — the evaluation stands. So only that specific soft signal on the
  * reaction stream is tolerated; real failures (LLM_ERROR / STREAM_ERROR) and ANY
  * error on the evaluation streams (eval-task / eval-milestone / eval-final)
  * remain fatal. Pure so it can be unit-tested.

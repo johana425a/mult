@@ -4,16 +4,16 @@
  * Per PR 6 D7-B: we merge what the refactor/openmaic-pbl repo had as
  * TWO separate cards (MilestoneNarrativeCard + HandoverCard) into ONE
  * card so the learner doesn't have to scroll past evaluation prose
- * to reach the "Continue to the next stage" button.
+ * to reach the "继续到下一阶段" button.
  *
  * Card sections (top → bottom):
- *   1. Header strip: Stage complete ribbon + StarRating (plain, no /5)
+ *   1. Header strip: 阶段完成 ribbon + StarRating (plain, no /5)
  *   2. Narrative paragraph (the LLM's prose, with the JSON tail
  *      stripped via stripEvaluationTail)
- *   3. "What you learned" bullets (from evaluation.strengths a.k.a. `learned`)
- *   4. "In this stage, you..." prose line (from evaluation.improvements[0]
+ *   3. "你学到了" bullets (from evaluation.strengths a.k.a. `learned`)
+ *   4. "这阶段你..." prose line (from evaluation.improvements[0]
  *      a.k.a. `performance`)
- *   5. Handover footer: next-milestone label + "Continue to the next stage" CTA.
+ *   5. Handover footer: next-milestone label + "继续到下一阶段" CTA.
  *      The button is the ONLY way to cross into the next stage —
  *      while `pendingHandover.consumed === false` the next milestone
  *      stays LOCKED in the store (gate enforced by continueAfter
@@ -26,7 +26,7 @@
  *
  * Final-milestone case: when there is no `pendingHandover` (we just
  * completed the LAST milestone of the project) the footer renders a
- * "The project is almost complete" label instead of the Continue button. The
+ * "项目即将完成" label instead of the Continue button. The
  * CompletionCtaCard renders separately AFTER the final evaluation
  * finishes streaming.
  */
@@ -50,7 +50,7 @@ interface Props {
   /** When present, render the Continue CTA. When absent (final
    *  milestone), render the project-completion label instead. */
   handover?: PBLHandover;
-  /** Called when the learner clicks "Continue to the next stage". The wiring
+  /** Called when the learner clicks "继续到下一阶段". The wiring
    *  (continueAfterHandover + open-task setup) lives in PR 6.6. */
   onContinue?: () => void;
   className?: string;
@@ -183,7 +183,7 @@ export function milestoneHandoverCtaState(handover?: PBLHandover): 'hidden' | 'r
 export function stripFinalMilestoneContinueGuidance(text: string): string {
   return text
     .replace(
-      /(?:[.!?]\s*)?[^.!?]*(?:click|press|select)\s*(?:the|right|below|this)?\s*(?:Continue)(?:\s*button)?[^.!?]*(?:[.!?]|$)/giu,
+      /(?:[。！？!?]\s*)?[^。！？!?]*(?:点击|按|选择)\s*(?:右侧|下方|这个)?\s*(?:Continue|继续)(?:\s*按钮)?[^。！？!?]*(?:[。！？!?]|$)/giu,
       (match) => {
         const trimmed = match.trimStart();
         return trimmed.startsWith('。') || trimmed.startsWith('！') || trimmed.startsWith('？')

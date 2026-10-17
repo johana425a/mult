@@ -136,7 +136,7 @@ export default function OrganizedSessionList({
   const unread = useUnreadSessions();
   const { t } = useTranslation();
   const { board: taskBoard } = useTaskBoard();
-  // Backend writes the English sentinel "New conversation" until the LLM
+  // Backend writes the English sentinel "新建聊天" until the LLM
   // title lands; mirror SessionList by showing a localized, breathing label.
   const placeholderLabel = t("New chat");
   const [workspaceMoveError, setWorkspaceMoveError] = useState("");
@@ -202,10 +202,10 @@ export default function OrganizedSessionList({
       if (patch.archived && window.location.href === sourceLocation && activeWorkspaceId() === row.workspace_id) {
         await selectWorkspace("", "/chat?dt_workspace=");
       }
-      notify(patch.archived ? "Workspace removed. Restore it from Removed workspaces." : patch.archived === false ? "Workspace restored." : "Workspace name updated.", { tone: "success" });
+      notify(patch.archived ? "工作区已删除，可在“已删除工作区”中恢复。" : patch.archived === false ? "工作区已恢复。" : "工作区名称已更新。", { tone: "success" });
       return true;
     } catch (failure) {
-      if (mountedRef.current) setWorkspaceActionError(failure instanceof Error ? failure.message : "The workspace could not be updated.");
+      if (mountedRef.current) setWorkspaceActionError(failure instanceof Error ? failure.message : "工作区未能更新。");
       return false;
     } finally {
       workspaceBusyRef.current = false;
@@ -216,7 +216,7 @@ export default function OrganizedSessionList({
     try {
       if (!(await openWorkspaceDirectory(row.path, row.workspace_id))) return;
     } catch (failure) {
-      notify(failure instanceof Error ? failure.message : "The folder could not be opened.", { tone: "error" });
+      notify(failure instanceof Error ? failure.message : "文件夹未能打开。", { tone: "error" });
     }
   };
   const moveToWorkspace = async (sessionId: string, workspaceId: string | null) => {
@@ -294,12 +294,12 @@ export default function OrganizedSessionList({
   // which table it came from. Persisted, so a sidebar arranged once stays
   // arranged across reloads.
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(
-    new Set(),
+    () => new Set(readCollapsedGroups()),
   );
   // The ref carries the live set: two headings toggled inside one render pass
   // would otherwise both start from the same stale state and the first would
   // be lost.
-  const collapsedRef = useRef<Set<string>>(new Set());
+  const collapsedRef = useRef<Set<string>>(collapsedCourses);
 
   useEffect(() => {
     const stored = new Set(readCollapsedGroups());
@@ -805,12 +805,12 @@ export default function OrganizedSessionList({
             : ""
         }`}
       >
-        {canManage && workspace ? <WorkspaceContextMenu label={`${workspace.display_name} workspace actions`} disabled={workspaceBusy}
+        {canManage && workspace ? <WorkspaceContextMenu label={`${workspace.display_name} 工作区操作`} disabled={workspaceBusy}
           items={[
-            ...(onNewWorkspaceChat ? [{ id: "new-chat", label: "New conversation", disabled: workspace.status !== "ready", onSelect: () => onNewWorkspaceChat(workspace.workspace_id) }] : []),
-            { id: "rename", label: "Rename", onSelect: () => beginWorkspaceAction("rename", workspace) },
-            { id: "open-folder", label: "Show in Explorer", disabled: !canPickWorkspaceDirectory() || workspace.status !== "ready", onSelect: () => { void openManagedFolder(workspace); } },
-            { id: "delete", label: "Remove workspace", danger: true, onSelect: () => beginWorkspaceAction("delete", workspace) },
+            ...(onNewWorkspaceChat ? [{ id: "new-chat", label: "新建聊天", disabled: workspace.status !== "ready", onSelect: () => onNewWorkspaceChat(workspace.workspace_id) }] : []),
+            { id: "rename", label: "重命名", onSelect: () => beginWorkspaceAction("rename", workspace) },
+            { id: "open-folder", label: "打开所在文件夹", disabled: !canPickWorkspaceDirectory() || workspace.status !== "ready", onSelect: () => { void openManagedFolder(workspace); } },
+            { id: "delete", label: "删除工作区", danger: true, onSelect: () => beginWorkspaceAction("delete", workspace) },
           ]}>{heading}</WorkspaceContextMenu> : heading}
         {collapsed ? null : (
           <div className={recent ? "" : "ml-1.5 border-l border-[var(--border)]/40 pl-1"}>
@@ -839,27 +839,27 @@ export default function OrganizedSessionList({
       )}
       {groupWorkspaces && <button type="button" className="mt-3 flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-xs text-[var(--muted-foreground)] hover:bg-background/40 hover:text-[var(--foreground)]"
         onClick={() => { setWorkspaceActionError(""); setDeletedWorkspacesOpen(true); }}>
-          <ArchiveRestore size={13} />Removed workspaces{deletedWorkspaces.length ? ` (${deletedWorkspaces.length})` : ""}
+        <ArchiveRestore size={13} />已删除工作区{deletedWorkspaces.length ? ` (${deletedWorkspaces.length})` : ""}
       </button>}
       {typeof document !== "undefined" && createPortal(<>
-        <Dialog open={Boolean(workspaceAction)} title={workspaceAction?.kind === "delete" ? "Remove workspace" : "Rename workspace"}
-          closeLabel="Close" size="sm" busy={workspaceBusy} alert={workspaceAction?.kind === "delete"}
+        <Dialog open={Boolean(workspaceAction)} title={workspaceAction?.kind === "delete" ? "删除工作区" : "重命名工作区"}
+          closeLabel="关闭" size="sm" busy={workspaceBusy} alert={workspaceAction?.kind === "delete"}
           onClose={() => { if (!workspaceBusyRef.current) { setWorkspaceAction(null); setWorkspaceActionError(""); } }}
           footer={<>
-            <button type="button" disabled={workspaceBusy} className="rounded-lg px-3 py-2 text-sm hover:bg-[var(--muted)] disabled:opacity-50" onClick={() => { setWorkspaceAction(null); setWorkspaceActionError(""); }}>Cancel</button>
+            <button type="button" disabled={workspaceBusy} className="rounded-lg px-3 py-2 text-sm hover:bg-[var(--muted)] disabled:opacity-50" onClick={() => { setWorkspaceAction(null); setWorkspaceActionError(""); }}>取消</button>
             <button type="button" disabled={workspaceBusy || (workspaceAction?.kind === "rename" && !workspaceName.trim())}
               className={`rounded-lg px-3 py-2 text-sm disabled:opacity-50 ${workspaceAction?.kind === "delete" ? "bg-[var(--destructive)] text-white" : "bg-[var(--foreground)] text-[var(--background)]"}`}
               onClick={async () => {
                 if (!workspaceAction) return;
                 const patch = workspaceAction.kind === "delete" ? { archived: true } : { name: workspaceName.trim() };
                 if (await updateManagedWorkspace(workspaceAction.row, patch)) { if (mountedRef.current) setWorkspaceAction(null); }
-              }}>{workspaceBusy ? "Updating…" : workspaceAction?.kind === "delete" ? "Remove workspace" : "Save"}</button>
+              }}>{workspaceBusy ? "正在更新…" : workspaceAction?.kind === "delete" ? "删除工作区" : "保存"}</button>
           </>}>
           {workspaceAction?.kind === "delete" ? <div className="space-y-3 text-sm">
-            <p>Hide “{workspaceAction.row.display_name}” and its conversations from the sidebar. Restore them from Removed workspaces.</p>
-            <p className="text-[var(--muted-foreground)]">The folder, conversation history and existing connections are retained. Files on your computer are preserved.</p>
+            <p>将“{workspaceAction.row.display_name}”及其聊天从左侧隐藏，可在“已删除工作区”中恢复。</p>
+            <p className="text-[var(--muted-foreground)]">文件夹、聊天记录和原有绑定都会保留，不会删除电脑里的文件。</p>
             <p className="break-all font-mono text-xs text-[var(--muted-foreground)]">{workspaceAction.row.path}</p>
-          </div> : <label className="block text-sm">Workspace name<input data-autofocus maxLength={100} value={workspaceName} disabled={workspaceBusy}
+          </div> : <label className="block text-sm">工作区名称<input data-autofocus maxLength={100} value={workspaceName} disabled={workspaceBusy}
             onChange={event => setWorkspaceName(event.target.value)} onKeyDown={event => {
               if (event.key === "Enter" && workspaceAction && workspaceName.trim() && !workspaceBusyRef.current) {
                 event.preventDefault();
@@ -868,13 +868,13 @@ export default function OrganizedSessionList({
             }} className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 outline-none focus:border-[var(--ring)]" /></label>}
           {workspaceActionError && <p role="alert" className="mt-3 text-xs text-[var(--destructive)]">{workspaceActionError}</p>}
         </Dialog>
-      <Dialog open={deletedWorkspacesOpen} title="Removed workspaces" closeLabel="Close" size="md" busy={workspaceBusy}
-          description="Restoring adds the workspace back to the sidebar. Its conversations and files stay in their original locations."
+        <Dialog open={deletedWorkspacesOpen} title="已删除工作区" closeLabel="关闭" size="md" busy={workspaceBusy}
+          description="恢复后重新出现在左侧，原有聊天和文件保留在原位置。"
           onClose={() => { if (!workspaceBusyRef.current) { setDeletedWorkspacesOpen(false); setWorkspaceActionError(""); } }}>
           {deletedWorkspaces.length ? <div className="space-y-2">{deletedWorkspaces.map(row => <div key={row.workspace_id} className="flex items-center gap-3 rounded-xl border border-[var(--border)] p-3">
             <FolderOpen size={16} className="shrink-0 text-[var(--muted-foreground)]" /><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{row.display_name}</p><p className="mt-1 break-all text-xs text-[var(--muted-foreground)]">{row.path}</p></div>
-            <button type="button" disabled={workspaceBusy} className="shrink-0 rounded-lg px-3 py-2 text-xs hover:bg-[var(--muted)] disabled:opacity-50" aria-label={`Restore ${row.display_name}`} onClick={() => { void updateManagedWorkspace(row, { archived: false }); }}>Restore</button>
-          </div>)}</div> : <p className="py-4 text-center text-sm text-[var(--muted-foreground)]">No removed workspaces.</p>}
+            <button type="button" disabled={workspaceBusy} className="shrink-0 rounded-lg px-3 py-2 text-xs hover:bg-[var(--muted)] disabled:opacity-50" aria-label={`恢复 ${row.display_name}`} onClick={() => { void updateManagedWorkspace(row, { archived: false }); }}>恢复</button>
+          </div>)}</div> : <p className="py-4 text-center text-sm text-[var(--muted-foreground)]">没有已删除的工作区。</p>}
           {workspaceActionError && <p role="alert" className="mt-3 text-xs text-[var(--destructive)]">{workspaceActionError}</p>}
         </Dialog>
       </>, document.body)}

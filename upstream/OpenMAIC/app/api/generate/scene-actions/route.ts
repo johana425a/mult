@@ -8,10 +8,10 @@
 
 import { NextRequest } from 'next/server';
 import { callLLM } from '@/lib/ai/llm';
+import { rethrowIfGenerationCancelled, throwIfGenerationAborted } from '@/lib/server/generation-cancellation';
 import {
   generateSceneActions,
   buildCompleteScene,
-  buildVisionUserContent,
   type SceneGenerationContext,
   type AgentInfo,
 } from '@openmaic/generation';
@@ -29,6 +29,8 @@ import { normalizeLegacyPBLContent } from '@/lib/pbl/legacy/read';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { llmApiError } from '@/lib/server/llm-error-response';
 import { resolveModelFromRequest } from '@/lib/server/resolve-model';
+import { assertClassroomOutputComplete, classroomUserContent, classroomOutputTokens, classroomContextTokens } from '@/lib/server/classroom-image-input';
+import { resolveVisionImagesForPrompt } from '@/lib/persistence/resolve-vision-images';
 import { contractFromMaterial, wrapGroundedAiCall } from '@/lib/server/source-grounding';
 import type { ClassroomSourceMaterial } from '@/lib/types/stage';
 
@@ -40,7 +42,9 @@ export async function POST(req: NextRequest) {
   let outlineTitle: string | undefined;
   let resolvedModelString: string | undefined;
   try {
+    throwIfGenerationAborted(req.signal);
     const body = await req.json();
+    throwIfGenerationAborted(req.signal);
     const {
       outline,
       allOutlines,
@@ -92,12 +96,14 @@ export async function POST(req: NextRequest) {
       modelInfo,
       modelString,
       thinkingConfig,
+      resolvedModel,
     } = await resolveModelFromRequest(req, body, 'scene-actions');
+    throwIfGenerationAborted(req.signal);
     outlineTitle = outline?.title;
     resolvedModelString = modelString;
 
     // Detect vision capability
-    const hasVision = !!modelInfo?.capabilities?.vision;
+    const imageInputModel = { modelInfo, resolvedModel, thinkingConfig };
 
     // AI call function (actions typically don't use vision, but kept for consistency)
     const aiCall = async (
@@ -105,7 +111,12 @@ export async function POST(req: NextRequest) {
       userPrompt: string,
       images?: Array<{ id: string; src: string }>,
     ): Promise<string> => {
-      if (images?.length && hasVision) {
+      throwIfGenerationAborted(req.signal);
+      if (images?.length) {
+        const resolvedImages = await resolveVisionImagesForPrompt(images, req.headers);
+        throwIfGenerationAborted(req.signal);
+        if (resolvedImages.length !== images.length) throw new Error(
+          'SOURCE_IMAGE_UNAVAILABLE: original source pixels are unavailable. No image was silently omitted.');
         const result = await callLLM(
           {
             model: languageModel,
@@ -113,16 +124,19 @@ export async function POST(req: NextRequest) {
             messages: [
               {
                 role: 'user' as const,
-                content: buildVisionUserContent(userPrompt, images),
+                content: classroomUserContent(imageInputModel, systemPrompt, userPrompt, resolvedImages),
               },
             ],
-            maxOutputTokens: modelInfo?.outputWindow,
+            maxOutputTokens: classroomOutputTokens(imageInputModel, systemPrompt, userPrompt, resolvedImages),
             maxRetries: 0,
+            abortSignal: req.signal,
           },
           'scene-actions',
           undefined,
           thinkingConfig,
         );
+        throwIfGenerationAborted(req.signal);
+        assertClassroomOutputComplete(result.finishReason);
         return result.text;
       }
       const result = await callLLM(
@@ -130,13 +144,16 @@ export async function POST(req: NextRequest) {
           model: languageModel,
           system: systemPrompt,
           prompt: userPrompt,
-          maxOutputTokens: modelInfo?.outputWindow,
+          maxOutputTokens: classroomOutputTokens(imageInputModel, systemPrompt, userPrompt),
           maxRetries: 0,
+          abortSignal: req.signal,
         },
         'scene-actions',
         undefined,
         thinkingConfig,
       );
+      throwIfGenerationAborted(req.signal);
+      assertClassroomOutputComplete(result.finishReason);
       return result.text;
     };
 
@@ -163,12 +180,13 @@ export async function POST(req: NextRequest) {
 
     const actions = await generateSceneActions(outline, generationContent,
       wrapGroundedAiCall(aiCall, contractFromMaterial(sourceMaterial,
-        modelInfo?.contextWindow ?? 16384), [], 'actions'), {
+        sourceMaterial ? classroomContextTokens(imageInputModel) : undefined), [], 'actions'), {
       ctx,
       agents,
       userProfile,
       languageDirective,
     });
+    throwIfGenerationAborted(req.signal);
 
     log.info(`Generated ${actions.length} actions for: "${outline.title}"`);
 
@@ -192,6 +210,7 @@ export async function POST(req: NextRequest) {
 
     return apiSuccess({ scene, previousSpeeches: outputPreviousSpeeches });
   } catch (error) {
+    rethrowIfGenerationCancelled(error, req.signal);
     log.error(
       `Scene actions generation failed [scene="${outlineTitle ?? 'unknown'}", model=${resolvedModelString ?? 'unknown'}]:`,
       error,

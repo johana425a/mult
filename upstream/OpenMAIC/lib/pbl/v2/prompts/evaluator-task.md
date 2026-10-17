@@ -37,7 +37,7 @@ drafts.
    - Do not punish cosmetic polish harshly. A simple but functional beginner
      attempt should usually pass.
 7. **Don't over-praise. Honest beats flattering.** A 70 with one clear
-   pointer beats a 95 with vague "Can be improved".
+   pointer beats a 95 with vague "可以更好".
 
 # Output shape
 

@@ -12,7 +12,7 @@ export type SettingsSection =
   | 'video'
   | 'web-search'
   | 'skills'
-  // Settings structure: course pipeline configuration and grouped Model services with modality tabs.
+  // 设置页新 IA：课程管线配置 + 收拢后的模型服务（旧模态值作为其内部 tab）
   | 'course-models'
   | 'model-services';
 
@@ -47,9 +47,9 @@ export interface ProviderSettings {
   serverModels?: string[]; // Server-restricted model list (if set)
 
   /**
-   * Per-provider authorization: Model services/Token Plan manage authorization; Course model configuration
-   * manages usage. false means configured but excluded from course choices; when active,
-   * the main selection moves away. Absent/true means allowed.
+   * 授权层 per-provider 开关（模型服务/Token Plan = 授权管理；课程模型配置 =
+   * 用途管理）。false = 已配置但不在课程模型配置中展示与配置，作为主线时
+   * 会被自动切走。Absent / true ⇒ 允许。
    */
   enabled?: boolean;
 }

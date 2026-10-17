@@ -1,5 +1,10 @@
 import { callLLM } from '@/lib/ai/llm';
-import { withClassroomWrite } from './classroom-lifecycle';
+import { focusedNarrationCall } from '@/lib/server/classroom-narration-focus.cjs';
+import { compactAdjacentSlides } from '@/lib/server/classroom-compact-scenes.cjs';
+import { resolveQuizSourceImages } from '@/lib/server/classroom-quiz-images.cjs';
+import { retainOriginalSourceImages } from '@/lib/server/classroom-source-references.cjs';
+import { SLIDE_LAYOUT_GUIDANCE, findOrnamentOnlyPages } from '@/lib/server/classroom-page-quality.cjs';
+import { classroomPrefetchWindow, orderedPrefetch, createClassroomTimings } from '@/lib/server/classroom-performance';
 import { createStageAPI } from '@/lib/api/stage-api';
 import type { StageStore } from '@/lib/api/stage-api-types';
 import {
@@ -9,11 +14,14 @@ import {
   generateSceneActions,
   generateSceneContent,
   expandGeneratedSlidePages,
+  layoutGeneratedSlidePages,
+  imageDimensionsFromDataUrl,
   isAbortError,
   PBLGenerationError,
   withGenerationRetry,
   type AICallFn,
   type AgentInfo,
+  type PdfImage,
 } from '@openmaic/generation';
 import { createSceneWithActions } from '@/lib/server/scene-generation';
 import { generatePBLV2Project } from '@/lib/pbl/v2/agents/planner';
@@ -50,8 +58,7 @@ import {
   type ClassroomTtsCoverage,
 } from '@/lib/server/classroom-media-generation';
 import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
-import type { ClassroomDocumentContent, UserRequirements } from '@/lib/types/generation';
-import { buildClassroomSourceImages } from '@/lib/server/classroom-image-sources';
+import type { UserRequirements } from '@/lib/types/generation';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { AGENT_COLOR_PALETTE, AGENT_DEFAULT_AVATARS } from '@/lib/constants/agent-defaults';
 import { createSourceMaterial } from '@/lib/source-material';
@@ -59,6 +66,8 @@ import {
   auditSourceFidelity,
   createSourceContract,
   SourceFidelityError,
+  withBundledQwenPromptBudget,
+  isBundledQwenProfile,
   wrapGroundedAiCall,
   type FidelityIssue,
   type SourceFidelityAudit,
@@ -67,6 +76,7 @@ import {
 const log = createLogger('Classroom');
 
 interface SceneModelOutput { text: string; finishReason?: string; outputTokens?: number }
+const COMPACT_LOCAL_INTERACTIVE = `\nBundled local interactive output contract: Return one compact, complete, self-contained HTML document within 8192 output tokens. Use concise HTML/CSS/JavaScript, no repeated boilerplate, external libraries or decorative code. Preserve all functional controls, reset/state handling, required postMessage actions, accessibility, source conditions and correct mechanism. Put full conceptual explanations in the teacher narration rather than duplicating verbose prose inside code. Close every script and the complete HTML document; never emit unfinished JavaScript. Keep the actual requested interaction; do not replace it with a static page.`;
 const STRICT_SOURCE_INTERACTIVE = `\nStrict source widget contract: Fix all quantities, preset values, experiment conditions and parameter ranges to those supported by the source. Do not add arbitrary default values, sliders or new scenarios; enable only manipulations explicitly supported by the source. Keep computed/derived quantities read-only and calculate them from the same current source parameters, preserving their stated mathematical/causal relations. Repeated trials may use the unchanged source experiment. Every tick/action must update all displayed counts, state and derived values consistently. Pause/resume preserves state and continues the same run; reset alone clears the entire run. Avoid unnecessary controls/code, but preserve the core requested interaction. Explain runtime mechanisms in teacher speech; hidden JavaScript does not count as teaching. This rule applies only when supplementary examples are not permitted.`;
 
 export class SceneContentGenerationError extends Error {
@@ -85,7 +95,7 @@ export function containPBLGenerationError(error: unknown, sceneTitle: string): n
 
 export interface GenerateClassroomInput {
   requirement: string;
-  pdfContent?: ClassroomDocumentContent;
+  pdfContent?: import('@/lib/types/generation').ClassroomDocumentContent;
   enableWebSearch?: boolean;
   webSearchProviderId?: WebSearchProviderId;
   webSearchApiKey?: string;
@@ -299,6 +309,8 @@ export async function generateClassroom(
     scenesGenerated: 0,
   });
 
+  const timings = createClassroomTimings();
+  const resolvedConfiguration = await resolveModel({ ...options.modelConfig, stage: 'generate-classroom' });
   const {
     model: languageModel,
     modelInfo,
@@ -308,10 +320,8 @@ export async function generateClassroom(
     providerId,
     apiKey,
     thinkingConfig: classroomThinking,
-    resolvedModel,
-    modelSnapshot,
-  } = await resolveModel({ ...options.modelConfig, stage: 'generate-classroom' });
-  const stageModels: Record<string, typeof resolvedModel> = { 'generate-classroom': resolvedModel };
+  } = resolvedConfiguration;
+  const resolvedIdentity = (resolvedConfiguration as { resolvedModel?: { model?: string } }).resolvedModel?.model ?? modelId;
   log.info(`Using server-configured model: ${modelString}`);
 
   // Fail fast if the resolved provider has no API key configured
@@ -332,11 +342,15 @@ export async function generateClassroom(
 
   // Competition integration: preserve uploaded figures in the one-shot API.
   const hasVision = modelInfo?.capabilities?.vision ?? Boolean(options.modelConfig);
-  const sourceImages = buildClassroomSourceImages(pdfContent);
+  const sourceImages: PdfImage[] = (pdfContent?.images ?? []).map((src, index) => ({
+    id: `img_${index + 1}`, src, pageNumber: 0,
+    ...imageDimensionsFromDataUrl(src),
+    description: 'Uploaded source figure; page number is not supplied to this endpoint.',
+  }));
   const imageMapping = Object.fromEntries(sourceImages.map((image) => [image.id, image.src]));
   const sourceContract = createSourceContract(pdfContent?.text, sourceImages,
-    modelInfo?.contextWindow ?? 16384, input.allowSupplementaryExamples === true);
-  const aiCall: AICallFn = async (systemPrompt, userPrompt, images) => {
+    modelInfo?.contextWindow ?? 16384, input.allowSupplementaryExamples === true, input.requirement);
+  const aiCall: AICallFn = withBundledQwenPromptBudget(async (systemPrompt, userPrompt, images) => {
     const result = await callLLM(
       {
         model: languageModel,
@@ -345,14 +359,13 @@ export async function generateClassroom(
           { role: 'user', content: hasVision && images?.length ? buildVisionUserContent(userPrompt, images) : userPrompt },
         ],
         maxOutputTokens: modelInfo?.outputWindow,
-        abortSignal: options.signal,
       },
       'generate-classroom',
       undefined,
       classroomThinking,
     );
     return result.text;
-  };
+  }, { modelId, baseUrl: modelBaseUrl, outputWindow: modelInfo?.outputWindow });
 
   // Per-stage model resolution for the scene pipeline. The classroom used to
   // bind a single `languageModel` (from the `generate-classroom` stage) into one
@@ -405,7 +418,6 @@ export async function generateClassroom(
 
     try {
       const resolved = await resolveModel({ ...options.modelConfig, stage });
-      stageModels[stage] = resolved.resolvedModel;
       const entry = {
         model: resolved.model,
         outputWindow: resolved.modelInfo?.outputWindow,
@@ -417,7 +429,20 @@ export async function generateClassroom(
       stageModelCache.set(stage, entry);
       return entry;
     } catch (err) {
-      throw new Error(`Configured model for stage "${stage}" is unavailable`, { cause: err });
+      log.warn(
+        `Stage "${stage}" route "${getStageModel(stage)}" could not be resolved; ` +
+          `falling back to the generate-classroom model.`,
+        err,
+      );
+      const fallback = {
+        model: languageModel,
+        outputWindow: modelInfo?.outputWindow,
+        modelId,
+        baseUrl: modelBaseUrl,
+        thinking: classroomThinking,
+      };
+      stageModelCache.set(stage, fallback);
+      return fallback;
     }
   };
 
@@ -428,10 +453,15 @@ export async function generateClassroom(
   // and thinking config, because PBL scene generation drives its own LLM
   // calls through the model object (generatePBLSceneContent) rather than the
   // aiCall closure, and consumes the route's thinking config separately.
-  const resolveSceneContentCall = async (outlineType?: string, onOutput?: (output: SceneModelOutput) => Promise<void>) => {
+  const resolveSceneContentCall = async (outlineType?: string, onOutput?: (output: SceneModelOutput) => Promise<void>, contentSignal?: AbortSignal) => {
     const stage = (outlineType ? `scene-content:${outlineType}` : 'scene-content') as LlmStage;
-    const { model, outputWindow, thinking } = await resolveStageModel(stage);
-    const aiCall: AICallFn = async (systemPrompt, userPrompt, images) => {
+    const { model, outputWindow, thinking, modelId: sceneModelId, baseUrl } = await resolveStageModel(stage);
+    const localInteractive = outlineType === 'interactive' && isBundledQwenProfile({ modelId: sceneModelId, baseUrl });
+    // Request-local immutable cap; do not mutate the cached model or other
+    // scenes. llama.cpp f2918cabb server-context.cpp:1951 gives the request
+    // n_predict/max_tokens precedence over the CLI's default --n-predict.
+    const effectiveOutputWindow = localInteractive ? 8192 : outputWindow;
+    const aiCall: AICallFn = withBundledQwenPromptBudget(async (systemPrompt, userPrompt, images) => {
       const result = await callLLM(
         {
           model,
@@ -439,8 +469,8 @@ export async function generateClassroom(
             { role: 'system', content: systemPrompt },
             { role: 'user', content: hasVision && images?.length ? buildVisionUserContent(userPrompt, images) : userPrompt },
           ],
-          maxOutputTokens: outputWindow,
-          abortSignal: options.signal,
+          maxOutputTokens: effectiveOutputWindow,
+          abortSignal: contentSignal ?? options.signal,
           maxRetries: 0,
         },
         'generate-classroom-scene',
@@ -451,11 +481,11 @@ export async function generateClassroom(
         outputTokens: result.totalUsage?.outputTokens ?? result.usage?.outputTokens };
       await onOutput?.(output);
       if (outlineType === 'interactive' && result.finishReason === 'length') {
-        throw new SceneContentGenerationError('OUTPUT_LIMIT', `Interactive output reached its ${outputWindow ?? 'configured'} token limit; the failed draft was retained privately. No identical retry or incomplete scene was accepted.`);
+        throw new SceneContentGenerationError('OUTPUT_LIMIT', `Interactive output reached its ${effectiveOutputWindow ?? 'configured'} token limit; the failed draft was retained privately. No identical retry or incomplete scene was accepted.`);
       }
       return result.text;
-    };
-    return { aiCall, model, thinking };
+    }, { modelId: sceneModelId, baseUrl, outputWindow: effectiveOutputWindow });
+    return { aiCall, model, thinking, localInteractive };
   };
 
   // agent-profiles routes via the `agent-profiles` stage (matches the browser
@@ -473,7 +503,6 @@ export async function generateClassroom(
             { role: 'user', content: userPrompt },
           ],
           maxOutputTokens: outputWindow,
-          abortSignal: options.signal,
         },
         'generate-classroom',
         undefined,
@@ -488,8 +517,8 @@ export async function generateClassroom(
   let sceneActionsAiCall: AICallFn | undefined;
   const getSceneActionsAiCall = async (): Promise<AICallFn> => {
     if (sceneActionsAiCall) return sceneActionsAiCall;
-    const { model, outputWindow, thinking } = await resolveStageModel('scene-actions');
-    sceneActionsAiCall = async (systemPrompt, userPrompt, _images) => {
+    const { model, outputWindow, thinking, modelId: actionsModelId, baseUrl } = await resolveStageModel('scene-actions');
+    sceneActionsAiCall = withBundledQwenPromptBudget(async (systemPrompt, userPrompt, _images) => {
       const result = await callLLM(
         {
           model,
@@ -498,7 +527,6 @@ export async function generateClassroom(
             { role: 'user', content: userPrompt },
           ],
           maxOutputTokens: outputWindow,
-          abortSignal: options.signal,
           maxRetries: 0,
         },
         'generate-classroom-scene',
@@ -506,7 +534,7 @@ export async function generateClassroom(
         thinking,
       );
       return result.text;
-    };
+    }, { modelId: actionsModelId, baseUrl, outputWindow });
     return sceneActionsAiCall;
   };
 
@@ -519,7 +547,6 @@ export async function generateClassroom(
           { role: 'user', content: userPrompt },
         ],
         maxOutputTokens: 256,
-        abortSignal: options.signal,
       },
       'web-search-query-rewrite',
       undefined,
@@ -546,17 +573,22 @@ export async function generateClassroom(
   if (input.enableWebSearch) {
     const webSearchConfig = resolveClassroomWebSearchConfig(input);
     if (webSearchConfig) {
-      // Explicit model routes must resolve to that selection. Never silently
-      // switch an unavailable selection to the classroom model.
+      // Re-resolve the query-rewrite model only when explicitly routed. If
+      // resolution itself fails (e.g. unknown provider in the route), fall back
+      // to the classroom model here; a route with a missing key resolves fine
+      // and surfaces only later in callLLM, which the outer try/catch below
+      // degrades gracefully — either way the pipeline still works.
       const rewriteRoute = getStageModel('web-search-query-rewrite');
       if (rewriteRoute) {
         try {
           const rewriteResolved = await resolveModel({ ...options.modelConfig, stage: 'web-search-query-rewrite' });
           searchQueryModel = rewriteResolved.model;
           searchQueryThinking = rewriteResolved.thinkingConfig;
-          stageModels['web-search-query-rewrite'] = rewriteResolved.resolvedModel;
         } catch (err) {
-          throw new Error('Configured query-rewrite model is unavailable', { cause: err });
+          log.warn(
+            `web-search-query-rewrite route "${rewriteRoute}" unavailable; using classroom model for query rewrite`,
+            err,
+          );
         }
       }
       try {
@@ -639,7 +671,6 @@ export async function generateClassroom(
       agents = await generateAgentProfiles(requirement, languageDirective, agentProfilesCall);
       log.info(`Generated ${agents.length} agent profiles`);
     } catch (e) {
-      if (options.signal?.aborted || getStageModel('agent-profiles')) throw e;
       log.warn('Agent profile generation failed, falling back to defaults:', e);
       agents = getDefaultAgents();
     }
@@ -654,15 +685,12 @@ export async function generateClassroom(
     languageDirective,
     sourceMaterial: pdfContent?.text?.trim()
       ? { ...createSourceMaterial(pdfContent.text)!, images: sourceImages,
-          allowSupplementaryExamples: input.allowSupplementaryExamples === true }
+          allowSupplementaryExamples: input.allowSupplementaryExamples === true, requestContext: input.requirement }
       : undefined,
     videoManifest: buildVideoManifestFromOutlines(outlines),
     style: 'interactive',
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    generationModel: resolvedModel,
-    generationModelSnapshot: modelSnapshot,
-    generationStageModels: stageModels,
     // For LLM-generated agents, embed full configs so the client can
     // hydrate the agent registry without prior IndexedDB data.
     // For default agents, just record IDs — the client already has them.
@@ -700,19 +728,18 @@ export async function generateClassroom(
     store.setState({ scenes: [], currentSceneId: null });
     let generatedScenes = 0;
 
-    for (const [index, outline] of outlines.entries()) {
+    const contentWindow = classroomPrefetchWindow(resolvedIdentity, outlines,
+      ['scene-content', 'scene-content:slide', 'scene-content:quiz', 'scene-content:interactive', 'scene-actions'].some(stage => Boolean(getStageModel(stage as LlmStage))));
+    timings.setContentWindow(contentWindow);
+    await options.onProgress?.({ step: 'generating_scenes', progress: 31,
+      message: contentWindow === 2 ? 'Generating scene content (up to 2 pages in parallel)' : 'Generating scene content',
+      scenesGenerated: 0, totalScenes: outlines.length });
+    const prepareContent = (outline: (typeof outlines)[number], index: number, contentSignal: AbortSignal) =>
+      timings.measure('content', { draft: draftAttempt, scene: index + 1 }, async () => {
       const safeOutline = applyOutlineFallbacks(outline, true, {
         allowProceduralSkill: vocationalActive,
       });
       const progressStart = 30 + Math.floor((index / Math.max(outlines.length, 1)) * 60);
-
-      await options.onProgress?.({
-        step: 'generating_scenes',
-        progress: Math.max(progressStart, 31),
-        message: `Generating scene ${index + 1}/${outlines.length}: ${safeOutline.title}`,
-        scenesGenerated: generatedScenes,
-        totalScenes: outlines.length,
-      });
 
       const reportSceneRetry = async (
         phase: 'content' | 'actions',
@@ -738,23 +765,23 @@ export async function generateClassroom(
       const retainFailedOutput = async (reason: string, diagnostics: string[]) => {
         // Outside the publicly served classroom/media namespace. The report
         // and UI receive only the reason, never this raw model response.
-        await withClassroomWrite(stageId, () => writeJsonFileAtomic(path.join(path.dirname(CLASSROOMS_DIR), 'generation-failures', stageId,
+        await writeJsonFileAtomic(path.join(path.dirname(CLASSROOMS_DIR), 'generation-failures', stageId,
           `draft-${draftAttempt}-scene-${index + 1}-content-${validationAttempt}.json`), {
           version: 1, reason, diagnostics, sceneType: safeOutline.type, draftAttempt,
           validationAttempt, sourceSha256: sourceContract?.sha256,
           output: lastOutput, private: true,
-        }));
+        });
       };
       const contentCall = await resolveSceneContentCall(safeOutline.type, async output => {
         lastOutput = output;
         if (safeOutline.type === 'interactive' && output.finishReason === 'length') {
           await retainFailedOutput('OUTPUT_LIMIT', ['Provider reported finishReason=length.']);
         }
-      });
+      }, contentSignal);
       let repairFeedback = '';
       const content = await (async () => {
         try {
-          for (validationAttempt = 1; validationAttempt <= (safeOutline.type === 'interactive' ? 2 : 1); validationAttempt++) {
+          for (validationAttempt = 1; validationAttempt <= (['interactive', 'slide'].includes(safeOutline.type) ? 2 : 1); validationAttempt++) {
           const diagnostics: string[] = [];
           let failureCode: string | undefined;
           const contentLogger = { debug: log.debug, info: log.info, warn: log.warn,
@@ -767,8 +794,8 @@ export async function generateClassroom(
             } };
           const groundedCall = wrapGroundedAiCall(contentCall.aiCall, sourceContract, repairIssues, 'content');
           const promptedCall: AICallFn = (system, user, images) => groundedCall(system,
-            `${user}${safeOutline.type === 'interactive' && sourceContract && !sourceContract.allowSupplementaryExamples ? STRICT_SOURCE_INTERACTIVE : ''}${repairFeedback}`, images);
-          const generated = await withGenerationRetry(
+            `${user}${safeOutline.type === 'slide' ? SLIDE_LAYOUT_GUIDANCE : ''}${contentCall.localInteractive ? COMPACT_LOCAL_INTERACTIVE : ''}${safeOutline.type === 'interactive' && sourceContract && !sourceContract.allowSupplementaryExamples ? STRICT_SOURCE_INTERACTIVE : ''}${repairFeedback}`, images);
+          let generated = await withGenerationRetry(
             () =>
               generateSceneContent(safeOutline, promptedCall, {
                 assignedImages: safeOutline.suggestedImageIds?.length
@@ -799,27 +826,59 @@ export async function generateClassroom(
               label: `scene ${index + 1}/${outlines.length} content`,
               // Network/HTTP retries keep their original policy. Invalid
               // interactive output uses the bounded feedback loop below.
-              shouldRetryResult: safeOutline.type === 'interactive' ? undefined : (result) => result === null,
+              shouldRetryResult: ['interactive', 'slide'].includes(safeOutline.type) ? undefined : (result) => result === null,
               onRetry: (event) => reportSceneRetry('content', event),
             },
-          );
-          if (generated || safeOutline.type !== 'interactive') return generated;
-          const detail = diagnostics.join(' | ') || failureCode || 'Generator returned no valid interactive content.';
+          ).catch(error => {
+            // Layout validation is a content failure, not a transport retry.
+            // The bounded repair loop below retains the raw draft and all
+            // source content; abort and service failures still propagate.
+            if (safeOutline.type !== 'slide' || !['SLIDE_LAYOUT_OVERFLOW', 'SLIDE_LAYOUT_UNSUPPORTED'].includes(error?.code)) throw error;
+            failureCode = error.code;
+            diagnostics.push(String(error.message));
+            return null;
+          });
+          if (generated && safeOutline.type === 'quiz') {
+            generated = await resolveQuizSourceImages(generated, imageMapping, stageId, CLASSROOMS_DIR);
+          }
+          if (generated && safeOutline.type === 'slide') {
+            const orphanPages = findOrnamentOnlyPages(generated);
+            if (orphanPages.length) {
+              diagnostics.push(`Pages ${orphanPages.join(', ')} contain only a title and decoration. Regenerate the complete outline with substantive content on every page; remove decorative bars and keep headings with their explanations.`);
+              generated = null;
+            }
+          }
+          if (generated || !['interactive', 'slide'].includes(safeOutline.type)) return generated;
+          const detail = diagnostics.join(' | ') || failureCode || 'Generator returned no valid scene content.';
           await retainFailedOutput('SCENE_CONTENT_INVALID', diagnostics.length ? diagnostics : [detail]);
           if (validationAttempt === 2 || failureCode === 'prompt-unavailable') {
-            throw new SceneContentGenerationError('SCENE_CONTENT_INVALID', `Interactive scene failed validation: ${detail}. Failed drafts were retained privately; this scene was not skipped.`);
+            throw new SceneContentGenerationError('SCENE_CONTENT_INVALID', `Scene failed validation: ${detail}. Failed drafts were retained privately; this scene was not skipped.`);
           }
-          repairFeedback = `\nThe previous interactive draft failed validation: ${detail}\nRegenerate a complete compact document from the full original source. Fix the reported HTML/JavaScript problem; preserve functional interactions and all source conditions. Do not merely append closing tags to broken code.`;
+          repairFeedback = safeOutline.type === 'slide' ? `\nThe previous slide draft failed validation: ${detail}\nRegenerate the complete outline, retaining all scientific content and figures. ${SLIDE_LAYOUT_GUIDANCE}` : `\nThe previous interactive draft failed validation: ${detail}\nRegenerate a complete compact document from the full original source. Fix the reported HTML/JavaScript problem; preserve functional interactions and all source conditions. Do not merely append closing tags to broken code.`;
           await reportSceneRetry('content', { attempt: validationAttempt, maxAttempts: 2, reason: detail });
           }
-          throw new SceneContentGenerationError('SCENE_CONTENT_INVALID', 'Interactive validation attempts exhausted.');
+          throw new SceneContentGenerationError('SCENE_CONTENT_INVALID', 'Scene validation attempts exhausted.');
         } catch (error) {
           return containPBLGenerationError(error, safeOutline.title);
         }
       })();
+      return { safeOutline, content, reportSceneRetry };
+    });
+    for await (const prepared of orderedPrefetch(outlines, prepareContent, { windowSize: contentWindow, signal: options.signal })) {
+      const index = prepared.index;
+      const { safeOutline, content, reportSceneRetry } = prepared.value;
+      const progressStart = 30 + Math.floor((index / Math.max(outlines.length, 1)) * 60);
+      await options.onProgress?.({
+        step: 'generating_scenes',
+        progress: Math.max(progressStart, 31),
+        message: `Generating scene ${index + 1}/${outlines.length}: ${safeOutline.title}`,
+        scenesGenerated: generatedScenes,
+        totalScenes: outlines.length,
+      });
+
       if (!content) {
-        log.warn(`Skipping scene "${safeOutline.title}" — content generation failed`);
-        continue;
+        throw new SceneContentGenerationError('SCENE_CONTENT_INVALID',
+          `Scene "${safeOutline.title}" returned no content. The classroom cannot complete by silently omitting an outline.`);
       }
 
       const pageContents = expandGeneratedSlidePages(content);
@@ -828,15 +887,26 @@ export async function generateClassroom(
         id: pageIndex ? `${safeOutline.id}_page_${pageIndex + 1}` : safeOutline.id,
         title: pageIndex ? `${safeOutline.title} (continued ${pageIndex + 1})` : safeOutline.title,
         order: generatedScenes + 1 };
+      // The outline count is not a final page count: readable layout may split it.
+      // Refresh this before every page so a recovered retry is no longer shown.
+      await options.onProgress?.({
+        step: 'generating_scenes',
+        progress: Math.max(progressStart, 31),
+        message: `Generating outline ${index + 1}/${outlines.length}, page ${pageIndex + 1}/${pageContents.length}: ${safeOutline.title}`,
+        scenesGenerated: generatedScenes,
+        totalScenes: generatedScenes + pageContents.length - pageIndex + outlines.length - index - 1,
+      });
       const actionsAiCall = await getSceneActionsAiCall();
-      const actions = await withGenerationRetry(
+      const actions = await timings.measure('actions', { draft: draftAttempt, scene: index + 1, page: pageIndex + 1 }, () => withGenerationRetry(
         () =>
-          generateSceneActions(pageOutline, pageContent, wrapGroundedAiCall(actionsAiCall, sourceContract, repairIssues, 'actions'), {
+          generateSceneActions(pageOutline, pageContent, focusedNarrationCall(wrapGroundedAiCall(actionsAiCall, sourceContract, repairIssues, 'actions'), store.getState().scenes, pageIndex, pageContents.length), {
             agents,
             languageDirective,
             ctx: { pageIndex: generatedScenes + 1,
               totalPages: generatedScenes + pageContents.length - pageIndex + outlines.length - index - 1,
-              allTitles: outlines.map(item => item.title),
+              allTitles: [...store.getState().scenes.map(item => item.title),
+                ...pageContents.slice(pageIndex).map((_, offset) => offset + pageIndex ? `${safeOutline.title} (continued ${offset + pageIndex + 1})` : safeOutline.title),
+                ...outlines.slice(index + 1).map(item => item.title)],
               previousSpeeches: store.getState().scenes.flatMap(scene =>
                 (scene.actions ?? []).filter(action => action.type === 'speech').map(action => action.text)) },
           }),
@@ -844,17 +914,13 @@ export async function generateClassroom(
           label: `scene ${index + 1}/${outlines.length} actions`,
           onRetry: (event) => reportSceneRetry('actions', event),
         },
-      );
+      ));
       log.info(`Scene "${safeOutline.title}": ${actions.length} actions`);
 
       const sceneId = createSceneWithActions(pageOutline, pageContent, actions, api);
       if (!sceneId) {
-        if (pageOutline.type === 'interactive') {
-          throw new SceneContentGenerationError('SCENE_CONTENT_INVALID',
-            'Interactive scene assembly or persistence validation failed; the classroom cannot complete without this scene.');
-        }
-        log.warn(`Skipping scene "${safeOutline.title}" — scene creation failed`);
-        continue;
+        throw new SceneContentGenerationError('SCENE_CONTENT_INVALID',
+          `Scene "${pageOutline.title}" assembly or persistence validation failed; the classroom cannot complete without this scene.`);
       }
 
       generatedScenes += 1;
@@ -863,18 +929,19 @@ export async function generateClassroom(
       await options.onProgress?.({
         step: 'generating_scenes',
         progress: Math.min(progressEnd, 90),
-        message: `Generated ${generatedScenes}/${outlines.length} scenes`,
+        message: `Completed ${index + 1}/${outlines.length} outlines; ${generatedScenes} pages generated`,
         scenesGenerated: generatedScenes,
-        totalScenes: outlines.length,
+        totalScenes: generatedScenes + outlines.length - index - 1,
       });
     }
 
-    const draftScenes = store.getState().scenes;
+    const draftScenes = retainOriginalSourceImages(compactAdjacentSlides(store.getState().scenes, layoutGeneratedSlidePages), sourceImages, stageId);
+    store.setState({ scenes: draftScenes });
     if (draftScenes.length === 0) throw new Error('No scenes were generated');
     // Final visible media must exist before semantic verification; TTS runs only after it passes.
     if (input.enableImageGeneration || input.enableVideoGeneration) {
       await options.onProgress?.({ step: 'generating_media', progress: 90,
-        message: 'Generating media files', scenesGenerated: draftScenes.length, totalScenes: outlines.length });
+        message: 'Generating media files', scenesGenerated: draftScenes.length, totalScenes: draftScenes.length });
       const mediaMap = await generateMediaForClassroom(outlines, stageId, options.baseUrl);
       replaceMediaPlaceholders(draftScenes, mediaMap);
     }
@@ -899,8 +966,8 @@ export async function generateClassroom(
           issues: [...(priorAudit?.issues ?? []), { kind: 'invalid_audit',
             detail: `${phase} operation failed (${code}); the last complete draft was retained for review. ${reason}` }], failure };
         const draftArtifact = `source-fidelity-${phase}-failure-${attempt}.json`;
-        await withClassroomWrite(stageId, () => writeJsonFileAtomic(path.join(CLASSROOMS_DIR, stageId, draftArtifact),
-          { version: 1, sourceSha256: sourceContract.sha256, attempt, failure, audit, scenes }));
+        await writeJsonFileAtomic(path.join(CLASSROOMS_DIR, stageId, draftArtifact),
+          { version: 1, sourceSha256: sourceContract.sha256, attempt, failure, audit, scenes });
         attempts.push({ attempt, audit, draftArtifact });
         stage.sourceFidelity = { version: 1, status: 'needs_review', sourceSha256: sourceContract.sha256,
           guarantee: false, attempts };
@@ -910,14 +977,14 @@ export async function generateClassroom(
       for (let attempt = 1; attempt <= 2; attempt += 1) {
         await options.onProgress?.({ step: 'generating_scenes', progress: 91,
           message: `Verifying source conditions, mechanisms, claims and figures (${attempt}/2)`,
-          scenesGenerated: scenes.length, totalScenes: outlines.length });
+          scenesGenerated: scenes.length, totalScenes: scenes.length });
         let audit: SourceFidelityAudit;
-        try { audit = await auditSourceFidelity(sourceContract, scenes, aiCall); }
+        try { audit = await timings.measure('source_audit', { attempt }, () => auditSourceFidelity(sourceContract, scenes, aiCall)); }
         catch (error) { return await retainCompleteReviewDraft('audit', attempt, error); }
         const draftArtifact = `source-fidelity-attempt-${attempt}.json`;
         // Keep the failed original model draft and its findings for transparent review.
-        await withClassroomWrite(stageId, () => writeJsonFileAtomic(path.join(CLASSROOMS_DIR, stageId, draftArtifact),
-          { version: 1, sourceSha256: sourceContract.sha256, attempt, audit, scenes }));
+        await writeJsonFileAtomic(path.join(CLASSROOMS_DIR, stageId, draftArtifact),
+          { version: 1, sourceSha256: sourceContract.sha256, attempt, audit, scenes });
         attempts.push({ attempt, audit, draftArtifact });
         stage.sourceFidelity = { version: 1, status: audit.passed ? 'verified' : 'needs_review',
           sourceSha256: sourceContract.sha256, guarantee: false, attempts };
@@ -950,11 +1017,11 @@ export async function generateClassroom(
         progress: 94,
         message: 'Generating TTS audio',
         scenesGenerated: scenes.length,
-        totalScenes: outlines.length,
+        totalScenes: scenes.length,
       });
 
       try {
-        ttsCoverage = await generateTTSForClassroom(
+        ttsCoverage = await timings.measure('tts', {}, () => generateTTSForClassroom(
           scenes,
           stageId,
           options.baseUrl,
@@ -965,11 +1032,11 @@ export async function generateClassroom(
               progress: classroomTtsHeartbeatProgress(written, total),
               message: `Generating TTS audio (${written}/${total})`,
               scenesGenerated: scenes.length,
-              totalScenes: outlines.length,
+              totalScenes: scenes.length,
             });
           },
           options.ttsConfig,
-        );
+        ));
       } catch (err) {
         if (isAbortError(err)) throw err;
         log.warn('TTS generation phase failed, continuing:', err);
@@ -984,7 +1051,7 @@ export async function generateClassroom(
       progress: 98,
       message: 'Persisting classroom data',
       scenesGenerated: scenes.length,
-      totalScenes: outlines.length,
+      totalScenes: scenes.length,
     });
 
     // The id was reserved before media/TTS generation, so the process owns it and
@@ -998,14 +1065,14 @@ export async function generateClassroom(
       progress: 100,
       message: ttsWarning ?? 'Classroom generation completed',
       scenesGenerated: persisted.scenes.length,
-      totalScenes: outlines.length,
+      totalScenes: persisted.scenes.length,
     });
 
     return {
       id: persisted.id,
-      resolvedModel,
-      modelSnapshot,
-      stageModels,
+      resolvedModel: resolvedConfiguration.resolvedModel,
+      modelSnapshot: resolvedConfiguration.modelSnapshot,
+      stageModels: {'generate-classroom': resolvedConfiguration.resolvedModel},
       url: persisted.url,
       stage: persisted.stage,
       scenes: persisted.scenes,
@@ -1015,6 +1082,9 @@ export async function generateClassroom(
       ...(ttsWarning ? { warning: ttsWarning } : {}),
     };
   } finally {
+    try {
+      await writeJsonFileAtomic(path.join(CLASSROOMS_DIR, stageId, 'generation-timings.json'), timings.snapshot());
+    } catch { log.warn('Could not retain classroom phase timings'); }
     if (!persisted) {
       await releaseClassroomReservation(stageId);
     }

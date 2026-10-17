@@ -1,55 +1,58 @@
 # DeepSteam
 
-DeepSteam is a desktop education assistant that combines document reading, guided learning, workspace tools, and interactive classrooms in one application.
+DeepSteam brings document reading, personalized learning, video study, workspace tools, and interactive classrooms into one desktop application. Chat, personalized learning, immersive reading, the OpenMAIC workbench, and classroom dialogue now submit interactive turns to **one Harness execution core**. DeepTutor and OpenMAIC continue to provide their interfaces and teaching services.
 
-This repository contains the English public source edition of `2026.10.13-r9-selected-model-vision`. It includes modified upstream source and DeepSteam integration code, with English documentation and ASCII file names. It does not include an installed application, private documents, personal learning records, saved accounts, API credentials, or machine-specific runtime configuration.
+**Current source snapshot: `2026.10.17-r11-harness-core`, including the subsequent October 17 experience fixes.** This updates the former r8/r9 public snapshot and the October 16 standalone branch. Existing Git history and upstream licenses are preserved.
 
-## What it provides
-
-- A unified model catalog for chat, learning plans, books, workspace assistance, and classroom generation.
-- User-controlled account authorization and API connections. Passwords and authorization tokens stay outside conversational context.
-- Folder-based workspaces with shared document reading across application features.
-- A durable document queue, reusable extraction results, original-page and image references, and recoverable multi-file reading progress.
-- PDF, DOCX, PPTX, spreadsheet, Markdown, and text ingestion. MinerU is available as a document tool rather than a chat model.
-- Interactive classroom creation, source-material references, local speech options, and video export integration.
-- Content management, model-use records, installation lifecycle management, and an explicit uninstall entry point.
-
-The public source defaults to English; the paired local Windows installer retains the Chinese interface. Both detect local regional settings at runtime. No personal timezone is fixed in the source. Each user selects their own models, storage location, credentials, and regional preferences. This source companion contains no preconfigured cloud account or conversational model weights.
-
-## Getting started
-
-For a complete Windows distribution, keep its installer and matching payload file together, then run the installer. The desktop application manages its internal services; users do not need to enter an internal network address.
-
-This repository is source code. A source checkout requires the component dependencies and compatible runtime assets before it can be packaged. See [GUIDE.md](GUIDE.md) for the source layout, setup workflow, and operating notes. Runtime binaries and document-tool model weights are downloaded separately from their pinned official sources and are excluded from this repository.
-
-Run `python scripts/verify_public_source.py` to check the reviewed source files against [PUBLIC-SOURCE-MANIFEST.json](PUBLIC-SOURCE-MANIFEST.json). This check does not read account settings, contact a model provider, or modify learning records.
-
-## Project layout
-
-| Directory | Purpose |
+| Start here | Contents |
 | --- | --- |
-| `desktop/` | Desktop shell, startup lifecycle, transport, and application integration |
-| `integration/` | Harness host, model routing, document reading, and shared tooling |
-| `portal/` | Material, classroom, and learning-record bridge |
-| `scripts/` | Component startup, storage selection, document workers, and maintenance |
-| `installer/` | Windows installer, uninstall logic, staging, and package verification |
-| `upstream/DeepTutor/` | Modified learning application source |
-| `upstream/OpenMAIC/` | Modified classroom application source |
-| `upstream/DeepSeekHarness/` | Pinned Harness source |
-| `licenses/` | Applicable licenses, source attribution, and modification notices |
+| [Release notes](RELEASE.md) | Changes since the previous public snapshot and known limits |
+| [Architecture](docs/architecture.md) | Five entry points, shared execution, tools, model and persistence contracts |
+| [Validation](docs/validation.md) | Real model results, timings, deterministic checks, and untested areas |
+| [Project status](docs/project-status.md) | Resolved and outstanding experience issues |
+| [Source provenance](docs/source-provenance.md) | Upstream pins, source inputs, public normalization, and build coverage |
+| [Review guide](docs/review-guide.md) | Code entry points and questions for independent architecture review |
+| [User and source guide](GUIDE.md) | Configuration, usage, and component setup |
 
-## Open-source components
+## What changed in r11
 
-DeepSteam uses [DeepTutor](https://github.com/HKUDS/DeepTutor), [OpenMAIC](https://github.com/THU-MAIC/OpenMAIC), and [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). The document-tool integration uses [MinerU](https://github.com/opendatalab/MinerU) and an official [llama.cpp](https://github.com/ggml-org/llama.cpp) runtime.
+- Shared Harness execution for all five interactive surfaces, with stable session mapping, a frozen model selection per turn, cancellation, recovery, and structured failure details.
+- Real MD, Word, PDF, Excel, and PowerPoint creation through the bundled execution environment; verified files become preview/download attachments. Learning summaries, chat archives, and mastery state remain distinct records.
+- Backend subtitle access with source identity and timestamps, so a document task can read the whole transcript instead of only the visible subtitle rows. Bilibili and YouTube remain the primary video targets.
+- Managed extensions and reversible program repairs, with dependency/version records and isolated lifecycle validation.
+- Follow-up fixes for persisted answers, original-source links, classroom layout and video export, sidebar continuity, and bounded classroom content prefetch.
 
-**MinerU is used for document parsing. Its license includes additional terms beyond Apache License 2.0, including attribution and commercial-use thresholds.** Read [the MinerU license](licenses/mineru/MinerU-LICENSE.md), [distribution notices](licenses/NOTICE.md), and [the modification notice](licenses/MODIFICATIONS.md) before redistribution. Upstream code keeps its original ownership and applicable licenses; the DeepSteam name does not imply upstream endorsement.
+The [recorded execution acceptance](docs/validation.md) used the selected real `gpt-6.1-sol` model across 15 cases: 31/31 generated files parsed and 22/22 download checks passed. Later experience tests and their limits are recorded separately. Tool registration is not treated as proof that every tool action works.
 
-Development and examples were assisted by Codex. Prepared examples, deterministic test responses, actual model responses, and user answers are distinct kinds of evidence.
+## Source and application distribution
 
-## Reliability and data
+This repository is a **source snapshot**, not a newly built Windows installer. It contains modified upstream code, integration code, current available repair source, dependency lockfiles, regression tests, and sanitized reports. Runtime binaries, model weights, credentials, browser sessions, textbooks, personal conversations, and learning databases are excluded.
 
-Reading tasks keep source identities, extraction status, original images, and progress records. The application can queue concurrent requests and resume persisted work. Document recognition still depends on source quality and parser capabilities; original pages remain available for checking formulas, scans, and diagrams.
+The local installed r11 upgrade was an overlay plus a rebuilt OpenMAIC runtime. Some older native frontend fixes exist only as compiled patches or partial recovered source. A complete clean-checkout installer rebuild has **not** been established; see [build coverage](docs/source-provenance.md#build-coverage). Do not treat a GitHub source ZIP as an installable package or a claim of complete binary reproducibility.
 
-Cloud calls use the model and service selected by the user. Language models, document parsing, embeddings, speech, and image generation have separate capability requirements. A successful language-model connection does not provide every other service.
+The public source defaults to English; existing localized installations keep their saved settings. Regional settings are resolved at runtime. Each installation needs its own model connection. No personal account or conversational model weights are supplied here.
 
-Do not commit runtime data, credential files, private configuration, logs, or browser profiles. The public-source export contains no previous Git history from a personal installation.
+Run `python scripts/verify_public_source.py` to verify the reviewed files against [PUBLIC-SOURCE-MANIFEST.json](PUBLIC-SOURCE-MANIFEST.json). The check does not access a user credential store or contact a model provider. See [tests/r11/README.md](tests/r11/README.md) for focused regressions.
+
+## Source layout
+
+| Directory | Role |
+| --- | --- |
+| `desktop/` | Electron shell, internal transport, startup and lifecycle |
+| `integration/` | Request adapters, shared model routing, Harness host, execution and document services |
+| `portal/` | Authenticated internal APIs for materials, classrooms, records and files |
+| `scripts/` | Runtime startup, storage, document workers and repair helpers |
+| `installer/` | Windows installation, uninstall, launcher and packaging source |
+| `upstream/DeepTutor/` | Modified learning interface and teaching services |
+| `upstream/OpenMAIC/` | Modified classroom application, generation packages and renderer |
+| `upstream/DeepSeekHarness/` | Pinned official execution framework source |
+| `tests/r11/`, `reports/r11/` | Portable regression entry points and sanitized acceptance records |
+| `licenses/` | Original licenses, attribution and modification notices |
+
+## Upstream projects and licenses
+
+DeepSteam integrates [DeepTutor](https://github.com/HKUDS/DeepTutor), [OpenMAIC](https://github.com/THU-MAIC/OpenMAIC), and [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). Optional local document parsing uses [MinerU](https://github.com/opendatalab/MinerU) and an official [llama.cpp](https://github.com/ggml-org/llama.cpp) runtime.
+
+MinerU includes additional terms beyond Apache License 2.0, including attribution and commercial-use thresholds. Read [its license](licenses/mineru/MinerU-LICENSE.md), [distribution notices](licenses/NOTICE.md), and [modification notices](licenses/MODIFICATIONS.md) before redistribution. Original ownership and licenses remain applicable; DeepSteam branding does not imply upstream endorsement.
+
+Development and examples were assisted by coding agents. Deterministic fixtures, actual model output, operator observations, and user learning outcomes are separate evidence categories. Private configuration and user records must never be committed.

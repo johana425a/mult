@@ -51,6 +51,13 @@ class MasteryPromptAssembler(LoopPromptAssembler):
             PromptBlock("runtime_policy", self._t("runtime_policy")),
             PromptBlock("mastery_loop", self._t("loop.system")),
             PromptBlock("mastery_playbook", self._t("playbook")),
+            PromptBlock("formula_source_policy",
+                "Before teaching, correcting or assessing a formula from the learner's selected document, "
+                "read the relevant source and inspect its original pixels and formula-review notes. "
+                "Read only the current knowledge point's relevant sources. Source-only/unclear formulas "
+                "remain original images with an explicit uncertainty note; never reconstruct them from "
+                "memory or use them as quiz answer keys. Parser status and preserving source images "
+                "are application responsibilities, not student knowledge points or mastery gates."),
         ]
 
 
@@ -87,7 +94,8 @@ class MasteryLoopPipeline(AgenticLoopPipeline):
             elif source.kind.value == "file" and source.metadata.get("kb_name"):
                 refs.append(source.metadata["kb_name"])
         context.knowledge_bases = list(dict.fromkeys([*context.knowledge_bases, *refs]))
-        with learning_source_access(refs):
+        from integration.native_formula_review import formula_review_scope
+        with learning_source_access(refs), formula_review_scope():
             return await super().run(context, stream)
 
 

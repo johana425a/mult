@@ -6,16 +6,12 @@
 /**
  * Parsed PDF content with text and images
  */
-import type { ClassroomImageSource, SourceDocumentLocator } from './generation';
-
 export interface ParsedPdfContent {
   /** Extracted text content from the PDF */
   text: string;
 
   /** Array of images as base64 data URLs */
   images: string[];
-  /** Original document coordinates paired with images, including Office parts. */
-  image_sources?: ClassroomImageSource[];
 
   /** Extracted tables (MinerU feature) */
   tables?: Array<{
@@ -63,10 +59,6 @@ export interface ParsedPdfContent {
        * hit names the image's pool asset instead of materializing its bytes.
        */
       assetId?: string;
-      originalId?: string;
-      sourceDocumentId?: string;
-      sourceDocumentName?: string;
-      sourceLocator?: SourceDocumentLocator;
     }>;
     [key: string]: unknown;
   };

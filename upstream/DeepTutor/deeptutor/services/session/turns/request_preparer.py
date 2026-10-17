@@ -135,6 +135,42 @@ class TurnRequestPreparer:
 
         async def _coordinate_execution(self, execution: _TurnExecution) -> None: ...
 
+    async def _acquire_after_finishing_turn(
+        self, turn_id: str, scope: str, session_id: str
+    ) -> Any:
+        """DeepSteam 2026-10-15 responsiveness: wait briefly for a turn that is only finishing.
+
+        Stop sends ``cancel_turn`` and closes the socket, and the next message
+        arrives on a new socket before the stopped turn has unwound. A finished
+        answer also keeps its session while the conversation title is written.
+        Both used to reject the new message ("not sent"). A turn that is still
+        generating its answer is not waited for.
+        """
+        deadline = time.monotonic() + 15.0
+        while time.monotonic() < deadline:
+            active = await self.store.get_active_turn(session_id)
+            if active is None:
+                async with self._lock:
+                    tails = [
+                        execution
+                        for execution in self._executions.values()
+                        if execution.session_id == session_id
+                    ]
+                for execution in tails:
+                    title_task = getattr(execution, "title_task", None)
+                    if title_task is not None and not title_task.done():
+                        title_task.cancel()
+            else:
+                active_id = str(active.get("id") or active.get("turn_id") or "")
+                commands = await self.coordinator.read_commands(active_id) if active_id else []
+                if not any(str(command.kind) == "cancel" for _stream_id, command in commands):
+                    return None
+            await asyncio.sleep(0.05)
+            lease = await self.coordinator.acquire_turn(turn_id, scope, self.owner_id)
+            if lease is not None:
+                return lease
+        return None
+
     @workspace_writer
     async def start_turn(
         self,
@@ -568,6 +604,12 @@ class TurnRequestPreparer:
                 f"{self._coordination_scope}:{session['id']}",
                 self.owner_id,
             )
+            if lease is None:
+                lease = await self._acquire_after_finishing_turn(
+                    turn_id,
+                    f"{self._coordination_scope}:{session['id']}",
+                    session["id"],
+                )
             if lease is None:
                 raise RuntimeError("Session already has an active or recovering turn")
         preference_update: dict[str, Any] = {
