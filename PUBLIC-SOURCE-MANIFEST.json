@@ -1,8 +1,8 @@
 {
   "product": "DeepSteam",
   "edition": "public-english-source",
-  "version": "2026.10.17-r11.1-review",
-  "source_base_commit": "ff0bb0eb181881c44b6bd1396179d171dae7b52c",
+  "version": "2026.10.17-r11.2-theme",
+  "source_base_commit": "882b67067937470fdbc82f6febbe1fefc784941a",
   "default_interface_language": "en",
   "paired_binary_default_interface_language": "zh",
   "timezone_policy": "detect_at_runtime",
@@ -12,7 +12,7 @@
     "PACKAGE-MANIFEST.json",
     "PUBLIC-SOURCE-MANIFEST.json"
   ],
-  "file_count": 11868,
+  "file_count": 11870,
   "files": [
     {
       "path": ".gitattributes",
@@ -64,9 +64,9 @@
     },
     {
       "path": "RELEASE-IDENTITY.json",
-      "bytes": 1413,
-      "sha256": "4f8664d2a28d93d5627786203d2e0375fa64c4ca3800927a30228827dc20b9de",
-      "git_blob_sha": "7dab72d915614b9b338faf1e0178ae7ec18296d4"
+      "bytes": 1411,
+      "sha256": "16000a12e415939eedcb4d6659c97d7c1596907a33b25ea4ac3327aaba35d7d0",
+      "git_blob_sha": "0d7266ab7c8a0c368b0e7dab7bebbd6140156c4d"
     },
     {
       "path": "RELEASE.md",
@@ -255,10 +255,16 @@
       "git_blob_sha": "c925228c00dd802e7b61a54fad049a094635423e"
     },
     {
+      "path": "docs/installer-theme.md",
+      "bytes": 2716,
+      "sha256": "b658137156c757a842230eac5731c629be745fe936d11fd4679735212c2fff97",
+      "git_blob_sha": "aa6d5cfd191522fe56bc27a96fae12818ef75725"
+    },
+    {
       "path": "docs/project-status.md",
-      "bytes": 4355,
-      "sha256": "b8ba8de1a495f729fd36441f469659360c5a09e91ce274dc5d90ff60527089dd",
-      "git_blob_sha": "d7c47becff83ac6d89dabffc5d4e04b484e48b78"
+      "bytes": 4597,
+      "sha256": "0fa1c3f9eee4abd681b1636e9e09f8dd02c5f192bc337907748ef1588254dbdf",
+      "git_blob_sha": "9d00a7ed3e86ae52542186576f5c484993a713e7"
     },
     {
       "path": "docs/review-guide.md",
@@ -304,9 +310,9 @@
     },
     {
       "path": "installer/DeepSteamSetup.cs",
-      "bytes": 229510,
-      "sha256": "e56c44f2ff6ce63dba36a0a40f9f6f9233ff098e88c857359e262d6b90dd7ceb",
-      "git_blob_sha": "d38dfde784bf54e24b1a06169524716d2d8ad7ae"
+      "bytes": 232666,
+      "sha256": "3cc3cd32518e209bee1e75e2dd9fa0f2d915591f19ba593a9bcb1770b16beb47",
+      "git_blob_sha": "5c283883a38da24f56385177db9e0651ac74f64f"
     },
     {
       "path": "installer/INSTALLATION.txt",
@@ -325,6 +331,12 @@
       "bytes": 12414,
       "sha256": "2b7d6ea6704ce366c6dc0684efb0cccbd634655614e3cfadbe157d23b8a43bbc",
       "git_blob_sha": "743143fa025f5dc8c445a027e9783fadb1093d32"
+    },
+    {
+      "path": "installer/RenderSetupPreview.cs",
+      "bytes": 5623,
+      "sha256": "1a07e9bcda39dbce239aa0879ccdb27c77ec5dcf554381c597271444ec915e43",
+      "git_blob_sha": "c99c311ae7023c64daaf6fc5521f251e91a43253"
     },
     {
       "path": "installer/Start-DeepSteam.ps1",

@@ -24,7 +24,7 @@ namespace DeepSteamInstaller
 {
     internal static class Program
     {
-        internal const string Version = "2026.10.17-r11.1-review-local";
+        internal const string Version = "2026.10.17-r11.2-theme-local";
         internal const string InstallingMarker = ".deepsteam-installing";
         internal const string InstalledMarker = ".deepsteam-installed";
 
@@ -583,11 +583,18 @@ namespace DeepSteamInstaller
     // uninstall paths remain independent of these lightweight native controls.
     internal static class SetupTheme
     {
+        // Same dark tokens as upstream/DeepTutor/web/app/globals.css.
+        // Brand artwork retains its gold/terracotta gradient independently.
         internal static readonly Color Paper = Color.FromArgb(26, 25, 24);
         internal static readonly Color Panel = Color.FromArgb(36, 34, 32);
-        internal static readonly Color Ink = Color.FromArgb(238, 234, 226);
-        internal static readonly Color Muted = Color.FromArgb(170, 163, 154);
+        internal static readonly Color Ink = Color.FromArgb(232, 228, 222);
+        internal static readonly Color Muted = Color.FromArgb(155, 149, 144);
         internal static readonly Color Accent = Color.FromArgb(212, 115, 75);
+        internal static readonly Color AccentInk = Paper;
+        internal static readonly Color Secondary = Color.FromArgb(42, 39, 37);
+        internal static readonly Color Active = Color.FromArgb(48, 45, 42);
+        internal static readonly Color Destructive = Color.FromArgb(212, 74, 60);
+        internal static readonly Color DestructiveInk = Color.White;
         internal static readonly Color Line = Color.FromArgb(58, 54, 52);
         private static readonly bool motionEnabled = ReadMotion();
         internal static bool Motion { get { return motionEnabled && !SystemInformation.HighContrast; } }
@@ -598,6 +605,23 @@ namespace DeepSteamInstaller
         {
             int enabled;
             return SystemParametersInfo(0x1042, 0, out enabled, 0) && enabled != 0;
+        }
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
+        internal static void ApplyTitleBar(Form form)
+        {
+            try
+            {
+                int enabled = 1;
+                if (DwmSetWindowAttribute(form.Handle, 20, ref enabled, sizeof(int)) != 0)
+                    DwmSetWindowAttribute(form.Handle, 19, ref enabled, sizeof(int));
+                int caption = ColorTranslator.ToWin32(Paper), ink = ColorTranslator.ToWin32(Ink);
+                DwmSetWindowAttribute(form.Handle, 35, ref caption, sizeof(int));
+                DwmSetWindowAttribute(form.Handle, 36, ref ink, sizeof(int));
+            }
+            catch (DllNotFoundException) { }
+            catch (EntryPointNotFoundException) { }
         }
 
         // iOS-style motion helpers. Colour/position values approach their
@@ -628,6 +652,49 @@ namespace DeepSteamInstaller
             path.CloseFigure();
             return path;
         }
+    }
+
+    // App-owned prompts share the same palette. No system-wide theme changes.
+    internal sealed class SetupDialog : Form
+    {
+        internal SetupDialog(string message, string title, bool question)
+        {
+            Text = title; BackColor = SetupTheme.Paper; ForeColor = SetupTheme.Ink;
+            Font = new Font("Microsoft YaHei UI", 10);
+            Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+            AutoScaleDimensions = new SizeF(96F, 96F); AutoScaleMode = AutoScaleMode.Dpi;
+            ClientSize = new Size(560, 280); MinimumSize = new Size(440, 240);
+            StartPosition = FormStartPosition.CenterParent; ShowInTaskbar = false;
+            MinimizeBox = false; MaximizeBox = false;
+            TableLayoutPanel layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(24), ColumnCount = 1, RowCount = 3 };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            Label heading = new Label { Text = title, AutoSize = true, Dock = DockStyle.Top,
+                Font = new Font(Font.FontFamily, 15, FontStyle.Bold), Margin = new Padding(0, 0, 0, 14), UseMnemonic = false };
+            Panel viewport = new Panel { Dock = DockStyle.Fill, AutoScroll = true, Margin = new Padding(0, 0, 0, 18) };
+            Label body = new Label { Text = message, AutoSize = true, Dock = DockStyle.Top, UseMnemonic = false };
+            viewport.Controls.Add(body);
+            viewport.SizeChanged += delegate { body.MaximumSize = new Size(Math.Max(160, viewport.ClientSize.Width - SystemInformation.VerticalScrollBarWidth - 2), 0); };
+            FlowLayoutPanel actions = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.RightToLeft, WrapContents = true, Margin = Padding.Empty };
+            SetupButton accept = new SetupButton { Text = question ? "取消并关闭" : "确定", Primary = true, Danger = question,
+                DialogResult = question ? DialogResult.Yes : DialogResult.OK, MinimumSize = new Size(question ? 128 : 100, 42), Margin = Padding.Empty };
+            actions.Controls.Add(accept);
+            if (question)
+            {
+                SetupButton keep = new SetupButton { Text = "继续安装", DialogResult = DialogResult.No, MinimumSize = new Size(128, 42), Margin = new Padding(0, 0, 12, 0) };
+                actions.Controls.Add(keep); AcceptButton = keep; CancelButton = keep;
+            }
+            else { AcceptButton = accept; CancelButton = accept; }
+            layout.Controls.Add(heading, 0, 0); layout.Controls.Add(viewport, 0, 1); layout.Controls.Add(actions, 0, 2);
+            Controls.Add(layout);
+            HandleCreated += delegate { SetupTheme.ApplyTitleBar(this); };
+        }
+        internal static DialogResult ShowQuestion(IWin32Window owner, string message, string title)
+        { using (SetupDialog form = new SetupDialog(message, title, true)) return form.ShowDialog(owner); }
+        internal static void ShowWarning(IWin32Window owner, string message, string title)
+        { using (SetupDialog form = new SetupDialog(message, title, false)) { if (owner == null) form.ShowDialog(); else form.ShowDialog(owner); } }
     }
 
     /// <summary>Per-control 60 fps ticker that stops itself once settled.</summary>
@@ -683,6 +750,7 @@ namespace DeepSteamInstaller
     internal sealed class SetupButton : Button
     {
         internal bool Primary;
+        internal bool Danger;
         private bool hovered;
         private bool pressed;
         private double hover, press, scale = 1, velocity;
@@ -728,12 +796,14 @@ namespace DeepSteamInstaller
         {
             e.Graphics.Clear(Parent == null ? SetupTheme.Paper : Parent.BackColor);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            Color fill = Primary ? SetupTheme.Accent : SetupTheme.Paper;
-            if (!Enabled) fill = SetupTheme.Panel;
+            Color baseFill = Primary ? (Danger ? SetupTheme.Destructive : SetupTheme.Accent) : SetupTheme.Secondary;
+            Color fill = baseFill;
+            if (!Enabled) fill = SetupTheme.Mix(baseFill, Parent == null ? SetupTheme.Paper : Parent.BackColor, 0.5);
             else
             {
-                fill = SetupTheme.Mix(fill, Primary ? Color.FromArgb(229, 133, 84) : SetupTheme.Panel, hover);
-                fill = SetupTheme.Mix(fill, Primary ? Color.FromArgb(186, 91, 48) : Color.FromArgb(52, 48, 43), press);
+                // Match the web buttons' 95% hover / 90% pressed brightness.
+                fill = SetupTheme.Mix(fill, Primary ? SetupTheme.Mix(baseFill, Color.Black, 0.05) : SetupTheme.Secondary, hover);
+                fill = SetupTheme.Mix(fill, Primary ? SetupTheme.Mix(baseFill, Color.Black, 0.10) : SetupTheme.Active, press);
             }
             // The rounded pill springs; the label stays crisp (GDI text ignores transforms).
             float s = Enabled ? (float)scale : 1F;
@@ -741,9 +811,10 @@ namespace DeepSteamInstaller
             RectangleF pill = new RectangleF(0.5F + Width * inset, 0.5F + Height * inset, (Width - 1) * s, (Height - 1) * s);
             using (GraphicsPath path = SetupTheme.Round(pill, 9 * e.Graphics.DpiX / 96))
             using (Brush brush = new SolidBrush(fill))
-            using (Pen pen = new Pen(Primary && Enabled ? fill : SetupTheme.Mix(SetupTheme.Line, Color.FromArgb(88, 80, 72), hover)))
+            using (Pen pen = new Pen(Primary && Enabled ? fill : SetupTheme.Line))
             { e.Graphics.FillPath(brush, path); e.Graphics.DrawPath(pen, path); }
-            Color text = !Enabled ? Color.FromArgb(112, 106, 98) : Primary ? Color.FromArgb(28, 22, 18) : SetupTheme.Ink;
+            Color text = Primary ? (Danger ? SetupTheme.DestructiveInk : SetupTheme.AccentInk) : SetupTheme.Ink;
+            if (!Enabled) text = SetupTheme.Mix(text, Parent == null ? SetupTheme.Paper : Parent.BackColor, 0.5);
             TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, text, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
             if (Focused && ShowFocusCues) ControlPaint.DrawFocusRectangle(e.Graphics, Rectangle.Inflate(ClientRectangle, -6, -6), text, fill);
         }
@@ -797,15 +868,10 @@ namespace DeepSteamInstaller
                 if (width > 0)
                 {
                     RectangleF area = new RectangleF(left, 0, Math.Max(1, width), Height);
-                    Color tail = Failed ? Color.FromArgb(140, 56, 48) : Color.FromArgb(150, 90, 60);
-                    Color head = Failed ? Color.FromArgb(173, 69, 59) : Color.FromArgb(240, 163, 125);
                     using (GraphicsPath bar = SetupTheme.Round(area, Height / 2F))
-                    using (LinearGradientBrush accent = new LinearGradientBrush(new RectangleF(area.X - 1, 0, area.Width + 2, Height), tail, head, LinearGradientMode.Horizontal))
+                    using (Brush accent = new SolidBrush(Failed ? SetupTheme.Destructive : SetupTheme.Accent))
                     {
-                        if (!Failed) accent.InterpolationColors = new ColorBlend { Colors = new[] { tail, SetupTheme.Accent, head }, Positions = new[] { 0F, 0.65F, 1F } };
                         e.Graphics.FillPath(accent, bar);
-                        using (Brush gloss = new SolidBrush(Color.FromArgb(38, 255, 255, 255)))
-                            e.Graphics.FillRectangle(gloss, area.X, 0, area.Width, Height / 2F);
                     }
                 }
                 e.Graphics.ResetClip();
@@ -827,7 +893,10 @@ namespace DeepSteamInstaller
         public override Size GetPreferredSize(Size proposedSize)
         {
             Size text = TextRenderer.MeasureText(Text, Font);
-            return new Size(text.Width + text.Height + (int)Math.Ceiling(text.Height * 0.55), text.Height + 6);
+            // The uninstall option uses a separate accessible text label. An
+            // empty caption must still reserve space for its painted checkbox.
+            int lineHeight = Math.Max(text.Height, TextRenderer.MeasureText("Mg", Font).Height);
+            return new Size(text.Width + lineHeight + (int)Math.Ceiling(lineHeight * 0.55), lineHeight + 6);
         }
         protected override void OnCheckedChanged(EventArgs e)
         {
@@ -1281,24 +1350,9 @@ namespace DeepSteamInstaller
             details.Text = visible ? "收起操作详情 -" : "展开操作详情 +";
         }
 
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
-
         private void ApplyDarkTitleBar()
         {
-            // Older Windows versions simply retain the system title bar.
-            try
-            {
-                int enabled = 1;
-                if (DwmSetWindowAttribute(Handle, 20, ref enabled, sizeof(int)) != 0)
-                    DwmSetWindowAttribute(Handle, 19, ref enabled, sizeof(int));
-                int caption = ColorTranslator.ToWin32(SetupTheme.Paper);
-                DwmSetWindowAttribute(Handle, 35, ref caption, sizeof(int));
-                int text = ColorTranslator.ToWin32(SetupTheme.Ink);
-                DwmSetWindowAttribute(Handle, 36, ref text, sizeof(int));
-            }
-            catch (DllNotFoundException) { }
-            catch (EntryPointNotFoundException) { }
+            SetupTheme.ApplyTitleBar(this);
         }
 
         private string DefaultRoot()
@@ -1543,7 +1597,7 @@ namespace DeepSteamInstaller
         {
             if (!busy) return;
             e.Cancel = true;
-            if (installing && MessageBox.Show(this, "安装仍在进行，是否取消并关闭？已完成的文件将保留。", "DeepSteam", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (installing && SetupDialog.ShowQuestion(this, "安装仍在进行，是否取消并关闭？已完成的文件将保留。", "DeepSteam") == DialogResult.Yes)
             {
                 closeAfterCancel = true;
                 CancelInstall();
@@ -1565,7 +1619,7 @@ namespace DeepSteamInstaller
         {
             state.Text = "尚未完成：" + message;
             phaseLabel.Text = "需要处理";
-            phaseLabel.ForeColor = Color.FromArgb(231, 140, 124);
+            phaseLabel.ForeColor = SetupTheme.Destructive;
             progress.Failed = true;
             progressValue.Text = "尚未完成";
             tip.Text = "请查看下方详情，已有文件和学习记录会保留。";
@@ -2458,7 +2512,7 @@ namespace DeepSteamInstaller
                 ScheduleTemporaryCleanup();
                 return 0;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message, "DeepSteam 卸载尚未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); return 1; }
+            catch (Exception ex) { SetupDialog.ShowWarning(null, ex.Message, "DeepSteam 卸载尚未完成"); return 1; }
         }
         private static void ScheduleTemporaryCleanup()
         {
@@ -2557,7 +2611,7 @@ namespace DeepSteamInstaller
     {
         private readonly UninstallContext context;
         private readonly CheckBox removeData = new SetupCheckBox();
-        private readonly SetupButton start = new SetupButton { Primary = true };
+        private readonly SetupButton start = new SetupButton { Primary = true, Danger = true };
         private readonly SetupButton cancel = new SetupButton();
         private readonly SetupProgress progress = new SetupProgress();
         private readonly System.Windows.Forms.Timer progressAnimation = new System.Windows.Forms.Timer { Interval = 16 };
@@ -2650,19 +2704,9 @@ namespace DeepSteamInstaller
         }
         private static Label TextBlock(string text, Color color, int top, int bottom)
         { return new Label { Text = text, ForeColor = color, AutoSize = true, Dock = DockStyle.Top, Margin = new Padding(0, top, 0, bottom), UseMnemonic = false }; }
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr handle, int attribute, ref int value, int size);
         private void ApplyDarkTitleBar()
         {
-            try
-            {
-                int enabled = 1;
-                if (DwmSetWindowAttribute(Handle, 20, ref enabled, sizeof(int)) != 0) DwmSetWindowAttribute(Handle, 19, ref enabled, sizeof(int));
-                int caption = ColorTranslator.ToWin32(SetupTheme.Paper), ink = ColorTranslator.ToWin32(SetupTheme.Ink);
-                DwmSetWindowAttribute(Handle, 35, ref caption, sizeof(int)); DwmSetWindowAttribute(Handle, 36, ref ink, sizeof(int));
-            }
-            catch (DllNotFoundException) { }
-            catch (EntryPointNotFoundException) { }
+            SetupTheme.ApplyTitleBar(this);
         }
         private void Begin()
         {
@@ -2686,8 +2730,8 @@ namespace DeepSteamInstaller
                     UninstallPendingException remaining = e.Error as UninstallPendingException;
                     FinishProgress(false, status.Text, remaining == null ? (long?)null : remaining.PendingCount);
                     if (testNoDialog) TestFailureStack = e.Error.StackTrace;
-                    if (!testNoDialog) MessageBox.Show(e.Error.Message, "DeepSteam 卸载尚未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-                status.Text = (string)e.Result; start.Text = "关闭"; FinishProgress(true, status.Text);
+                    if (!testNoDialog) SetupDialog.ShowWarning(this, e.Error.Message, "DeepSteam 卸载尚未完成"); return; }
+                status.Text = (string)e.Result; start.Text = "关闭"; start.Danger = false; FinishProgress(true, status.Text);
             };
             worker.RunWorkerAsync();
         }

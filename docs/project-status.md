@@ -8,6 +8,10 @@ It also records the two additional defects found in actual model tests. The newe
 layout refinement is retained; the native client remains running throughout the
 background upgrades.
 
+The r11.2 [installer theme update](installer-theme.md) aligns native maintenance
+windows with the existing dark application palette. It is a presentation update;
+the independent second architecture review remains pinned to commit `882b670`.
+
 | Issue group | Included change | Recorded status |
 | --- | --- | --- |
 | Startup and launcher (001-002) | Correct stale junction inventory and read the validated release identity | Startup passed; final launcher footer screenshot not obtained |
