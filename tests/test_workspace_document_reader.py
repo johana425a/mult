@@ -34,7 +34,7 @@ def png_bytes() -> bytes:
 
 class ReaderTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="workspace-reader-", dir=ROOT / "runtime")
+        self.temp = tempfile.TemporaryDirectory(prefix="workspace-reader-")
         self.root = Path(self.temp.name)
 
     def tearDown(self):
@@ -120,9 +120,10 @@ class ReaderTests(unittest.TestCase):
     def test_scan_not_falsely_claimed_read(self):
         self.pdf("scan.pdf", scan=True)
         result = self.read("scan.pdf", max_units=1)
-        self.assertEqual(result["status"], "needs_ocr")
+        self.assertEqual(result["status"], "partial")
         self.assertEqual(result["text"], "")
-        self.assertEqual(result["units"][0]["extraction"], "none")
+        self.assertEqual(result["units"][0]["extraction"], "visual_only")
+        self.assertTrue(result["units"][0]["visual_pending"])
         self.assertEqual(result["units"][0]["assets"][0]["id"], "pdf-page:1")
 
     def test_blank_pdf_is_empty_not_ocr_or_ready(self):
@@ -141,19 +142,21 @@ class ReaderTests(unittest.TestCase):
         self.pdf("scan.pdf", scan=True)
         with mock.patch.dict(sys.modules, {"rapidocr_onnxruntime": None, "rapidocr": None}):
             result = self.read("scan.pdf", max_units=1, ocr="auto")
-        self.assertEqual(result["status"], "needs_ocr")
+        self.assertEqual(result["status"], "partial")
+        self.assertTrue(result["units"][0]["visual_pending"])
         self.assertTrue(any("unavailable" in warning for warning in result["warnings"]))
 
     def test_ocr_page_budget_does_not_start_a_third_page(self):
         path = self.pdf("scan.pdf", scan=True)
         document = reader.Document(path.read_bytes(), ".pdf", "auto")
-        document.ocr_attempts = 2
+        document.ocr_pages = 2
         try:
-            with mock.patch.dict(sys.modules, {"rapidocr": None, "rapidocr_onnxruntime": None}):
+            with mock.patch.dict(sys.modules, {"rapidocr": None, "rapidocr_onnxruntime": None}), mock.patch.object(reader,"MAX_OCR_PAGES",2):
                 result = document.get(2)
-            self.assertEqual(result["status"], "needs_ocr")
-            self.assertEqual(document.ocr_attempts, 2)
-            self.assertTrue(any("limited to two pages" in warning for warning in document.warnings))
+            self.assertEqual(result["status"], "partial")
+            self.assertEqual(document.ocr_pages, 2)
+            self.assertTrue(document.ocr_deferred)
+            self.assertTrue(any("stopped after 2 page(s)" in warning for warning in document.warnings))
         finally:
             document.close()
 
@@ -196,7 +199,8 @@ class ReaderTests(unittest.TestCase):
         (self.root / "figure.png").write_bytes(png_bytes())
         result = self.read("figure.png")
         self.assertEqual(result["units"][0]["assets"][0]["id"], "image:1")
-        self.assertEqual(result["units"][0]["extraction"], "none")
+        self.assertEqual(result["units"][0]["extraction"], "visual_only")
+        self.assertTrue(result["units"][0]["visual_pending"])
         output = self.read("figure.png", action="asset", asset_id="image:1", document_sha256=result["document_sha256"])
         self.assertTrue(output["ok"], output)
         self.assertTrue(base64.b64decode(output["asset"]["base64"]).startswith(b"\x89PNG"))
@@ -271,12 +275,27 @@ class ReaderTests(unittest.TestCase):
         self.assertNotIn("private-note", json.dumps(result))
 
     def test_symlink_rejected(self):
+        if os.name == "nt":
+            # Directory junctions exercise a real reparse point without requiring
+            # Developer Mode or the elevated file-symlink privilege.
+            target=self.root/"original";target.mkdir()
+            (target/"source.txt").write_text("source")
+            link=self.root/"linked"
+            env=dict(os.environ,DS_FIXTURE_LINK=str(link),DS_FIXTURE_TARGET=str(target))
+            subprocess.run(["powershell.exe","-NoProfile","-NonInteractive","-Command",
+                "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path $env:DS_FIXTURE_LINK -Target $env:DS_FIXTURE_TARGET | Out-Null"],
+                env=env,check=True,capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW)
+            try:
+                self.assertTrue(link.is_junction())
+                self.assertEqual(self.read("linked/source.txt")["error"]["code"],"PATH_REPARSE_POINT")
+            finally:
+                self.assertEqual(link.resolve(),target.resolve())
+                link.rmdir()
+            self.assertEqual((target/"source.txt").read_text(),"source")
+            return
         original = self.root / "source.txt"
         original.write_text("source")
-        try:
-            (self.root / "link.txt").symlink_to(original)
-        except (OSError, NotImplementedError):
-            self.skipTest("OS does not permit fixture symlinks")
+        (self.root / "link.txt").symlink_to(original)
         self.assertEqual(self.read("link.txt")["error"]["code"], "PATH_REPARSE_POINT")
 
     def test_simulated_windows_reparse_rejected(self):

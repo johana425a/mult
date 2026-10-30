@@ -156,6 +156,12 @@ def _http_error(exc: Exception) -> HTTPException:
     locator, unsupported format, no extractable text). A 500 is reserved for
     failures that are genuinely ours.
     """
+    from deeptutor.reading.directory_commit import ReadingStorageBusy
+    if isinstance(exc, ReadingStorageBusy):
+        return HTTPException(status_code=503, detail={
+            'code': exc.code, 'stage': exc.stage, 'message': str(exc),
+            'diagnostic_id': exc.diagnostic_id, 'retryable': exc.retryable,
+        })
     if isinstance(exc, PermissionError):
         return HTTPException(status_code=403, detail=str(exc))
     if isinstance(exc, MaterialNotFound):
@@ -1195,6 +1201,13 @@ async def get_transcript(material_id: str) -> dict[str, Any]:
     locator at a time meant a request per segment — fine when a segment was ten
     minutes long, wasteful now that they follow the speaker's own sentences.
     """
+    # Reading a long saved transcript performs many disk/SQLite operations.
+    # Keep those off the ASGI loop so other requests and turn leases can run;
+    # to_thread carries the authenticated user/workspace ContextVars with it.
+    return await asyncio.to_thread(_read_transcript, material_id)
+
+
+def _read_transcript(material_id: str) -> dict[str, Any]:
     store = _store()
     try:
         assert_learning_material(material_id)

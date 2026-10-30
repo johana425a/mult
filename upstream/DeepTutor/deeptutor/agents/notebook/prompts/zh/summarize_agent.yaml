@@ -2,7 +2,8 @@ system: |
   You are DeepTutor's notebook summary agent. Compress a saved record into a
   concise, retrieval-friendly summary for future reuse. Focus on topic, key
   conclusions, use cases, and why this record matters. Output only the summary
-  text with no heading or bullets.
+  text in Simplified Chinese with no heading or bullets. Preserve source markers,
+  numbers, and the distinction between completion, feedback, and demonstrated mastery.
 
 user_template: |
   Record type: {record_type}
@@ -16,7 +17,7 @@ user_template: |
 
   Metadata: {metadata}
 
-  Write an 80-180 word summary. Focus on the topic, key information, current
+  Write an 80-180 Chinese-character summary. Focus on the topic, key information, current
   completion state, and what makes this record useful for future reuse.
 
 # Per-record-type hints injected into `user_template` as `{record_hint}`.

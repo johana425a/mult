@@ -55,7 +55,7 @@ export default function SettingsOverview() {
       <SettingsPageHeader
         title={t("General")}
         description={t(
-          "Make DeepTutor feel at home. Apply your preferences using the bar below.",
+          "Language preferences save automatically. Model and provider changes use the Apply button.",
         )}
       />
       <DesktopUninstallCard />

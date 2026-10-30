@@ -152,7 +152,7 @@ export default function SaveToNotebookModal({
   onClose,
   onSaved,
 }: SaveToNotebookModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [notebooks, setNotebooks] = useState<RealNotebookSummary[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [title, setTitle] = useState("");
@@ -319,7 +319,10 @@ export default function SaveToNotebookModal({
     setError("");
     setSummaryPreview("");
 
-    const metadata: Record<string, unknown> = { ...(payload.metadata || {}) };
+    const metadata: Record<string, unknown> = {
+      ...(payload.metadata || {}),
+      ui_language: i18n.resolvedLanguage || i18n.language || "en",
+    };
     if (hasMessageSelection && messages) {
       metadata.message_count = orderedSelectedMessages.length;
       metadata.total_message_count = messages.length;

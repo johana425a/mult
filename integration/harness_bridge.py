@@ -6,17 +6,21 @@ and configuration commits. Unit transports are fixtures, never model evidence.
 from __future__ import annotations
 
 import asyncio
+from contextlib import asynccontextmanager
 from copy import deepcopy
+from functools import lru_cache
 import hmac
 import json
 import os
 from pathlib import Path
 import re
 import secrets
+import ssl
 import time
 from urllib.parse import urlsplit
 
 import httpx
+import certifi
 from portal.storage import identifier, now
 from integration.model_limits import managed_model_limits
 
@@ -38,6 +42,28 @@ GUIDE = {
 
 
 _UNSET_SELECTION = object()
+
+
+@lru_cache(maxsize=4)
+def _verified_internal_context(path, modified, size):
+    # Keep certificate verification enabled. The stat identity refreshes the
+    # context when an update replaces the bundled CA file.
+    return ssl.create_default_context(cafile=path)
+
+
+def _load_internal_context():
+    path = str(Path(certifi.where()).resolve())
+    info = Path(path).stat()
+    return _verified_internal_context(path, info.st_mtime_ns, info.st_size)
+
+
+@asynccontextmanager
+async def _internal_http_client(**kwargs):
+    # httpx otherwise reads the entire CA bundle synchronously for every local
+    # request. Under concurrent UI polling that starves the ASGI/task heartbeat.
+    context = await asyncio.to_thread(_load_internal_context)
+    async with httpx.AsyncClient(**kwargs, trust_env=False, verify=context) as client:
+        yield client
 
 
 class HarnessError(RuntimeError):
@@ -91,7 +117,7 @@ class HarnessTransport:
 
     async def host(self, method, path, body=None, timeout=45):
         try:
-            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
+            async with _internal_http_client(timeout=timeout) as client:
                 response = await client.request(method, GATEWAY + path,
                     headers={'Authorization': 'Bearer ' + self.token()}, json=body)
             if response.status_code >= 400:
@@ -118,7 +144,7 @@ class HarnessTransport:
     async def host_binary(self, path, timeout=45):
         """Read a declared deliverable through authenticated, bounded Host access."""
         try:
-            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
+            async with _internal_http_client(timeout=timeout) as client:
                 async with client.stream('GET', GATEWAY + path,
                         headers={'Authorization': 'Bearer ' + self.token()}) as response:
                     if response.status_code >= 400:
@@ -145,7 +171,7 @@ class HarnessTransport:
 
     async def native(self, method, path, body=None):
         try:
-            async with httpx.AsyncClient(timeout=20, trust_env=False) as client:
+            async with _internal_http_client(timeout=20) as client:
                 response = await client.request(method, self.dt_url + path, json=body)
                 response.raise_for_status()
                 return response.json()
@@ -154,7 +180,7 @@ class HarnessTransport:
 
     async def native_internal(self):
         try:
-            async with httpx.AsyncClient(timeout=20, trust_env=False) as client:
+            async with _internal_http_client(timeout=20) as client:
                 response = await client.get(self.dt_url + '/api/contest/internal/provider',
                     headers={'Authorization': 'Bearer ' + self.token()})
             if response.status_code != 200:
@@ -167,7 +193,7 @@ class HarnessTransport:
 
     async def native_service(self, method, path, body=None):
         try:
-            async with httpx.AsyncClient(timeout=None if path == 'surface-tools/invoke' else 20, trust_env=False) as client:
+            async with _internal_http_client(timeout=None if path == 'surface-tools/invoke' else 20) as client:
                 response = await client.request(method, self.dt_url + '/api/contest/internal/' + path,
                     headers={'Authorization': 'Bearer ' + self.token()}, json=body)
             if response.status_code != 200:
@@ -196,7 +222,7 @@ class HarnessTransport:
         if not re.fullmatch(r'workspaces(?:/[A-Za-z0-9_-]{1,100})?', path):
             raise HarnessError('workspace_identity_invalid', 'The workspace identifier is invalid.', 422)
         try:
-            async with httpx.AsyncClient(timeout=20, trust_env=False) as client:
+            async with _internal_http_client(timeout=20) as client:
                 response = await client.request(method, self.dt_url + '/api/contest/internal/' + path,
                     headers={'Authorization': 'Bearer ' + self.token()}, json=body)
             if response.status_code != 200:
@@ -221,7 +247,7 @@ class HarnessTransport:
 
     async def native_workspace(self, workspace_id):
         try:
-            async with httpx.AsyncClient(timeout=20, trust_env=False) as client:
+            async with _internal_http_client(timeout=20) as client:
                 response = await client.get(self.dt_url + '/api/contest/internal/workspaces/' + workspace_id,
                     headers={'Authorization': 'Bearer ' + self.token()})
             if response.status_code != 200:
@@ -234,7 +260,7 @@ class HarnessTransport:
 
     async def host_attachment(self, session_id, attachment_id):
         try:
-            async with httpx.AsyncClient(timeout=30, trust_env=False) as client:
+            async with _internal_http_client(timeout=30) as client:
                 response = await client.get(GATEWAY + '/sessions/' + session_id + '/attachments/' + attachment_id,
                     headers={'Authorization': 'Bearer ' + self.token()})
             if response.status_code != 200:

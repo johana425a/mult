@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -32,6 +32,8 @@ const transport = vi.hoisted(() => {
     }
 
     setResumeState(): void {}
+
+    emit(event: MockEvent): void { this.onEvent(event); }
 
     disconnect(): void {
       this.connected = false;
@@ -98,6 +100,7 @@ function Harness() {
   return (
     <div>
       <span data-testid="streaming">{String(chat.state.isStreaming)}</span>
+      <span data-testid="assistant-count">{chat.state.messages.filter(m => m.role === "assistant").length}</span>
       <button type="button" onClick={() => chat.sendMessage("hello")}>
         Start turn
       </button>
@@ -139,5 +142,27 @@ describe("ask_user terminal turn state", () => {
         text: "Knowledge center",
       });
     });
+    // An ACK alone does not prove that the server resumed execution.
+    expect(screen.getByTestId("streaming")).toHaveTextContent("false");
+    const assistantCount = screen.getByTestId("assistant-count").textContent;
+    act(() => transport.instances.at(-1)?.emit({
+      type: "progress", source: "chat", stage: "responding", content: "",
+      metadata: { ask_user_resolved: true }, turn_id: "turn-1273", seq: 3,
+      timestamp: Date.now() / 1000,
+    }));
+    await waitFor(() => expect(screen.getByTestId("streaming")).toHaveTextContent("true"));
+    expect(screen.getByTestId("assistant-count")).toHaveTextContent(assistantCount!);
+    act(() => transport.instances.at(-1)?.emit({
+      type: "done", source: "chat", stage: "responding", content: "",
+      metadata: { status: "completed" }, turn_id: "turn-1273", seq: 4,
+      timestamp: Date.now() / 1000,
+    }));
+    await waitFor(() => expect(screen.getByTestId("streaming")).toHaveTextContent("false"));
+    act(() => transport.instances.at(-1)?.emit({
+      type: "progress", source: "chat", stage: "responding", content: "",
+      metadata: { ask_user_resolved: true }, turn_id: "turn-1273", seq: 5,
+      timestamp: Date.now() / 1000,
+    }));
+    expect(screen.getByTestId("streaming")).toHaveTextContent("false");
   });
 });

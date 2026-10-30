@@ -162,6 +162,9 @@ export function ReadingWorkspacePage() {
     conversations,
     setConversations,
     loading,
+    submissionBlocked,
+    sessionError,
+    retrySession,
     error,
     notice,
     setNotice,
@@ -332,6 +335,7 @@ export function ReadingWorkspacePage() {
       if (
         prompt &&
         !state.isStreaming &&
+        !submissionBlocked &&
         !workspaceActionNeedsConfiguration(state.activeCapability)
       ) {
         setReadingViewport({ locator, selection: quote });
@@ -359,6 +363,7 @@ export function ReadingWorkspacePage() {
     sendMessage,
     state.activeCapability,
     state.isStreaming,
+    submissionBlocked,
     toggleCompanion,
   ]);
 
@@ -366,7 +371,7 @@ export function ReadingWorkspacePage() {
   // the composer's Quiz mode, with its settings chosen here instead of asked
   // for. The conversation's own mode is left as it was.
   const quizThisPage = useCallback(() => {
-    if (state.isStreaming) return;
+    if (state.isStreaming || submissionBlocked) return;
     toggleCompanion(true);
     setReadingViewport({ locator: activeLocator, selection: "" });
     sendMessage(
@@ -382,6 +387,7 @@ export function ReadingWorkspacePage() {
     linkedSessionIds,
     sendMessage,
     state.isStreaming,
+    submissionBlocked,
     t,
     toggleCompanion,
   ]);
@@ -506,7 +512,7 @@ export function ReadingWorkspacePage() {
           )}
           <ReadAloudButton disabled={!materialReady} />
           <PageToolButtons
-            disabled={!materialReady || state.isStreaming}
+            disabled={!materialReady || state.isStreaming || submissionBlocked}
             onQuiz={quizThisPage}
           />
           {/* An icon, like every other control on this bar: as the only
@@ -745,6 +751,9 @@ export function ReadingWorkspacePage() {
         {companionOpen && (
           <ReadingCompanion
             workspaceId={workspaceId}
+            submissionBlocked={submissionBlocked}
+            sessionError={sessionError}
+            onRetrySession={retrySession}
             material={activeTab?.material ?? null}
             activeConversation={activeConversation}
             linkedSessionIds={linkedSessionIds}

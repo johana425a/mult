@@ -60,6 +60,7 @@ from deeptutor.reading.models import (
 )
 from deeptutor.services.file_io import atomic_write_text as _atomic_write
 from deeptutor.services.path_service import get_path_service
+from deeptutor.reading.directory_commit import publish as _publish_material, recover as _recover_material
 
 logger = logging.getLogger(__name__)
 
@@ -289,9 +290,10 @@ class ReadingStore:
         re-extracted, and its annotations are left untouched.
         """
         path = Path(source)
-        # Large PDFs are indexed without buffering all bytes or parsing every
-        # page before the user can start. Selected pages use the shared reader.
-        if path.suffix.lower() == '.pdf' and path.stat().st_size > 32 * 1024 * 1024:
+        # Compressed scans can contain many pages in a small file. Index every
+        # PDF immediately; file size must not decide whether import waits for
+        # full-document extraction. Selected pages still use the shared reader.
+        if path.suffix.lower() == '.pdf':
             from .pdf_on_demand import ingest_pdf
             return ingest_pdf(self, path, filename)
         try:
@@ -459,18 +461,7 @@ class ReadingStore:
             # Install the fully written directory in one swap. If the second
             # rename fails, put the previous material back before surfacing the
             # error; readers never observe a half-written unit set.
-            try:
-                if material_dir.exists():
-                    os.replace(material_dir, backup_dir)
-                try:
-                    os.replace(stage_dir, material_dir)
-                except Exception:
-                    if backup_dir.exists() and not material_dir.exists():
-                        os.replace(backup_dir, material_dir)
-                    raise
-            finally:
-                shutil.rmtree(stage_dir, ignore_errors=True)
-                shutil.rmtree(backup_dir, ignore_errors=True)
+            _publish_material(material_dir, stage_dir, backup_dir)
             return manifest
 
     def refresh_document(self, material_id: str) -> MaterialManifest:
@@ -624,18 +615,7 @@ class ReadingStore:
                 if source_state.is_file():
                     shutil.copy2(source_state, stage_dir / state_name)
 
-            try:
-                if material_dir.exists():
-                    os.replace(material_dir, backup_dir)
-                try:
-                    os.replace(stage_dir, material_dir)
-                except Exception:
-                    if backup_dir.exists() and not material_dir.exists():
-                        os.replace(backup_dir, material_dir)
-                    raise
-            finally:
-                shutil.rmtree(stage_dir, ignore_errors=True)
-                shutil.rmtree(backup_dir, ignore_errors=True)
+            _publish_material(material_dir, stage_dir, backup_dir)
             return self.manifest(resolved_id)
 
     def ingest_units(
@@ -751,6 +731,13 @@ class ReadingStore:
                 stage_dir / MANIFEST_NAME,
                 json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2),
             )
+            # DeepSteam: refreshing identical captions is not a new source.
+            # Compare the actual stored text, timing and assets, not just the
+            # video ID (which is stable even when its transcript changes).
+            if (existing is not None and render_mode in {"video", "audio"}
+                    and self._same_revision_content(material_dir, stage_dir)):
+                shutil.rmtree(stage_dir)
+                return self.manifest(material_id)
             if existing is not None and material_dir.is_dir():
                 previous_revisions = material_dir / REVISIONS_DIR
                 if previous_revisions.is_dir():
@@ -792,19 +779,59 @@ class ReadingStore:
             # original annotations untouched and the swap still proceeds.
             if existing is not None:
                 self._reanchor_annotations(stage_dir, manifest.revision)
-            try:
-                if material_dir.exists():
-                    os.replace(material_dir, backup_dir)
-                try:
-                    os.replace(stage_dir, material_dir)
-                except Exception:
-                    if backup_dir.exists() and not material_dir.exists():
-                        os.replace(backup_dir, material_dir)
-                    raise
-            finally:
-                shutil.rmtree(stage_dir, ignore_errors=True)
-                shutil.rmtree(backup_dir, ignore_errors=True)
+            _publish_material(material_dir, stage_dir, backup_dir)
             return self.manifest(material_id)
+
+    @staticmethod
+    def _same_revision_content(left: Path, right: Path) -> bool:
+        """Compare immutable source files; reading state never affects identity."""
+        def inventory(root: Path):
+            manifest = _read_json(root / MANIFEST_NAME)
+            if not isinstance(manifest, dict):
+                return None
+            manifest = {k: v for k, v in manifest.items() if k not in {"revision", "created_at"}}
+            files = {}
+            for name in (OUTLINE_NAME, UNIT_REFS_NAME):
+                path = root / name
+                if not path.is_file():
+                    return None
+                files[name] = path
+            for name in (UNITS_DIR, ASSETS_DIR, RAW_DIR, MEDIA_DIR):
+                directory = root / name
+                if directory.is_dir():
+                    for path in directory.rglob("*"):
+                        if path.is_file():
+                            files[path.relative_to(root).as_posix()] = path
+            # An incomplete snapshot must never count as equivalent.
+            for locator in range(1, int(manifest.get("unit_count") or 0) + 1):
+                if not (root / UNITS_DIR / f"{locator:04d}.txt").is_file():
+                    return None
+            return manifest, files
+
+        a, b = inventory(left), inventory(right)
+        if a is None or b is None or a[0] != b[0] or a[1].keys() != b[1].keys():
+            return False
+        for name, path in a[1].items():
+            other = b[1][name]
+            if path.stat().st_size != other.stat().st_size:
+                return False
+            if path.samefile(other):
+                continue
+            with path.open("rb") as one, other.open("rb") as two:
+                if hashlib.file_digest(one, "sha256").digest() != hashlib.file_digest(two, "sha256").digest():
+                    return False
+        return True
+
+    def revision_content_matches(self, material_id: str, revision: int) -> bool:
+        """Prove a legacy redundant revision still contains the exact source."""
+        with self._locked(material_id):
+            current = self.manifest(material_id)
+            if revision == current.revision:
+                return True
+            if not 1 <= revision < current.revision:
+                return False
+            root = self._dir(material_id)
+            return self._same_revision_content(root / REVISIONS_DIR / f"{revision:06d}", root)
 
     def revisions(self, material_id: str) -> list[MaterialManifest]:
         """List immutable prior manifests, oldest first."""
@@ -857,7 +884,10 @@ class ReadingStore:
 
     def _load_manifest(self, material_id: str) -> MaterialManifest | None:
         resolved_id = self._validate_id(material_id)
-        data = _read_json(self._dir(resolved_id) / MANIFEST_NAME)
+        with self._locked(resolved_id):
+            material_dir = self._dir(resolved_id)
+            _recover_material(material_dir)
+            data = _read_json(material_dir / MANIFEST_NAME)
         if not isinstance(data, dict):
             return None
         manifest = MaterialManifest.from_dict(data)
@@ -895,6 +925,11 @@ class ReadingStore:
         root = self.root
         if not root.is_dir():
             return []
+        for journal in root.glob('.*.replace.json'):
+            material_id = journal.name[1:-len('.replace.json')]
+            if _CONTENT_ID_RE.fullmatch(material_id):
+                with self._locked(material_id):
+                    _recover_material(root / material_id)
         found: list[MaterialManifest] = []
         for child in root.iterdir():
             if not child.is_dir() or not _CONTENT_ID_RE.fullmatch(child.name):
@@ -1109,7 +1144,7 @@ class ReadingStore:
             return changed
 
     def render_path(self, material_id: str) -> Path | None:
-        """Browser-ready EPUB archive; original bytes for all other formats."""
+        """Browser-ready PDF/EPUB container; retained original for other formats."""
         manifest = self.manifest(material_id)
         if manifest.render_mode == "text":
             return None

@@ -1,15 +1,19 @@
 {
   "product": "DeepSteam",
-  "version": "2026.10.17-r11.3-review",
-  "edition": "public-english-source",
+  "version": "2026.10.19-r11.6-settings",
+  "edition": "windows-standalone-zh-candidate",
   "source_repository": "https://github.com/johana425a/mult",
-  "source_base_commit": "9a8dba5c9aadec0cfb02b7f9ab56c03da40d8862",
+  "source_base_commit": "1e3e6cacb037100a53262e9521c2b87f76ca2b4b",
   "earlier_recovery_checkout": "05c1fbdfe9456837554c990f5244bcaf03fc6fc3",
-  "publication_date": "2026-10-17",
+  "publication_date": null,
+  "candidate_date": "2026-10-30",
+  "release_status": "candidate_not_accepted",
   "execution_core": "official-harness",
-  "paired_installed_version": "2026.10.17-r11.3-review-local",
-  "paired_openmaic_build": "dryxwUSkkn1IOtHk46iU8",
-  "default_language": "en",
+  "paired_installed_version": null,
+  "paired_openmaic_build": "lV59ejHKbO5G4AQBWBf_j",
+  "default_language": "zh",
+  "source_default_language": "en",
+  "installer_language": "zh-CN",
   "paired_local_language": "zh",
   "timezone_policy": "runtime_local",
   "upstream": {
@@ -36,5 +40,9 @@
   "full_clean_installer_rebuild_verified": false,
   "source_provenance": "docs/source-provenance.md",
   "validation": "docs/validation.md",
-  "known_issues": "docs/project-status.md"
+  "known_issues": "docs/project-status.md",
+  "packaging_note": "docs/release-r11.6-settings.md",
+  "repackaged_patch": "r11.6.8-settings",
+  "new_functional_tests_requested": false,
+  "full_release_acceptance_completed": false
 }

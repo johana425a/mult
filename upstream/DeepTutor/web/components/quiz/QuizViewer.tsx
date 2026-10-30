@@ -57,6 +57,8 @@ import { apiUrl } from "@/lib/api";
 import Tooltip from "@/shared/ui/Tooltip";
 
 import { randomUuid } from "@/lib/random-uuid";
+import { openWorkspaceDraft } from "@/lib/workspace-drafts";
+import { activeWorkspaceId } from "@/lib/workspace-scope";
 
 /** Resolve a possibly-relative AttachmentStore URL to an absolute one so
  *  ``<img src>`` works regardless of the API/frontend port pairing. */
@@ -130,6 +132,7 @@ const EMPTY_JUDGMENT: JudgmentState = {
 };
 
 type AnswerView = "reference" | "judgment";
+type SaveState = "saving" | "saved" | "pending" | "failed";
 
 function getQuestionKey(question: QuizQuestion, index: number): string {
   return question.question_id || `question_${index + 1}`;
@@ -203,6 +206,50 @@ export default function QuizViewer({
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<number, AnswerState>>({});
   const lastReportedSignatureRef = useRef("");
+  const workspaceId = activeWorkspaceId();
+  const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({});
+  const [draftsReady, setDraftsReady] = useState(!sessionId || !turnId);
+  const savingRef = useRef(new Set<string>());
+  const editedRef = useRef(new Set<number>());
+  const draftStoresRef = useRef(new Map<string, ReturnType<typeof openWorkspaceDraft>>());
+  const draftTextsRef = useRef(new Map<string, string>());
+  const [reportFailed, setReportFailed] = useState(false);
+  const [reportRetry, setReportRetry] = useState(0);
+  const getDraftStore = useCallback((key: string) => {
+    const path = `/quiz-pending/${encodeURIComponent(sessionId || "")}/${encodeURIComponent(turnId || "")}/${encodeURIComponent(key)}`;
+    const identity = `${workspaceId}:${path}`;
+    let store = draftStoresRef.current.get(identity);
+    if (!store) {
+      store = openWorkspaceDraft(workspaceId, path).catch((error) => {
+        draftStoresRef.current.delete(identity);
+        throw error;
+      });
+      draftStoresRef.current.set(identity, store);
+    }
+    return store;
+  }, [sessionId, turnId, workspaceId]);
+
+  useEffect(() => {
+    if (!sessionId || !turnId) return;
+    let cancelled = false;
+    setDraftsReady(false);
+    void Promise.all(questions.map(async (question, index) => {
+      const key = getQuestionKey(question, index);
+      try {
+        const draft = await (await getDraftStore(key)).read();
+        if (!draft || cancelled || editedRef.current.has(index)) return;
+        const pending = JSON.parse(draft.text);
+        if (pending.question !== JSON.stringify(question) || !pending.answer?.submitted || !Array.isArray(pending.answer.images)) return;
+        draftTextsRef.current.set(key, draft.text);
+        editedRef.current.add(index);
+        setAnswers((prev) => ({ ...prev, [index]: pending.answer }));
+        setSaveStates((prev) => ({ ...prev, [key]: "pending" }));
+      } catch {
+        // Submission retries storage and explicitly reports any failure.
+      }
+    })).finally(() => { if (!cancelled) setDraftsReady(true); });
+    return () => { cancelled = true; };
+  }, [sessionId, turnId, questions, getDraftStore]);
 
   const [entryIds, setEntryIds] = useState<Record<string, number>>({});
   const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
@@ -245,11 +292,13 @@ export default function QuizViewer({
   );
 
   const updateAnswer = useCallback(
-    (patch: Partial<AnswerState>) =>
+    (patch: Partial<AnswerState>) => {
+      editedRef.current.add(idx);
       setAnswers((prev) => ({
         ...prev,
         [idx]: { ...(prev[idx] ?? EMPTY_ANSWER), ...patch },
-      })),
+      }));
+    },
     [idx],
   );
 
@@ -287,7 +336,7 @@ export default function QuizViewer({
             (entry.user_answer || persistedImages.length > 0)
           ) {
             setAnswers((prev) => {
-              if (prev[questionIndex]?.submitted) return prev;
+              if (prev[questionIndex]?.submitted || editedRef.current.has(questionIndex)) return prev;
               return {
                 ...prev,
                 [questionIndex]: {
@@ -445,9 +494,11 @@ export default function QuizViewer({
     // numbered questions would pick it up as their own answers (#677).
     if (!sessionId || !turnId || total === 0 || completedCount !== total)
       return;
+    if (Object.values(saveStates).some((state) => state !== "saved")) return;
     const signature = JSON.stringify(submittedResults);
     if (!signature || signature === lastReportedSignatureRef.current) return;
     lastReportedSignatureRef.current = signature;
+    setReportFailed(false);
     void recordQuizResults(sessionId, submittedResults, turnId)
       .then(() => {
         questions.forEach((question, i) => {
@@ -456,6 +507,7 @@ export default function QuizViewer({
       })
       .catch((error) => {
         console.error("Failed to record quiz results:", error);
+        setReportFailed(true);
         if (lastReportedSignatureRef.current === signature) {
           lastReportedSignatureRef.current = "";
         }
@@ -468,6 +520,8 @@ export default function QuizViewer({
     submittedResults,
     total,
     turnId,
+    saveStates,
+    reportRetry,
   ]);
 
   const upsertSingleQuestion = useCallback(
@@ -478,7 +532,22 @@ export default function QuizViewer({
     ) => {
       if (!sessionId || !turnId) return;
       const key = getQuestionKey(question, questionIndex);
+      // One write per question at a time, including rapid double clicks.
+      if (savingRef.current.has(key)) return;
+      savingRef.current.add(key);
+      setSaveStates((prev) => ({ ...prev, [key]: "saving" }));
+      let locallySaved = false;
+      const text = JSON.stringify({
+        revision: randomUuid(), question: JSON.stringify(question),
+        answer: { ...answer, images: answer.images.map((image) => ({ ...image, previewUrl: null })) },
+      });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30_000);
       try {
+        const store = await getDraftStore(key);
+        await store.save({ text, attachments: [] });
+        locallySaved = true;
+        draftTextsRef.current.set(key, text);
         const imagePayload = answer.images.map((image) => ({
           id: image.id,
           base64: image.base64 ?? undefined,
@@ -499,7 +568,10 @@ export default function QuizViewer({
           user_answer: getUserAnswer(question, answer),
           user_answer_images: imagePayload,
           is_correct: isAnswerCorrect(question, answer),
-        });
+        }, { signal: controller.signal, workspaceId });
+        await store.clearIf(text);
+        draftTextsRef.current.delete(key);
+        setSaveStates((prev) => ({ ...prev, [key]: "saved" }));
         setEntryIds((prev) => ({ ...prev, [key]: entry.id }));
         setBookmarked((prev) => ({ ...prev, [key]: entry.bookmarked }));
         // Replace freshly-uploaded ``base64`` images with the
@@ -529,20 +601,30 @@ export default function QuizViewer({
           });
         }
       } catch {
-        /* best-effort */
+        setSaveStates((prev) => ({ ...prev, [key]: locallySaved ? "pending" : "failed" }));
+      } finally {
+        clearTimeout(timer);
+        savingRef.current.delete(key);
       }
     },
-    [sessionId, turnId],
+    [sessionId, turnId, getDraftStore, workspaceId],
   );
 
   const handleSubmit = () => {
-    if (ans.submitted || !q) return;
+    if (ans.submitted || !q || !draftsReady) return;
     const newAnswer = { ...(answers[idx] ?? EMPTY_ANSWER), submitted: true };
     updateAnswer({ submitted: true });
     void upsertSingleQuestion(q, newAnswer, idx);
   };
 
   const handleReset = () => {
+    if (savingRef.current.has(questionKey)) return;
+    const pending = draftTextsRef.current.get(questionKey);
+    if (pending) {
+      void getDraftStore(questionKey).then((store) => store.clearIf(pending)).catch(() => {});
+      draftTextsRef.current.delete(questionKey);
+    }
+    setSaveStates((prev) => { const next = { ...prev }; delete next[questionKey]; return next; });
     // Reset typed/selected state but keep an attached image so the learner
     // doesn't have to re-upload it when retrying.
     updateAnswer({ selected: null, typed: "", submitted: false });
@@ -1140,7 +1222,7 @@ export default function QuizViewer({
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
                 {ans.images.map((image) => {
                   const previewSrc =
-                    image.previewUrl ?? resolveImageSrc(image.url);
+                    image.previewUrl ?? (image.base64 ? `data:${image.mime};base64,${image.base64}` : resolveImageSrc(image.url));
                   return (
                     <div
                       key={image.id}
@@ -1195,11 +1277,29 @@ export default function QuizViewer({
           </div>
         )}
 
+        {saveStates[questionKey] && (
+          <div role={saveStates[questionKey] === "saved" ? "status" : "alert"} className="mt-3 text-sm text-[var(--muted-foreground)]">
+            {t(saveStates[questionKey] === "saving" ? "Saving answer..."
+              : saveStates[questionKey] === "saved" ? "Answer saved."
+              : saveStates[questionKey] === "pending" ? "Answer kept on this device. Saving failed; retry when connected."
+              : "Could not save the answer. Keep this page open and retry.")}
+            {(saveStates[questionKey] === "pending" || saveStates[questionKey] === "failed") && (
+              <button className="ml-2 underline" onClick={() => void upsertSingleQuestion(q, ans, idx)}>{t("Retry saving")}</button>
+            )}
+          </div>
+        )}
+        {reportFailed && (
+          <div role="alert" className="mt-2 text-sm">
+            {t("Answers are saved, but the learning record needs to be retried.")}
+            <button className="ml-2 underline" onClick={() => setReportRetry((value) => value + 1)}>{t("Retry recording")}</button>
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {!ans.submitted ? (
             <button
               onClick={handleSubmit}
               disabled={(() => {
+                if (!draftsReady) return true;
                 if (isChoice || isConcept) return !ans.selected;
                 // For free-text / fill-blank, accept either a typed answer or
                 // an image when this question type supports image answers.
@@ -1227,6 +1327,7 @@ export default function QuizViewer({
               )}
               <button
                 onClick={handleReset}
+                disabled={saveStates[questionKey] === "saving"}
                 className="inline-flex items-center gap-1 rounded-lg bg-[var(--muted)] px-2.5 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
               >
                 <RotateCcw size={11} />

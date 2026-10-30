@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Play, Pause, Repeat, Loader2, Volume2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { AvatarDisplay } from '@/components/ui/avatar-display';
+import { ClassroomMessageText } from '@/components/chat/classroom-message-text';
 import type { AudioIndicatorState } from '@/components/roundtable/audio-indicator';
 import type { PlaybackView } from '@/lib/playback';
 import type { Participant } from '@/lib/types/roundtable';
@@ -294,7 +295,7 @@ export function PresentationBubbleCard({
           </div>
         ) : (
           <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words text-gray-800 dark:text-gray-100">
-            {bubble.text}
+            <ClassroomMessageText text={bubble.text} />
             {bubble.isTopicPending && (
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 ml-1 align-middle" />
             )}

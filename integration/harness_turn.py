@@ -44,7 +44,8 @@ def _source_snapshot(context, owner):
             manifest = store.manifest(material_id)
             requested = metadata.get('reading_material_revision') if material_id == metadata.get('reading_material_id') else None
             if requested and requested != manifest.revision:
-                raise HTTPException(409, {'code':'execution_source_context_changed', 'message':'The selected material revision changed.'})
+                from deeptutor.reading.source_revision import ReadingRevisionConflict
+                raise ReadingRevisionConflict(getattr(context, 'language', 'en'))
             rows.append({'owner':owner, 'scope':workspace_id, 'source_id':'reading:'+material_id,
                 'version':manifest.revision, 'sha256':manifest.source_hash})
     return rows
@@ -300,8 +301,8 @@ async def _save_learning_record(body):
 async def _invoke(entry, name, args, call_id):
     pipeline, context, stream = entry['pipeline'], entry['context'], entry['stream']
     if 'source_snapshot' in entry and _source_snapshot(context, entry['owner']) != entry['source_snapshot']:
-        raise HTTPException(409, {'code':'execution_source_context_changed',
-            'message':'The source or its authorization changed. Start a new task with the current source.'})
+        from deeptutor.reading.source_revision import ReadingRevisionConflict
+        raise ReadingRevisionConflict(getattr(context, 'language', 'en'), during_execution=True)
     if name in entry.get('deferred', set()):
         await pipeline._execute_tool_call('load_tools', pipeline._augment_tool_kwargs('load_tools', {'names':[name]}, context), stream=stream)
         entry['deferred'].discard(name)

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { ReadingMediaController } from '@/lib/reading-media-controller'
 import { bilibiliEmbedUrl, type BilibiliSource } from '@/lib/reading-video-sources'
+import { BilibiliNativePlayer } from './BilibiliNativePlayer'
 
 /** How long to wait for the embed to load before calling it blocked. */
 const EMBED_LOAD_TIMEOUT_MS = 12_000
@@ -19,7 +20,7 @@ const EMBED_LOAD_TIMEOUT_MS = 12_000
  * the surfaces that follow playback can say so instead of showing a position
  * that never moves.
  */
-export function BilibiliReadingPlayer({
+function BilibiliEmbedPlayer({
   source,
   startSeconds,
   duration,
@@ -98,4 +99,9 @@ export function BilibiliReadingPlayer({
       onError={() => onError(t('This Bilibili video could not be loaded.'))}
     />
   )
+}
+
+export function BilibiliReadingPlayer(props: Parameters<typeof BilibiliEmbedPlayer>[0]) {
+  const native = typeof window !== 'undefined' && typeof (window as unknown as { deepsteamDesktop?: { domesticVideo?: unknown } }).deepsteamDesktop?.domesticVideo === 'function'
+  return native ? <BilibiliNativePlayer {...props} /> : <BilibiliEmbedPlayer {...props} />
 }

@@ -22,14 +22,19 @@ async function database(): Promise<IDBDatabase> {
   })
 }
 
-export async function saveWorkspaceDraft(draft: WorkspaceDraft, workspaceId?: string, pathname?: string): Promise<void> {
-  const draftKey = await key(workspaceId, pathname)
+async function writeDraft(draftKey: string, draft: WorkspaceDraft, expectedText?: string): Promise<void> {
   const db = await database()
   try {
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction('drafts', 'readwrite')
       const store = tx.objectStore('drafts')
-      if (draft.text || draft.attachments.length) store.put(draft, draftKey)
+      if (expectedText !== undefined) {
+        // An older response must not remove a newer pending answer.
+        const request = store.get(draftKey)
+        request.onsuccess = () => {
+          if (request.result?.text === expectedText) store.delete(draftKey)
+        }
+      } else if (draft.text || draft.attachments.length) store.put(draft, draftKey)
       else store.delete(draftKey)
       tx.oncomplete = () => resolve()
       tx.onerror = () => reject(tx.error)
@@ -40,8 +45,7 @@ export async function saveWorkspaceDraft(draft: WorkspaceDraft, workspaceId?: st
   }
 }
 
-export async function readWorkspaceDraft(workspaceId?: string, pathname?: string): Promise<WorkspaceDraft | undefined> {
-  const draftKey = await key(workspaceId, pathname)
+async function readDraft(draftKey: string): Promise<WorkspaceDraft | undefined> {
   const db = await database()
   try {
     return await new Promise((resolve, reject) => {
@@ -54,6 +58,24 @@ export async function readWorkspaceDraft(workspaceId?: string, pathname?: string
     })
   } finally {
     db.close()
+  }
+}
+
+export async function saveWorkspaceDraft(draft: WorkspaceDraft, workspaceId?: string, pathname?: string): Promise<void> {
+  await writeDraft(await key(workspaceId, pathname), draft)
+}
+
+export async function readWorkspaceDraft(workspaceId?: string, pathname?: string): Promise<WorkspaceDraft | undefined> {
+  return readDraft(await key(workspaceId, pathname))
+}
+
+/** Bind identity while online, so an outage cannot change a pending write's owner. */
+export async function openWorkspaceDraft(workspaceId: string, pathname: string) {
+  const draftKey = await key(workspaceId, pathname)
+  return {
+    read: () => readDraft(draftKey),
+    save: (draft: WorkspaceDraft) => writeDraft(draftKey, draft),
+    clearIf: (text: string) => writeDraft(draftKey, { text: '', attachments: [] }, text),
   }
 }
 

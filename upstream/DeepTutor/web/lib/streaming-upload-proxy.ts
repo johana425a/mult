@@ -1,5 +1,6 @@
 import { resolveBackendApiBase } from "./backend-runtime-config";
 import { prepareBackendForwardHeaders } from "./backend-forward";
+import { releasePathAvailable } from "./competition-profile";
 
 // HTTP/1.1 hop-by-hop headers describe one transport connection and must not
 // be replayed on the independent frontend -> backend connection.
@@ -47,7 +48,7 @@ function forwardedHeaders(
 
 /**
  * Stream a large multipart upload to FastAPI without materializing it in the
- * Next.js process. The two matching App Router endpoints are excluded from
+ * Next.js process. The matching App Router endpoints are excluded from
  * `proxy.ts`, whose automatic request clone otherwise truncates large batches.
  */
 export async function forwardBackendUpload(
@@ -57,6 +58,9 @@ export async function forwardBackendUpload(
   const apiBaseUrl = dependencies.apiBaseUrl || resolveBackendApiBase();
   const fetchImpl = dependencies.fetchImpl || globalThis.fetch;
   const incomingUrl = new URL(request.url);
+  if (!releasePathAvailable(incomingUrl.pathname)) {
+    return Response.json({ code: "feature_not_in_edition", message: "This feature is not included in this edition." }, { status: 404 });
+  }
   const upstreamUrl = new URL(
     incomingUrl.pathname + incomingUrl.search,
     apiBaseUrl,

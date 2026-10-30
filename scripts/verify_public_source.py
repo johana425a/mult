@@ -65,10 +65,10 @@ def main() -> int:
         if row['path'] in PUBLIC_ENGLISH_DOCS and HAN.search(text):
             failures.append({'file': row['path'], 'reason': 'Public user/source documentation must be English'})
     defaults = {
-        'upstream/DeepTutor/deeptutor/services/settings/interface_settings.py': ('"language": "en"', '"response_language": "en"'),
-        'upstream/DeepTutor/web/i18n/languages.ts': ('export function normalizeLanguage(_value: unknown): AppLanguage {\n  return "en";\n}',),
-        'upstream/DeepTutor/web/context/AppShellContext.tsx': ('useState<AppLanguage>("en")',),
-        'upstream/OpenMAIC/lib/i18n/types.ts': ("defaultLocale: Locale = 'en-US'",),
+        'upstream/DeepTutor/deeptutor/services/settings/interface_settings.py': ('os.environ.get("DEEPSTEAM_DEFAULT_LANGUAGE") == "zh" else "en"',),
+        'upstream/DeepTutor/web/i18n/languages.ts': ('process.env.NEXT_PUBLIC_DEEPSTEAM_DEFAULT_LANGUAGE === "zh" ? "zh" : "en"',),
+        'upstream/DeepTutor/web/context/AppShellContext.tsx': ('useState<AppLanguage>(DEFAULT_APP_LANGUAGE)',),
+        'upstream/OpenMAIC/lib/i18n/types.ts': ("process.env.NEXT_PUBLIC_DEEPSTEAM_DEFAULT_LANGUAGE === 'zh' ? 'zh-CN' : 'en-US'",),
     }
     for name, expected in defaults.items():
         if not (ROOT / name).is_file() or not all(item in (ROOT / name).read_text('utf-8') for item in expected):

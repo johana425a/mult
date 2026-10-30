@@ -15,6 +15,7 @@ import {
   updateCoWriterDocument,
 } from "@/lib/co-writer-api";
 import { notifyCoWriterChanged } from "@/lib/co-writer-events";
+import { scopedUrl } from "@/lib/workspace-scope";
 import {
   loadChatMarkdownNoteDraft,
   EMPTY_CHAT_MARKDOWN_NOTE_DRAFT,
@@ -134,7 +135,7 @@ export default function ChatMarkdownNoteTab({
         ) : null}
         {saved ? (
           <a
-            href={`/co-writer/${encodeURIComponent(saved.id)}`}
+            href={scopedUrl(`/co-writer/${encodeURIComponent(saved.id)}`)}
             className="inline-flex h-7 shrink-0 items-center gap-1 rounded-md border border-[var(--border)]/55 px-2 text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--primary)]/35 hover:text-[var(--primary)]"
           >
             <ExternalLink size={11} strokeWidth={1.9} />

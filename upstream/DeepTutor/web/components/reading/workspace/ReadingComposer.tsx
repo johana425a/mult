@@ -33,6 +33,7 @@ import { setReadingViewport } from "@/lib/reading-turn-state";
 import Tooltip from "@/shared/ui/Tooltip";
 
 export function ReadingComposer({
+  submissionBlocked,
   placeholder,
   placeholderCompletion,
   selection,
@@ -41,6 +42,7 @@ export function ReadingComposer({
   linkedSessionIds,
   prefillInputRef,
 }: {
+  submissionBlocked: boolean;
   placeholder: string;
   /** Offered question the composer lets the learner take with Tab. */
   placeholderCompletion?: string;
@@ -78,6 +80,7 @@ export function ReadingComposer({
 
   const handleSubmit = useCallback(
     (submission: StandaloneComposerSubmission) => {
+      if (submissionBlocked) return;
       const sendAsNewMessage = () => {
         if (selection) {
           setReadingViewport({
@@ -132,6 +135,7 @@ export function ReadingComposer({
     },
     [
       awaitingUserReply,
+      submissionBlocked,
       linkedSessionIds,
       onSent,
       selection,
@@ -150,6 +154,7 @@ export function ReadingComposer({
       showCapabilityChip
       hasMessages={state.messages.length > 0}
       isStreaming={state.isStreaming}
+      submissionBlocked={submissionBlocked}
       awaitingUserReply={awaitingUserReply}
       selectedKnowledgeBases={state.knowledgeBases}
       onKnowledgeBasesChange={setKBs}

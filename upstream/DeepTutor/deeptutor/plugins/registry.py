@@ -9,8 +9,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+import csv
 import hashlib
-from importlib.metadata import Distribution, distributions
+from importlib.metadata import Distribution, PackagePath, distributions
+import io
 import json
 import logging
 from pathlib import Path
@@ -595,12 +597,27 @@ def _now() -> str:
 
 
 def _manifest_files(dist: Distribution) -> list[tuple[Path, Any, str]]:
-    files = dist.files or []
+    # Distribution.files checks the existence of every installed file on newer
+    # Python versions. Doing that for all bundled packages on each tool lookup
+    # blocks the server loop for seconds. Wheel RECORD is the same inventory;
+    # filter its names before touching disk, and still read each manifest fresh
+    # so changed permissions/installations cannot retain stale approval.
+    reader = getattr(dist, "read_text", None)
+    record = reader("RECORD") if callable(reader) else None
+    if isinstance(record, str):
+        files = ([PackagePath(row[0]) for row in csv.reader(io.StringIO(record))
+                  if row and row[0].replace("\\", "/").rsplit("/", 1)[-1].lower() == MANIFEST_FILENAME]
+                 if MANIFEST_FILENAME in record.lower() else [])
+    else:
+        # Keep compatibility with legacy egg metadata and custom distributions.
+        files = dist.files or []
     results: list[tuple[Path, Any, str]] = []
     for item in files:
         if item.name.lower() != MANIFEST_FILENAME:
             continue
         path = Path(str(dist.locate_file(item)))
+        if not path.exists():
+            continue
         try:
             results.append((Path(path), json.loads(Path(path).read_text(encoding="utf-8")), ""))
         except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:

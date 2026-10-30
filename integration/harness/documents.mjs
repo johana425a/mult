@@ -8,9 +8,12 @@ const omitted = new Set(['.git', 'node_modules', '.deeptutor', '__pycache__', '.
 const readableFormats = new Set(['.pdf', '.docx', '.pptx', '.xlsx', '.md', '.markdown', '.txt', '.csv', '.tsv', '.json', '.rst', '.log', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff']);
 function environment() {
   const allowed = new Set(['SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATH', 'PATHEXT', 'TEMP', 'TMP']);
+  const raw = process.env.EDUAGENT_DOCUMENT_MAX_BYTES?.trim();
+  const parsed = raw && /^[+-]?\d+$/.test(raw) ? Number(raw) : NaN;
+  const limit = Number.isSafeInteger(parsed) ? parsed : 512 * 1024 * 1024;
   return { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase()))),
     PYTHONUTF8: '1', PYTHONDONTWRITEBYTECODE: '1', PYTHONNOUSERSITE: '1',
-    EDUAGENT_DOCUMENT_MAX_BYTES: String(Math.min(512 * 1024 * 1024, Math.max(1024 * 1024, Number(process.env.EDUAGENT_DOCUMENT_MAX_BYTES) || 200 * 1024 * 1024))) };
+    EDUAGENT_DOCUMENT_MAX_BYTES: String(Math.min(512 * 1024 * 1024, Math.max(1024 * 1024, limit))) };
 }
 
 export function runReaderProcess(python, argv, payload, signal, timeoutMs = 90000) {

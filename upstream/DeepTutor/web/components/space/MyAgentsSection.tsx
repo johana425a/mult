@@ -23,6 +23,7 @@ import ImportWizard from "@/components/space/ImportWizard";
 import ScopeEditorModal from "@/components/space/ScopeEditorModal";
 import { useAppShell } from "@/context/AppShellContext";
 import { formatRelativeTime } from "@/lib/relative-time";
+import { scopedUrl } from "@/lib/workspace-scope";
 import {
   deleteSession,
   updateSessionTitle,
@@ -178,7 +179,7 @@ export default function MyAgentsSection() {
   const handleSelect = useCallback(
     (sessionId: string) => {
       setActiveSessionId(sessionId);
-      router.push(`/chat/${sessionId}`);
+      router.push(scopedUrl(`/chat/${sessionId}`));
     },
     [router, setActiveSessionId],
   );

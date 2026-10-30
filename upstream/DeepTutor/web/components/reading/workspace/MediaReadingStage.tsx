@@ -48,9 +48,10 @@ import {
   stepTranscriptMatch,
   transcriptMatchIndexes,
 } from "@/lib/transcript-search";
-import { transcriptFollowScrollTop } from "@/lib/transcript-follow";
+import { observeTranscriptFollow } from "@/lib/transcript-follow-dom.cjs";
 import { YouTubeReadingPlayer } from "./YouTubeReadingPlayer";
 import { BilibiliReadingPlayer } from "./BilibiliReadingPlayer";
+import { BilibiliSubtitleControls } from "./BilibiliSubtitleControls";
 import { formatMediaTime, timeFromSourceHref } from "@/lib/reading-media-time";
 import type { TranscriptRow } from "./types";
 
@@ -82,6 +83,10 @@ export function MediaReadingStage({
   const transcriptListRef = useRef<HTMLDivElement | null>(null);
   const onLocatorChangeRef = useRef(onLocatorChange);
   const activeLocatorRef = useRef(activeLocator);
+  const refsRef = useRef(refs);
+  refsRef.current = refs;
+  const seekRevisionRef = useRef(0);
+  const requestedLocatorRef = useRef(activeLocator);
   const playbackLocatorRef = useRef(0);
   const stateRef = useRef({ time: 0, duration: 0 });
   const lastSavedRef = useRef(0);
@@ -216,6 +221,7 @@ export function MediaReadingStage({
     (row: TranscriptRow) => {
       const seconds = timeFromSourceHref(row.sourceHref);
       if (seconds !== null) {
+        seekRevisionRef.current += 1;
         controllerRef.current?.seek(seconds);
         setReadingViewport({ locator: row.locator, timeSeconds: seconds });
       }
@@ -249,28 +255,7 @@ export function MediaReadingStage({
   useEffect(() => {
     if (!followTranscript || !activeCue) return;
     const list = transcriptListRef.current;
-    const activeRow = list?.querySelector<HTMLButtonElement>(
-      '[data-active-cue="true"]',
-    );
-    if (!list || !activeRow) return;
-    const targetTop = transcriptFollowScrollTop({
-      rowOffset:
-        activeRow.getBoundingClientRect().top -
-        list.getBoundingClientRect().top +
-        list.scrollTop,
-      rowHeight: activeRow.clientHeight,
-      viewportHeight: list.clientHeight,
-      contentHeight: list.scrollHeight,
-      currentScrollTop: list.scrollTop,
-    });
-    if (Math.abs(targetTop - list.scrollTop) < 1) return;
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    list.scrollTo({
-      top: targetTop,
-      behavior: prefersReducedMotion ? "instant" : "smooth",
-    });
+    return observeTranscriptFollow(list);
   }, [activeCue, followTranscript]);
 
   const locatorAtTime = useCallback(
@@ -368,9 +353,11 @@ export function MediaReadingStage({
 
   useEffect(() => {
     let cancelled = false;
+    const seekRevision = seekRevisionRef.current;
     void getReadingPosition(material.material_id)
       .then((position) => {
-        if (cancelled) return;
+        // A late saved position must never undo a user's newer subtitle jump.
+        if (cancelled || seekRevision !== seekRevisionRef.current) return;
         const savedTime = timeFromSourceHref(position.source_anchor);
         const entry =
           material.source_kind === "bilibili"
@@ -380,7 +367,7 @@ export function MediaReadingStage({
         setStartSeconds(nextStart);
         if (
           position.locator > 0 &&
-          refs.some((row) => row.locator === position.locator)
+          refsRef.current.some((row) => row.locator === position.locator)
         ) {
           activeLocatorRef.current = position.locator;
           notifyLocator(position.locator);
@@ -396,7 +383,6 @@ export function MediaReadingStage({
     material.source_kind,
     material.source_url,
     notifyLocator,
-    refs,
   ]);
 
   useEffect(() => {
@@ -437,6 +423,9 @@ export function MediaReadingStage({
   ]);
 
   useEffect(() => {
+    // Loading or refreshing the transcript is not a request to seek again.
+    if (requestedLocatorRef.current === activeLocator) return;
+    requestedLocatorRef.current = activeLocator;
     if (playbackLocatorRef.current === activeLocator) {
       playbackLocatorRef.current = 0;
       return;
@@ -456,7 +445,10 @@ export function MediaReadingStage({
       const detail = (event as CustomEvent<ReaderActionPayload>).detail;
       if (!detail || detail.material_id !== material.material_id) return;
       const locator = Number(detail.locator || 0);
-      if (locator >= 1) notifyLocator(locator);
+      if (locator >= 1) {
+        seekRevisionRef.current += 1;
+        notifyLocator(locator);
+      }
     };
     window.addEventListener(READER_ACTION_EVENT, onReaderAction);
     return () =>
@@ -481,6 +473,7 @@ export function MediaReadingStage({
       if (seconds === null) return;
       event.preventDefault();
       event.stopPropagation();
+      seekRevisionRef.current += 1;
       controllerRef.current?.seek(seconds);
       const locator = locatorAtTime(seconds);
       if (locator) notifyLocator(locator);
@@ -499,6 +492,7 @@ export function MediaReadingStage({
         ]?.querySelector<HTMLAnchorElement>('a[href^="#dt-media-time-"]');
         const seconds = mediaTimeFromHref(anchor?.getAttribute("href"));
         if (seconds === null) return;
+        seekRevisionRef.current += 1;
         controllerRef.current?.seek(seconds);
         notifyLocator(locatorAtTime(seconds));
       }, 120);
@@ -552,6 +546,7 @@ export function MediaReadingStage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {material.source_kind === "bilibili" && <BilibiliSubtitleControls materialId={material.material_id} />}
           <button
             type="button"
             onClick={toggleFullscreen}
@@ -623,7 +618,7 @@ export function MediaReadingStage({
                 }`}
               >
                 <BilibiliReadingPlayer
-                  key={`${material.material_id}-${Math.floor(startSeconds)}`}
+                  key={material.material_id}
                   source={bilibiliSource}
                   startSeconds={startSeconds}
                   duration={timelineDuration}
@@ -686,7 +681,7 @@ export function MediaReadingStage({
                         timeFromSourceHref(row.sourceHref) || 0,
                       )}
                     </span>
-                    <span className="line-clamp-1 min-w-0">{row.text}</span>
+                    <span className="min-w-0 whitespace-pre-wrap">{row.text}</span>
                   </button>
                 ) : index === 0 ? (
                   <p key="caption-current-empty" className="truncate px-1 py-0.5 text-[var(--muted-foreground)]">
@@ -755,7 +750,10 @@ export function MediaReadingStage({
 </Tooltip>
               <button
                 type="button"
-                onClick={() => onLocatorChange(Math.max(1, activeLocator - 1))}
+                onClick={() => {
+                  seekRevisionRef.current += 1;
+                  onLocatorChange(Math.max(1, activeLocator - 1));
+                }}
                 disabled={activeLocator <= 1}
                 className="rounded-lg px-2 py-1 text-[10.5px] text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-30"
               >
@@ -763,9 +761,10 @@ export function MediaReadingStage({
               </button>
               <button
                 type="button"
-                onClick={() =>
-                  onLocatorChange(Math.min(refs.length, activeLocator + 1))
-                }
+                onClick={() => {
+                  seekRevisionRef.current += 1;
+                  onLocatorChange(Math.min(refs.length, activeLocator + 1));
+                }}
                 disabled={activeLocator >= refs.length}
                 className="rounded-lg px-2 py-1 text-[10.5px] text-[var(--muted-foreground)] hover:bg-[var(--muted)] disabled:opacity-30"
               >
@@ -1023,7 +1022,7 @@ export function MediaReadingStage({
                         <span className="w-9 shrink-0 text-right text-[10px] tabular-nums text-[var(--muted-foreground)]">
                           {row.title}
                         </span>
-                        <span className="line-clamp-2 min-w-0 leading-[1.5]">
+                        <span className="min-w-0 whitespace-pre-wrap leading-[1.5]">
                           {row.text}
                         </span>
                       </button>

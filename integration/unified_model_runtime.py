@@ -195,13 +195,16 @@ class UnifiedModelRuntime:
             cap = getattr(config, 'max_output_tokens', None)
             if cap:
                 maximum = min(maximum, cap)
-            return await provider.chat_stream_with_retry(
-                messages=body['messages'], tools=body.get('tools'), model=config.model,
-                max_tokens=maximum, temperature=body.get('temperature', 0.7),
-                reasoning_effort=config.reasoning_effort, tool_choice=body.get('tool_choice'),
-                on_content_delta=on_content, on_reasoning_delta=on_reasoning,
-                allow_image_fallback=False, retry_delays=(),
-                **{field: body[field] for field in ('response_format', 'stop', 'parallel_tool_calls') if field in body})
+            from integration.model_failures import invoke_with_recovery
+            async def request(content, reasoning):
+                return await provider.chat_stream_with_retry(
+                    messages=body['messages'], tools=body.get('tools'), model=config.model,
+                    max_tokens=maximum, temperature=body.get('temperature', 0.7),
+                    reasoning_effort=config.reasoning_effort, tool_choice=body.get('tool_choice'),
+                    on_content_delta=content, on_reasoning_delta=reasoning,
+                    allow_image_fallback=False, retry_delays=(),
+                    **{field: body[field] for field in ('response_format', 'stop', 'parallel_tool_calls') if field in body})
+            return await invoke_with_recovery(request,on_content=on_content,on_reasoning=on_reasoning)
         finally:
             current_usage.reset(usage_token)
             reset_scoped_llm_config(config_token)
@@ -209,17 +212,9 @@ class UnifiedModelRuntime:
 
     @staticmethod
     def error(exc):
-        from deeptutor.services.llm.provider_core.base import LLMProvider
-        message = str(exc).lower()
-        if message.startswith('error calling codex:') and any(text in message for text in (
-                'sign in', 'sign-in', 'authentication required', 'login expired')):
-            return 401, {'error': {'code':'model_authentication_required','status':401,
-                'phase':'authentication','retryable':False,
-                'message':'The selected model sign-in has expired. Reconnect that account in model settings.'}}
-        status = exc.status_code if isinstance(exc, HTTPException) else LLMProvider._status_code_from_exception(exc)
-        status = status or LLMProvider._status_code_from_message(str(exc)) or 502
-        return status, {'error': {'code': 'model_execution_failed', 'status': status,
-            'message': f'Model request failed (HTTP {status}). Check the selected model connection.'}}
+        from integration.model_failures import failure_details
+        details = failure_details(exc)
+        return details['status'], {'error': details}
 
     async def completion(self, body, authorization):
         lease = self.authorize(body, authorization)

@@ -1,5 +1,6 @@
 'use client'
 
+import { standaloneCopy, useStandaloneCopy } from '@/i18n/standalone'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Bot, FolderOpen, Loader2, Plus, RefreshCw, Send, ShieldCheck, Square, Terminal, X } from 'lucide-react'
@@ -25,6 +26,7 @@ const secondary = pageActionClass('secondary')
 const activeStatus = (status: string) => ['running', 'awaiting_approval', 'waiting_approval', 'cancelling'].includes(status)
 
 function WorkspaceImage({ sessionId, attachmentId }: { sessionId: string; attachmentId: string }) {
+  useStandaloneCopy()
   const [source, setSource] = useState('')
   const [failed, setFailed] = useState(false)
   useEffect(() => {
@@ -39,19 +41,20 @@ function WorkspaceImage({ sessionId, attachmentId }: { sessionId: string; attach
     }).catch(() => { if (!controller.signal.aborted) setFailed(true) })
     return () => { controller.abort(); if (objectURL) URL.revokeObjectURL(objectURL) }
   }, [sessionId, attachmentId])
-  return source ? <img alt="Image read from the workspace" src={source} className="max-h-96 max-w-full rounded-lg object-contain" /> : <p role="status" className="text-xs text-[var(--muted-foreground)]">{failed ? 'The image is unavailable right now; the original tool record was preserved.' : 'Loading the workspace image...'}</p>
+  return source ? <img alt={standaloneCopy("Image read from the workspace")} src={source} className="max-h-96 max-w-full rounded-lg object-contain" /> : <p role="status" className="text-xs text-[var(--muted-foreground)]">{failed ? standaloneCopy("The image is unavailable right now; the original tool record was preserved.") : standaloneCopy("Loading the workspace image...")}</p>
 }
 
 function EventCard({ event, pending, decision, sessionId }: { event: HarnessEvent; pending?: boolean; decision?: string; sessionId: string }) {
-  if (event.approval) return pending ? null : <article className="rounded-lg border border-[var(--border)] p-3 text-xs"><strong>Operation approval record: {decision === 'allowed-once' ? 'Allowed once' : decision === 'rejected' ? 'Rejected' : decision === 'cancelled' ? 'Cancelled' : 'Waiting for a result'}</strong><p className="mt-2 break-all">Directory: {event.approval.exact_action.cwd}</p><pre className="mt-2 overflow-auto whitespace-pre-wrap break-words">{JSON.stringify(event.approval.exact_action.arguments, null, 2)}</pre></article>
+  useStandaloneCopy()
+  if (event.approval) return pending ? null : <article className="rounded-lg border border-[var(--border)] p-3 text-xs"><strong>{standaloneCopy("Operation approval record:")} {decision === 'allowed-once' ? standaloneCopy("Allowed once") : decision === 'rejected' ? standaloneCopy("Rejected") : decision === 'cancelled' ? standaloneCopy("Cancelled") : standaloneCopy("Waiting for a result")}</strong><p className="mt-2 break-all">{standaloneCopy("Directory:")} {event.approval.exact_action.cwd}</p><pre className="mt-2 overflow-auto whitespace-pre-wrap break-words">{JSON.stringify(event.approval.exact_action.arguments, null, 2)}</pre></article>
   const text = harnessEventText(event)
   const images = harnessEventImages(event)
   const tool = Boolean(event.tool_name) || event.type.includes('tool')
   const user = event.type === 'user/message'
   if (!text && !tool && !images.length) return null
   return <article className={`${tool ? 'border border-[var(--border)]' : user ? 'ml-8 bg-[var(--secondary)]' : 'mr-4 bg-[var(--muted)]'} rounded-lg p-3 text-sm`}>
-    <p className="mb-1 flex items-center gap-1.5 text-[11px] text-[var(--muted-foreground)]">{tool ? <Terminal size={12} /> : <Bot size={12} />}{tool ? `${event.tool_name || 'Tool'} · ${event.type.includes('result') ? 'Result' : 'Call'}` : user ? 'You' : 'Agent'}{event.is_error ? ' · Operation incomplete' : ''}</p>
-    {event.arguments !== undefined && <details className="mb-2 text-xs"><summary className="cursor-pointer">View tool arguments</summary><pre className="mt-2 overflow-auto whitespace-pre-wrap break-words">{JSON.stringify(event.arguments, null, 2)}</pre></details>}
+    <p className="mb-1 flex items-center gap-1.5 text-[11px] text-[var(--muted-foreground)]">{tool ? <Terminal size={12} /> : <Bot size={12} />}{tool ? `${event.tool_name || standaloneCopy("Tool")} · ${event.type.includes('result') ? standaloneCopy("Result") : standaloneCopy("Call")}` : user ? standaloneCopy("You") : standaloneCopy("Agent")}{event.is_error ? standaloneCopy(" · Operation incomplete") : ''}</p>
+    {event.arguments !== undefined && <details className="mb-2 text-xs"><summary className="cursor-pointer">{standaloneCopy("View tool arguments")}</summary><pre className="mt-2 overflow-auto whitespace-pre-wrap break-words">{JSON.stringify(event.arguments, null, 2)}</pre></details>}
     {images.map(image => <WorkspaceImage key={image.attachmentId} sessionId={sessionId} attachmentId={image.attachmentId} />)}
     {text && <pre className={`whitespace-pre-wrap break-words leading-7 ${tool ? 'max-h-80 overflow-auto font-mono text-xs' : 'font-sans'}`}>{text}</pre>}
     {!user && !tool && <ResolvedModelBadge value={event.resolved_model} className="mt-2" />}
@@ -59,6 +62,7 @@ function EventCard({ event, pending, decision, sessionId }: { event: HarnessEven
 }
 
 export function HarnessWorkspaceAgent() {
+  useStandaloneCopy()
   const [workspaces, setWorkspaces] = useState<HarnessWorkspace[]>([])
   const [workspaceId, setWorkspaceId] = useState('')
   const [sessions, setSessions] = useState<HarnessSession[]>([])
@@ -147,7 +151,7 @@ export function HarnessWorkspaceAgent() {
         setApprovals(value.pending_approvals || [])
         timer = setTimeout(poll, activeStatus(value.session.status) || value.pending_approvals?.length ? 900 : 3000)
       } catch (failure) {
-        if (!stopped && eventGeneration.current === current) { setError(failure instanceof Error ? failure.message : 'The workspace service is currently unavailable.'); timer = setTimeout(poll, 4000) }
+        if (!stopped && eventGeneration.current === current) { setError(failure instanceof Error ? failure.message : standaloneCopy("The workspace service is currently unavailable.")); timer = setTimeout(poll, 4000) }
       }
     }
     void poll()
@@ -158,7 +162,7 @@ export function HarnessWorkspaceAgent() {
     if (actionPending.current) return
     actionPending.current = true
     setBusy(action); setError(''); setNotice('')
-    try { await work() } catch (failure) { setError(failure instanceof Error ? failure.message : 'The operation did not finish.') }
+    try { await work() } catch (failure) { setError(failure instanceof Error ? failure.message : standaloneCopy("The operation did not finish.")) }
     finally { actionPending.current = false; setBusy('') }
   }
   const chooseFolder = () => act('folder', async () => { const selectedPath = await pickWorkspaceDirectory(); if (selectedPath) { setPath(selectedPath); if (!name.trim()) setName(folderName(selectedPath)); setCreating(true) } })
@@ -183,7 +187,7 @@ export function HarnessWorkspaceAgent() {
     if (!list.workspaces.some(item => item.id === registered.id)) throw new Error(`The folder is registered, but the workspace could not be loaded. Retry: ${registered.path}`)
     if (list.workspaces.find(item => item.id === registered.id)?.archived) {
       const restored = await manageWorkspace(registered.id, { archived: false })
-      if (restored.workspace.archived) throw new Error('The workspace has not been restored. Retry under Removed workspaces.')
+      if (restored.workspace.archived) throw new Error(standaloneCopy("The workspace has not been restored. Retry under Removed workspaces."))
       list.workspaces = list.workspaces.map(item => item.id === registered.id ? { ...item, archived: restored.workspace.archived, title: restored.workspace.title || restored.workspace.name, path: restored.workspace.path } : item)
     }
     const history = await api.sessions(registered.id)
@@ -206,7 +210,7 @@ export function HarnessWorkspaceAgent() {
   const create = (event: FormEvent) => {
     event.preventDefault()
     void act('create', async () => {
-      if (!path.trim()) throw new Error('Select an existing local folder first.')
+      if (!path.trim()) throw new Error(standaloneCopy("Select an existing local folder first."))
       const result = await registerFolder(path.trim(), name.trim() || folderName(path))
       await refresh(); setWorkspaceId(result.id); setCreating(false); setPath(''); setName('')
       setNotice(`Using folder: ${result.path}`)
@@ -234,7 +238,7 @@ export function HarnessWorkspaceAgent() {
   const beginManagement = (workspace: HarnessWorkspace, mode: 'rename' | 'archive') => {
     if (busy) return
     if (mode === 'archive' && workspace.id === workspaceId && running) {
-      setError('A task is running in this workspace. Stop it before removing the workspace.')
+      setError(standaloneCopy("A task is running in this workspace. Stop it before removing the workspace."))
       return
     }
     setManagement({ workspace, mode }); setNewName(workspace.title || folderName(workspace.path)); setManagementError('')
@@ -242,8 +246,8 @@ export function HarnessWorkspaceAgent() {
   const submitManagement = () => act('manage', async () => {
     if (!management) return
     const { workspace, mode } = management
-    if (mode === 'rename' && !newName.trim()) { setManagementError('Enter a workspace name.'); return }
-    if (mode === 'archive' && workspace.id === workspaceId && running) { setManagementError('The task is still running. Stop it first.'); return }
+    if (mode === 'rename' && !newName.trim()) { setManagementError(standaloneCopy("Enter a workspace name.")); return }
+    if (mode === 'archive' && workspace.id === workspaceId && running) { setManagementError(standaloneCopy("The task is still running. Stop it first.")); return }
     try {
       const result = await manageWorkspace(workspace.id, mode === 'rename' ? { name: newName.trim() } : { archived: true })
       const updated = { ...workspace, title: result.workspace.title || result.workspace.name, path: result.workspace.path, archived: result.workspace.archived }
@@ -266,47 +270,47 @@ export function HarnessWorkspaceAgent() {
   })
 
   return <FeaturePage>
-    <PageHeader title="Workspace agent" description="Select a local folder for the agent to read, search and process files. Sessions and tool execution records are saved." action={<><button className={secondary} disabled={Boolean(busy)} onClick={() => void act('refresh', refresh)}><RefreshCw size={14} />Refresh</button><Link className={secondary} href="/settings/workspace">Learning workspace</Link></>} />
-    <div className={`${panel} ds-rise mb-5 flex flex-wrap items-start justify-between gap-4`}><UnifiedModelControl value={modelSelection} onChange={setModelSelection} surface="workspace" placement="bottom" label="Model for this session" disabled={Boolean(busy)} /><AccessLevelControl disabled={Boolean(busy) || running} /><Link href="/settings" className="text-xs underline">Full model and API settings</Link></div>
+    <PageHeader title={standaloneCopy("Workspace agent")} description={standaloneCopy("Select a local folder for the agent to read, search and process files. Sessions and tool execution records are saved.")} action={<><button className={secondary} disabled={Boolean(busy)} onClick={() => void act('refresh', refresh)}><RefreshCw size={14} />{standaloneCopy("Refresh")}</button><Link className={secondary} href="/settings/workspace">{standaloneCopy("Learning workspace")}</Link></>} />
+    <div className={`${panel} ds-rise mb-5 flex flex-wrap items-start justify-between gap-4`}><UnifiedModelControl value={modelSelection} onChange={setModelSelection} surface="workspace" placement="bottom" label={standaloneCopy("Model for this session")} disabled={Boolean(busy)} /><AccessLevelControl disabled={Boolean(busy) || running} /><Link href="/settings" className="text-xs underline">{standaloneCopy("Full model and API settings")}</Link></div>
     {error && <p role="alert" className="mb-4 rounded-lg border border-[var(--destructive)]/30 p-3 text-sm">{safeServiceError(error)}</p>}
     {notice && <p role="status" className="mb-4 break-all text-xs text-[var(--muted-foreground)]">{notice}</p>}
     <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <section className={panel}>
-          <h2 className="mb-3 text-sm font-semibold">Folder workspaces</h2>
-          {canPickWorkspaceDirectory() && <button className={`${primary} w-full justify-center`} disabled={Boolean(busy) || running} onClick={() => void openFolder()}>{busy === 'open-folder' ? <Loader2 className="animate-spin" size={14} /> : <FolderOpen size={14} />}Open folder</button>}
-          <button className={`${secondary} mt-2`} disabled={Boolean(busy) || running} onClick={() => canPickWorkspaceDirectory() ? void chooseFolder() : setCreating(true)}><Plus size={14} />Create from a folder</button>
+          <h2 className="mb-3 text-sm font-semibold">{standaloneCopy("Folder workspaces")}</h2>
+          {canPickWorkspaceDirectory() && <button className={`${primary} w-full justify-center`} disabled={Boolean(busy) || running} onClick={() => void openFolder()}>{busy === 'open-folder' ? <Loader2 className="animate-spin" size={14} /> : <FolderOpen size={14} />}{standaloneCopy("Open folder")}</button>}
+          <button className={`${secondary} mt-2`} disabled={Boolean(busy) || running} onClick={() => canPickWorkspaceDirectory() ? void chooseFolder() : setCreating(true)}><Plus size={14} />{standaloneCopy("Create from a folder")}</button>
           {creating && <form onSubmit={create} className="mt-4 space-y-3">
-            <label className="block text-xs">Workspace name<input className={`${input} mt-1`} value={name} onChange={event => setName(event.target.value)} maxLength={100} /></label>
-            <label className="block text-xs">Existing folder path<input required className={`${input} mt-1 font-mono text-xs`} value={path} onChange={event => setPath(event.target.value)} placeholder="Enter the full local folder path" /></label>
-            {canPickWorkspaceDirectory() && <button type="button" className="text-xs underline" disabled={Boolean(busy)} onClick={() => void chooseFolder()}>Choose another folder</button>}
-            <p className="break-all text-[11px] text-[var(--muted-foreground)]">{path || 'Uses the original folder without automatically moving or copying files.'}</p>
-            <div className="flex gap-2"><button className={primary} disabled={Boolean(busy) || !path.trim()} type="submit">Create </button><button className={secondary} type="button" onClick={() => setCreating(false)}>Cancel</button></div>
+            <label className="block text-xs">{standaloneCopy("Workspace name")}<input className={`${input} mt-1`} value={name} onChange={event => setName(event.target.value)} maxLength={100} /></label>
+            <label className="block text-xs">{standaloneCopy("Existing folder path")}<input required className={`${input} mt-1 font-mono text-xs`} value={path} onChange={event => setPath(event.target.value)} placeholder={standaloneCopy("Enter the full local folder path")} /></label>
+            {canPickWorkspaceDirectory() && <button type="button" className="text-xs underline" disabled={Boolean(busy)} onClick={() => void chooseFolder()}>{standaloneCopy("Choose another folder")}</button>}
+            <p className="break-all text-[11px] text-[var(--muted-foreground)]">{path || standaloneCopy("Uses the original folder without automatically moving or copying files.")}</p>
+            <div className="flex gap-2"><button className={primary} disabled={Boolean(busy) || !path.trim()} type="submit">{standaloneCopy("Create")} </button><button className={secondary} type="button" onClick={() => setCreating(false)}>{standaloneCopy("Cancel")}</button></div>
           </form>}
           <div className="mt-4 space-y-1">{activeWorkspaces.map(item => <WorkspaceContextMenu key={item.id} label={`Workspace actions: ${item.title || folderName(item.path)}`} disabled={Boolean(busy)} items={[
             { id: 'rename', label: 'Rename', onSelect: () => beginManagement(item, 'rename') },
-            { id: 'open', label: 'Show in folder', disabled: !canPickWorkspaceDirectory(), onSelect: () => void act('explorer', async () => { if (!(await openWorkspaceDirectory(item.path, item.id))) setNotice('Opening was cancelled.') }) },
-            { id: 'archive', label: 'Remove', danger: true, onSelect: () => beginManagement(item, 'archive') },
+            { id: 'open', label: standaloneCopy("Show in folder"), disabled: !canPickWorkspaceDirectory(), onSelect: () => void act('explorer', async () => { if (!(await openWorkspaceDirectory(item.path, item.id))) setNotice(standaloneCopy("Opening was cancelled.")) }) },
+            { id: 'archive', label: standaloneCopy("Remove"), danger: true, onSelect: () => beginManagement(item, 'archive') },
           ]}><button disabled={running || Boolean(busy)} onClick={() => setWorkspaceId(item.id)} className={`w-full rounded-lg p-2 pr-9 text-left text-xs ${item.id === workspaceId ? 'bg-[var(--accent)]' : 'hover:bg-[var(--muted)]'}`}><strong className="block">{item.title || folderName(item.path)}</strong><span className="mt-1 block break-all text-[10px] text-[var(--muted-foreground)]">{item.path}</span></button></WorkspaceContextMenu>)}</div>
-          {archivedWorkspaces.length > 0 && <details className="mt-4 border-t border-[var(--border)] pt-3"><summary className="cursor-pointer text-xs text-[var(--muted-foreground)]">Removed workspaces ({archivedWorkspaces.length})</summary><div className="mt-2 space-y-2">{archivedWorkspaces.map(item => <div key={item.id} className="rounded-lg bg-[var(--muted)] p-2 text-xs"><strong className="block">{item.title || folderName(item.path)}</strong><p className="mt-1 break-all text-[10px] text-[var(--muted-foreground)]">{item.path}</p><button className="mt-2 underline underline-offset-4" disabled={Boolean(busy)} onClick={() => void restoreWorkspace(item)}>Restore workspace</button></div>)}</div></details>}
+          {archivedWorkspaces.length > 0 && <details className="mt-4 border-t border-[var(--border)] pt-3"><summary className="cursor-pointer text-xs text-[var(--muted-foreground)]">{standaloneCopy("Removed workspaces (")}{archivedWorkspaces.length})</summary><div className="mt-2 space-y-2">{archivedWorkspaces.map(item => <div key={item.id} className="rounded-lg bg-[var(--muted)] p-2 text-xs"><strong className="block">{item.title || folderName(item.path)}</strong><p className="mt-1 break-all text-[10px] text-[var(--muted-foreground)]">{item.path}</p><button className="mt-2 underline underline-offset-4" disabled={Boolean(busy)} onClick={() => void restoreWorkspace(item)}>{standaloneCopy("Restore workspace")}</button></div>)}</div></details>}
         </section>
-        {selected && <section className={panel}><div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Saved sessions</h2><button aria-label="New agent session" className={secondary} disabled={Boolean(busy) || running} onClick={() => void startSession()}><Plus size={14} /></button></div><div className="space-y-1">{sessions.map((item, index) => <button key={item.id} disabled={Boolean(busy) || running} onClick={() => setSession(item)} className={`w-full rounded-lg p-2 text-left text-xs ${session?.id === item.id ? 'bg-[var(--accent)]' : 'hover:bg-[var(--muted)]'}`}>{item.title || `Session ${sessions.length - index}`}</button>)}</div></section>}
+        {selected && <section className={panel}><div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">{standaloneCopy("Saved sessions")}</h2><button aria-label={standaloneCopy("New agent session")} className={secondary} disabled={Boolean(busy) || running} onClick={() => void startSession()}><Plus size={14} /></button></div><div className="space-y-1">{sessions.map((item, index) => <button key={item.id} disabled={Boolean(busy) || running} onClick={() => setSession(item)} className={`w-full rounded-lg p-2 text-left text-xs ${session?.id === item.id ? 'bg-[var(--accent)]' : 'hover:bg-[var(--muted)]'}`}>{item.title || `Session ${sessions.length - index}`}</button>)}</div></section>}
       </aside>
       <section className={`${panel} min-w-0`}>
-        <h2 className="flex items-center gap-2 text-sm font-semibold"><Bot size={18} />{selected?.title || 'Select a folder first'}</h2>
-        {selected && <><p className="mt-2 break-all font-mono text-xs text-[var(--muted-foreground)]">Workspace location: {session?.cwd || selected.path}{session?.access_level === 'full' ? ' · last task used full computer access' : ''}</p>{canPickWorkspaceDirectory() && <button className={`${secondary} mt-2`} disabled={Boolean(busy)} onClick={() => void act('explorer', async () => { if (!(await openWorkspaceDirectory(session?.cwd || selected.path, selected.id))) setNotice('Opening was cancelled.') })}><FolderOpen size={13} />Show in folder</button>}</>}
+        <h2 className="flex items-center gap-2 text-sm font-semibold"><Bot size={18} />{selected?.title || standaloneCopy("Select a folder first")}</h2>
+        {selected && <><p className="mt-2 break-all font-mono text-xs text-[var(--muted-foreground)]">{standaloneCopy("Workspace location:")} {session?.cwd || selected.path}{session?.access_level === 'full' ? standaloneCopy(" · last task used full computer access") : ''}</p>{canPickWorkspaceDirectory() && <button className={`${secondary} mt-2`} disabled={Boolean(busy)} onClick={() => void act('explorer', async () => { if (!(await openWorkspaceDirectory(session?.cwd || selected.path, selected.id))) setNotice(standaloneCopy("Opening was cancelled.")) })}><FolderOpen size={13} />{standaloneCopy("Show in folder")}</button>}</>}
         <div className="my-5 max-h-[56vh] min-h-48 space-y-3 overflow-y-auto" aria-live="polite" aria-relevant="additions text">
           {events.map(event => <EventCard key={event.seq} event={event} sessionId={session?.id || ''} pending={Boolean(event.approval && approvals.some(item => item.id === event.approval!.id))} decision={event.approval ? events.findLast(item => item.approval_id === event.approval!.id && item.type === 'approval/decided')?.outcome : undefined} />)}
-          {!events.length && <div className="py-8 text-sm leading-relaxed text-[var(--muted-foreground)]"><p>{!selected ? 'Open a local folder to start working there.' : !session ? 'Select New agent session to start working in this folder.' : 'Ask the agent to read materials, search files, edit content or run commands. Terminal commands are shown for your approval before execution.'}</p>{!selected && canPickWorkspaceDirectory() && <button className={`${primary} mt-4`} disabled={Boolean(busy)} onClick={() => void openFolder()}><FolderOpen size={14} />Open folder</button>}</div>}
-          {running && <p role="status" className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]"><Loader2 className="animate-spin" size={13} />{approvals.length ? 'Waiting for you to confirm the operation below.' : 'Working; files and tool results will appear as they become available.'}</p>}
+          {!events.length && <div className="py-8 text-sm leading-relaxed text-[var(--muted-foreground)]"><p>{!selected ? standaloneCopy("Open a local folder to start working there.") : !session ? standaloneCopy("Select New agent session to start working in this folder.") : standaloneCopy("Ask the agent to read materials, search files, edit content or run commands. Terminal commands are shown for your approval before execution.")}</p>{!selected && canPickWorkspaceDirectory() && <button className={`${primary} mt-4`} disabled={Boolean(busy)} onClick={() => void openFolder()}><FolderOpen size={14} />{standaloneCopy("Open folder")}</button>}</div>}
+          {running && <p role="status" className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]"><Loader2 className="animate-spin" size={13} />{approvals.length ? standaloneCopy("Waiting for you to confirm the operation below.") : standaloneCopy("Working; files and tool results will appear as they become available.")}</p>}
         </div>
-        {approvals.map(approval => <article key={approval.id} className="mb-4 rounded-xl border border-[var(--warning-foreground)]/30 p-4" aria-label="Operation awaiting approval"><h3 className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck size={16} />{approval.tool_name} requests execution</h3><p className="my-2 break-all text-xs">Directory: {approval.exact_action.cwd}</p><pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-[var(--muted)] p-3 text-xs">{JSON.stringify(approval.exact_action.arguments, null, 2)}</pre>{approval.warning && <p className="mt-2 text-xs leading-relaxed">{approval.warning}</p>}<div className="mt-3 flex flex-wrap gap-2"><button className={primary} disabled={Boolean(busy)} onClick={() => void decide(approval, 'allow')}>Allow once</button><button className={secondary} disabled={Boolean(busy)} onClick={() => void decide(approval, 'deny')}><X size={13} />Deny</button></div></article>)}
-        <form onSubmit={submit} className="flex items-end gap-2"><label htmlFor="workspace-agent-prompt" className="sr-only">Workspace task</label><textarea id="workspace-agent-prompt" className={`${input} min-h-24 resize-y`} value={prompt} onChange={event => setPrompt(event.target.value)} maxLength={30000} placeholder="Tell the agent what to do in this folder" disabled={!session || Boolean(busy) || running} /><button type="submit" className={primary} disabled={!session || !prompt.trim() || Boolean(busy) || running} aria-label="Send workspace task"><Send size={16} /></button>{running && <button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => void act('cancel', async () => { if (session) { await api.cancel(session.id); setNotice('Cancellation requested. Waiting for the tool to finish.') } })}><Square size={13} />Stop</button>}</form>
-        <p className="mt-3 text-[11px] leading-relaxed text-[var(--muted-foreground)]">Tasks are sent to the model selected above. Terminal operations use your current computer permissions; review the full command before approving. Learning chats and course records remain in their original features.</p>
+        {approvals.map(approval => <article key={approval.id} className="mb-4 rounded-xl border border-[var(--warning-foreground)]/30 p-4" aria-label={standaloneCopy("Operation awaiting approval")}><h3 className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck size={16} />{approval.tool_name} {standaloneCopy("requests execution")}</h3><p className="my-2 break-all text-xs">{standaloneCopy("Directory:")} {approval.exact_action.cwd}</p><pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-[var(--muted)] p-3 text-xs">{JSON.stringify(approval.exact_action.arguments, null, 2)}</pre>{approval.warning && <p className="mt-2 text-xs leading-relaxed">{approval.warning}</p>}<div className="mt-3 flex flex-wrap gap-2"><button className={primary} disabled={Boolean(busy)} onClick={() => void decide(approval, 'allow')}>{standaloneCopy("Allow once")}</button><button className={secondary} disabled={Boolean(busy)} onClick={() => void decide(approval, 'deny')}><X size={13} />Deny</button></div></article>)}
+        <form onSubmit={submit} className="flex items-end gap-2"><label htmlFor="workspace-agent-prompt" className="sr-only">{standaloneCopy("Workspace task")}</label><textarea id="workspace-agent-prompt" className={`${input} min-h-24 resize-y`} value={prompt} onChange={event => setPrompt(event.target.value)} maxLength={30000} placeholder={standaloneCopy("Tell the agent what to do in this folder")} disabled={!session || Boolean(busy) || running} /><button type="submit" className={primary} disabled={!session || !prompt.trim() || Boolean(busy) || running} aria-label={standaloneCopy("Send workspace task")}><Send size={16} /></button>{running && <button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => void act('cancel', async () => { if (session) { await api.cancel(session.id); setNotice(standaloneCopy("Cancellation requested. Waiting for the tool to finish.")) } })}><Square size={13} />{standaloneCopy("Stop")}</button>}</form>
+        <p className="mt-3 text-[11px] leading-relaxed text-[var(--muted-foreground)]">{standaloneCopy("Tasks are sent to the model selected above. Terminal operations use your current computer permissions; review the full command before approving. Learning chats and course records remain in their original features.")}</p>
       </section>
     </div>
-    <Dialog open={Boolean(management)} title={management?.mode === 'rename' ? 'Rename workspace' : 'Remove workspace'} onClose={() => setManagement(null)} size="sm" busy={busy === 'manage'} alert={management?.mode === 'archive'} closeLabel="Close" footer={<><button data-autofocus={management?.mode === 'archive' || undefined} className={secondary} disabled={busy === 'manage'} onClick={() => setManagement(null)}>Cancel</button><button className={primary} disabled={busy === 'manage' || (management?.mode === 'rename' && !newName.trim())} onClick={() => void submitManagement()}>{busy === 'manage' ? 'Saving...' : management?.mode === 'rename' ? 'Save name' : 'Remove workspace'}</button></>}>
-      {management && <><p className="mb-3 break-all text-xs text-[var(--muted-foreground)]">{management.workspace.path}</p>{management.mode === 'rename' ? <form onSubmit={event => { event.preventDefault(); void submitManagement() }}><label className="text-sm">New workspace name<input data-autofocus aria-label="New workspace name" className={`${input} mt-2`} maxLength={100} value={newName} onChange={event => setNewName(event.target.value)} disabled={busy === 'manage'} /></label></form> : <p className="text-sm leading-relaxed">The workspace will move to Removed workspaces. Folders, learning records and agent sessions are preserved and can be restored anytime.</p>}{managementError && <p role="alert" className="mt-3 text-sm text-[var(--destructive)]">{managementError}</p>}</>}
+    <Dialog open={Boolean(management)} title={management?.mode === 'rename' ? standaloneCopy("Rename workspace") : standaloneCopy("Remove workspace")} onClose={() => setManagement(null)} size="sm" busy={busy === 'manage'} alert={management?.mode === 'archive'} closeLabel={standaloneCopy("Close")} footer={<><button data-autofocus={management?.mode === 'archive' || undefined} className={secondary} disabled={busy === 'manage'} onClick={() => setManagement(null)}>{standaloneCopy("Cancel")}</button><button className={primary} disabled={busy === 'manage' || (management?.mode === 'rename' && !newName.trim())} onClick={() => void submitManagement()}>{busy === 'manage' ? standaloneCopy("Saving...") : management?.mode === 'rename' ? standaloneCopy("Save name") : standaloneCopy("Remove workspace")}</button></>}>
+      {management && <><p className="mb-3 break-all text-xs text-[var(--muted-foreground)]">{management.workspace.path}</p>{management.mode === 'rename' ? <form onSubmit={event => { event.preventDefault(); void submitManagement() }}><label className="text-sm">{standaloneCopy("New workspace name")}<input data-autofocus aria-label={standaloneCopy("New workspace name")} className={`${input} mt-2`} maxLength={100} value={newName} onChange={event => setNewName(event.target.value)} disabled={busy === 'manage'} /></label></form> : <p className="text-sm leading-relaxed">{standaloneCopy("The workspace will move to Removed workspaces. Folders, learning records and agent sessions are preserved and can be restored anytime.")}</p>}{managementError && <p role="alert" className="mt-3 text-sm text-[var(--destructive)]">{managementError}</p>}</>}
     </Dialog>
   </FeaturePage>
 }

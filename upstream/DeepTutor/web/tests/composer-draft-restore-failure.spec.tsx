@@ -5,6 +5,7 @@ import { MessageSquare } from "lucide-react";
 
 import ChatComposer from "@/components/chat/home/ChatComposer";
 import type { CapabilityDef } from "@/features/capabilities/presentation";
+import { sessionSubmissionBlocked } from "@/lib/session-load";
 
 const drafts = vi.hoisted(() => ({
   read: vi.fn<() => Promise<unknown>>(),
@@ -36,7 +37,7 @@ beforeEach(() => {
   drafts.save.mockReset();
 });
 
-function Harness({ onSend = () => {} }: { onSend?: (content: string) => void }) {
+function Harness({ onSend = () => {}, submissionBlocked = false }: { onSend?: (content: string) => void; submissionBlocked?: boolean }) {
   const composerRef = useRef<HTMLDivElement>(null);
   const capMenuRef = useRef<HTMLDivElement>(null);
   const capBtnRef = useRef<HTMLButtonElement>(null);
@@ -74,6 +75,7 @@ function Harness({ onSend = () => {} }: { onSend?: (content: string) => void }) 
       selectedMemoryFiles={[]}
       selectedKnowledgeBases={[]}
       isStreaming={false}
+      submissionBlocked={submissionBlocked}
       isVisualizeMode={false}
       capabilityNeedsConfig={false}
       capabilityConfigConfirmed={false}
@@ -232,6 +234,35 @@ it("does not clear the stored draft when the user sends text after a failed rest
 
   expect(onSend).toHaveBeenCalledWith("typed after failed restore");
   expect(drafts.save).not.toHaveBeenCalled();
+});
+
+it("blocks a URL session before selection and after load failure, without blocking a new chat", () => {
+  expect(sessionSubmissionBlocked("old", null, false, false)).toBe(true);
+  expect(sessionSubmissionBlocked("old", "different", false, false)).toBe(true);
+  expect(sessionSubmissionBlocked("old", "old", true, false)).toBe(true);
+  expect(sessionSubmissionBlocked("old", "old", false, true)).toBe(true);
+  expect(sessionSubmissionBlocked("old", "old", false, false)).toBe(false);
+  expect(sessionSubmissionBlocked(null, null, false, false)).toBe(false);
+});
+
+it("keeps typed text while history restores, then sends exactly once", async () => {
+  drafts.read.mockResolvedValue(undefined);
+  drafts.save.mockResolvedValue(undefined);
+  const onSend = vi.fn();
+  const view = render(<Harness onSend={onSend} submissionBlocked />);
+  await act(async () => {});
+  const input = screen.getByRole("textbox");
+  fireEvent.change(input, { target: { value: "draft while opening old chat" } });
+  expect(screen.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(onSend).not.toHaveBeenCalled();
+  expect(input).toHaveValue("draft while opening old chat");
+  expect(drafts.save).not.toHaveBeenCalledWith({ text: "", attachments: [] });
+  view.rerender(<Harness onSend={onSend} submissionBlocked={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "Send", exact: true }));
+  expect(onSend).toHaveBeenCalledTimes(1);
+  expect(onSend).toHaveBeenCalledWith("draft while opening old chat");
+  expect(input).toHaveValue("");
 });
 
 it("still saves the composer content on workspace switch after a successful restore", async () => {

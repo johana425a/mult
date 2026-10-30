@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseAuthEnabled } from "./lib/api";
 import { resolveBackendApiBase } from "./lib/backend-runtime-config";
 import { prepareBackendForwardHeaders } from "./lib/backend-forward";
+import { releasePathAvailable } from "./lib/competition-profile";
 import {
   CODEX_CALLBACK_API_PATH,
   COOKIE_NAME,
@@ -50,6 +51,9 @@ function redirectToLogin(
 
 export function proxy(req: NextRequest): NextResponse {
   const { pathname, search } = req.nextUrl;
+  if (!releasePathAvailable(pathname)) {
+    return NextResponse.json({ code: "feature_not_in_edition", message: "This feature is not included in this edition." }, { status: 404 });
+  }
 
   if (isCodexCallbackPath(pathname)) {
     return NextResponse.rewrite(
@@ -94,7 +98,7 @@ export function proxy(req: NextRequest): NextResponse {
 export const config = {
   // Run on every request except Next.js internals and the favicon. The /api/*
   // and /ws/* paths are explicitly handled above (rewritten to the backend);
-  // Knowledge-base creation and upload requests that carry multipart bodies
+  // Knowledge-base and reading material uploads that carry multipart bodies
   // are handled by dedicated App Router endpoints that stream directly to
   // FastAPI. The browser's list call uses /api/knowledge-bases/list so it can
   // pass through the normal backend rewrite below. Excluding multipart routes
@@ -104,6 +108,6 @@ export const config = {
   // optimizer's loopback fetch for the source image (e.g. /logo.png) is let
   // through the auth gate by isAuthExempt.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/knowledge-bases(?:$|/[^/]+/upload(?:/|$))).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/reading/materials/?$|api/knowledge-bases(?:$|/[^/]+/upload(?:/|$))).*)",
   ],
 };

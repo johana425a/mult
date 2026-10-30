@@ -1,4 +1,35 @@
-# Project status: October 17, 2026
+# Project status: October 18, 2026
+
+The r11.5 competition candidate freezes the current features and dependency
+versions. It includes the video revision and quiz-plan repairs in the common
+regression suite, recoverable Windows reading-directory publication, a shared
+feature profile, and expanded release evidence requirements. Both UIs are rebuilt
+from the candidate source; the desktop ASAR and both Python source mirrors are
+checked against it. This candidate has not passed complete live UI journeys,
+two-hour mixed use, or second-PC installation lifecycle acceptance. Historical
+results below are not results for this candidate. No live installation or user
+records are replaced by the source preparation.
+
+Candidate packaging also excludes the installation-specific storage selector and
+previous uninstall inventory. Shipping either could point a different PC at the
+builder's data location or preserve obsolete ownership records. Release identity
+files are now included in the source/runtime binding checks.
+
+Fresh-state background testing found a missing classroom dependency closure and
+a startup result that reported success after its child exited. The stage now
+includes the pinned dependency closure; the launcher returns failure on child
+exit or startup timeout. Locale initialization now renders visible feedback,
+offers retry on load failure and preserves an already mounted workspace while
+changing language. The initial reproduction and post-fix tests are retained
+separately. These fixes still require the final candidate's complete UI regression.
+
+The subsequent r11.4 source update includes the accepted provider-ID, bounded
+recovery and stable transcript-scroll repairs. The [release gate](release-gate.md)
+now requires regression, real account inference, exact candidate installation
+and native fullscreen acceptance. A background test cannot satisfy the native
+gate. New source/test changes invalidate earlier receipts, and candidate builds
+are not releases. Previously delivered r11.4 archives remain historical artifacts;
+they are not retrospectively certified by this new gate.
 
 The current source combines the r11 execution migration with subsequent experience fixes. This ledger retains known limits rather than treating a deployed patch as universal acceptance. Detailed private logs and screenshots are not published.
 

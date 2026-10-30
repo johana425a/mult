@@ -1,8 +1,8 @@
 {
   "product": "DeepSteam",
   "edition": "public-english-source",
-  "version": "2026.10.17-r11.3-review",
-  "source_base_commit": "9a8dba5c9aadec0cfb02b7f9ab56c03da40d8862",
+  "version": "2026.10.19-r11.6-settings",
+  "source_base_commit": "1e3e6cacb037100a53262e9521c2b87f76ca2b4b",
   "default_interface_language": "en",
   "paired_binary_default_interface_language": "zh",
   "timezone_policy": "detect_at_runtime",
@@ -12,7 +12,7 @@
     "PACKAGE-MANIFEST.json",
     "PUBLIC-SOURCE-MANIFEST.json"
   ],
-  "file_count": 11874,
+  "file_count": 11973,
   "files": [
     {
       "path": ".gitattributes",
@@ -57,22 +57,28 @@
       "git_blob_sha": "5c72e20f0ccd64e254f63936384a0387adca8012"
     },
     {
+      "path": "PROJECT-LOG.md",
+      "bytes": 4544,
+      "sha256": "8e52222355dac892c5e1caebda19aee2ae30f0642ab17c7c10938ff12fa4e880",
+      "git_blob_sha": "e6abeec2bb2cfc6b8e6aae1037e6c449697e6d8e"
+    },
+    {
       "path": "README.md",
-      "bytes": 6330,
-      "sha256": "e2295aff3265a387b3eff47228673a80e88cf9a9a0e637538c82b62993ce0162",
-      "git_blob_sha": "c3bf4267ec3cd33dd6f3c836c84aed58fe5e031e"
+      "bytes": 6599,
+      "sha256": "2195df62827791cb613686d99c2bc78a498dd18ce097030e4e677a57504d0662",
+      "git_blob_sha": "be8bc1f92bec9e0cf6b206b53eeeaa7a3b360e4a"
     },
     {
       "path": "RELEASE-IDENTITY.json",
-      "bytes": 1413,
-      "sha256": "d7c73c53f55978b6bb636f12f8add532196411154d30a73493c9634ce3a8c95d",
-      "git_blob_sha": "b8946151f22c2e09f0b8736c2569860a1b61ef73"
+      "bytes": 1723,
+      "sha256": "647ea5aca4c8c989609971a2b7e412b55f2fe776e9b1040e06319e9c51d2117e",
+      "git_blob_sha": "942be05807e0e11730d4d143c6601a6e268f5ebe"
     },
     {
       "path": "RELEASE.md",
-      "bytes": 4496,
-      "sha256": "d55e1c950b7945d32e2ce5803dfd6cecf9f416d0a38d8976c8db3b74c9af91ee",
-      "git_blob_sha": "e7b3cb3ede48b5f46703a04236a63e374e2d8fff"
+      "bytes": 6036,
+      "sha256": "637b5216848824e889b75f9be8cbc4e37912314e37f2f757fbc086d6fbd54753",
+      "git_blob_sha": "1e1d45f010cf40cb3bf2d7aaf4ef9d141214b649"
     },
     {
       "path": "Setup-DeepSteam-Portable.ps1",
@@ -130,9 +136,9 @@
     },
     {
       "path": "desktop/main.cjs",
-      "bytes": 37062,
-      "sha256": "ffc38fc564e4e8b1a310f969ec62c5d50a6877aefb52c294a0930f182abd9170",
-      "git_blob_sha": "abb998813051130bffd0e4b449172356194bdf95"
+      "bytes": 37245,
+      "sha256": "140a7d0c2f779edd6787b0c50410e2c727343ff13d3e4069aa78953b09d66317",
+      "git_blob_sha": "0833d0636105413f68d4c5dda75fbc8f82d4de49"
     },
     {
       "path": "desktop/oauth-placeholder.cjs",
@@ -232,9 +238,9 @@
     },
     {
       "path": "desktop/uninstall-entry.test.cjs",
-      "bytes": 8939,
-      "sha256": "81681aca26520660b34b8dc80e451cb9845d65c6afd7907a40ae1ef9d6561274",
-      "git_blob_sha": "871affdde3723bf298d8e1d381d5535c4e1c5492"
+      "bytes": 9125,
+      "sha256": "5cfb076043ec9d2d08c441a59a7f5747263a7c445c23f988df85c9a5fa715a60",
+      "git_blob_sha": "9bf0b9508199a74c8bf6cfc0718833ca2ce25a38"
     },
     {
       "path": "desktop/video-quality-acceptance.cjs",
@@ -255,6 +261,18 @@
       "git_blob_sha": "c925228c00dd802e7b61a54fad049a094635423e"
     },
     {
+      "path": "docs/competition-stability-repairs.md",
+      "bytes": 5967,
+      "sha256": "33e9fdfb3e95417e75d8ce8a6780162912b0f53448e051b53e684de097e89471",
+      "git_blob_sha": "0379c33a23f5fbcc4ac73b99fe435fe3eba721ee"
+    },
+    {
+      "path": "docs/competition-test-machine.md",
+      "bytes": 3106,
+      "sha256": "0b2fa532c9fd57ea3d6851432bd91615078336a895cee59432ac2e2d5e8c8b22",
+      "git_blob_sha": "86f6b5b587b5dfe6985142a7939a57c875e538c2"
+    },
+    {
       "path": "docs/installer-theme.md",
       "bytes": 2716,
       "sha256": "b658137156c757a842230eac5731c629be745fe936d11fd4679735212c2fff97",
@@ -262,9 +280,21 @@
     },
     {
       "path": "docs/project-status.md",
-      "bytes": 4731,
-      "sha256": "1fc333730adcc0488b1cd5241df5c5d067edcbe614db0a999d2008f32914f6fc",
-      "git_blob_sha": "51e1d78e1b8efddfa7d2f13e851e8c25fffc9ca5"
+      "bytes": 6800,
+      "sha256": "dd6349db09a0ab9e1f9b9248536fc45ec37d2c80f9886200aa3382a48defab0b",
+      "git_blob_sha": "5cb29863fd01df903fa20da12f867b038ea38c06"
+    },
+    {
+      "path": "docs/release-gate.md",
+      "bytes": 8238,
+      "sha256": "23d42fe9ed8ed0f79105dfe94eb569e2bdb566fbfbfdf111c6c148e1f9d6bd98",
+      "git_blob_sha": "99aacbcd678779670604e1d3c28144452010e9e6"
+    },
+    {
+      "path": "docs/release-r11.6-settings.md",
+      "bytes": 1614,
+      "sha256": "119b0bbf9d44bb691625c955adbb213ca772228e32d56ec7a18323b6a6bf24a7",
+      "git_blob_sha": "38dcc2196eab0d063f685bbfbc8f5cc75f2b91fc"
     },
     {
       "path": "docs/review-guide.md",
@@ -291,6 +321,12 @@
       "git_blob_sha": "dc75560c1cfe9a7fdd8b39289e18ba7c781941df"
     },
     {
+      "path": "docs/standalone-localization.md",
+      "bytes": 1309,
+      "sha256": "e4a172d380ceb8eb9c8004bffae6946515452715a3d8fbb5dfba8abd3d2fd75c",
+      "git_blob_sha": "a1b7d06897add5b6c12e89a215f8b290c4df5834"
+    },
+    {
       "path": "docs/validation.md",
       "bytes": 6533,
       "sha256": "9dd202726cc580b1dd1a13e1a7360ebb81ae22253de79fab6488dcefca5bf0c0",
@@ -298,9 +334,9 @@
     },
     {
       "path": "installer/DOCUMENT-RELEASE.md",
-      "bytes": 7242,
-      "sha256": "11b45dbd26ed9b9e617a4630ec02bec8a7bd84f34344a3950fc810af03745271",
-      "git_blob_sha": "71aa9bb8670dfd811b79a0dd4cfaf4970b61c002"
+      "bytes": 7522,
+      "sha256": "7c315ccdd70b9dd269b608dd985f7e4a4f67d3ae085b336cfeeadcdf9240417b",
+      "git_blob_sha": "c108d8d0866720faac8df2ad086fc7457ef9a16d"
     },
     {
       "path": "installer/DeepSteam.manifest",
@@ -316,9 +352,9 @@
     },
     {
       "path": "installer/DeepSteamSetup.cs",
-      "bytes": 232667,
-      "sha256": "5af69df2bace858bde42a4bb614efee1fba173ce6d12d2f34237d7af93e9708b",
-      "git_blob_sha": "6d4d65406e9e7766ed934c0f9962cc092a187f8b"
+      "bytes": 249711,
+      "sha256": "401a2bf04ed450c79f35f557282fa261b8677e987108dd6b99f4f3d9f9a2b296",
+      "git_blob_sha": "1b881557c68e557c728c22b5068d82b908d5af73"
     },
     {
       "path": "installer/INSTALLATION.txt",
@@ -369,6 +405,12 @@
       "git_blob_sha": "ca13d8efd3bd8880ef7a7a48197c3db0cb18e5c8"
     },
     {
+      "path": "installer/accept_installed_candidate.py",
+      "bytes": 4931,
+      "sha256": "40e4b03508a94b1a9190bf3ede13b49f12c4de29dbc98e816472c019b76684c5",
+      "git_blob_sha": "fcd0e55d6315eafdcfdba0f59ad8c41bcead2072"
+    },
+    {
       "path": "installer/assemble_r5_spec.py",
       "bytes": 4668,
       "sha256": "1d16898f50b9a6c06963e35ebaa98e6aac593e4729dd3939a1ff273f9120a474",
@@ -382,9 +424,9 @@
     },
     {
       "path": "installer/build_document_release.py",
-      "bytes": 27843,
-      "sha256": "06e898b6e1e9b7593ef56089a111b103a14730c15dacf49b51274118b8ec0951",
-      "git_blob_sha": "fedb0e240416b815bcd2bbf3651deef7bc9f7727"
+      "bytes": 28306,
+      "sha256": "32cd26f12dea90861e86a143016bbb74c56557a79b616131c1065810e56be4f7",
+      "git_blob_sha": "fc1974d658a103b32500e347de6bd2b19c1276cf"
     },
     {
       "path": "installer/build_installer.py",
@@ -406,9 +448,21 @@
     },
     {
       "path": "installer/build_standalone_release.py",
-      "bytes": 12588,
-      "sha256": "d10c2548fdd010a47dd92caef360cc37ec08c6e8db732b16348ea775c5f7d0f4",
-      "git_blob_sha": "591907aae1d7d248b07d998b72b12e558894a348"
+      "bytes": 14596,
+      "sha256": "f0aa913c619705b2253f83df53bccb83a109d164d2b36ae3e539c1fedbd24ffd",
+      "git_blob_sha": "fac532cfacc1d89048245f431d492f8effb27325"
+    },
+    {
+      "path": "installer/competition_acceptance.py",
+      "bytes": 8953,
+      "sha256": "8a1ed648b52eb33f033624046142b41df6b8da04e837d3832fcfc7b91440b2da",
+      "git_blob_sha": "1a5effa55be96dbabafd6a650633e01c589c978f"
+    },
+    {
+      "path": "installer/competition_self_check.py",
+      "bytes": 3960,
+      "sha256": "041f40e853f23d5a075905172d2ca8079ec2bf0ad3a2afea9ea350c269117b2a",
+      "git_blob_sha": "b33c024e4337b25128fb4fb86694ed048e7457f9"
     },
     {
       "path": "installer/deepsteam-start.html",
@@ -484,9 +538,9 @@
     },
     {
       "path": "installer/junctions.json",
-      "bytes": 199709,
-      "sha256": "e76eaeaa9183ad2ac2dac37537d8c0728ba4f753cd09b4267d9f5aa6a10076b8",
-      "git_blob_sha": "5ff87e76a154b67ede41c471bbecebd1be06c7aa"
+      "bytes": 317615,
+      "sha256": "104ac86b108334379017a098de938256a3d233f637f82ad2c30af514e81ed0e1",
+      "git_blob_sha": "9c876d9455c6f8eaec038b594cf87ced70162f79"
     },
     {
       "path": "installer/mineru-runtime-lock.txt",
@@ -520,15 +574,21 @@
     },
     {
       "path": "installer/prepare_install.py",
-      "bytes": 6690,
-      "sha256": "7454522a00c53cf33b2bd31dee2d503996b0b97cc022a1d0bcdb9726a798d94d",
-      "git_blob_sha": "aefafe0ce83dfca122997a12457b5a2d1a092402"
+      "bytes": 7169,
+      "sha256": "110d1960f24cc24c37afe67f7504513d45e26576968817a343d8aa6f22e9145c",
+      "git_blob_sha": "90cf7239bcaba87fc9e3eb60b3239f6008e05c8d"
     },
     {
       "path": "installer/prepare_r4_components.py",
       "bytes": 12514,
       "sha256": "e5d6338f778ef239b22acb50f1039e2bd8406a55a2c7dadec9d0498e328d648a",
       "git_blob_sha": "4ae628dc2c36badef4c79a5b04345fdeb926804d"
+    },
+    {
+      "path": "installer/prepare_release_generation.py",
+      "bytes": 3216,
+      "sha256": "e4122a561e6523c850285e188b26e7d2bf472942d8db52934b24523342f7e1ba",
+      "git_blob_sha": "2b3a6d3d437df739f996935e0fa08b0b80738d9d"
     },
     {
       "path": "installer/python-runtime-freeze.txt",
@@ -549,16 +609,34 @@
       "git_blob_sha": "9ec92f0260e5d91e2947db8c142fd1170382800b"
     },
     {
+      "path": "installer/record_native_acceptance.py",
+      "bytes": 1985,
+      "sha256": "d8acf44d141f933b3a73b171665777ccba2d424ef31f7ced7115d9f7eda20ad4",
+      "git_blob_sha": "c1b66e3ab3f5ca4da9377aaa7ccce74f048506bd"
+    },
+    {
       "path": "installer/release-build.cmd",
-      "bytes": 196,
-      "sha256": "8d9d0b6be1677c25b9c8bd9bc7ca1859136bcdb72daa81aa58a3b2426cc322fb",
-      "git_blob_sha": "08b0016338021fedccfbe3eb8a45dc17fdd1eab2"
+      "bytes": 508,
+      "sha256": "1f0b7958912a80caf4274264b2ee19f7296a0e9a2bae6bd6d699175faec2637b",
+      "git_blob_sha": "28230eaf76fe5a4a6f91a93bf8e128769e6421f7"
     },
     {
       "path": "installer/release-dry-run.cmd",
       "bytes": 192,
       "sha256": "565dd195b0f5e16d1c5f6c879aab23c19af85620f5706ae132cb4cba155c8695",
       "git_blob_sha": "585846c61f194ec18733bc1ffa384fcf6094e9b8"
+    },
+    {
+      "path": "installer/release_gate.py",
+      "bytes": 15410,
+      "sha256": "b52610a18254dcd9eb5da32a523b6d6a7552d22748c18d0f70108370299355b1",
+      "git_blob_sha": "d48c35cf191769c117b9707a1f0ed7709520d8c7"
+    },
+    {
+      "path": "installer/release_runtime_binding.py",
+      "bytes": 9698,
+      "sha256": "b9ddb302e035cb11c4abe8d9c5db1817667965060f39ff149794da792046b0f6",
+      "git_blob_sha": "1a6700e89957b83338a6abc3cf04616eb6c2d442"
     },
     {
       "path": "installer/repair_install_paths.py",
@@ -571,6 +649,12 @@
       "bytes": 843,
       "sha256": "c83b6adac9df0933ea55ee568e87def48ab5176221392d252032f5fd2c97dd66",
       "git_blob_sha": "462f3c859fcf24ce13ee0f9132155b4d1f83ce61"
+    },
+    {
+      "path": "installer/run_release_regressions.py",
+      "bytes": 4335,
+      "sha256": "bc72d5dcaaa3017b4f3316b60566620154b1eea07f0c92609718aaef63b830a8",
+      "git_blob_sha": "958e4238674024d15b09401e361694329a3d16a0"
     },
     {
       "path": "installer/stage_frontend_payload.py",
@@ -676,15 +760,15 @@
     },
     {
       "path": "integration/document_ingestion_jobs.py",
-      "bytes": 13168,
-      "sha256": "3682507b4a83902f741d4d0c5d8184175e5a45f4696f4cdeacbf6276a91f4de1",
-      "git_blob_sha": "cae03b039ecfa527f170c9bcccb1cf814560baeb"
+      "bytes": 13228,
+      "sha256": "89286ff86874cc1373c9d5ad4435f0e020e2f3ef328cb16bd1feaad9ddb03bbe",
+      "git_blob_sha": "5e682ff1050d6015511f3c3c202285acf6234cfd"
     },
     {
       "path": "integration/document_jobs.py",
       "bytes": 121291,
-      "sha256": "f9915bd20043c7e332155cb321b93f9a264c0e6615947674df089c89d93e7d56",
-      "git_blob_sha": "c71e846e020ad3e88242492cac6cab9e81652bdb"
+      "sha256": "edf4ab5bcf1129b584c70fcd4fa97421996d2a3776e100f1a69427963517953a",
+      "git_blob_sha": "1616d898a41d3a53214ca3e90c2022eebaac17b2"
     },
     {
       "path": "integration/document_reading_policy.py",
@@ -778,9 +862,9 @@
     },
     {
       "path": "integration/harness/documents.mjs",
-      "bytes": 10702,
-      "sha256": "f74ba13cbc2a97a624f33cf901ea98c8276a441829a6b046344ba2789d1a8756",
-      "git_blob_sha": "ffccc5e0841f3c97f7b6db399d36cb3a62a75b42"
+      "bytes": 10845,
+      "sha256": "5473d2aa20a49c171f4a6670df09cc0e9b1783082388ed9e867b526535eb5791",
+      "git_blob_sha": "0e556362ef12215d7666328990debf54e9e843a0"
     },
     {
       "path": "integration/harness/execution_errors.mjs",
@@ -958,15 +1042,15 @@
     },
     {
       "path": "integration/harness/workspaces.mjs",
-      "bytes": 73238,
-      "sha256": "bbdb32ca089676a1ede5c96ef5e1bb5aa925928b3ce55ea33506784abbc11d33",
-      "git_blob_sha": "57448a64fdcc2b9be38e7b7e6ad18d653c1dd7e2"
+      "bytes": 73467,
+      "sha256": "bd410a23bf88615b2a2c801e1f56e031dbb1265ccaabcae7ebcff79814ba570a",
+      "git_blob_sha": "a99516fdf7ebe1777dce34a9a5d15b0fcdcde022"
     },
     {
       "path": "integration/harness_bridge.py",
-      "bytes": 72616,
-      "sha256": "8b0dec37edf2b958e3c87d74f5d4a81a05e1b8755b01ae67ff7d4ffa1208f4c8",
-      "git_blob_sha": "56f6cae142a94eccdfecfbb1ad319181591bf613"
+      "bytes": 73459,
+      "sha256": "909832299fcb7c3d4ec681788199e0ee43ae1431ab763c276959af80978f93d5",
+      "git_blob_sha": "83cc7b7421efcee170482f7aa8a204190fda7967"
     },
     {
       "path": "integration/harness_execution.py",
@@ -976,9 +1060,9 @@
     },
     {
       "path": "integration/harness_turn.py",
-      "bytes": 35893,
-      "sha256": "7de61589923345860fc8fa3cb1c84871c34fde26bf6d578a0e2fb40af8200a22",
-      "git_blob_sha": "97b95cb9c8e8ceaddcdba63667589a239795eef0"
+      "bytes": 35911,
+      "sha256": "e6c0be7cb3f113adedf53faff8a75719da94179a95cff6ae64230c95e0eb1d5f",
+      "git_blob_sha": "6153a6eef104000dd9dac522f8e12653403ad3c8"
     },
     {
       "path": "integration/learning_defaults.py",
@@ -997,6 +1081,12 @@
       "bytes": 7323,
       "sha256": "1426982fa733ea72395389074b3a07c17cf90d8b0f44030fd3313a4857e63d85",
       "git_blob_sha": "3f6085acf601bf9c00e7e24a1d214dc5e047e752"
+    },
+    {
+      "path": "integration/model_failures.py",
+      "bytes": 4989,
+      "sha256": "115b1900553045192e9982607f38899187e41f4a81c81b74beda356e03959d61",
+      "git_blob_sha": "4903b4f687be6ce45e6c9fa40327570274de71c7"
     },
     {
       "path": "integration/model_image_verification.py",
@@ -1023,6 +1113,12 @@
       "git_blob_sha": "c7a5e345f76aa38541e821f3fad3b9c6b02f267b"
     },
     {
+      "path": "integration/server_event_loop.py",
+      "bytes": 2651,
+      "sha256": "1b30ba5f4ff2515978bff4f63a1dd8733e2fe2d9e9febc366209b0d0267e40c4",
+      "git_blob_sha": "2f26cb7e273726007998a9dfdf07addafcffaaca"
+    },
+    {
       "path": "integration/shared_document_extraction.py",
       "bytes": 20020,
       "sha256": "d1035cc7d2de74635892c8256559fae685dfee6ad18985f2ecb2e141d211eded",
@@ -1036,9 +1132,9 @@
     },
     {
       "path": "integration/unified_model_runtime.py",
-      "bytes": 27192,
-      "sha256": "80dae54d547579c5317d4a2774eee9141a71739ef72cbf57c054875ffb1a949b",
-      "git_blob_sha": "634175c9f1594518f4151f9faa76937047e02ed5"
+      "bytes": 26662,
+      "sha256": "c4c94182a3061f748edb5c95f84ab14f1d60edc40b72e549de708c1a1697497b",
+      "git_blob_sha": "ff4b5a6d228259d80b76079dae25a5c802644675"
     },
     {
       "path": "integration/workspace_document_inventory.py",
@@ -1049,8 +1145,8 @@
     {
       "path": "integration/workspace_documents.py",
       "bytes": 14231,
-      "sha256": "acb49800a76b5943d449a865f57d9b2843fc014086297a3bd648ec7a2b74d383",
-      "git_blob_sha": "29c4b53f81c73a4b6bb0cec70445e3e9f0c63c53"
+      "sha256": "5165dbc4b14dc83ac96757f14c09ddb0104e0c539782ac46db418434633ed4ca",
+      "git_blob_sha": "e4e0ad7adddd7f6f6129cef5c567bd489d852b3a"
     },
     {
       "path": "integration/workspace_management.py",
@@ -5206,9 +5302,9 @@
     },
     {
       "path": "scripts/deeptutor_backend.py",
-      "bytes": 4623,
-      "sha256": "aa706fcb1f80c734891b80128343c89a0178b2221d15ad56267a5d2f53fa5c59",
-      "git_blob_sha": "204d689503f86d7e0cde8c614115936ba574a1eb"
+      "bytes": 4697,
+      "sha256": "a0e4e75c6da82783a1bd7d3ceb9a0de69fe5ebc1bd701e41051c1160ab381f59",
+      "git_blob_sha": "7c5e7e65b6881f0b87e92ff37b4507746d4d9b04"
     },
     {
       "path": "scripts/deeptutor_frontend_build.py",
@@ -5218,9 +5314,9 @@
     },
     {
       "path": "scripts/deeptutor_runtime.py",
-      "bytes": 15381,
-      "sha256": "57b8f7d521aa6c9f854fe80900df2a876667e1159c3f9b3c057df94a7b93cbb0",
-      "git_blob_sha": "b0277dd6106e30529efca2bca6e724129b923a23"
+      "bytes": 15481,
+      "sha256": "980b6cb896cc71365d5535ada3f24c6460a580a54d0297761f7ea65a9ab9a574",
+      "git_blob_sha": "933c25703e8163f53868bd9f245056e26e48aab4"
     },
     {
       "path": "scripts/desktop_runtime.py",
@@ -5290,9 +5386,9 @@
     },
     {
       "path": "scripts/openmaic_runtime.py",
-      "bytes": 9248,
-      "sha256": "755c5c67dc613e301df8b774702519f6c4207c1c9eef498143e90ea2793b135f",
-      "git_blob_sha": "676809efeebd269535b23e16f307082af5964780"
+      "bytes": 9762,
+      "sha256": "6b3216dbd407ff202088023c0c20d1522a751b59b7f5dd7e0063645449b1029a",
+      "git_blob_sha": "281a6cd171e6a54c2616d9c2373f8215a05bf214"
     },
     {
       "path": "scripts/package_handoff.py",
@@ -5302,9 +5398,9 @@
     },
     {
       "path": "scripts/portal_runtime.py",
-      "bytes": 19498,
-      "sha256": "175c8ba89d5007f95bc40cda7457cdbdb254b5ac337c5d9ecba8b1f361060d5a",
-      "git_blob_sha": "01a79357f2fd4e4392b024331c3d98c9cf4401d1"
+      "bytes": 19578,
+      "sha256": "ded62b9b99582b680e9570c99c6ac3901423006c4bf82d7378830eb98d6b1347",
+      "git_blob_sha": "f17a45f170f7c126f4329de0053e878e229d3f43"
     },
     {
       "path": "scripts/render_runtime.py",
@@ -5380,9 +5476,9 @@
     },
     {
       "path": "scripts/verify_public_source.py",
-      "bytes": 5324,
-      "sha256": "b86bf579c2f63f48717a0aea08963d854d883ad0e8a4f93c10f235df6f3aa2fb",
-      "git_blob_sha": "f2631c64b67acda85aed76bbfe33411cf640d5c9"
+      "bytes": 5395,
+      "sha256": "1f62d3dda7c71202dd2987158b9d206c5d960aad0bc6d4ec4dcc8052530088d6",
+      "git_blob_sha": "c3e3467187016f7958a3d6a8b1dc457a61fe1342"
     },
     {
       "path": "scripts/verify_timezone_runtime.py",
@@ -5392,9 +5488,9 @@
     },
     {
       "path": "scripts/workspace_document_reader.py",
-      "bytes": 75155,
-      "sha256": "0f0489a6f5dcf4b23d6677ca2c0d1dfce458f2cbf1b2d51ec7e20171487a63a2",
-      "git_blob_sha": "d82dc1b3f3e56821381faf1cbb9dba753b2fd23a"
+      "bytes": 75805,
+      "sha256": "3f416b11bb4dd3b3df65407fc891e19a8b4c036cad2b6c24b045867e554576c6",
+      "git_blob_sha": "aeb834e24e4476a40d13ae4476fdd91ccc6abd4e"
     },
     {
       "path": "tests/__init__.py",
@@ -5422,9 +5518,9 @@
     },
     {
       "path": "tests/r11/README.md",
-      "bytes": 3278,
-      "sha256": "580b6a44f2d6936cf3c588cdc5f5015448d8c6c38012e5b33093cba3f1e2573c",
-      "git_blob_sha": "08456b13a5e23c8e3e8923ecc261ef3b361a7d27"
+      "bytes": 3578,
+      "sha256": "3e1d81daf122e9c5b775b1ce8c578c7d99c3c80a82a68dcf9d5591068fc7813f",
+      "git_blob_sha": "a180502d833e5178ca413c6f0fb836ace9ec92fe"
     },
     {
       "path": "tests/r11/build_review.py",
@@ -5499,6 +5595,12 @@
       "git_blob_sha": "805e46ad84607434cdf632819029daf6fb1c7b3a"
     },
     {
+      "path": "tests/r11/test_quiz_planning.py",
+      "bytes": 13000,
+      "sha256": "c0ef1d7678930991bb3cc48cdd0a9b07728b3ca9916feb0596d1095e69859c5e",
+      "git_blob_sha": "a4d1d8189484658e86c213b0e848bf46865187f9"
+    },
+    {
       "path": "tests/r11/test_reading_pagination.py",
       "bytes": 3234,
       "sha256": "dea16f4f4c8435cd9c9f8875de15e5e443908a7277529fdd521ac6d6a647f6ac",
@@ -5539,6 +5641,342 @@
       "bytes": 6111,
       "sha256": "f87fd4b30535b5e9fd9d5b16534a9bf4864c4010779e2da3bdcb579025289df4",
       "git_blob_sha": "06ee70228962acd3c51418ebb0f4d906c80e0ba9"
+    },
+    {
+      "path": "tests/r11/test_video_source_revision.py",
+      "bytes": 8804,
+      "sha256": "d002e5848786e62bd564ecd21ab5deb0bd3ec8ccf84a5a255cefb709e844b76b",
+      "git_blob_sha": "7f8a350455c73ea8e1e0bc5e979949e552371838"
+    },
+    {
+      "path": "tests/release/InstallerFinalizationTests.cs",
+      "bytes": 4688,
+      "sha256": "20d274eb749563e64f1ac2c7629e89c2fe550fefa5c4f77fb5b82f59ebb2ebc1",
+      "git_blob_sha": "8a97aa2903996e2ae59d7795ef6c8b7737de46e2"
+    },
+    {
+      "path": "tests/release/InstallerPresentationTests.cs",
+      "bytes": 6795,
+      "sha256": "cc97346b58d53c60a37692bcab63c0b65478976161a97f2940d23990fa3d89f3",
+      "git_blob_sha": "889bbc054e4240cabc434b70a548f991e8e34db3"
+    },
+    {
+      "path": "tests/release/InstallerShortcutTests.cs",
+      "bytes": 2956,
+      "sha256": "97b76d6fff3030cb0b12dc6b00b05cac0a2e2aa2aa51fe0522c7f4c18aabe6b4",
+      "git_blob_sha": "3073cef4928ae3edcf0289360649008b2cceba80"
+    },
+    {
+      "path": "tests/release/competition_fixtures.py",
+      "bytes": 2982,
+      "sha256": "3e30367b2ac1cd197ba56524211b666e72c9656e8bba35a03ca8d40ebe81d4a6",
+      "git_blob_sha": "0b0aafd6d958eef995ae9f4c032e5c6913629e1a"
+    },
+    {
+      "path": "tests/release/count_assertions.cjs",
+      "bytes": 642,
+      "sha256": "83d03934df809c36e96f8ddca92660c681fcde3e7ea75f5c6422b8cf8fc8b112",
+      "git_blob_sha": "e8b47c26309e7f180c5670df10fd6d49cbf99b49"
+    },
+    {
+      "path": "tests/release/live_models.mjs",
+      "bytes": 5448,
+      "sha256": "2c0cb18ee169ce4a8967b930ced309f9e5f2187c6527cb4a98bb0b853a1b85b2",
+      "git_blob_sha": "59deb051b95305a1fa7b11f356f7ac810fd23bc4"
+    },
+    {
+      "path": "tests/release/live_models.py",
+      "bytes": 9351,
+      "sha256": "a175ad33994c2be65a4c202c42ad4915f8758bc6dde334a060563d8114066808",
+      "git_blob_sha": "6fb2da3f0466aa59750b42215764cc919348b0d9"
+    },
+    {
+      "path": "tests/release/run_python_case.py",
+      "bytes": 559,
+      "sha256": "f18a49525e8750d0cd7396c6f494ddd95062719a2b5fa74e3925ff91f3a695d8",
+      "git_blob_sha": "e203a50df29428be1839e123764ddf4dbf261a1a"
+    },
+    {
+      "path": "tests/release/test_candidate_packaging.py",
+      "bytes": 3523,
+      "sha256": "6b69474a1b9bfe3bd8922b30efa6870ca20f2eed91faf5ee0189e411475e000f",
+      "git_blob_sha": "a943a18b9197cfffd6c782723e20b8f2ed371fc7"
+    },
+    {
+      "path": "tests/release/test_classroom_contract.mjs",
+      "bytes": 3903,
+      "sha256": "fc2358880310a950a2112e7ec309bcadb6a59be1031d37d6865eb8878ff65cdb",
+      "git_blob_sha": "28e26b0065ad31e3e0244f3d05d5046b5fdb1b40"
+    },
+    {
+      "path": "tests/release/test_classroom_delivery_links.cjs",
+      "bytes": 2623,
+      "sha256": "c498366cdc0d39826c27727c5591901efad9b31f970da3670c564c21d75d59cb",
+      "git_blob_sha": "423632aa662b8421397a84594a7ab2bc80ff6e77"
+    },
+    {
+      "path": "tests/release/test_classroom_embedding.cjs",
+      "bytes": 1930,
+      "sha256": "861ba71ee66007ffb8454fced98c67e879aaa621b348d7c514ca75ccce5f8914",
+      "git_blob_sha": "59ab1510f7b3474ba9c95b7bc8ce9600aca6ec0d"
+    },
+    {
+      "path": "tests/release/test_classroom_startup.py",
+      "bytes": 2719,
+      "sha256": "af22c1783d44fda3d2f6cd4711c52a3c31d0eca4232998de836133191e7e0496",
+      "git_blob_sha": "b110beddf2785f028e7159f0b618dcb675f9a2ce"
+    },
+    {
+      "path": "tests/release/test_competition_acceptance.py",
+      "bytes": 3686,
+      "sha256": "02f834aa3dba74a33a10dda089eff46ee539270c15f29ce4bba4aa0ab8330a3a",
+      "git_blob_sha": "063bf1ef7377fe0b580e707c90904579ffcce11e"
+    },
+    {
+      "path": "tests/release/test_competition_profile.py",
+      "bytes": 4244,
+      "sha256": "68eb3fc077f6dd450d442f39d567a2c6a86889a0b3fab66fdabe8efd0a487101",
+      "git_blob_sha": "6f2f6c2d9de2541a160ee0764da27280fc32d333"
+    },
+    {
+      "path": "tests/release/test_cowriter_scope.cjs",
+      "bytes": 1320,
+      "sha256": "bb3c0f6301f0d82a848a98dea98caf1092dd0a641affb09842e327189b6d3c17",
+      "git_blob_sha": "08c31ae94f7a3072deca32463bad0194790fd5a3"
+    },
+    {
+      "path": "tests/release/test_desktop_uninstall_entry.cjs",
+      "bytes": 570,
+      "sha256": "abe57b2e42be934d50d018486bdda897a90193d24e021fe8e0806be3000a163f",
+      "git_blob_sha": "14d63a797fd601652907c5c2e5f8627a1a8d4808"
+    },
+    {
+      "path": "tests/release/test_document_long_paths.py",
+      "bytes": 5048,
+      "sha256": "e0fbfc25462bd5180393b8da28a4b2dd0e8e58981a188a31f41879c104ed1036",
+      "git_blob_sha": "abb03d690cea5fecb7fdfea8131606cf4044db4b"
+    },
+    {
+      "path": "tests/release/test_document_size_policy.py",
+      "bytes": 3343,
+      "sha256": "a43359c54eb92eecf98e9f6e6b81ba59ac78545b45b7d596f6465847d9a1d21f",
+      "git_blob_sha": "69a7e64e2d6f4fcf7a13f9370d601d5a24952104"
+    },
+    {
+      "path": "tests/release/test_document_tool_schema.mjs",
+      "bytes": 2460,
+      "sha256": "9ce495f6139aee412f183f7f7d57c97a01478ffa4591367429b84abcb9ebb753",
+      "git_blob_sha": "20f4afe06a874705ebf029cce83af6140176843e"
+    },
+    {
+      "path": "tests/release/test_fullscreen_policy.cjs",
+      "bytes": 1977,
+      "sha256": "41b5a81311b0be7ef10c0dbc500bdac8e579f3e1efbb6ed99966db6f1f51da89",
+      "git_blob_sha": "59b67b609674ee36d8d46716ac0aa50ce9686db0"
+    },
+    {
+      "path": "tests/release/test_harness_answer.py",
+      "bytes": 5033,
+      "sha256": "e9a3c2a98cf6239473c161cc5a2001a1f257ee31fe7f10447fc7b943ff511aaa",
+      "git_blob_sha": "2e05bb888a2ccc27da2493d1236223378e00e777"
+    },
+    {
+      "path": "tests/release/test_imported_session_workspace.py",
+      "bytes": 3717,
+      "sha256": "3224021136fa6f8fac0b90aa0bc7a32243aa7f3a86fa2ab02d80447a45d08e1c",
+      "git_blob_sha": "7979476f5b735af56422732577d68f6a78fcbc52"
+    },
+    {
+      "path": "tests/release/test_installer_finalization.py",
+      "bytes": 1829,
+      "sha256": "574285ae5227a30634966892840db6aad3c1c00adaf2ccf39ae8d4c4a60a08c2",
+      "git_blob_sha": "686e4fc0f0f3a37d5c7522803d146d5a4bce41d1"
+    },
+    {
+      "path": "tests/release/test_installer_payload_privacy.py",
+      "bytes": 1719,
+      "sha256": "5116907b490db2e5bd1a1d055a39f3f49ee59aaa939a2bd31d910ca462cdc53a",
+      "git_blob_sha": "79e81b522f6a98877953106e7b28274b0780da71"
+    },
+    {
+      "path": "tests/release/test_installer_presentation.py",
+      "bytes": 1775,
+      "sha256": "0e2ae9b0ab71770bf2230ea2774ac3a6990d8b33299acde38d2c067e10d8bfaa",
+      "git_blob_sha": "41102db8a41a86e8003787c5c12b60ec6b096a96"
+    },
+    {
+      "path": "tests/release/test_installer_shortcuts.py",
+      "bytes": 1713,
+      "sha256": "86f8cbb821091bd9d7c54c880fbbe00e7f66ad31cd34ad77a55af26aa8535605",
+      "git_blob_sha": "8be1464edf52c45187790d1b76fcb602911e67be"
+    },
+    {
+      "path": "tests/release/test_internal_http_initialization.py",
+      "bytes": 3955,
+      "sha256": "8ce20f9e68345709e3eae7dc9ef8e98473e8f48f359fa9a5c63fe828570ced83",
+      "git_blob_sha": "6c3fead96923f23befdc6dda1828e8e22d87964e"
+    },
+    {
+      "path": "tests/release/test_locale_loading.cjs",
+      "bytes": 2861,
+      "sha256": "4f999e9b0c3d0011e2ab6cc453ba9764fe227c0051e38ae18533472028204c87",
+      "git_blob_sha": "990a447787234bec86aa0560d69efcf3fa1a0734"
+    },
+    {
+      "path": "tests/release/test_mastery_harness_boundary.py",
+      "bytes": 5373,
+      "sha256": "c7fd1f81074d5c95897db35f9634614af927c7c8b29d0d00c6d27c5a6b83007b",
+      "git_blob_sha": "ceb32fb1892c96805850651c3afded93df321967"
+    },
+    {
+      "path": "tests/release/test_mastery_source_alias.py",
+      "bytes": 6293,
+      "sha256": "25df00a0b70f0e6fa8606af4121c434b98ab71bfa0444398593b2b8345bec69a",
+      "git_blob_sha": "732bbd3d45c5cc657c820ef277de2d1f20571fbb"
+    },
+    {
+      "path": "tests/release/test_mastery_storage.py",
+      "bytes": 2839,
+      "sha256": "eba3cad4bd2678cbf74b30efe0e4c8aea4ddcb59557a860026fcfa78c225948f",
+      "git_blob_sha": "87ecf243bd65ab42115bbbe1845a852a60309f6d"
+    },
+    {
+      "path": "tests/release/test_media_position_restore.cjs",
+      "bytes": 5423,
+      "sha256": "22f73686d2fb455c1bebfab410853861e772ab2fb8f79818cb43455557dbdc05",
+      "git_blob_sha": "b21d7a6de3e8a081a22ad8abb98dfe341888b078"
+    },
+    {
+      "path": "tests/release/test_model_client_async.py",
+      "bytes": 4331,
+      "sha256": "989277d0d51a6b772c646946ce35eadab6b6aaf355654a0f2b6d5d9a315af338",
+      "git_blob_sha": "6b395e2fa3ca7e7fb1ddfa7d20db5a30d873e839"
+    },
+    {
+      "path": "tests/release/test_model_repairs.py",
+      "bytes": 5513,
+      "sha256": "d304701c7bbbdc878deb6a4d628f24378aafcf1d4a0cb00d48d351e721f5a4f8",
+      "git_blob_sha": "febae923425fca56fc2d4b47348ee951f820fec7"
+    },
+    {
+      "path": "tests/release/test_pdf_import_index.py",
+      "bytes": 4741,
+      "sha256": "0db834bf776fd8938e3896f20ae161b33a5edfc4cad91dc3e2b7a8e10d4347af",
+      "git_blob_sha": "68ce3e15a83892ab4ae97dec4d49900630505733"
+    },
+    {
+      "path": "tests/release/test_pdf_viewer_contract.cjs",
+      "bytes": 973,
+      "sha256": "87a835b417ea93315ebf1444b360d7b015a5544a8a36f9f2d87c872f30dca8ca",
+      "git_blob_sha": "bd6e8f2ca6e4f6cbc85c7ce1599e0e6825fa850c"
+    },
+    {
+      "path": "tests/release/test_plugin_discovery_io.py",
+      "bytes": 3699,
+      "sha256": "035e1f448f9a09fa19286ac43c4ef64b25e1361322022c054a568fab89d9af5c",
+      "git_blob_sha": "0afcc05fe90b5167646caa929d0102b2819908f7"
+    },
+    {
+      "path": "tests/release/test_quiz_answer_persistence.cjs",
+      "bytes": 983,
+      "sha256": "9e66b8cd2bb1f5172e5686572a805b2f117300a69edaf645da7cfd977aff0765",
+      "git_blob_sha": "c68f4f2e6fc09aa1d76486a73732a5af8913433f"
+    },
+    {
+      "path": "tests/release/test_reading_async_io.py",
+      "bytes": 2992,
+      "sha256": "db4ace2bd8ae6b8a218d43a2ecef396ac503d7c424538ea067ab1acdca6c08ff",
+      "git_blob_sha": "281435e9c489068aee86aaab3c2be140fd692f8b"
+    },
+    {
+      "path": "tests/release/test_reading_directory_commit.py",
+      "bytes": 5023,
+      "sha256": "d738d767c790bff63a440c1f53e99af220adf744a6c42dd613c30d1082580f2b",
+      "git_blob_sha": "08f832e38a27570433c0d1fe6fb5bc4285f34bae"
+    },
+    {
+      "path": "tests/release/test_reading_source_switch.cjs",
+      "bytes": 4277,
+      "sha256": "4d61ac061e10b6510dbb45528d1c2437c516faafe6c7896779cc9e056f1e440d",
+      "git_blob_sha": "8b07f26fde4b5d945df8b51a44a5c9a15e53ec47"
+    },
+    {
+      "path": "tests/release/test_release_gate.py",
+      "bytes": 8671,
+      "sha256": "f570d8acc9827148e8e29fdacf775b6ee704c041fb9d51f196e5ed47afe5172c",
+      "git_blob_sha": "9e171ff0639a7761d1faf41542cd8aad9e21fedd"
+    },
+    {
+      "path": "tests/release/test_runtime_binding.py",
+      "bytes": 5690,
+      "sha256": "28de5eca59f9f49418cc9bd0fa3e14b74900d3b05b84090c847d8d7ac2b97925",
+      "git_blob_sha": "5b2515913ca96a5ca7502a18eacd5259f6026110"
+    },
+    {
+      "path": "tests/release/test_server_event_loop.py",
+      "bytes": 5908,
+      "sha256": "10a8340e8c0d178edd716468b559f575c945cfdb48ae2878ffadce7ef527c9d9",
+      "git_blob_sha": "d919766ef46e6000f91a88c961b4632df62ea213"
+    },
+    {
+      "path": "tests/release/test_session_send_readiness.cjs",
+      "bytes": 1243,
+      "sha256": "a3a8412e208bc7e64d57afe1d0dad1ef6844f50206d66c247373e5f76cb83368",
+      "git_blob_sha": "7fbc1974e01a1d1ca45efd8af239c56673e6bcb5"
+    },
+    {
+      "path": "tests/release/test_settings_navigation.cjs",
+      "bytes": 2008,
+      "sha256": "9badb218f6326b70628d9e9f67affa5ce681c0223da536ff2244e0f239bfe601",
+      "git_blob_sha": "e6e2769bbfd85429469915290dad41ee7a49f6d1"
+    },
+    {
+      "path": "tests/release/test_settings_usability.py",
+      "bytes": 2161,
+      "sha256": "af33d544e52d9c882e9bcaa775b4e7867aebbb4fb926204bc693c9dfd707cc2d",
+      "git_blob_sha": "3f460246df7dad45d6c4f25004b771643add5fa3"
+    },
+    {
+      "path": "tests/release/test_shared_reader_contract.py",
+      "bytes": 231,
+      "sha256": "fd5f6ea23cf8a211a7c4dc545eb69eee2089282756045b6e3488fbbb0991e859",
+      "git_blob_sha": "beb853ce70f6d734c3d08b740daece2c5bc8f2eb"
+    },
+    {
+      "path": "tests/release/test_source_integrity.py",
+      "bytes": 1298,
+      "sha256": "0004e873760e53ba2bed6766b6137571ef29c77d4629e39775093a49f1e07e36",
+      "git_blob_sha": "8676751406cb3599eb7652af28e4c53681df11db"
+    },
+    {
+      "path": "tests/release/test_standalone_locale.cjs",
+      "bytes": 5675,
+      "sha256": "8dfb0e6ad22060f9dffc651356274d662182e86086299ddb554d1d73bd9f9a73",
+      "git_blob_sha": "8214ed0413d8e30df70b04ff425cda4dacbdc0f8"
+    },
+    {
+      "path": "tests/release/test_standalone_locale_backend.py",
+      "bytes": 2410,
+      "sha256": "e774c12e1bfed30d3bc69879b477dc2715054db1f2b80f42517f3d722ed3593b",
+      "git_blob_sha": "ea147189985cc58c572fa46e930df3cdeb471e6d"
+    },
+    {
+      "path": "tests/release/test_streaming_reading_upload.cjs",
+      "bytes": 4977,
+      "sha256": "2f1d94609c6a4fd49301d612a19dbffa3d2b6c137da1a115289fdbbea6c60073",
+      "git_blob_sha": "8f051f2fea59725b1c420d54a15e9178b6108094"
+    },
+    {
+      "path": "tests/release/test_transcript_scroll.cjs",
+      "bytes": 3132,
+      "sha256": "055c33ddbfb0ca1e709b31b72fc321d54fac8e5bd6ae21d009bec3d86fba6f9d",
+      "git_blob_sha": "3e402c27c837f7b44f8422519e337bd5c40d1bde"
+    },
+    {
+      "path": "tests/release/test_video_components.cjs",
+      "bytes": 5712,
+      "sha256": "25db4cf1d8131eca67dbbc14caeb17bc6a0811de2a9a14cdd641f39a82e07b95",
+      "git_blob_sha": "daf1229d813575824c61625d1fdfb67d759b2c26"
     },
     {
       "path": "tests/test_bundled_model_retirement.py",
@@ -5830,9 +6268,9 @@
     },
     {
       "path": "tests/test_workspace_document_reader.py",
-      "bytes": 17211,
-      "sha256": "3a1c29146fda2bf797cef8271692a71340d49eb7c0ed72cf0c376f46aef60d44",
-      "git_blob_sha": "c8aeaf8bdb2bf65e42f724df7dd43a2eaf6bbfb7"
+      "bytes": 18475,
+      "sha256": "3e4618264d16b9bacf144af6ddb42ecb27637ae54d6ad4919c8c8ca680916518",
+      "git_blob_sha": "ea4b70ae5d59d349d3120ed60a3d5ffa7da6593e"
     },
     {
       "path": "tests/test_workspace_documents_bridge.py",
@@ -6162,8 +6600,7 @@
       "path": "upstream/DeepSeekHarness/apps/desktop/cli/dsh.cmd",
       "bytes": 238,
       "sha256": "5f017fef14b7b311414ecaffe272714ab470f9dabc9720687b5e676fcd5115b8",
-      "git_blob_sha": "73af33537af9d5220784917ed361caf8ab3c9b03",
-      "checkout_eol": "crlf"
+      "git_blob_sha": "73af33537af9d5220784917ed361caf8ab3c9b03"
     },
     {
       "path": "upstream/DeepSeekHarness/apps/desktop/cli/link-entry.c",
@@ -6799,8 +7236,7 @@
       "path": "upstream/DeepSeekHarness/apps/desktop/scripts/node-bin/node.cmd",
       "bytes": 91,
       "sha256": "87c0df5f93e9816831ae158eee0523c4106c8972a55d3e0f5ad4003cfef26273",
-      "git_blob_sha": "da28a16afcfe3c8226c8429e5c3266631453f9d5",
-      "checkout_eol": "crlf"
+      "git_blob_sha": "da28a16afcfe3c8226c8429e5c3266631453f9d5"
     },
     {
       "path": "upstream/DeepSeekHarness/apps/desktop/scripts/node-x64-entitlements.plist",
@@ -7154,8 +7590,7 @@
       "path": "upstream/DeepSeekHarness/apps/desktop/scripts/windows-sign.cmd",
       "bytes": 933,
       "sha256": "df215c0f05ae3fb039abe96639125c83919b9b24bdf9cc5592fb7b07f0396177",
-      "git_blob_sha": "8afed8833e44c8a9ba2634b8e3e4d30bb205f8eb",
-      "checkout_eol": "crlf"
+      "git_blob_sha": "8afed8833e44c8a9ba2634b8e3e4d30bb205f8eb"
     },
     {
       "path": "upstream/DeepSeekHarness/apps/desktop/scripts/windows-sign.d.mts",
@@ -43507,9 +43942,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/notebook/prompts/zh/summarize_agent.yaml",
-      "bytes": 1264,
-      "sha256": "917e34564706067ea097efb2dff61d599bf35e8f2a852d50cc75ba0363712ce1",
-      "git_blob_sha": "eefabd634671767082f5a3ea977df44183b1b431"
+      "bytes": 1411,
+      "sha256": "3cd77b54567ad160f182dcc95b81d226070bf4d2947c49e9454ad261d9a1d2e0",
+      "git_blob_sha": "c647f5c9a516657d3404c4e1683bb56fbea497ff"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/notebook/summarize_agent.py",
@@ -43531,9 +43966,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/agents/followup_agent.py",
-      "bytes": 4534,
-      "sha256": "39772ee963e5a494199a7fcc126bbf8e26a4fcafcd64c008b07615d74b03d23e",
-      "git_blob_sha": "b5501bb2fc6f75c1564e25c2a48d6261e57f9ee9"
+      "bytes": 4572,
+      "sha256": "bbdd8a2c40552445c30a1309ccf826498f90c2276ccd76bdd3c45e5cb037848f",
+      "git_blob_sha": "57d9cbffddeaed17f52d28e17b4f2d80b317d681"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/capability.py",
@@ -43561,9 +43996,15 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/pipeline.py",
-      "bytes": 93541,
-      "sha256": "46d02db3c14ebd2bd2cca0292ed6bf4a9fffc466edbb92cd101aca94c688ee59",
-      "git_blob_sha": "a7fd5e0a15992a32377ce2d99851d56bc8afad47"
+      "bytes": 94800,
+      "sha256": "700c55d77587741598743084d1e6bfd4ac4c6dcc7fbc8c2a29ae5d4c7f57cb80",
+      "git_blob_sha": "42e446858e3d8609b82984be0aa760fbd1b50fd3"
+    },
+    {
+      "path": "upstream/DeepTutor/deeptutor/agents/question/plan_contract.py",
+      "bytes": 2050,
+      "sha256": "b20d74f80e1c295831d15218d19d5a7a528d0b9ee0ae1c4fec6b44ed97d513c8",
+      "git_blob_sha": "b432f6601f0920c707ebda14c32286dcf0eb00e0"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/prompts/en/deep_question.yaml",
@@ -43585,9 +44026,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/prompts/en/pipeline.yaml",
-      "bytes": 25482,
-      "sha256": "148ccde0f60f2d96724e1cbaa3db1f4bc676e87ed086bda1dac1bcdc27f2ae89",
-      "git_blob_sha": "a6147569e431cba0b242ab300b7e326f0be99d77"
+      "bytes": 25645,
+      "sha256": "8e2874541e9f4cbe5e27d28bd08ad270c6f743d636f551d65640b852b3c7be6c",
+      "git_blob_sha": "43c0177f0744ec1068d95fca22da7fc19d6bc481"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/prompts/zh/deep_question.yaml",
@@ -43609,9 +44050,15 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/prompts/zh/pipeline.yaml",
-      "bytes": 25482,
-      "sha256": "148ccde0f60f2d96724e1cbaa3db1f4bc676e87ed086bda1dac1bcdc27f2ae89",
-      "git_blob_sha": "a6147569e431cba0b242ab300b7e326f0be99d77"
+      "bytes": 25565,
+      "sha256": "dabb9314fe434b2c54c42cc215f01ca773316745670cff807f341d125c6c6b53",
+      "git_blob_sha": "23319d941e31bb2cefcc152fe09e5850f7e16358"
+    },
+    {
+      "path": "upstream/DeepTutor/deeptutor/agents/question/reading_grounding.py",
+      "bytes": 4289,
+      "sha256": "1a15a9e66a15ba472a86f8c6122ce4c0a0769a134c6e867cc6843101cafb819c",
+      "git_blob_sha": "8a1ca650d4525c08d675bdf6cc596d1085c9e610"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/agents/question/request_config.py",
@@ -43831,9 +44278,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/api/main.py",
-      "bytes": 29926,
-      "sha256": "e90ca09b33f9b18218d14fae33c36e8bc328f73975e3562b407d7c43762ebc7f",
-      "git_blob_sha": "26dc3e27e132deb7375616ee3d6a5ef0d8095eb9"
+      "bytes": 30055,
+      "sha256": "77f19ef9a992c7045fa52ffb7e74de09c316f0b1beee1a33a14a4a8ef666f37b",
+      "git_blob_sha": "0e6c7049f242384f32497bcaedec540de87ada11"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/api/routers/__init__.py",
@@ -43861,9 +44308,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/api/routers/auth.py",
-      "bytes": 68838,
-      "sha256": "cb1b6ed2aa9d47cd913c8b87074f45b7c79003c4fc201d596bdade65832e1e81",
-      "git_blob_sha": "db94f5e587d8b5da558a3309c44d68b56854f813"
+      "bytes": 69444,
+      "sha256": "bf1aa2ace5a6f7e4909712ad248237b57de5db997074c3fdb1204255eb01c69c",
+      "git_blob_sha": "2155b94307a1c1780a2f8d2da4f5c571fe1a5674"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/api/routers/book.py",
@@ -44023,15 +44470,15 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/api/routers/reading.py",
-      "bytes": 60604,
-      "sha256": "07b88bf722bcde0f497f4ddc84b9bcc6383b6bfb44010f8b351f21f0d362b5a2",
-      "git_blob_sha": "89f32b98d5c27e507eddb59c0f84d718d323eea6"
+      "bytes": 61289,
+      "sha256": "361bf266098917a31b7f35fd923141354ffe6875900cc8f419002fde2c3ec467",
+      "git_blob_sha": "e2c978ad0f52e44a3772450868b8678235aab494"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/api/routers/reading_extensions.py",
-      "bytes": 19287,
-      "sha256": "2ec54e7b72e1c3cb6c18036d03936ac344c2b354948797493eb55c2be7e68515",
-      "git_blob_sha": "88b3c1896c814a4e255310fa71d6fc880acfbba1"
+      "bytes": 19390,
+      "sha256": "292b8f74fef1bd4d3fffbc8a51fd2a080b50771fa0b2793fc07c3cc3633ca13a",
+      "git_blob_sha": "93f3e32f46614b11b562829a6fe4cab186d563ba"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/api/routers/sessions.py",
@@ -44941,9 +45388,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/capabilities/partner_authoring/binding.py",
-      "bytes": 3545,
-      "sha256": "aa94845bb9ca1582a77d7e7903653b1bfb1fbb4fec28ef3567a76405196f0d41",
-      "git_blob_sha": "69dc23792523500d92683c3b280f27fe8fe137f7"
+      "bytes": 3703,
+      "sha256": "c297f0ad18700f19cebe790fbd3fe865beffaec206a8387c099fba271132cc38",
+      "git_blob_sha": "eb9da0db3fb58e380875bf2906d5791318d5addd"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/capabilities/partner_authoring/capability.py",
@@ -45276,6 +45723,12 @@
       "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
     },
     {
+      "path": "upstream/DeepTutor/deeptutor/config/competition-features.json",
+      "bytes": 1466,
+      "sha256": "b376819d70951e13b8c3d637497e23a235fc9d9d14de3f030383beedf0d9d5e6",
+      "git_blob_sha": "0445df5ed04ae533c014e75b03a1650b021a1776"
+    },
+    {
       "path": "upstream/DeepTutor/deeptutor/config/settings.py",
       "bytes": 1468,
       "sha256": "1f5d3558a2ce298677119ea331b4d6bd72747ba368fcd9409625f77e5bf45312",
@@ -45535,9 +45988,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/learning/service.py",
-      "bytes": 84375,
-      "sha256": "a2b63d7efad616c0f544633ebe79afa6b1fc9a4f664c9dfe852dd555a0f3419a",
-      "git_blob_sha": "77b71d52c9b0e74495e3693d5d8edbdcb94b6b99"
+      "bytes": 86005,
+      "sha256": "4404449cb2362ce872344a4b472da8c94f88a096250f4009b29a52ebe2215bd8",
+      "git_blob_sha": "b5844750ea5469fafce94edece2eeb6155151f5a"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/learning/storage.py",
@@ -46093,9 +46546,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/plugins/registry.py",
-      "bytes": 24667,
-      "sha256": "2df9afd067235ef93b4a50699f3417e4eddd927af36504b5d304406cd971f332",
-      "git_blob_sha": "35a144528c576f76fd8f062eaa85ebd5ac6afd78"
+      "bytes": 25623,
+      "sha256": "bf00466886927271863bfdf6281beff6410c7497b510c104d32391d001762a93",
+      "git_blob_sha": "1537a47a35a16677ec13636834d26b76a7257fc8"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/plugins/runtime.py",
@@ -46144,6 +46597,12 @@
       "bytes": 47435,
       "sha256": "375994fba85d7feacd93a6c3b8c7c328483fd7c793c212d7f03803764640d768",
       "git_blob_sha": "289ffb7f1af7dd5466986802d4c51c4b44d16897"
+    },
+    {
+      "path": "upstream/DeepTutor/deeptutor/reading/directory_commit.py",
+      "bytes": 4413,
+      "sha256": "ad913e7bccbe919ded37addf21a6a4c5ac2350909729bb05bf43141940251ca6",
+      "git_blob_sha": "b814e622a1adc3139ab8084f0cbd57e5bed76e1a"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/reading/domestic_video.py",
@@ -46201,9 +46660,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/reading/pdf_on_demand.py",
-      "bytes": 10646,
-      "sha256": "0f34f48929443f2eed4ab20d1f55b1df89bf5185a685f1c744630af4a4583b2c",
-      "git_blob_sha": "772100381371c1493d4621cb482eb238bc240384"
+      "bytes": 10743,
+      "sha256": "17f56429594b4f0a2d09820e08b230aa86ac0c74a3818f465e424d8cda2c0581",
+      "git_blob_sha": "10c3ec71ecd31f512e7062a164bb8db684f85bd2"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/reading/quiz.py",
@@ -46242,10 +46701,16 @@
       "git_blob_sha": "424d05a911e1079478098f98d8f59c08cbe70f27"
     },
     {
+      "path": "upstream/DeepTutor/deeptutor/reading/source_revision.py",
+      "bytes": 4287,
+      "sha256": "9bd15be3ef530e3d54d99339522b3ec4e45918f2345ed879a527af916fbbf633",
+      "git_blob_sha": "557cb51c9fbf69d14f9ee24b0e74ecc2ec70df36"
+    },
+    {
       "path": "upstream/DeepTutor/deeptutor/reading/store.py",
-      "bytes": 73692,
-      "sha256": "15b3335aa37980b4dd887bb6949261e9f7eed75f900fac6f7b4861bcb2d351bc",
-      "git_blob_sha": "a531e37eb40dcf93168661da5daebfad339cf0d7"
+      "bytes": 75739,
+      "sha256": "55c142b638af5b36c53f440c7abbe04531a1134d81202cc97120bc750739a62d",
+      "git_blob_sha": "6e3a7baf5ae90c99d8640e5217c5f8c493e56c09"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/reading/study_guidance.py",
@@ -46279,15 +46744,15 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/runtime/agentic/__init__.py",
-      "bytes": 2655,
-      "sha256": "70e494c9319dcc6b6ced951b0e9d50b1750bad8cd2bac2d28816ae2b2b2b17ed",
-      "git_blob_sha": "e85a82f8e2b268f85003b17306f88327d6adf308"
+      "bytes": 2731,
+      "sha256": "ceafe235bae16950791243f6b53dd631730d555a1c8d3ec61e2fcf3157f7675f",
+      "git_blob_sha": "0d92685cb7aee3717f8641e574aaf6172f7bff42"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/runtime/agentic/client.py",
-      "bytes": 30844,
-      "sha256": "7e35cde05d017c7e386d022983ccff0c69007ae957ed6a12ac42fc2824feb004",
-      "git_blob_sha": "dd0c1ae7f2e57cbc10621f9fc708c59eac2dfaf2"
+      "bytes": 32709,
+      "sha256": "49ab851b84889316b58117dd09ce862718b0df245b468fbe6a9abe862b2831a9",
+      "git_blob_sha": "1f51ed9e1d2a837df66b378f16f708e2bbe80bc7"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/runtime/agentic/labeled_step.py",
@@ -46732,6 +47197,12 @@
       "bytes": 12958,
       "sha256": "951e5d67d40f349e5faf7bdd8e55b4635f518e785f3b06a25831748898c07458",
       "git_blob_sha": "7e64692062ea94a41de84eeda106185642652cf1"
+    },
+    {
+      "path": "upstream/DeepTutor/deeptutor/services/competition_profile.py",
+      "bytes": 2721,
+      "sha256": "a4871e19a1c9912a334f7bf2d96dc1f0d67cff6c2ca2587b2de95db778874f20",
+      "git_blob_sha": "2290cee35a89d404b60611265da7c00b21f26423"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/config/__init__.py",
@@ -47251,15 +47722,15 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/llm/provider_core/openai_codex_provider.py",
-      "bytes": 12716,
-      "sha256": "c367de3a3887e0b38a0845bd4e8e109ae952b391f4197452e1a8e5f055b9ad58",
-      "git_blob_sha": "19b94c8c12d2cb2804b9a7efac5d3945ec91f6cb"
+      "bytes": 13135,
+      "sha256": "79a227a1f227aa0b6f98389fd48e651e8ee8b4ded1929a8ba06581c260334694",
+      "git_blob_sha": "27374a1457c29e212820d00f8db30241f1a4abd4"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/llm/provider_core/openai_compat_provider.py",
-      "bytes": 51144,
-      "sha256": "47413d577aa1c93b7f6f82c472d425dbfd2729573d383af487370809c48d8efb",
-      "git_blob_sha": "5d6e88533fe93d6974cf1ddcce71e581c8041571"
+      "bytes": 51486,
+      "sha256": "e4a126b704790d4824568f70c1a17fe50e498e81c1e196162efaeccd808c205d",
+      "git_blob_sha": "8d40060bdd8e98a8cd2f4e7bfe1f2c6a2de8d0f5"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/llm/provider_core/openai_responses/__init__.py",
@@ -49147,9 +49618,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/session/sqlite_store.py",
-      "bytes": 198880,
-      "sha256": "3ce91074219983b3d5481d12f8dab608ece30cc9e9eb7983cceb1e1c8805f02a",
-      "git_blob_sha": "e26881b7c3a55dbcc0bcb23df9f624e675cd3b45"
+      "bytes": 199698,
+      "sha256": "e9fc72c8019230b2946b86b523c3ef51b729ae2549eba5312ba159070606b9d2",
+      "git_blob_sha": "33a31a83f3cdef35a9117b6cb55c246c4eb467c1"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/session/turn_runtime.py",
@@ -49189,9 +49660,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/session/turns/request_preparer.py",
-      "bytes": 54047,
-      "sha256": "7d74582ccb533927e79f1ffee3497852a9c16fdd859b9498a278bff9c2cab66a",
-      "git_blob_sha": "f327b947c16cc38586ef7a97d2ddba0582695d85"
+      "bytes": 55148,
+      "sha256": "d456420fc897b33968e982a52ba8afa79e42fae881d5ac2f7c392d803bb8dd36",
+      "git_blob_sha": "3cef408baa3cd452554dd4eca4e07bfbeabef2bb"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/session/turns/resource_reuse.py",
@@ -49237,9 +49708,9 @@
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/settings/interface_settings.py",
-      "bytes": 11426,
-      "sha256": "adb6dc71f269d232d2d4c285f2f4192e92f33905550025ce53a8331a12a5e176",
-      "git_blob_sha": "dfdbc2e92128fbfb0a253419dba266542d11a859"
+      "bytes": 11716,
+      "sha256": "c6135637bb9456ee0acb323e354a5a562caa1121f220d993cfeb3fd4732dca84",
+      "git_blob_sha": "00d2c71a1f511d23671c87fa84b92acb44ff5e63"
     },
     {
       "path": "upstream/DeepTutor/deeptutor/services/settings/provider_edit.py",
@@ -51253,9 +51724,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/app/(workspace)/co-writer/page.tsx",
-      "bytes": 11461,
-      "sha256": "c707d84dd2dc5968c6901231e14d871acbd47c678539d6867daa2bb213c601b2",
-      "git_blob_sha": "90753f0c133c6b3a71e48f70c2c7c5162087844a"
+      "bytes": 11695,
+      "sha256": "63737789c458e3e4a2c5db115f89ee9b284a5405e1806f02d8e899b26b3544ab",
+      "git_blob_sha": "2e2b317db198cb86c2eef0de6593d76483560b27"
     },
     {
       "path": "upstream/DeepTutor/web/app/(workspace)/co-writer/sampleTemplate.ts",
@@ -51648,6 +52119,18 @@
       "git_blob_sha": "006c71bcb8098e8bc753f89e2f53a4ad81a1057c"
     },
     {
+      "path": "upstream/DeepTutor/web/app/api/reading/materials/route.ts",
+      "bytes": 505,
+      "sha256": "d7ae33806da12dd0bfc6c4922d109574ff4ae3ca6ecabd6e0e35e4ce6154f9f3",
+      "git_blob_sha": "fe5abe5892942772fff1a9feb16836b99dbbdddb"
+    },
+    {
+      "path": "upstream/DeepTutor/web/app/deepsteam-theme.css",
+      "bytes": 10054,
+      "sha256": "0b41ae84e3c8534290b906a6b4294a4d60f3a336943f29b10550cf117c6cf9ff",
+      "git_blob_sha": "6981710473b2ea2c15175c8a1251709f64c6a9a8"
+    },
+    {
       "path": "upstream/DeepTutor/web/app/globals.css",
       "bytes": 47284,
       "sha256": "24dff029c5c513a63e9871613b6043fd4763d3b36f0ffa1c998b08a795d5a973",
@@ -51661,9 +52144,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/app/layout.tsx",
-      "bytes": 2086,
-      "sha256": "a361765a69b041625848f8baedbc35c0d56f85c1296a3d28493769c298e75719",
-      "git_blob_sha": "fa4b0670ebb4cb804d07de1c3ab2df6bc8062091"
+      "bytes": 2271,
+      "sha256": "fc15135af52c7f48c61faa10603502e4676f903d540f57d1fa26155a89d89682",
+      "git_blob_sha": "1460a73d2571b993b4ba84f69c9c39322ae92441"
     },
     {
       "path": "upstream/DeepTutor/web/components/Geogebra.tsx",
@@ -51781,9 +52264,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/agents/ConnectedAgents.tsx",
-      "bytes": 14212,
-      "sha256": "5dbe2d0f73fea0d01cd6b03577da8bf5de112ab695b5147eff8079d1bbe36458",
-      "git_blob_sha": "c49073908c056b55c123ff7e7d0fb6d3d75f0e1b"
+      "bytes": 14198,
+      "sha256": "0f689421a391008bd90dbcea5caa1a5c1a4a7695e13ae4f395a1fcd35b25ac22",
+      "git_blob_sha": "e29896a2953e599004dde5c3e27f51955a1e1cff"
     },
     {
       "path": "upstream/DeepTutor/web/components/agents/agent-icons.tsx",
@@ -51883,15 +52366,15 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/ChatComposer.tsx",
-      "bytes": 59721,
-      "sha256": "cd88465256a4be1d87c96dfe24d972ac78655741287253890a4fb4bd97c9f851",
-      "git_blob_sha": "12d25d33c6a68b3ca85dc292cc31eab2f2412ca0"
+      "bytes": 60153,
+      "sha256": "3fdeb9f95e9ea99f9ed2c4689f0481ddf08ab30f1e92c78ea0821f45ed1fc91b",
+      "git_blob_sha": "0c549de94fdd8844f53b3ff455faf343d4cbff13"
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/ChatMarkdownNoteTab.tsx",
-      "bytes": 6280,
-      "sha256": "bc911e34fb0d1c3c36c985ff5fd3b3c41910a65a84cf4bd149e46edf0f66026f",
-      "git_blob_sha": "5d62e6e08ecd6dcd9768c38c19b5f63c537366e2"
+      "bytes": 6342,
+      "sha256": "49985eda0ff1d9871b5f05a036c7ce7837e847c682352628623fd5ab3f51fddc",
+      "git_blob_sha": "e3bebff02469baa3887e65e58442e8bc3d595968"
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/ChatViewerBridges.tsx",
@@ -51901,9 +52384,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/ComposerInput.tsx",
-      "bytes": 30174,
-      "sha256": "24c7864a5ae7194c6e97b2cc85c81483eaa91365f014fe55f1ffa7608643688b",
-      "git_blob_sha": "e47d602d78d2df7d914949f83651c9245a731863"
+      "bytes": 30294,
+      "sha256": "bc4b04d75bda1f0a86349dddde847c98f127c00fef95fb621f3a8df12dd4cf01",
+      "git_blob_sha": "601dcb220329fb0c51f91e30f972113958d45c62"
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/ComposerRail.tsx",
@@ -51919,9 +52402,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/ConsultationTabBody.tsx",
-      "bytes": 6191,
-      "sha256": "fda61bd90c55d894f322e8ed0fe0b9f8a3c9f59816feea76efdf51d5b72f4123",
-      "git_blob_sha": "eedc936ae5b3089df4646185fcf50a9d0718912f"
+      "bytes": 6520,
+      "sha256": "aa9df8117fd924c5e00f006c1d3429f8766e6b76084f4d80af33bd1878e05282",
+      "git_blob_sha": "248eb2b9d743dc39d5b0de4511ba9b37ad392606"
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/ContextBudgetChip.tsx",
@@ -51979,9 +52462,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/PartnerDraftCard.tsx",
-      "bytes": 7678,
-      "sha256": "a5bfe93ebcf38f832631cc6bdfe0244bd3e9c96d161deef7ba6d5787f8885cd9",
-      "git_blob_sha": "4bebb4099b32eca55d0402bb0de67b9cd483c716"
+      "bytes": 7805,
+      "sha256": "82096d6019c38f2f6ea54c1a74901969208d23cab0b45ca9eb00af18e364f997",
+      "git_blob_sha": "647fd7cae160c9d540300836a41ba89e946e8d7c"
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/PartnerGroupSelector.tsx",
@@ -52045,9 +52528,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/StandaloneComposer.tsx",
-      "bytes": 38969,
-      "sha256": "f0c1d75c171121172b29cd96938ba511e5f2b1a53f994d21b2fe90c9db156685",
-      "git_blob_sha": "f3aa049b326e2f10ae84d0b350756d175748aeb7"
+      "bytes": 39200,
+      "sha256": "68db4999ec20c5e9244ee1acf6d9183c600b1849553b0bd2130185fdfdfc0657",
+      "git_blob_sha": "d6052d4d79c57ad56b97c28cebe568e702d836f2"
     },
     {
       "path": "upstream/DeepTutor/web/components/chat/home/StarterSuggestions.tsx",
@@ -52309,9 +52792,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/common/UnifiedModelControl.tsx",
-      "bytes": 2498,
-      "sha256": "6c1be77d4721ac032338b1a4c5412374e662365aa5e7bfe717527e9524d25e3e",
-      "git_blob_sha": "0c38e50a777e72ad7b5622762cc0014c03aa12b9"
+      "bytes": 2600,
+      "sha256": "5353dea6ca2cb4ea58140aca1789cba30806ca9e2973db6fec0de381f4815ac3",
+      "git_blob_sha": "2b0bdf20297901fa34143fa2d85ed147ac88e9c8"
     },
     {
       "path": "upstream/DeepTutor/web/components/common/code-block-themes.ts",
@@ -52399,51 +52882,51 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/education/AccessLevelControl.tsx",
-      "bytes": 5737,
-      "sha256": "5bfd86231e09f691f315f2f291d4807c36c1edcf6379916aa296a31c1215b335",
-      "git_blob_sha": "d7b5ab26d9a7d8c21df5cc04cc621b2f35c2666a"
+      "bytes": 6071,
+      "sha256": "fdf85def07e4474633c1a82c5ebe60469d6178fb1bf316abeb98fcbaa5f0d37f",
+      "git_blob_sha": "0f2d119cdb548b11fabc97da6646356ce358da88"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/ConnectionSummary.tsx",
-      "bytes": 2414,
-      "sha256": "e72803c728bcb7fe01655962e9eec4e0c81b9c34b2745f5673a8858d0629b1a7",
-      "git_blob_sha": "b23fe00e11bb8690d59e78fdec3b2462f88e44f5"
+      "bytes": 2920,
+      "sha256": "1fbaf4e0b0949fdba3d9e25bf21656be6a3ba79685de97d72ecf51c401878c01",
+      "git_blob_sha": "c55148474c0c4c9d9807bb40be98da425fd9f854"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/EducationStudio.tsx",
-      "bytes": 67223,
-      "sha256": "f8f70641777a620c22ccf58db3991818b7632bd2b0aaa4c78b9f105900078840",
-      "git_blob_sha": "3bb987f29342d75b535c590ac896e6259dddccac"
+      "bytes": 70500,
+      "sha256": "9921531f87d6e7946e9cff41e83250cde09205d837c96e0a8b13ee0a8f9301fe",
+      "git_blob_sha": "0933d5c872d2a3f960e3aeec5a2c76706920c644"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/HarnessConnect.tsx",
-      "bytes": 27479,
-      "sha256": "e6bf021f9da7838a40eeaf499afdd0d3c0359ae74101ceaa0dc5ab47b527e982",
-      "git_blob_sha": "08cd4b6f1881add5b947a68019b6cb8cf68875c2"
+      "bytes": 28628,
+      "sha256": "7d829c5809f9a20a2900bdc01596a1e86fa5efe8e6bb3817fd8b42a8630b3b78",
+      "git_blob_sha": "0262405a250481435a5f2c6133cc4eb6e7ffca58"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/HarnessWorkspaceAgent.tsx",
-      "bytes": 28833,
-      "sha256": "3c63c01e3916bdd5ad9e8d3588964ba7d87c336ba1e108e35b35ee6f9bf17897",
-      "git_blob_sha": "f6c97110650c1d017762c23126fa2960fb8da9d0"
+      "bytes": 30339,
+      "sha256": "58b6163a99563813a26a64f1f7fc133ebd480e8d5b21bf6b2d4e3a0d08d6daa9",
+      "git_blob_sha": "86953994f264a0d76f9428e1b45a7237b9779327"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/ModelConnectionChip.tsx",
-      "bytes": 1996,
-      "sha256": "9106d410a32da2cf661e323fea542c465af2450a6413a864c865daa938770132",
-      "git_blob_sha": "57182891dd8b84cc5c0e3225c2c13c427b049fb3"
+      "bytes": 2162,
+      "sha256": "c30397748447493e8e028d5502a1ab75d3746fe902e9041684953f9b211043b0",
+      "git_blob_sha": "8e5f5d71678bdae685a2194d4bb6a0aa1bf1cf40"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/ModelSetupStatus.tsx",
-      "bytes": 1220,
-      "sha256": "2a5353a204f66931435af84d2340d1feea2d705497646188626c9926ac5b7b2e",
-      "git_blob_sha": "da694dd2fe64658673a894ff30abc703605c473f"
+      "bytes": 1380,
+      "sha256": "2d491f04b3832fae5ef8ce0f2c735861b5c181f44ae78e61865860adf4512a6f",
+      "git_blob_sha": "7c7ae570692bff91c17386fcded24ae68a4a0ac3"
     },
     {
       "path": "upstream/DeepTutor/web/components/education/WorkspaceMaterialPicker.tsx",
-      "bytes": 8770,
-      "sha256": "701e851b83f36976eba5612585a5a5e8e7b8fa9f49a9591c56928d5c267168a0",
-      "git_blob_sha": "2907b1468cdad7eee85872f66a0f170e91a6b9e0"
+      "bytes": 9248,
+      "sha256": "215363ef5c2d83a6a3966c45c6d5787b9c7d588739c910aded3c9997d3aae471",
+      "git_blob_sha": "6d95454849ad4f93c5ed2d728685ac3885bdfcc0"
     },
     {
       "path": "upstream/DeepTutor/web/components/knowledge/ConnectKiwixModal.tsx",
@@ -52831,9 +53314,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/memory/MemorySection.tsx",
-      "bytes": 51085,
-      "sha256": "e3c3ce50393270629a977fc8b0110da88587ffcafa5afde5a1a40183aac1478d",
-      "git_blob_sha": "5d38e29e97bcd08d300d51dd24239777d7257baf"
+      "bytes": 51277,
+      "sha256": "45632d79889ad4535d9bbbd95dd1d1f8c616079794b1ae3ed9031e07c3f2a5a1",
+      "git_blob_sha": "0716f25cc0ba4a66949b9a478b00a9ced9ba8132"
     },
     {
       "path": "upstream/DeepTutor/web/components/memory/MemoryWorkbench.tsx",
@@ -52849,9 +53332,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/notebook/NotebookConsole.tsx",
-      "bytes": 30605,
-      "sha256": "63d152bec8cb47a1cda32e3e4c51555a16da62b7a0032dac1d09317b3973d17e",
-      "git_blob_sha": "ab7cba8710fe4dd1e1c21dbfdec2ca577650f361"
+      "bytes": 31165,
+      "sha256": "233aea9a086f805892a0922a76959b1c99af1adf241a0cbd41a1444c5cd0824a",
+      "git_blob_sha": "39eb92f5ced3b3defe3b25a0ea1ca81bc8d8829a"
     },
     {
       "path": "upstream/DeepTutor/web/components/notebook/NotebookRecordActions.tsx",
@@ -52879,9 +53362,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/notebook/SaveToNotebookModal.tsx",
-      "bytes": 27413,
-      "sha256": "e14f13f1c38d2de4657ebb0c1601a3aff1805390596de0208ea80b126ab2ce0b",
-      "git_blob_sha": "35072e038cba30ff2545bc099e28fd837aef6726"
+      "bytes": 27497,
+      "sha256": "a89644208613733637e8c2d86f2751a8700e085e6e98bb4a706f4e4dbcec9f77",
+      "git_blob_sha": "36dc343a41959100599601e628bf2a2b000160a0"
     },
     {
       "path": "upstream/DeepTutor/web/components/notebook/useNotebookLibrary.ts",
@@ -53119,9 +53602,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/quiz/QuizViewer.tsx",
-      "bytes": 56080,
-      "sha256": "a036d55bbde5db1d04ef37a53c00b177518efff123daf7b6e38b21cb69a96d9f",
-      "git_blob_sha": "e7db6a88ae39fc14126757aa2775cd6fe63b4182"
+      "bytes": 61494,
+      "sha256": "f7ad359b9889d074ec5d3bcbe07e3c931e2e011685d9d4576036e781cd56aef4",
+      "git_blob_sha": "4511db068a5c2d8d531ab018943f17eba3acd521"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/AnnotationLayer.tsx",
@@ -53149,9 +53632,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/PdfDocumentView.tsx",
-      "bytes": 18924,
-      "sha256": "04c6dd979f5d4b74a3cb28011746b24355a356ddb448bb30ffed2e9cf0e40649",
-      "git_blob_sha": "2f6fcbeb75009b06100044e4cb97662893cc978f"
+      "bytes": 20491,
+      "sha256": "2f59bab997dcbfec5ff9068f4d2dddb584aa87fae73fb4a556f3ac4d95c3c36e",
+      "git_blob_sha": "6658987ec9f9473490c8a448f97bf5f02bf0c172"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/PdfPage.tsx",
@@ -53262,10 +53745,22 @@
       "git_blob_sha": "39d55f70fef3ee3feb336bbb6eefd6150de55344"
     },
     {
+      "path": "upstream/DeepTutor/web/components/reading/workspace/BilibiliNativePlayer.tsx",
+      "bytes": 6625,
+      "sha256": "7a5a2f84cb97a695cf9b59a1676e441fad95a67336c29d0042b33512ecfa960e",
+      "git_blob_sha": "3d76f8512b5075c86dc85cdcf73113501f8d3d9d"
+    },
+    {
       "path": "upstream/DeepTutor/web/components/reading/workspace/BilibiliReadingPlayer.tsx",
-      "bytes": 3387,
-      "sha256": "f13d361df09425aa36ac3287c4c8af1be1fee5ae50b3bc37c4e6df3d48e4f6d7",
-      "git_blob_sha": "4433c95653df7b94c396d1c044e20f2e8d0181af"
+      "bytes": 3802,
+      "sha256": "05cffa297d5062a7d5bf54ed5c4308b75a2dd49dd358d93f3eee90def92cd435",
+      "git_blob_sha": "ad043006563d76341a860130fa01869cedf413f1"
+    },
+    {
+      "path": "upstream/DeepTutor/web/components/reading/workspace/BilibiliSubtitleControls.tsx",
+      "bytes": 8473,
+      "sha256": "b9a32fb09fa3c3a54d67cc5fcbf0f9082779e3e4aef3398786d158e259513e15",
+      "git_blob_sha": "d59bb7a48fdfe3ebbe3374022431037ea5e4d121"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/LegacyWatchingSession.tsx",
@@ -53275,9 +53770,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/MediaReadingStage.tsx",
-      "bytes": 42475,
-      "sha256": "e3183f727a7c0dfaf697f615a89ca21d8936cda6e4b5d32e0c7a86ca3c8a069f",
-      "git_blob_sha": "812492edf56bde10960fbe92b9a6d8d31dd7c192"
+      "bytes": 42736,
+      "sha256": "2c61651752ac6593d127b64ff31ef4aedc05e13dc5a9c7435342676a847db286",
+      "git_blob_sha": "21abf924a2a38e35fff689b3f6e78d03dd7c01e8"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/ReadAloudButton.tsx",
@@ -53293,15 +53788,15 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/ReadingCompanion.tsx",
-      "bytes": 20152,
-      "sha256": "2e422be08748d5c3a97b247df68347c2a9fcc82ac52855087795f936e75c3905",
-      "git_blob_sha": "8dcc5a1b773abfe5f461512bc7bd0dd0e47b75ba"
+      "bytes": 20896,
+      "sha256": "5b46cec048ce34fa89cf4fc834cbe61b918c32b35dbaee3054ee451e9f730d6e",
+      "git_blob_sha": "67477a6eca27ed787d2d6b1123c30cc02b187530"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/ReadingComposer.tsx",
-      "bytes": 7601,
-      "sha256": "7573e47d9a5def8999c1fc8ccf4817c2bf562e2fb72458b2ccf9527c9a8549d0",
-      "git_blob_sha": "2f1e8e6572387f049c3afa7aca86611462f742e3"
+      "bytes": 7758,
+      "sha256": "923dba56632623dee86a0863137046a5825323b020a92ac3a8ab7cdb98c006ef",
+      "git_blob_sha": "9d255db3f787773bc86d4b5167c32499a382dbf6"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/ReadingPanelSeparator.tsx",
@@ -53311,9 +53806,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/ReadingWorkspace.tsx",
-      "bytes": 31704,
-      "sha256": "6400ebbccf1a3cc8aa62fcbc1e2d5c998082b001a616bd824719cad3cb124ced",
-      "git_blob_sha": "7dd46348b35f8b39cf682478165489e659847c69"
+      "bytes": 32013,
+      "sha256": "da83bca8ffe6adcecb5b7ed24bbed3079d3f41e6ce7f76491956b78a904559d4",
+      "git_blob_sha": "6c7d9a618a99a0e362554441848d02a8633ebeac"
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/SourceNavigator.tsx",
@@ -53365,9 +53860,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/reading/workspace/useReadingWorkspace.ts",
-      "bytes": 18112,
-      "sha256": "f63e5cc8263f8203b043243157ee8030696429e6c975f665401c25954cf17f93",
-      "git_blob_sha": "b9a1e9323b92e10129aa6cc1a636fe31b82ed504"
+      "bytes": 20261,
+      "sha256": "93f77d3291371777b6eb3018e34a5e8a7c3ed5a9ad6bb3b3b9fdb96c6bc26822",
+      "git_blob_sha": "fbf338859cb243c9031c8b4d0a5a9d723bc4c0e1"
     },
     {
       "path": "upstream/DeepTutor/web/components/research/ResearchConfigPanel.tsx",
@@ -53419,9 +53914,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/DesktopUninstallCard.tsx",
-      "bytes": 4820,
-      "sha256": "50f34fa7e16ac111c1b1940e752550ee547d8e8cf89dc45724e997233217ce9b",
-      "git_blob_sha": "bd15b942139edeaa95773e8fdd0d3ba7958d42ff"
+      "bytes": 4813,
+      "sha256": "2598b948f36c2f0c6860e09f61080aef621d370424ad233243c008ce23c8b114",
+      "git_blob_sha": "04ed505c89552d2bbaf92f4216541e2e82244f43"
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/DimensionField.tsx",
@@ -53467,9 +53962,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/ModelsWorkspace.tsx",
-      "bytes": 42677,
-      "sha256": "d81a656b56715728f083d8606b141c63ba0ef532517dab316fe5711347269619",
-      "git_blob_sha": "e0641b8932312b15c077bd2aad3c1115ac9a3c8d"
+      "bytes": 44293,
+      "sha256": "0cd806b308803d1dfc64984ccce655f398b83273a63742e2b2f190a426a81a6c",
+      "git_blob_sha": "63965667d96bf32871229d1209015e04887a8ad8"
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/ProviderModelDiscovery.tsx",
@@ -53527,9 +54022,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/SettingsOverview.tsx",
-      "bytes": 5897,
-      "sha256": "48a9e2833de2790a2dc42b456dc0c035fa2c06403ab888b6fdd01fac7a89b8c6",
-      "git_blob_sha": "14ba69bdef48517d0c76d7c1e841b3019c707122"
+      "bytes": 5914,
+      "sha256": "3de591993e347d3a0888c3f1c598fe4b85d539a9e3798c60342ce2334cc53b95",
+      "git_blob_sha": "72e0890043b60c06793ebb630c7b8cf45e8a07a3"
     },
     {
       "path": "upstream/DeepTutor/web/components/settings/SettingsPageContent.tsx",
@@ -53665,9 +54160,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/sidebar/SidebarNav.tsx",
-      "bytes": 25011,
-      "sha256": "433ba02edc4c566e7b53a8a09ae69a889aab6e0ee1693e221f73f5ced38ba1cf",
-      "git_blob_sha": "0b42df0b9c712a96322a172ef2eac63006ae3b0a"
+      "bytes": 25028,
+      "sha256": "ae1459b4fc8e8dd6cf345e748a9eae3b92b47dae69174a6b7ad88d2de765bbef",
+      "git_blob_sha": "e2a47ce8f9217cfc54e0a36c25c4c0f5985d3ae2"
     },
     {
       "path": "upstream/DeepTutor/web/components/sidebar/SidebarShell.tsx",
@@ -53695,9 +54190,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/sidebar/nav-entries.ts",
-      "bytes": 3615,
-      "sha256": "78be1288971dc9da1e60ce9ff57835695d6221b9e0632c5a0eaac360957af5fc",
-      "git_blob_sha": "308d1f39f836cfecaba0a613ac3f3321204d7a01"
+      "bytes": 3728,
+      "sha256": "5cbccf45c2550bcc433035cd44f88f7d26147141060acf6d58782f0dc7757616",
+      "git_blob_sha": "c1687a9d147375683651d403d19660f8fead6d0e"
     },
     {
       "path": "upstream/DeepTutor/web/components/space/ArchivedConversations.tsx",
@@ -53737,9 +54232,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/space/MyAgentsSection.tsx",
-      "bytes": 23174,
-      "sha256": "3429495641f25d91f4aed8701f6ed1e2204eb13aa9b97464af68df21ce8c4ee2",
-      "git_blob_sha": "c5ba8f9f4111abebe829fee6dd7505185d2e2b59"
+      "bytes": 23236,
+      "sha256": "8c518af019cf6db0a1553b00de68f1e72f3706139e3e868bd6f7981072e13623",
+      "git_blob_sha": "8b354fbfbadafb62607cf6926394a7f4ad166f21"
     },
     {
       "path": "upstream/DeepTutor/web/components/space/PersonasSection.tsx",
@@ -53773,9 +54268,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/space/SpaceDashboard.tsx",
-      "bytes": 13990,
-      "sha256": "acce8afb75a12003cf94fd8fddf90d877a09fe384e7bfd03cc9dd77684c6395e",
-      "git_blob_sha": "4ff666e77db9f79013ca4e5131b1f0fc40bc12d9"
+      "bytes": 13844,
+      "sha256": "1bbf4843bbe7d547b0b3288f1a21887c059a17acfddf529c0bf1f33f6d44acd1",
+      "git_blob_sha": "435bd479b431e74438f4a02f367dc76500514801"
     },
     {
       "path": "upstream/DeepTutor/web/components/space/SpaceMain.tsx",
@@ -53833,9 +54328,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/components/space/learning/MasteryComposer.tsx",
-      "bytes": 7409,
-      "sha256": "ec5a6a7db52bc8bf386e0dd00da3dcd69da9f7aa250cd789ffce99479fb545c7",
-      "git_blob_sha": "f796dcb48033f914485b840d7bba2cad4c0e2ecf"
+      "bytes": 7444,
+      "sha256": "f84bcf4d146d82b07a2bb9bb55d695f4c867ebd98bddfa4feea4bfc44e5370ea",
+      "git_blob_sha": "9320f81f2806b9ab6206fcf7a9f75049ef6d51e9"
     },
     {
       "path": "upstream/DeepTutor/web/components/space/learning/MasteryStudy.tsx",
@@ -54139,9 +54634,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/context/AppShellContext.tsx",
-      "bytes": 12445,
-      "sha256": "8c6b384cf3df6270394ba9caca82f12b328b7a7fb9afca1de540129c2df33be4",
-      "git_blob_sha": "adf5cabb5a2696ed1fc4ee46dc1cb7a8cf9feecd"
+      "bytes": 12473,
+      "sha256": "dc0ca14b1149635b1b61b767841dfc488e5e28627ef83481c6f68505afdd6258",
+      "git_blob_sha": "df69a215ff98110ca96c2dd57788582e87bd1e2e"
     },
     {
       "path": "upstream/DeepTutor/web/context/GeogebraTabContext.tsx",
@@ -54163,9 +54658,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/context/app-shell-storage.ts",
-      "bytes": 11784,
-      "sha256": "9dec1a376ad3f56d6069ebe167093665912988e74da6035b1609396671ec7b83",
-      "git_blob_sha": "0880825f9aff7b69e9c8b157c43c4fc94d31b231"
+      "bytes": 12005,
+      "sha256": "6d924e738729e9df25223baeddaa569d498fe87616b472bafcf452c88536415d",
+      "git_blob_sha": "c8ad40768c99f5cc631ecd7623715d80ae9ad952"
     },
     {
       "path": "upstream/DeepTutor/web/contracts/README.md",
@@ -54253,15 +54748,15 @@
     },
     {
       "path": "upstream/DeepTutor/web/features/chat/ChatStateAdapter.tsx",
-      "bytes": 143889,
-      "sha256": "ff477f365a85455d530362579905b9ff4c575840385724984a208df98c5cec89",
-      "git_blob_sha": "54e2dc88c6cae2fe131a5d0f1e10665540410c0e"
+      "bytes": 145175,
+      "sha256": "949b6ab9a31964a6c7c9799c26eedb00420492c8a0916d64d4f17c392624d5a7",
+      "git_blob_sha": "263d7309d6f5f7c04163b5592fd41c6391a301a6"
     },
     {
       "path": "upstream/DeepTutor/web/features/chat/components/ChatWorkspace.tsx",
-      "bytes": 121923,
-      "sha256": "39a2e2864881f459f92b12df53c4cd1945ad483cd417620fb3dded3a347cba0b",
-      "git_blob_sha": "caf34e40be9ae92c5080630724ab9dee0daa8d88"
+      "bytes": 122455,
+      "sha256": "a99c8192fe50ea3e08da4ef39209a2e69ac085f330437e83a9d51c53db16228d",
+      "git_blob_sha": "feb04801be50cf370e9a1644b9402277c7d41b9c"
     },
     {
       "path": "upstream/DeepTutor/web/features/chat/components/turn/ProtocolMismatchNotice.tsx",
@@ -54355,9 +54850,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/features/chat/trace/TracePresentation.tsx",
-      "bytes": 70433,
-      "sha256": "3ecc5f657c2baa387aeaa31b63f5d777dd3bb32d9720a5faf214476a053569e3",
-      "git_blob_sha": "3cdb53ce15c7f069dbe7c5bbfdad416b4b99101d"
+      "bytes": 71254,
+      "sha256": "90441d03ee9c180b7f57c480d8c6fedb9316303adc83e2b1edb132959269422b",
+      "git_blob_sha": "53fbc37f55264b15a2d7345e3eb66fc3d3dd84c7"
     },
     {
       "path": "upstream/DeepTutor/web/features/chat/trace/index.ts",
@@ -54415,9 +54910,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/features/co-writer/components/CoWriterWorkspace.tsx",
-      "bytes": 91030,
-      "sha256": "12bdf20f3a184e47e8be4179d45fc911205404f2707013fba9c6d4aa57e8d8a8",
-      "git_blob_sha": "d9a8a34fe37f71ed5873ba389b3937d695f81029"
+      "bytes": 91103,
+      "sha256": "cd28ed41ca18bbe51d02d13035cacfaf3545a8bbedcbce0c97cb09be2b731b4b",
+      "git_blob_sha": "a03bb829ed0777e6645375248c314df56cf78e26"
     },
     {
       "path": "upstream/DeepTutor/web/features/co-writer/hooks/useDocumentLifecycle.ts",
@@ -54619,15 +55114,15 @@
     },
     {
       "path": "upstream/DeepTutor/web/features/settings/navigation/settings-nav.ts",
-      "bytes": 21072,
-      "sha256": "4339598e77f18ed15ce6827ef8ca5584b0a3a6df995ed6644820556b3fe5cc24",
-      "git_blob_sha": "6de30f4eceda712dae2017e3d1ca66aaff3a92c9"
+      "bytes": 20642,
+      "sha256": "d509060039e3bac5768517e8cecb5d16936a395c242f1c092a139655e1c9f5f2",
+      "git_blob_sha": "08bbb550e43bc90e088470de958b38ef22eea338"
     },
     {
       "path": "upstream/DeepTutor/web/features/settings/navigation/settings-pages.ts",
-      "bytes": 6306,
-      "sha256": "0b92ac496cbeab3dddff646c23d8ff182cc4050b325791d0b198526adfd9255a",
-      "git_blob_sha": "b94e49628dd3e1fd9f6eb4f1744fed2f82465450"
+      "bytes": 6192,
+      "sha256": "16f4abef94ccce70b97878a4b064908eb2f85be0213f1eacd0012cdf9c05e560",
+      "git_blob_sha": "3478352aa4adac7841f46f1aae8773176e22f5ac"
     },
     {
       "path": "upstream/DeepTutor/web/features/settings/navigation/settings-scroll.ts",
@@ -54643,9 +55138,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/features/settings/sections/AppearanceSettingsSection.tsx",
-      "bytes": 5949,
-      "sha256": "7b952b5181c2f668797e829248e6af0cf2ef664fd9d6d265f1a321c4ddf0484f",
-      "git_blob_sha": "7f289dfb06cd6851dfc89604ac205b9ab5259576"
+      "bytes": 5935,
+      "sha256": "0f5e9ac6f63e3f8dd9f9ab8084d69fab7c82341d066a3da65e42fc6419535d17",
+      "git_blob_sha": "8a3158d3e6a8888c723f093c77a49b9cdd2610b4"
     },
     {
       "path": "upstream/DeepTutor/web/features/settings/sections/ArchivedChatsSettingsSection.tsx",
@@ -54823,9 +55318,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/features/settings/store/SettingsStore.tsx",
-      "bytes": 80767,
-      "sha256": "cad1dc9450c7b280df3dda2db8c82a059e3bb3c438dd238e6ac418e7ea853246",
-      "git_blob_sha": "a531d668c838c04ff8606930c5bac98401f3c41b"
+      "bytes": 82380,
+      "sha256": "4940540b5459cf0e0a2e85c47f475850a6b5f8576e5e1f552c97c4a20f61db1a",
+      "git_blob_sha": "bf350d27939915028730af59d8eb8ed59b3382a7"
     },
     {
       "path": "upstream/DeepTutor/web/features/settings/store/UiSettingsProvider.tsx",
@@ -55075,9 +55570,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/i18n/I18nProvider.tsx",
-      "bytes": 1815,
-      "sha256": "3a351e0acb71af67e6f38ffe7fbd6fedd5827a426e1b427f9216bdc6f78f16bf",
-      "git_blob_sha": "41d7aa0fbd448fa4e39615663360fe601cf655d9"
+      "bytes": 2810,
+      "sha256": "47cd769bb2490a19db6c70b54a3583a82a7f6ba2864c968ae3460c3d1850ffee",
+      "git_blob_sha": "9dbb4146d3e72b34cbffe5fd2eb8b72c6cfd41f1"
     },
     {
       "path": "upstream/DeepTutor/web/i18n/index.ts",
@@ -55087,15 +55582,21 @@
     },
     {
       "path": "upstream/DeepTutor/web/i18n/init.ts",
-      "bytes": 1318,
-      "sha256": "230617443ee4c5b7362b0e14cd5a636a29ff10aeb5d40a127f404d6aeffa1d83",
-      "git_blob_sha": "56e9cae2342b3b3e3f1c4e1bdd99522b7ecc9e5e"
+      "bytes": 1774,
+      "sha256": "0dadd403d2e64cb7662921c2bc6c5bcc4c9e766fb52a55d85db628a53d9df5ba",
+      "git_blob_sha": "cba63cddf5874293a981ca3ed31bcb15215366c9"
     },
     {
       "path": "upstream/DeepTutor/web/i18n/languages.ts",
-      "bytes": 653,
-      "sha256": "eba182814541762524448907e16df3ce59cafbc086b10b96501a2838dffbafed",
-      "git_blob_sha": "fd67a85c4c72fcd80d1ab99f974a86c2ea155290"
+      "bytes": 1153,
+      "sha256": "3192ce236ca1a8a28cf8195edb82090ba6ef28af54c0ca7c1f787be38da7b0d3",
+      "git_blob_sha": "bf5cb71d4bfa37988725f2e0123d6c49d62da8b9"
+    },
+    {
+      "path": "upstream/DeepTutor/web/i18n/standalone.ts",
+      "bytes": 483,
+      "sha256": "d8771dbf095dcb87ae5cc97820b9bdcb241eda90c31fa1abcc41f8d71a30f892",
+      "git_blob_sha": "37754703ee5ab2d1d920a57435abed79aa769efd"
     },
     {
       "path": "upstream/DeepTutor/web/lib/account-role.ts",
@@ -55255,9 +55756,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/lib/chat-import/attribution.ts",
-      "bytes": 2716,
-      "sha256": "a3147580c8d670dfb121c4e9e726923503cc2671b91f8f74e0a429fd904339b0",
-      "git_blob_sha": "240c068a0f792f9de7087e8a12fb0f4c8feed67c"
+      "bytes": 2737,
+      "sha256": "b49f05fbe7d9ee1fdd4b22504450347ec29d7388fea2f5a5df57829dbc44dea0",
+      "git_blob_sha": "1caa5a5543d0a2c4bb6e4466473605ce9b445c8b"
     },
     {
       "path": "upstream/DeepTutor/web/lib/chat-import/chatgpt.ts",
@@ -55378,6 +55879,12 @@
       "bytes": 7981,
       "sha256": "ffb9757ce0dd033fd8e462ff197882a89d3414560586fd79160d17b184fbd6d6",
       "git_blob_sha": "701a77e9cee339f539707fb5b6936a0158fedb4f"
+    },
+    {
+      "path": "upstream/DeepTutor/web/lib/competition-profile.ts",
+      "bytes": 739,
+      "sha256": "a8538dc23268a57b591189a1fd049f11f9ab0b8ebe67c78965cb56e99d574e8b",
+      "git_blob_sha": "bc3adc602e34cd86aee779692bb14549f57b1a6b"
     },
     {
       "path": "upstream/DeepTutor/web/lib/composer-keyboard.ts",
@@ -55723,9 +56230,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/lib/notebook-api.ts",
-      "bytes": 20292,
-      "sha256": "6d75df09aea659699a57e84fdfb96e27c8e5f7d146a786af62c7f163f18ceb84",
-      "git_blob_sha": "890aef18825b32db1def4337385227a437e98df3"
+      "bytes": 20492,
+      "sha256": "42c23ecb317087766240a6e4ff5501fe7ab10366bc2cd46687e4f60d906d4d06",
+      "git_blob_sha": "e37ea44d159a5c7ed21b32f797ac2006db7fcbd3"
     },
     {
       "path": "upstream/DeepTutor/web/lib/notebook-selection-types.ts",
@@ -55840,6 +56347,12 @@
       "bytes": 14155,
       "sha256": "641d53915c4e37e6ff5b2688e00acf15095e7d7ca8a31f2547a5ab908f46c282",
       "git_blob_sha": "67e3b0092c976ff6978125d25242775f69dd1cac"
+    },
+    {
+      "path": "upstream/DeepTutor/web/lib/provider-setup-options.ts",
+      "bytes": 1338,
+      "sha256": "5d35ebd4dac5d74b5f126b9c535f485fcdd644db3bdc023a44df868042ad7be0",
+      "git_blob_sha": "e507da4d492a29450cff39d4ab8624156899a713"
     },
     {
       "path": "upstream/DeepTutor/web/lib/proxy-policy.ts",
@@ -56089,9 +56602,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/lib/session-load.ts",
-      "bytes": 1237,
-      "sha256": "80b7bdfb38023aa9a4ed505001380972313e627e464c6697da3cb0da307dc80b",
-      "git_blob_sha": "76942b5c920c1311697a3a412c1bf600bb980d6a"
+      "bytes": 1545,
+      "sha256": "d5d6ea1ff944cab68973ffbaa0c79b4d34cb8c2c56b4a449b3516bb879a09c09",
+      "git_blob_sha": "c112ccb3530c29831d07e1c49997a285b80aab0c"
     },
     {
       "path": "upstream/DeepTutor/web/lib/session-organization.ts",
@@ -56191,9 +56704,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/lib/streaming-upload-proxy.ts",
-      "bytes": 2810,
-      "sha256": "eb872119097e31ad2b94aa7c28e9a9ff8ec074d9bd69818021246d36d36cb149",
-      "git_blob_sha": "ceba20fb81d9b5df7983b6d2671448208ec95cfa"
+      "bytes": 3062,
+      "sha256": "866f5d1d02f534fb38eaab2f39d2a57ef7bd2c8a73f22a2b6d7b08285249abde",
+      "git_blob_sha": "717733033b9ac156280bf0a03509c9fbe19d1aa5"
     },
     {
       "path": "upstream/DeepTutor/web/lib/subagents-api.ts",
@@ -56254,6 +56767,18 @@
       "bytes": 4623,
       "sha256": "7c935192ec55a84f5f479a6302060995fa376e425354a8da50fe1f2ad5968dae",
       "git_blob_sha": "10dfa2723cf0a96fa4ae72cf7011fcddc228350d"
+    },
+    {
+      "path": "upstream/DeepTutor/web/lib/transcript-follow-dom.cjs",
+      "bytes": 2997,
+      "sha256": "d51a5143971c843b99b977dd0b9cf40bcb5d08d4e138c4bb95778721a71a0063",
+      "git_blob_sha": "a2cfbc37cee184279a9364a32b6e5f0668c6d4ad"
+    },
+    {
+      "path": "upstream/DeepTutor/web/lib/transcript-follow-dom.d.cts",
+      "bytes": 317,
+      "sha256": "d326579006155bc11d29c45fa2dcbe7d5113a1b645fd82ca7d04fc5d78bbaecd",
+      "git_blob_sha": "8338755824257005fa2959f4cf5b08d0b8b1d7d4"
     },
     {
       "path": "upstream/DeepTutor/web/lib/transcript-follow.ts",
@@ -56353,9 +56878,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/lib/workspace-drafts.ts",
-      "bytes": 2869,
-      "sha256": "21cfcbd99f16c2845442d0b5a547a93ab059e27821b9e02df61acc53d2aa19f9",
-      "git_blob_sha": "7a047f81ce4af453dcaa96e3ae0e29fe40783764"
+      "bytes": 3787,
+      "sha256": "64c307a6568a0441c5e651a864ca275f14400bc430601a05cf23cff75da01082",
+      "git_blob_sha": "21e56d2d9fda679e338b3b0e4ea7db33bca52e1c"
     },
     {
       "path": "upstream/DeepTutor/web/lib/workspace-management.ts",
@@ -56389,15 +56914,39 @@
     },
     {
       "path": "upstream/DeepTutor/web/locales/en/app.json",
-      "bytes": 406534,
-      "sha256": "d9e4548bdf8f68e6784b835b20d67af9f20fb66473a7373c29921daea3ac23f6",
-      "git_blob_sha": "fb2e3f788f1b6daab401cdbab5e58d9211d43210"
+      "bytes": 408958,
+      "sha256": "68d864c51b9b9024d4c7f1c8fccb363e8a1933fa05d09c2cc08180da81a71e08",
+      "git_blob_sha": "f304496fb81fe453c665db358d0c590a43d386ab"
     },
     {
       "path": "upstream/DeepTutor/web/locales/en/common.json",
       "bytes": 2751,
       "sha256": "2defd8a1e32b50aced2fd2e38d311fe693dd55bcde24880bbf41e12ae20ab030",
       "git_blob_sha": "585e656660db9901383309f6fb331cf209371351"
+    },
+    {
+      "path": "upstream/DeepTutor/web/locales/en/standalone.json",
+      "bytes": 34120,
+      "sha256": "54dfdab93c55a702ff7804fbce05bf7fbfaa7f63e92dd0ff1c2d4a6820d0e9f4",
+      "git_blob_sha": "19c6755d326a6356f5e1e8a5374215c2e42f8bf1"
+    },
+    {
+      "path": "upstream/DeepTutor/web/locales/zh/app.json",
+      "bytes": 403194,
+      "sha256": "0d49fc5e177586932bbdbdd6d78824e017cb75f0807a583467bec0adbfce7df2",
+      "git_blob_sha": "746059b8ea53d50044e9f801d2d88784eaa41b95"
+    },
+    {
+      "path": "upstream/DeepTutor/web/locales/zh/common.json",
+      "bytes": 2685,
+      "sha256": "83f4a817460a64ec8887ad394734c042c701464d272296d9c773813dbc5cbd24",
+      "git_blob_sha": "7155b75ad6062ec16b8f05d4815380961183ac43"
+    },
+    {
+      "path": "upstream/DeepTutor/web/locales/zh/standalone.json",
+      "bytes": 32092,
+      "sha256": "63d383c1dd7662ce72647bcb945a8ced80084fe3a3350c8169d716a273035b02",
+      "git_blob_sha": "f34f24c5bb8c86be3fae33ea3b8a40332c5b0f09"
     },
     {
       "path": "upstream/DeepTutor/web/next-env.d.ts",
@@ -56407,9 +56956,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/next.config.js",
-      "bytes": 7568,
-      "sha256": "d00e971456dfa284a2d79405a71303d1259b171bc382f15a707802335aaefa09",
-      "git_blob_sha": "7b4e263f4b00840428578eda9566db43e0596a17"
+      "bytes": 7573,
+      "sha256": "acacb6a02973feffa427a8d30ed7eaa273d36d6119c91cf6b2b72b8d07e98261",
+      "git_blob_sha": "628051bc07356e37d8260cda57a2b2f4ee189628"
     },
     {
       "path": "upstream/DeepTutor/web/package-lock.json",
@@ -56437,9 +56986,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/proxy.ts",
-      "bytes": 4189,
-      "sha256": "cd99dc6db0904323174874413d5bb58f3a7b1aab8f35b0868b42c2d66a120604",
-      "git_blob_sha": "a81570b6fda906d871166b9fd16de5568b340620"
+      "bytes": 4466,
+      "sha256": "cc4caecb7155816ed89356537cbb88889e00c140ca5884ceb0ddec2945f42940",
+      "git_blob_sha": "a2e89a0661323aaa4cfd467fd240e2a766cb84ef"
     },
     {
       "path": "upstream/DeepTutor/web/public/agent-icons/README.md",
@@ -56485,9 +57034,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/public/apple-touch-icon.png",
-      "bytes": 30381,
-      "sha256": "9e1c9e22db18747da4626fd81bacd47e943ee44e158d8b7c54a3764c34e5fc9a",
-      "git_blob_sha": "bf8e76ca27b010fa619ad0dde65593baa02ddcd7"
+      "bytes": 30462,
+      "sha256": "25aad242acfc35fa956d3ecdb7210d37c4fad097c56c0f7f28dd57c15a779942",
+      "git_blob_sha": "95999e8680db85033b0b8eadab9e095d65845c59"
     },
     {
       "path": "upstream/DeepTutor/web/public/banner.png",
@@ -56497,33 +57046,39 @@
     },
     {
       "path": "upstream/DeepTutor/web/public/deepsteam-mark.svg",
-      "bytes": 674,
-      "sha256": "17f8fd123ea0bf761abdd3713bf8126e56c912b539d27ca5569fef1ed01c63a8",
-      "git_blob_sha": "f8492feed2bf427600280ab08e7528ffb2a58916"
+      "bytes": 15065,
+      "sha256": "30d4360bdc8ec175ee503d6a5b983d18131ec4189eeb6f8b4deb41677020e01e",
+      "git_blob_sha": "e3a8abe6137beade01ddc911f91bd587482e9421"
     },
     {
       "path": "upstream/DeepTutor/web/public/deepsteam-wordmark-light.svg",
-      "bytes": 857,
-      "sha256": "74d7e8b47f80521f8605a3e46e8585584a67e35f7d1f91945c8d45639b72706a",
-      "git_blob_sha": "f8970834549e104f4d5fce9d5694895647e63d4c"
+      "bytes": 15173,
+      "sha256": "18150fb148d3aa90e73db5684cd80ec03956464fa8abfcd6823a843e69aecb51",
+      "git_blob_sha": "791650ab422554f76fbc5ba5f115833c47f08a22"
     },
     {
       "path": "upstream/DeepTutor/web/public/deepsteam-wordmark.svg",
-      "bytes": 857,
-      "sha256": "9d9f7c5fe341af1b43df061d53defd2cadd14f08536edc3910f053e5a4b2a6eb",
-      "git_blob_sha": "2e5a335bcbf080f1b943f66e5012288754da444c"
+      "bytes": 15173,
+      "sha256": "cc41071c9b7babe9602165634dbe8d87cbfc4c1288aa2b28aaf499a4949a3e6b",
+      "git_blob_sha": "ff6c9f161f3a31ca0af32048fa2613cf586669d4"
     },
     {
       "path": "upstream/DeepTutor/web/public/favicon-16x16.png",
-      "bytes": 1547,
-      "sha256": "480feb10d3e590c5e53acdf847fee6ecd6efef254d0944d622c2455d47bf8c9e",
-      "git_blob_sha": "217765a3e737df1aa5fd2e2a0890ad98db4ad0e0"
+      "bytes": 829,
+      "sha256": "1afeb694e83c004faedb53552d79988ed71d3f8cf4828a052c6f6d2e9d31f2b8",
+      "git_blob_sha": "19c551079b3be2e07945a21580c98fbfa3933626"
     },
     {
       "path": "upstream/DeepTutor/web/public/favicon-32x32.png",
-      "bytes": 3037,
-      "sha256": "c34cf86e93c97c0b5bf3ee2b7a23f3542859d0fabdc7b816f2e9544029d13a6c",
-      "git_blob_sha": "b668519a054f59b33ef797683d8889486afbc3dd"
+      "bytes": 2455,
+      "sha256": "b3cfd7b434d7b70daf94087bc664195405dbf936b95278bb1d337a98f247f1d2",
+      "git_blob_sha": "78cd0acdfab6011d888e99f1d480f63830ebc86e"
+    },
+    {
+      "path": "upstream/DeepTutor/web/public/favicon.ico",
+      "bytes": 84536,
+      "sha256": "2ee0dbbb8584c567430a15637a75367550c79c57ad7982446a02656d1d8f76ba",
+      "git_blob_sha": "7d3a68e32a1af602fa19aee06993c0bc2705876d"
     },
     {
       "path": "upstream/DeepTutor/web/public/knowledge-engine-icons/README.md",
@@ -57301,9 +57856,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/ask-user-terminal-turn.spec.tsx",
-      "bytes": 3798,
-      "sha256": "3c1630fd6b266917d3d645cad09fd8a785d2b3672cd9f7b4c1b9e422b29cd712",
-      "git_blob_sha": "ddb8294826316e0607c3d80b5310dbbaa49e24d8"
+      "bytes": 5260,
+      "sha256": "a7bd2dbcb57fe92dd72ad49359a6a7dbf96c71ae0e993be8d4cc46e4793d5f9b",
+      "git_blob_sha": "c4f6c6f9eafe66d1b749b77406e0400af98d2f8f"
     },
     {
       "path": "upstream/DeepTutor/web/tests/attachment-processing-status.spec.tsx",
@@ -57427,9 +57982,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/chat-failed-submission-recovery.spec.tsx",
-      "bytes": 44110,
-      "sha256": "6b5458a443fe0536c7eb6ca6fd16b653258ba9602e09d60cf42dc5cdd619ac50",
-      "git_blob_sha": "54ebfd18d192cd5266ae91a6b6240d8a9d3a9b60"
+      "bytes": 45347,
+      "sha256": "676827b94f9b3cad629c084d01541c3ade86673fe02463733790d4d5683c9f98",
+      "git_blob_sha": "434426d51d5f83f91d847b0d28f88b840f5afdef"
     },
     {
       "path": "upstream/DeepTutor/web/tests/chat-history-search.spec.tsx",
@@ -57505,9 +58060,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/chat-streaming-status.spec.tsx",
-      "bytes": 2947,
-      "sha256": "7e84f856fd89f1084637ccf726c5b84ea97585a65f1a061f51d3a4d82a3fb0ba",
-      "git_blob_sha": "1a48642fcd3a72502e0552c9c319b3746e4588fd"
+      "bytes": 5784,
+      "sha256": "7136a395facb7f184bec81ed15382887d2022c355f6279d8716e9341152fb9bb",
+      "git_blob_sha": "e9ca5a8b4917dca57a6dc42f09c8166c71f81dd5"
     },
     {
       "path": "upstream/DeepTutor/web/tests/chat-submission-clock.spec.tsx",
@@ -57523,9 +58078,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/chat/StandaloneComposer.smoke.spec.tsx",
-      "bytes": 5349,
-      "sha256": "9e2b42ad6d24b62d9045438f3308757c32501f26663a00a26aa988a4da1b254a",
-      "git_blob_sha": "1da575b500cfffa010cc7cf0ecfd17b3e477b66c"
+      "bytes": 6090,
+      "sha256": "a504d9fee5aef02e802e6c9bc304e30db0214e6a2c5ca958c1a49ff87f01b0d0",
+      "git_blob_sha": "8e6c7a6b488a3676bb702e2b8ed07186c10bff1d"
     },
     {
       "path": "upstream/DeepTutor/web/tests/cli-apps-api.test.ts",
@@ -57552,6 +58107,12 @@
       "git_blob_sha": "6ad3e00c92b5c5a5c7fd85e7e094e16780d819d9"
     },
     {
+      "path": "upstream/DeepTutor/web/tests/co-writer-scope.spec.tsx",
+      "bytes": 2452,
+      "sha256": "cf79da437559b2c82abfb5458b2eeb2ce016050d3a45373c8026d4f4e3261c76",
+      "git_blob_sha": "2caf8a84906053953101c790a09ef68d88c49979"
+    },
+    {
       "path": "upstream/DeepTutor/web/tests/code-block-themes.test.ts",
       "bytes": 5210,
       "sha256": "486a66858fa3ae05cb262881dd8bf31a1abf06ffa06e4546977caa97673a1767",
@@ -57576,10 +58137,16 @@
       "git_blob_sha": "2509f32ee99e32926b152898b396bdb6f98ceb5b"
     },
     {
+      "path": "upstream/DeepTutor/web/tests/competition-partner-entry.spec.tsx",
+      "bytes": 2285,
+      "sha256": "36c6a9daaa2cde9e9e405fcaa1775bd041e0a852cb784f5c994cf5bc935f7f13",
+      "git_blob_sha": "3485078adec46298ccaf252856cd244c2a8c0dda"
+    },
+    {
       "path": "upstream/DeepTutor/web/tests/composer-draft-restore-failure.spec.tsx",
-      "bytes": 8163,
-      "sha256": "8b197c272b2ab4f930038eee659028c3415647f9c0c01133d3229a7b729392a3",
-      "git_blob_sha": "16a044dee18d4f630855e9014157bf58d3f711f4"
+      "bytes": 9926,
+      "sha256": "feba951ec288a0b6b6a6ac5d47a67d1035f540c64d19af56e1080e217e43d524",
+      "git_blob_sha": "88d7e177a8810a4962fed0bd1b4d4949503b2d36"
     },
     {
       "path": "upstream/DeepTutor/web/tests/composer-keyboard.test.ts",
@@ -57832,6 +58399,12 @@
       "bytes": 3772,
       "sha256": "81764670f2ec5f77a02b42051303cf5d89af53c728a1058da4f71cae82eacb12",
       "git_blob_sha": "9bc4d1cce9a9659bfd8ee8c08bbc56294cf8b590"
+    },
+    {
+      "path": "upstream/DeepTutor/web/tests/imported-chat-visible.spec.tsx",
+      "bytes": 2415,
+      "sha256": "8d5dd352fed5b57547c67c9fff705ef6ce9e6181fb4578e0db542eb819a75130",
+      "git_blob_sha": "10bea8a1d925ac0c7da4b439adfdd3232828ddb1"
     },
     {
       "path": "upstream/DeepTutor/web/tests/imports-api.spec.ts",
@@ -58284,6 +58857,18 @@
       "git_blob_sha": "1fd898eadf978b2ae09479dbe7ddf3ea92f441f8"
     },
     {
+      "path": "upstream/DeepTutor/web/tests/notebook-summary-language.spec.tsx",
+      "bytes": 1841,
+      "sha256": "563b90c828ae69b725e1fe6884813936ca7a7b29d1d71e6cc118ba3e2ff8eeef",
+      "git_blob_sha": "ce1921908a74b2a11438824f115ee55965f173f9"
+    },
+    {
+      "path": "upstream/DeepTutor/web/tests/notebook-workspace-scope.spec.tsx",
+      "bytes": 3143,
+      "sha256": "0136450a0b36e4a7eed946a792a729b605899bde483d9277c20574e40521e7fe",
+      "git_blob_sha": "f2edeb79a3f738ebfeea42bdf56371ef41a6443d"
+    },
+    {
       "path": "upstream/DeepTutor/web/tests/office-pdf-preview.spec.tsx",
       "bytes": 5520,
       "sha256": "93a5804dd2f2759698e5af184ec13f4b1f93214c2599aef98e621cadad2a4935",
@@ -58381,9 +58966,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/pdf-reading-resize.spec.tsx",
-      "bytes": 8597,
-      "sha256": "0fa2ad597337f47f6dbedd224b962feea8fad24be16ac782fcc579bcb7510f96",
-      "git_blob_sha": "dbae6cd15ec847b67b88213b6959e8aae0b45263"
+      "bytes": 11183,
+      "sha256": "0e6911dee9472b539cbea59451f9698200f1d4c6bef79a06401158c0e3c06436",
+      "git_blob_sha": "6934b6a2b551a25475eb403a06d19cc68f88e216"
     },
     {
       "path": "upstream/DeepTutor/web/tests/pending-attachments.test.ts",
@@ -58423,9 +59008,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/provider-registry-workflow.spec.tsx",
-      "bytes": 27786,
-      "sha256": "bc18b3477f8f32364b1223c39164fed1d359f98951dfbdb6f230a343465d055c",
-      "git_blob_sha": "1243d8f2a296b1d0f858897e2cffa8a62fb241b7"
+      "bytes": 29495,
+      "sha256": "f22339c5f4980b8d213f3c293dcd03474c1a29573a08ac63f2f39bdda52fe0f0",
+      "git_blob_sha": "02d1e557cf979f45e92a1e2563a95c55c202c081"
     },
     {
       "path": "upstream/DeepTutor/web/tests/provider-trace-row.test.ts",
@@ -58435,9 +59020,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/proxy-policy.test.ts",
-      "bytes": 9040,
-      "sha256": "ec4eda637c482fcc436565a69945f73a4a9a7e79c59751642f444a6b7a2e450e",
-      "git_blob_sha": "b5f1f46dfe9445cef1afddbfd1632361ae5e087f"
+      "bytes": 9557,
+      "sha256": "45f7a20352c405f34da638a6c8d85bde04cc8e22c020e252c2cabbe9f0293259",
+      "git_blob_sha": "5c94c0404aa5fba10a7e0d47811f20e34a2aac24"
     },
     {
       "path": "upstream/DeepTutor/web/tests/question-bank-answers.test.ts",
@@ -58489,9 +59074,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/quiz/QuizViewer.smoke.spec.tsx",
-      "bytes": 13639,
-      "sha256": "a01e4bc54ea04f25989071bf83a908c99cddc7d818e5b3593a4a30806335f261",
-      "git_blob_sha": "54e58f8195bdd287f2eb70af8e70b4febe993788"
+      "bytes": 19272,
+      "sha256": "0f0a6a2a7217e6ef4ed206c0455d13d5be0289e1178ced5cf2b1fa4a405c4c54",
+      "git_blob_sha": "c3c4aeb8920b9ccf07c766144ceafd0d5edb66a9"
     },
     {
       "path": "upstream/DeepTutor/web/tests/reading-add-invidious.spec.tsx",
@@ -58801,9 +59386,9 @@
     },
     {
       "path": "upstream/DeepTutor/web/tests/settings-unified-draft.spec.tsx",
-      "bytes": 17921,
-      "sha256": "943c38f008b1361c1cb2e75fdcf4f0587a3d21c33214f3b9e9108dfdeb2e5938",
-      "git_blob_sha": "84f31c6bd060060154002bffa2c8e3b176d84822"
+      "bytes": 19895,
+      "sha256": "8fd6a82a5ee0d20685bbe4604aea079e95bcfa4d4dc870796453531a27be3c0c",
+      "git_blob_sha": "f10b92fd696f41086df7813905649e998ca60675"
     },
     {
       "path": "upstream/DeepTutor/web/tests/setup/rendered.ts",
@@ -60205,9 +60790,15 @@
     },
     {
       "path": "upstream/OpenMAIC/components/chat/chat-session.tsx",
-      "bytes": 14676,
-      "sha256": "4c52eafb2c30bf9d49dc9a7b917dbe650c239872bad4392fc047e4703b917615",
-      "git_blob_sha": "ea7409b5169fd7a2098d1e4ad655a6090fae578a"
+      "bytes": 14789,
+      "sha256": "09c42f19bead4348975fda05f10bed41de5a7ee53a8b991311a7154bddc49a70",
+      "git_blob_sha": "42c3ea0f698dd332f8767d69fe6f7cb112eddf37"
+    },
+    {
+      "path": "upstream/OpenMAIC/components/chat/classroom-message-text.tsx",
+      "bytes": 1157,
+      "sha256": "a7aad4b8961b7f58bb36869e1cfa138949bd99bcc6dfb6d803ac4641863b86ac",
+      "git_blob_sha": "ad93098a2358a55b4212fd5cd53f98f46c4b019c"
     },
     {
       "path": "upstream/OpenMAIC/components/chat/element-reference-receipt.ts",
@@ -60727,15 +61318,15 @@
     },
     {
       "path": "upstream/OpenMAIC/components/roundtable/index.tsx",
-      "bytes": 102220,
-      "sha256": "e30c16d11df05bfb1233805477a2c821f0ba2a230ec7fbdf2649f43be91888ef",
-      "git_blob_sha": "e5ad87010636b16d3f8c3c9e29740f05e9ef2c63"
+      "bytes": 102370,
+      "sha256": "920f3d45b588b4c2bc24e6b126b2ddaae63edbd346b57a5dc3337061fe56ea63",
+      "git_blob_sha": "adcaea87cfc8c0b03182c0353d36e44db9232b45"
     },
     {
       "path": "upstream/OpenMAIC/components/roundtable/presentation-speech-overlay.tsx",
-      "bytes": 18216,
-      "sha256": "0ec30cfcb36c5ca1a1b628464ea7e39b143a59f529f558b0374f43d63880811a",
-      "git_blob_sha": "bdbc0d23d5b276d9af062509f564b8f92cf9f761"
+      "bytes": 18327,
+      "sha256": "a7e1b83dd6c4569e25298384a6786ce03baf4272d713ee12bb4ac3099bf5d350",
+      "git_blob_sha": "a2acf1c620d150102911e80125735c366ab54276"
     },
     {
       "path": "upstream/OpenMAIC/components/scene-renderers/InteractiveIframeHost.tsx",
@@ -63529,9 +64120,9 @@
     },
     {
       "path": "upstream/OpenMAIC/lib/hooks/use-i18n.tsx",
-      "bytes": 2227,
-      "sha256": "b8473b06c21442cf8fb771ae0e377d30f2cda03a8b23f92ca07fee3cc853ef93",
-      "git_blob_sha": "18936cc1ccf811c15038ae788b59e04581c40312"
+      "bytes": 2482,
+      "sha256": "01191cbaa85991353f7fece5d55ee69a3238b5cffb41dcab6879a08009683b5f",
+      "git_blob_sha": "17a3988df5031782aa9037ad281c11c4162fe507"
     },
     {
       "path": "upstream/OpenMAIC/lib/hooks/use-near-viewport.ts",
@@ -63667,9 +64258,9 @@
     },
     {
       "path": "upstream/OpenMAIC/lib/i18n/types.ts",
-      "bytes": 158,
-      "sha256": "ad9f9d4bddd5e71eb834c006407e2ac2fe9bb0c7bed61346bc902f16984f0b7e",
-      "git_blob_sha": "7cba530a9e975c30c03b7b18100cf527d2b9ad89"
+      "bytes": 232,
+      "sha256": "207ee420d2bc9ccf70b126ed1f66bf755d2aee05ca8d55e9a4394060e7dbbf5f",
+      "git_blob_sha": "958903b53cb5a6810d40fcd9d2d2f7db1a5268e5"
     },
     {
       "path": "upstream/OpenMAIC/lib/i18n/workbench-locales/ar-SA.json",
@@ -66835,9 +67426,9 @@
     },
     {
       "path": "upstream/OpenMAIC/next.config.ts",
-      "bytes": 3892,
-      "sha256": "af15e789050b3647087ce1fad4533b6b4b6e37d3145ac9842d3c5ffdfbb31c8f",
-      "git_blob_sha": "1055417efe63e7b6cd7060704b901c86f31b66f1"
+      "bytes": 4327,
+      "sha256": "5b069ce5ef9c8dd689917e3fb9e2e1a3d1a22cb6c0beceda27eed1fed4d21ab6",
+      "git_blob_sha": "e9e9d351ad1555d454b128cc4be8797e3794961d"
     },
     {
       "path": "upstream/OpenMAIC/package.json",
@@ -71261,6 +71852,5 @@
       "sha256": "c1e25f5f5ceb249aec94be2b42b45b88b7a8c15fc9c722682f8bdabbd466d29e",
       "git_blob_sha": "595d8eaa1e82536ae2976852062d42fbea1833be"
     }
-  ],
-  "earlier_recovery_checkout": "05c1fbdfe9456837554c990f5244bcaf03fc6fc3"
+  ]
 }

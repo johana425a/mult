@@ -197,6 +197,33 @@ beforeEach(() => {
   vi.stubGlobal("matchMedia", () => ({ matches: false }));
 });
 
+it.each([
+  ["embedding", "embedding"], ["search", "search"],
+  ["voice", "tts"], ["voice", "stt"],
+  ["multimodal", "imagegen"], ["multimodal", "videogen"],
+] as const)("configures a first %s / %s provider from the model page", async (page, service) => {
+  live.connections = [];
+  for (const bucket of Object.values(live.services)) bucket.profiles = [];
+  render(<Harness page={page} providerOptions={{ [service]: [{ value: "fixture-adapter", label: "Fixture provider", default_model: "fixture-model" }] }} />);
+  fireEvent.click(screen.getByRole("button", { name: page === "search" ? "Add search configuration" : "Add model" }));
+  if (page === "voice" || page === "multimodal")
+    fireEvent.change(screen.getByRole("combobox", { name: "Model type" }), { target: { value: service } });
+  const selector = screen.getByRole("combobox", { name: "Configured provider" });
+  const option = within(selector).getByRole("option", { name: "Fixture provider" }) as HTMLOptionElement;
+  fireEvent.change(selector, { target: { value: option.value } });
+  const button = screen.getByRole("button", { name: "Continue" }) as HTMLButtonElement;
+  expect(button.disabled).toBe(false);
+  fireEvent.click(button);
+  expect(mocks.settings.draft.connections).toHaveLength(1);
+  expect(mocks.settings.draft.services[service].profiles).toHaveLength(1);
+  expect(mocks.settings.draft.connections![0].api_key).toBe("");
+  expect(mocks.settings.draft.services[service].profiles[0].provider_ref?.connection_id)
+    .toBe(mocks.settings.draft.connections![0].id);
+  expect(mocks.save).not.toHaveBeenCalled();
+  if (service === "embedding")
+    expect(await screen.findByText("No knowledge bases use this model.")).toBeTruthy();
+});
+
 it("offers one MiniMax vendor with protocol choices instead of legacy provider aliases", () => {
   render(<Harness page="providers" providerOptions={minimaxProviders} />);
   fireEvent.click(screen.getByRole("button", { name: "Add provider" }));

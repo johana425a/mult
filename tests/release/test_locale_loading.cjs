@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict');
+const {createRequire}=require('node:module');
+const {Module}=require('node:module');
+const fs=require('node:fs'),path=require('node:path');
+const req=createRequire(path.resolve(process.env.DEEPSTEAM_WEB_TEST_DEPENDENCIES || path.join(__dirname,'../../upstream/DeepTutor/web/package.json')));
+const {JSDOM}=req('jsdom'),React=req('react'),{createRoot}=req('react-dom/client'),ts=req('typescript');
+const dom=new JSDOM('<html><body><div id="root"></div></body></html>',{url:'http://localhost'});
+global.window=dom.window;global.document=dom.window.document;global.IS_REACT_ACT_ENVIRONMENT=true;
+const pending=[];
+const i18n={language:'en',hasResourceBundle:()=>false,changeLanguage:async lang=>{i18n.language=lang;}};
+const init={initI18n(){},normalizeLanguage:lang=>lang,ensureLanguage:()=>new Promise((resolve,reject)=>pending.push({resolve,reject}))};
+const filename=path.resolve(__dirname,'../../upstream/DeepTutor/web/i18n/I18nProvider.tsx');
+const compiled=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
+const mod=new Module(filename);mod.filename=filename;mod.require=id=>id==='i18next'?i18n:id==='./init'?init:req(id);mod._compile(compiled,filename);
+const {I18nProvider}=mod.exports,{act}=React;let mounts=0,setDraft;
+function Child(){const [draft,set]=React.useState('saved draft');setDraft=set;React.useEffect(()=>{mounts++;},[]);return React.createElement('p',null,draft);}
+const root=createRoot(document.getElementById('root'));
+const render=(language='en')=>React.createElement(I18nProvider,{language},React.createElement(Child));
+(async()=>{
+ await act(async()=>root.render(render()));
+ assert.match(document.body.textContent,/Loading your workspace/);assert.equal(mounts,0);
+ await act(async()=>pending.shift().reject(new Error('injected chunk load failure')));
+ assert.ok(document.querySelector('[role="alert"]'));assert.equal(document.querySelector('button').textContent,'Retry');
+ await act(async()=>document.querySelector('button').click());
+ assert.equal(pending.length,1);
+ await act(async()=>pending.shift().resolve());
+ assert.match(document.body.textContent,/saved draft/);assert.equal(mounts,1);
+ await act(async()=>setDraft('unsaved user edit'));
+ await act(async()=>root.render(render('zh')));
+ assert.match(document.body.textContent,/unsaved user edit/);assert.equal(mounts,1);
+ await act(async()=>pending.shift().resolve());
+ assert.match(document.body.textContent,/unsaved user edit/);assert.equal(mounts,1);
+ assert.equal(document.documentElement.lang,'zh');
+ await act(async()=>root.unmount());
+ console.log(JSON.stringify({passed:true,initialFeedback:true,retryAfterChunkFailure:true,workspaceStatePreserved:true}));
+})().catch(e=>{console.error(e);process.exitCode=1;});

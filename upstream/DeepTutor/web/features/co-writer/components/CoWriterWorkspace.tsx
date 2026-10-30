@@ -1,6 +1,7 @@
 "use client";
 
 import { knowledgeBaseRef } from "@/lib/knowledge-helpers";
+import { scopedUrl } from "@/lib/workspace-scope";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -1677,7 +1678,7 @@ export default function CoWriterWorkspace({ docId }: CoWriterWorkspaceProps) {
         </p>
         <button
           type="button"
-          onClick={() => router.push("/co-writer")}
+          onClick={() => router.push(scopedUrl("/co-writer"))}
           className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)] px-3.5 py-2 text-[12.5px] font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90"
         >
           <ChevronLeft size={14} />
@@ -1704,7 +1705,7 @@ export default function CoWriterWorkspace({ docId }: CoWriterWorkspaceProps) {
           <Tooltip label={t("Back to documents")}>
             <button
               type="button"
-              onClick={() => router.push("/co-writer")}
+              onClick={() => router.push(scopedUrl("/co-writer"))}
               className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
               aria-label={t("Back to documents")}
             >

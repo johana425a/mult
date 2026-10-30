@@ -328,10 +328,11 @@ notices:
   context_window_guard: "Trimmed older tool results to keep within the model's context window."
   final_protocol_failed: "The model still did not produce a valid FINISH reply after the finalization prompt."
   plan_count_mismatch: "Plan returned {got} templates instead of {requested}; proceeding with what we have."
-  plan_unusable: "Quiz planning produced no usable question templates, so there is nothing to build a quiz from. Please retry or narrow the topic."
+  plan_repair: "正在校正出题计划，保留你选择的题型和题数。"
+  plan_unusable: "模型返回的出题计划在两次自动修正后仍未通过检查。已保留你选择的题型和题数，没有保存空白题目。"
   plan_reasoning_retry: "The planner spent its whole budget reasoning and produced no plan; asking again with less thinking."
   repair_attempted: "The previous question payload was invalid; repairing the schema once."
-  repair_reasoning_retry: "The repair round spent its whole budget reasoning; asking again with less thinking."
+  repair_reasoning_retry: "正在增加输出空间并重新整理题目，保持当前模型设置。"
   repair_failed: "Repair did not fully fix the question; emitting the best-effort version."
   tool_summarizer_failed: "Tool summarizer could not produce a summary ({error}); passing raw tool result forward."
 

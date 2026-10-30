@@ -81,7 +81,7 @@ const { default: StandaloneComposer } = await import(
 type ComposerSend = (content: string) => Promise<void> | void;
 
 async function mount(
-  overrides: { isStreaming?: boolean; awaitingUserReply?: boolean } = {},
+  overrides: { isStreaming?: boolean; awaitingUserReply?: boolean; submissionBlocked?: boolean } = {},
 ): Promise<{ onSend: ComposerSend }> {
   await act(async () => {
     render(
@@ -89,6 +89,7 @@ async function mount(
         onSubmit={harness.submitted}
         onCancelStreaming={() => undefined}
         isStreaming={overrides.isStreaming ?? false}
+        submissionBlocked={overrides.submissionBlocked}
         awaitingUserReply={overrides.awaitingUserReply ?? false}
         hasMessages={false}
         inputPlaceholder="Ask"
@@ -162,6 +163,19 @@ describe("StandaloneComposer smoke", () => {
       await onSend("hello");
     });
 
+    expect(harness.submitted).not.toHaveBeenCalled();
+  });
+
+  it("blocks restoration sends at both the input and submission boundary", async () => {
+    const { onSend } = await mount({ submissionBlocked: true });
+    expect(harness.composerProps!.submissionBlocked).toBe(true);
+    await act(async () => { await onSend("keep this draft"); });
+    expect(harness.submitted).not.toHaveBeenCalled();
+  });
+
+  it("does not let an old ask_user card bypass restoration", async () => {
+    const { onSend } = await mount({ submissionBlocked: true, isStreaming: true, awaitingUserReply: true });
+    await act(async () => { await onSend("keep this answer"); });
     expect(harness.submitted).not.toHaveBeenCalled();
   });
 

@@ -2,6 +2,8 @@
 
 import Tooltip from "@/shared/ui/Tooltip";
 import { browserStorage } from "@/shared/storage";
+import { scopedUrl } from "@/lib/workspace-scope";
+import { releaseFeatureAvailable } from "@/lib/competition-profile";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -227,7 +229,7 @@ function entityDeepLinkUrl(surface: Surface, ent: Entity): string | null {
     case "chat":
       return `/chat/${encodeURIComponent(ent.id)}`;
     case "cowriter":
-      return `/co-writer/${encodeURIComponent(ent.id)}`;
+      return scopedUrl(`/co-writer/${encodeURIComponent(ent.id)}`);
     case "notebook": {
       const nbId = asString(m.notebook_id);
       return notebookRoute(nbId);
@@ -235,6 +237,7 @@ function entityDeepLinkUrl(surface: Surface, ent: Entity): string | null {
     case "book":
       return bookRoute(ent.id);
     case "partner": {
+      if (!releaseFeatureAvailable('partners')) return null;
       // Partner entity.id is `partnerId:sessionKey`. Deep-link to the partner.
       const partnerId = asString(m.partner_id) || ent.id.split(":")[0];
       return partnerId

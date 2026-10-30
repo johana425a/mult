@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "edition": "competition-candidate",
+  "features": [
+    {"id":"chat","core":true,"enabled":true,"pages":["/chat"],"apis":["/api/sessions"]},
+    {"id":"reading","core":true,"enabled":true,"pages":["/learning/reading"],"apis":["/api/reading"]},
+    {"id":"learning","core":true,"enabled":true,"pages":["/learning"],"apis":["/api/mastery-paths","/api/learning-journal","/api/notebooks"]},
+    {"id":"questions","core":true,"enabled":true,"pages":[],"apis":["/api/question","/ws/questions","/api/question-notebook"]},
+    {"id":"documents","core":true,"enabled":true,"pages":[],"apis":["/api/file-preview","/files/outputs","/files/workspace-items"]},
+    {"id":"classroom","core":true,"enabled":true,"pages":["/education"],"apis":[]},
+    {"id":"video","core":true,"enabled":true,"pages":[],"apis":["/api/video-learning"]},
+    {"id":"space","core":false,"enabled":true,"pages":["/space"],"apis":[]},
+    {"id":"kanban","core":false,"enabled":true,"pages":["/kanban"],"apis":["/api/task-board"]},
+    {"id":"writing","core":false,"enabled":true,"pages":["/co-writer"],"apis":["/api/documents"]},
+    {"id":"agents","core":false,"enabled":true,"pages":["/agents"],"apis":["/api/subagents"]},
+    {"id":"workspace-agent","core":false,"enabled":true,"pages":["/workspace-agent"],"apis":[]},
+    {"id":"partners","core":false,"enabled":false,"pages":["/partners"],"apis":["/api/partners","/api/partner-groups","/ws/partners","/ws/partner-groups"]}
+  ]
+}

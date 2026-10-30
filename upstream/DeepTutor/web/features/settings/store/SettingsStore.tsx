@@ -102,6 +102,8 @@ export type ResponseLanguageOption = {
 
 export const RESPONSE_LANGUAGE_OPTIONS: readonly ResponseLanguageOption[] = [
   { value: "en", label: "English" },
+  { value: "zh", label: "简体中文" },
+  { value: "zh-tw", label: "繁體中文" },
   { value: "ja", label: "Japanese" },
   { value: "ko", label: "Korean" },
   { value: "es", label: "Spanish" },
@@ -905,8 +907,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }, [diagnosticsResults]);
 
-  // Preferences are drafts too. Browser-wide appearance/language changes only
-  // when Apply succeeds, so Discard has no global side effects to undo.
+  // Keep old saved UI drafts readable; new personal preferences save separately.
   const liveUi = useMemo<UiSettings>(() => ({
     theme, language, response_language: responseLanguage,
     code_block_theme: codeBlockTheme,
@@ -922,20 +923,40 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     writeStoredResponseLanguage(ui.response_language);
     syncLoadedCodeBlockSettingsToAppShell(ui);
   }, []);
-  const stageUi = useCallback(async (patch: Partial<UiSettings>) => {
-    const next = { ...liveUi, ...(pendingRef.current.get("ui") as Partial<UiSettings> | undefined), ...patch };
-    registerExtension("ui", {
-      dirty: JSON.stringify(next) !== JSON.stringify(liveUi),
-      payload: next,
-      save: async () => { await applyExtensionPayload("ui", next); applyUi(next); },
+  // Personal preferences save independently. Do not make a theme/language
+  // change depend on applying unrelated provider credentials or model drafts.
+  // Serialize writes so rapid selections cannot arrive at the server backwards.
+  const uiSaveQueue = useRef<Promise<void>>(Promise.resolve());
+  const saveUiPreference = useCallback((patch: Partial<UiSettings>) => {
+    const save = uiSaveQueue.current.then(async () => {
+      await applyExtensionPayload("ui", patch);
+      if (patch.theme !== undefined) { setTheme(patch.theme); applyThemePreference(patch.theme); }
+      if (patch.language !== undefined) { setLanguage(patch.language); writeStoredLanguage(patch.language); }
+      if (patch.response_language !== undefined) { setResponseLanguage(patch.response_language); writeStoredResponseLanguage(patch.response_language); }
+      if (patch.code_block_theme !== undefined) writeStoredCodeBlockTheme(normalizeCodeBlockTheme(patch.code_block_theme));
+      if (patch.code_block_show_line_numbers !== undefined) writeStoredCodeBlockShowLineNumbers(patch.code_block_show_line_numbers);
+      if (patch.code_block_wrap_long_lines !== undefined) writeStoredCodeBlockWrapLongLines(patch.code_block_wrap_long_lines);
+      // Keep a restored old UI draft from undoing this newly saved preference.
+      const old = pendingRef.current.get("ui") as Partial<UiSettings> | undefined;
+      if (old) {
+        const next = { ...old, ...patch };
+        registerExtension("ui", { dirty: true, payload: next,
+          save: async () => { await applyExtensionPayload("ui", next); applyUi(next as UiSettings); } });
+      }
     });
-  }, [liveUi, registerExtension, applyUi]);
-  const updateTheme = useCallback(async (theme: UiSettings["theme"]) => stageUi({ theme }), [stageUi]);
-  const updateLanguage = useCallback(async (language: UiSettings["language"]) => stageUi({ language }), [stageUi]);
-  const updateResponseLanguage = useCallback(async (response_language: UiSettings["response_language"]) => stageUi({ response_language }), [stageUi]);
-  const updateCodeBlockTheme = useCallback(async (code_block_theme: CodeBlockThemeId) => stageUi({ code_block_theme }), [stageUi]);
-  const updateCodeBlockShowLineNumbers = useCallback(async (code_block_show_line_numbers: boolean) => stageUi({ code_block_show_line_numbers }), [stageUi]);
-  const updateCodeBlockWrapLongLines = useCallback(async (code_block_wrap_long_lines: boolean) => stageUi({ code_block_wrap_long_lines }), [stageUi]);
+    uiSaveQueue.current = save.catch(() => undefined);
+    return save.catch((error: unknown) => {
+      setToast(t("Could not save preference: {{message}}", {
+        message: error instanceof Error ? error.message : String(error),
+      }));
+    });
+  }, [applyUi, registerExtension, t]);
+  const updateTheme = useCallback(async (theme: UiSettings["theme"]) => saveUiPreference({ theme }), [saveUiPreference]);
+  const updateLanguage = useCallback(async (language: UiSettings["language"]) => saveUiPreference({ language }), [saveUiPreference]);
+  const updateResponseLanguage = useCallback(async (response_language: UiSettings["response_language"]) => saveUiPreference({ response_language }), [saveUiPreference]);
+  const updateCodeBlockTheme = useCallback(async (code_block_theme: CodeBlockThemeId) => saveUiPreference({ code_block_theme }), [saveUiPreference]);
+  const updateCodeBlockShowLineNumbers = useCallback(async (code_block_show_line_numbers: boolean) => saveUiPreference({ code_block_show_line_numbers }), [saveUiPreference]);
+  const updateCodeBlockWrapLongLines = useCallback(async (code_block_wrap_long_lines: boolean) => saveUiPreference({ code_block_wrap_long_lines }), [saveUiPreference]);
 
   // ── Catalog mutators ────────────────────────────────────────────────────
   const mutateCatalog = useCallback((mutator: (next: Catalog) => void) => {

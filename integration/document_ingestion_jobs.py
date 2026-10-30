@@ -42,7 +42,8 @@ class DocumentIngestions:
         if not isinstance(owner_scope, str) or not 1 <= len(owner_scope) <= 256 or any(ord(c) < 32 for c in owner_scope):
             raise ValueError('document_owner_invalid')
         source = assert_plain_path(Path(source))
-        if source.suffix.lower() not in shared.SUPPORTED_FORMATS or not source.is_file() or not 0 < source.stat().st_size <= 200 * 1024 * 1024:
+        limit = int(child_environment()['EDUAGENT_DOCUMENT_MAX_BYTES'])
+        if source.suffix.lower() not in shared.SUPPORTED_FORMATS or not source.is_file() or not 0 < source.stat().st_size <= limit:
             raise ValueError('document_source_invalid')
         with source.open('rb') as stream:
             digest = hashlib.file_digest(stream, 'sha256').hexdigest()

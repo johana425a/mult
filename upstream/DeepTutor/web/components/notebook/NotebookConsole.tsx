@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -28,6 +28,7 @@ import {
   type NotebookSummary,
 } from "@/lib/notebook-api";
 import { notebookRoute } from "@/lib/resource-routes";
+import { activeWorkspaceId, scopedUrl } from "@/lib/workspace-scope";
 
 const SWATCHES = [
   "#6366F1",
@@ -64,6 +65,7 @@ export default function NotebookConsole({
 }: NotebookConsoleProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const workspaceId = activeWorkspaceId();
   const library = useNotebookLibrary(
     initialNotebookId,
     courseScope?.notebookIds ?? null,
@@ -73,6 +75,8 @@ export default function NotebookConsole({
   const [recordQuery, setRecordQuery] = useState("");
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [createPending, setCreatePending] = useState(false);
+  const createPendingRef = useRef(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [editingNotebookId, setEditingNotebookId] = useState<string | null>(
@@ -92,8 +96,8 @@ export default function NotebookConsole({
   // visible resource without a click. Keep the address bar canonical too.
   useEffect(() => {
     if (!selectedId || selectedId === initialNotebookId) return;
-    router.replace(notebookRoute(selectedId, courseId));
-  }, [courseId, initialNotebookId, router, selectedId]);
+    router.replace(scopedUrl(notebookRoute(selectedId, courseId), workspaceId));
+  }, [courseId, initialNotebookId, router, selectedId, workspaceId]);
 
   // How many notebooks exist *for this visit*. Everything the console counts —
   // the badge, whether a filter box is worth showing, which empty state to use
@@ -145,7 +149,9 @@ export default function NotebookConsole({
 
   const handleCreate = useCallback(async () => {
     const name = newName.trim();
-    if (!name) return;
+    if (!name || createPendingRef.current) return;
+    createPendingRef.current = true;
+    setCreatePending(true);
     try {
       const createdId = await library.create(name, newDescription);
       // Made while looking at one course, so it belongs to that course. Asking
@@ -159,12 +165,15 @@ export default function NotebookConsole({
         });
         onScopeChanged?.();
       }
-      if (createdId) router.push(notebookRoute(createdId, courseId));
+      if (createdId) router.push(scopedUrl(notebookRoute(createdId, courseId), workspaceId));
       setNewName("");
       setNewDescription("");
       setCreating(false);
     } catch (err) {
       setBanner(err instanceof Error ? err.message : String(err));
+    } finally {
+      createPendingRef.current = false;
+      setCreatePending(false);
     }
   }, [
     courseId,
@@ -174,6 +183,7 @@ export default function NotebookConsole({
     newDescription,
     onScopeChanged,
     router,
+    workspaceId,
   ]);
 
   const beginNotebookEdit = useCallback((notebook: NotebookSummary) => {
@@ -203,7 +213,7 @@ export default function NotebookConsole({
     setDeleting(true);
     try {
       await library.remove(selected.id);
-      router.replace(notebookRoute(null, courseId));
+      router.replace(scopedUrl(notebookRoute(null, courseId), workspaceId));
       notify(t('Deleted "{{name}}"', { name }), { tone: "success" });
       setConfirmingDelete(false);
       setEditingNotebookId(null);
@@ -212,7 +222,7 @@ export default function NotebookConsole({
     } finally {
       setDeleting(false);
     }
-  }, [courseId, library, router, selected, t]);
+  }, [courseId, library, router, selected, t, workspaceId]);
 
   const handleExport = useCallback(async () => {
     if (!selected) return;
@@ -313,7 +323,7 @@ export default function NotebookConsole({
                 <button
                   type="button"
                   onClick={() => void handleCreate()}
-                  disabled={!newName.trim()}
+                  disabled={!newName.trim() || createPending}
                   className="flex-1 rounded-md bg-[var(--primary)] px-2 py-1.5 text-[12px] font-medium text-[var(--primary-foreground)] disabled:opacity-40"
                 >
                   {t("Create")}
@@ -461,7 +471,7 @@ export default function NotebookConsole({
                   type="button"
                   onClick={() => {
                     library.select(notebook.id);
-                    router.push(notebookRoute(notebook.id, courseId));
+                    router.push(scopedUrl(notebookRoute(notebook.id, courseId), workspaceId));
                   }}
                   aria-current={active ? "true" : undefined}
                   className="flex min-w-0 flex-1 items-start gap-2 text-left focus-visible:outline-none"

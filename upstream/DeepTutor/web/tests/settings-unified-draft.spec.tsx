@@ -199,25 +199,58 @@ it("keeps failed changes pending and allows retry", async () => {
   expect(settings.draftState).toBe("clean");
 });
 
-it("stages language and appearance without changing browser preferences until Apply", async () => {
+it("saves language and appearance independently without applying unrelated drafts", async () => {
   render(<App page="appearance" />);
   await ready();
   await act(async () => {
     await settings.updateTheme("dark");
     await settings.updateLanguage("zh");
-    await settings.updateCodeBlockShowLineNumbers(true);
   });
   expect(settings.theme).toBe("dark");
   expect(settings.language).toBe("zh");
-  expect(settings.codeBlockShowLineNumbers).toBe(true);
-  expect(mocks.theme).not.toHaveBeenCalled();
-  expect(writes("/api/settings/ui")).toHaveLength(0);
+  expect(mocks.theme).toHaveBeenCalledWith("dark");
+  expect(writes("/api/settings/ui")).toHaveLength(2);
+  expect(writes("/api/settings/apply")).toHaveLength(0);
   await act(() => settings.discardDraft());
-  expect(settings.theme).toBe("snow");
+  expect(settings.theme).toBe("dark");
   await act(() => settings.updateTheme("dark"));
   await act(() => settings.applyCatalog());
   expect(mocks.theme).toHaveBeenCalledWith("dark");
-  expect(resources.ui.theme).toBe("dark");
+  expect(writes("/api/settings/ui").some(call => JSON.parse(String(call[1]?.body)).theme === "dark")).toBe(true);
+});
+
+it("theme tile clicks change the selected palette and persist without a disabled Apply dependency", async () => {
+  const view = render(<App page="appearance" />);
+  await ready();
+  for (const [name, id] of [["Cream", "light"], ["Dark", "dark"], ["Glass", "glass"], ["Default", "snow"]]) {
+    const button = screen.getByRole("button", { name, exact: true });
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+    await waitFor(() => expect(button).toHaveAttribute("aria-pressed", "true"));
+    expect(mocks.theme).toHaveBeenLastCalledWith(id);
+    expect(JSON.parse(String(writes("/api/settings/ui").at(-1)?.[1]?.body))).toEqual({ theme: id });
+    expect(settings.draftState).toBe("clean");
+  }
+  view.rerender(<App page="" />);
+  view.rerender(<App page="appearance" />);
+  expect(screen.getByRole("button", { name: "Default", exact: true })).toHaveAttribute("aria-pressed", "true");
+  expect(mocks.fetch.mock.calls.filter(([url]) => url === "/api/settings/apply")).toHaveLength(0);
+});
+
+it("keeps the saved theme on failure and serializes quick preference changes", async () => {
+  render(<App page="appearance" />);
+  await ready();
+  const original = mocks.fetch.getMockImplementation()!;
+  mocks.fetch.mockImplementation(async (url: string, init?: RequestInit) =>
+    url === "/api/settings/ui" ? reply({ detail: "fixture offline" }, false) : original(url, init));
+  await act(() => settings.updateTheme("glass"));
+  expect(settings.theme).toBe("snow");
+  expect(mocks.theme).not.toHaveBeenCalled();
+  mocks.fetch.mockImplementation(original);
+  await act(async () => { await Promise.all([settings.updateTheme("light"), settings.updateTheme("glass"), settings.updateLanguage("zh")]); });
+  expect(settings.theme).toBe("glass");
+  expect(settings.language).toBe("zh");
+  expect(writes("/api/settings/apply")).toHaveLength(0);
 });
 
 it("removes pending state when an edit is reverted", async () => {
@@ -403,7 +436,7 @@ it("applies MinerU credentials and clears dirty state cleanly", async () => {
   expect(settings.hasUnsavedChanges).toBe(false);
 });
 
-it("applies MinerU credentials from within document-parsing page without leaving unsaved state", async () => {
+it("migrates a legacy MinerU cloud selection to local from document parsing without uploading or downloading", async () => {
   resources["document-parsing"] = {
     engine: "mineru",
     engines: {
@@ -417,18 +450,18 @@ it("applies MinerU credentials from within document-parsing page without leaving
     mineru: { api_token_set: false },
   };
   resources.mineru = {
-    settings: { mode: "local", api_base_url: "https://mineru.net" },
+    settings: { mode: "cloud", api_base_url: "https://mineru.net" },
     api_token_set: false,
   };
   render(<App page="document-parsing" />);
   await ready();
-  fireEvent.click(await screen.findByRole("button", { name: "Cloud API" }));
-  fireEvent.change(await screen.findByPlaceholderText("Paste API token"), {
-    target: { value: "cloud-token-123" },
-  });
+  fireEvent.click(await screen.findByRole("button", { name: "Local" }));
+  expect(screen.queryByRole("button", { name: "Cloud API" })).toBeNull();
   expect(settings.draftState).toBe("unsaved");
   await act(() => settings.applyCatalog());
   expect(writes("/api/settings/mineru")).toHaveLength(1);
+  expect(resources.mineru.mode).toBe("local");
+  expect(mocks.fetch.mock.calls.some(([url]) => String(url).includes("/download"))).toBe(false);
   expect(settings.draftState).toBe("clean");
   expect(settings.hasUnsavedChanges).toBe(false);
 });

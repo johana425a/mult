@@ -30,6 +30,7 @@ interface ComposerInputProps {
   // send even if the text body is empty. Without this, Enter would silently
   // do nothing for an attachment-only message.
   canSendEmpty: boolean;
+  submissionBlocked?: boolean;
   onSend: (content: string) => void;
   onInputChange: (content: string) => void;
   onPaste: (e: React.ClipboardEvent) => void;
@@ -152,6 +153,7 @@ export const ComposerInput = memo(
       isVisualizeMode,
       isStreaming = false,
       canSendEmpty,
+      submissionBlocked = false,
       onSend,
       onInputChange,
       onPaste,
@@ -321,6 +323,7 @@ export const ComposerInput = memo(
     }, [onReplyLanguageChange, textareaRef]);
 
     const doSend = useCallback(() => {
+      if (submissionBlocked) return;
       const content = inputRef.current.trim();
       // Allow sending when text is empty but the parent has attachments or
       // references queued (canSendEmpty). This matches the send-button's
@@ -332,7 +335,7 @@ export const ComposerInput = memo(
       setShowAtPopup(false);
       setShowSlashPopup(false);
       setShowLanguagePopup(false);
-    }, [canSendEmpty, onSend, setInputBoth, onInputChange]);
+    }, [canSendEmpty, onSend, setInputBoth, onInputChange, submissionBlocked]);
 
     const clearTrailingMention = useCallback(() => {
       const next = stripTrailingAtMention(inputRef.current);

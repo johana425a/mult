@@ -369,6 +369,12 @@ class OpenAICompatProvider(LLMProvider):
             # later function_call_output point at a different call than the
             # replayed native function_call item.
             return sanitized
+        # Only Mistral requires its nine-character tool identifier dialect.
+        # Rewriting provider-issued DeepSeek/OpenAI IDs destroys replay
+        # identity: the first call succeeds but its result is rejected (400).
+        if getattr(self._spec, "name", None) != "mistral":
+            return sanitized
+
         id_map: dict[str, str] = {}
 
         def map_id(value: Any) -> Any:
@@ -837,7 +843,7 @@ class OpenAICompatProvider(LLMProvider):
                 args = json_repair.loads(args)
             tool_calls.append(
                 ToolCallRequest(
-                    id=_short_tool_id(),
+                    id=getattr(tc, "id", None) or _short_tool_id(),
                     name=tc.function.name,
                     arguments=args if isinstance(args, dict) else {},
                     provider_specific_fields=getattr(tc, "provider_specific_fields", None) or None,

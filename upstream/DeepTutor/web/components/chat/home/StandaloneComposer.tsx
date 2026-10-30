@@ -158,6 +158,8 @@ interface StandaloneComposerProps {
   onSubmit: (submission: StandaloneComposerSubmission) => void;
   onCancelStreaming: () => void;
   isStreaming: boolean;
+  /** Preserve the draft while the owning conversation is being restored. */
+  submissionBlocked?: boolean;
   /** Drives the composer's empty-state → conversation layout transition. */
   hasMessages: boolean;
   /** The live turn is paused on an ask_user card and needs an answer. */
@@ -223,6 +225,7 @@ function StandaloneComposerImpl({
   onSubmit,
   onCancelStreaming,
   isStreaming,
+  submissionBlocked = false,
   hasMessages,
   awaitingUserReply = false,
   inputPlaceholder,
@@ -678,7 +681,7 @@ function StandaloneComposerImpl({
 
   const handleSend = useCallback(
     async (content: string) => {
-      if (isStreaming && !awaitingUserReply) return;
+      if (submissionBlocked || (isStreaming && !awaitingUserReply)) return;
       const hasReferences =
         attachments.length > 0 ||
         selectedBookReferences.length > 0 ||
@@ -761,6 +764,7 @@ function StandaloneComposerImpl({
       attachments,
       awaitingUserReply,
       isStreaming,
+      submissionBlocked,
       isQuizMode,
       isResearchMode,
       isVisualizeMode,
@@ -896,6 +900,7 @@ function StandaloneComposerImpl({
         selectedMemoryFiles={selectedMemoryFiles}
         selectedKnowledgeBases={selectedKbOnly}
         isStreaming={isStreaming}
+        submissionBlocked={submissionBlocked}
         awaitingUserReply={awaitingUserReply}
         isVisualizeMode={isVisualizeMode}
         capabilityNeedsConfig={capabilityNeedsConfig}

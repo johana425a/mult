@@ -52,6 +52,9 @@ def partner_authoring_trigger(context: UnifiedContext) -> str | None:
     ``explicit`` means the user selected the capability; ``heuristic`` means only
     the keyword gate matched, which is a guess about the words they typed.
     """
+    from deeptutor.services.competition_profile import blocked_feature, load_profile
+    if blocked_feature('/partners', load_profile()):
+        return None
     # Home/product Chat owns the review card and confirmation flow. A Partner
     # (including one running inside a Group) must not create drafts inside its
     # synthetic workspace merely because someone talks about another Partner.

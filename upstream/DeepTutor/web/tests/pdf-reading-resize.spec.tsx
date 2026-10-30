@@ -5,7 +5,8 @@ import {
   type PdfDocumentViewProps,
 } from "@/components/reading/PdfDocumentView";
 
-const pdf = vi.hoisted(() => ({ ratios: new Map<number, number>() }));
+const pdf = vi.hoisted(() => ({ ratios: new Map<number, number>(), failures: 0, stall: false,
+  requests: [] as Array<{url: string; withCredentials: boolean; disableStream: boolean; disableAutoFetch: boolean; rangeChunkSize: number}> }));
 
 // Keep both reader components real; only the PDF decoding/painting boundary is
 // replaced. Page heights still come from PdfPage's measured aspect ratios.
@@ -13,7 +14,11 @@ vi.mock("@/lib/pdfjs-loader", () => ({
   outputScale: () => 1,
   pdfjsWasmUrl: () => "/pdfjs/wasm/",
   loadPdfjs: async () => ({
-    getDocument: () => ({
+    getDocument: (options: {url: string; withCredentials: boolean; disableStream: boolean; disableAutoFetch: boolean; rangeChunkSize: number}) => {
+      pdf.requests.push(options);
+      if (pdf.stall) return {destroy: async () => undefined, promise: new Promise(() => {})};
+      if (pdf.failures > 0) { pdf.failures--; return {destroy: async () => undefined, promise: Promise.reject(new Error('Temporary connection failure'))}; }
+      return ({
       destroy: async () => undefined,
       promise: Promise.resolve({
         getPage: async (locator: number) => ({
@@ -28,7 +33,7 @@ vi.mock("@/lib/pdfjs-loader", () => ({
           getTextContent: async () => ({ items: [] }),
         }),
       }),
-    }),
+    });},
     TextLayer: class {
       async render() {}
       cancel() {}
@@ -131,6 +136,8 @@ beforeEach(() => {
   viewportHeight = 500;
   resizeCallbacks = new Set();
   pdf.ratios.clear();
+  pdf.requests.length = 0;
+  pdf.failures = 0;
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -258,5 +265,42 @@ describe("PDF reading position during layout changes", () => {
     const lastRect = pageAt(root, 160).getBoundingClientRect();
     expect(lastRect.top).toBeLessThan(ROOT_TOP + viewportHeight);
     expect(lastRect.bottom + GAP).toBeCloseTo(ROOT_TOP + viewportHeight, 5);
+  });
+
+  it("uses the authenticated browser-ready PDF and leaves original downloads untouched", async () => {
+    await openReader({materialId: 'browser-view-contract'});
+    const request = pdf.requests.at(-1)!;
+    expect(request.url).toContain('/api/reading/materials/browser-view-contract/render');
+    expect(request.url).not.toContain('/raw');
+    expect(request.withCredentials).toBe(true);
+    expect(request.disableStream).toBe(true);
+    expect(request.disableAutoFetch).toBe(true);
+    expect(request.rangeChunkSize).toBe(1024 * 1024);
+  });
+
+  it("retries a failed load on the same source without losing the selected page", async () => {
+    pdf.failures = 1;
+    const view = render(<PdfDocumentView materialId="retry-source" unitCount={5}
+      annotations={[]} jump={{locator: 5, nonce: 73}} onSelection={vi.fn()} />);
+    await waitFor(() => expect(view.getByText('Temporary connection failure')).toBeTruthy());
+    fireEvent.click(view.getByRole('button', {name: 'Retry'}));
+    await waitFor(() => expect(view.container.querySelector('[data-reader-unit="5"]')).toBeTruthy());
+    expect(view.queryByText('Temporary connection failure')).toBeNull();
+    expect(pdf.requests).toHaveLength(2);
+    expect(pdf.requests[1].url).toBe(pdf.requests[0].url);
+  });
+
+  it("ends a stalled load with a retry instead of an endless spinner", async () => {
+    vi.useFakeTimers();
+    pdf.stall = true;
+    try {
+      const view = render(<PdfDocumentView materialId="stalled-source" unitCount={5}
+        annotations={[]} jump={null} onSelection={vi.fn()} />);
+      await act(async () => { await Promise.resolve(); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
+      expect(view.getByText('Opening the document timed out. Retry to continue.')).toBeTruthy();
+      expect(view.getByRole('button', {name:'Retry'})).toBeTruthy();
+      view.unmount();
+    } finally { pdf.stall = false; vi.useRealTimers(); }
   });
 });

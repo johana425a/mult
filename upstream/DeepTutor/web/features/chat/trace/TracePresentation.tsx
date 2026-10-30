@@ -1598,7 +1598,27 @@ export function StreamingStatus({
     modeLabel = t("{{name}} Reflecting…", { name });
   else if (mode === "responded") modeLabel = t("DeepTutor responded.");
 
+  // Persisted failed/cancelled turns are settled, but were not completed
+  // successfully. Use the newest terminal event; ordinary tool errors may
+  // recover, and an actively resumed turn must keep its live status.
+  let terminalLabel: string | null = null;
+  if (!isStreaming) {
+    for (let index = events.length - 1; index >= 0; index -= 1) {
+      const event = events[index];
+      const meta = event.metadata ?? {};
+      if (event.type !== "done" &&
+          !(event.type === "error" && meta.turn_terminal === true)) continue;
+      if (meta.status === "cancelled") terminalLabel = t("Stopped");
+      else if (meta.status === "failed" ||
+          (event.type === "error" && meta.status !== "completed")) {
+        terminalLabel = t("Generation failed");
+      }
+      break;
+    }
+  }
+
   const label =
+    terminalLabel ??
     getExploreContextStatusLabel(events, t, Boolean(isStreaming)) ??
     getDeepResearchStatusLabel(events, t, Boolean(isStreaming)) ??
     getReasoningProgressStatusLabel(events, t, Boolean(isStreaming)) ??

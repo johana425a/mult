@@ -42,6 +42,7 @@ import {
   ATTACHMENT_ACCEPT,
 } from "@/lib/doc-attachments";
 import { useTranslation } from "react-i18next";
+import { releaseFeatureAvailable } from "@/lib/competition-profile";
 
 import { CoursePill } from "@/components/chat/home/CoursePill";
 import { WorkspacePill } from "@/components/workspaces/WorkspacePill";
@@ -249,6 +250,7 @@ export default memo(function ChatComposer({
   selectedMemoryFiles,
   selectedKnowledgeBases,
   isStreaming,
+  submissionBlocked = false,
   awaitingUserReply = false,
   isVisualizeMode,
   capabilityNeedsConfig,
@@ -376,6 +378,7 @@ export default memo(function ChatComposer({
   selectedMemoryFiles: SpaceMemoryFile[];
   selectedKnowledgeBases: string[];
   isStreaming: boolean;
+  submissionBlocked?: boolean;
   /** The live turn is paused on an ask_user card and needs an answer. */
   awaitingUserReply?: boolean;
   isVisualizeMode: boolean;
@@ -480,8 +483,8 @@ export default memo(function ChatComposer({
   const [partners, setPartners] = useState<PartnerInfo[]>([]);
   const [partnersLoading, setPartnersLoading] = useState(false);
   const [partnerLoadError, setPartnerLoadError] = useState(false);
-  const canSelectPartner = Boolean(onSelectPartner);
-  const canSelectGroup = Boolean(onSelectPartnerGroup);
+  const canSelectPartner = releaseFeatureAvailable('partners') && Boolean(onSelectPartner);
+  const canSelectGroup = releaseFeatureAvailable('partners') && Boolean(onSelectPartnerGroup);
   useEffect(() => {
     if (!canSelectPartner) return;
     let active = true;
@@ -701,6 +704,7 @@ export default memo(function ChatComposer({
 
   const doSend = useCallback(
     (content: string) => {
+      if (submissionBlocked) return;
       onSend(content);
       if (!restoreFailedRef.current) {
         void saveWorkspaceDraft({ text: "", attachments: [] }).catch(() => {});
@@ -712,7 +716,7 @@ export default memo(function ChatComposer({
       // so the user can keep typing, including after switching back to the tab.
       focusTextarea();
     },
-    [focusTextarea, onSend],
+    [focusTextarea, onSend, submissionBlocked],
   );
 
   const { board: taskBoard } = useTaskBoard();
@@ -751,7 +755,7 @@ export default memo(function ChatComposer({
   // there made the interactive card the ONLY way to answer — and left the
   // learner with no way out at all if the card failed to render.
   const streamingBlocksSend = isStreaming && !awaitingUserReply;
-  const canSend = hasIntent && !streamingBlocksSend && !isConfigBlocked;
+  const canSend = hasIntent && !streamingBlocksSend && !isConfigBlocked && !submissionBlocked;
 
   // `blocked` only exists once there is intent: without it the button stays
   // `idle` so an empty composer doesn't present a live send affordance. That
@@ -759,7 +763,7 @@ export default memo(function ChatComposer({
   // the `blocked` state can stay clickable and surface the config card.
   const sendState: SendState = streamingBlocksSend
     ? "streaming"
-    : !hasIntent
+    : !hasIntent || submissionBlocked
       ? "idle"
       : isConfigBlocked
         ? "blocked"
@@ -788,8 +792,8 @@ export default memo(function ChatComposer({
     ...attachments.map((file, index): ContextTreeItem => ({key:`file-${index}`, icon:Paperclip, kind:t("Attach files"),label:file.filename,thumbnailUrl:file.type === "image" ? file.previewUrl : undefined,onClick:()=>onPreviewAttachment?.(index),onRemove:()=>onRemoveAttachment(index)})),
     ...selectedKnowledgeBases.map((id): ContextTreeItem => ({key:`kb-${id}`,icon:Database,kind:t("Knowledge"),label:knowledgeBases.find(kb=>knowledgeBaseRef(kb)===id)?.name || id,onRemove:()=>onToggleKB(id)})),
     ...(personaSelection ? [{key:"persona-scope",icon:UserRound,kind:t("Response style"),label:personaSelection,onRemove:()=>onPersonaSelectionChange?.("")}] : []),
-    ...(selectedPartner ? [{ key: "partner-current", icon: UserRound, kind: t("Ask partner"), label: partnerName!, onRemove: () => onSelectPartner?.(null) }] : []),
-    ...(selectedPartnerGroup ? [{ key: "partner-group-current", icon: Users, kind: t("Organize partner discussion"), label: partnerGroupName!, onRemove: () => onSelectPartnerGroup?.(null) }] : []),
+    ...(canSelectPartner && selectedPartner ? [{ key: "partner-current", icon: UserRound, kind: t("Ask partner"), label: partnerName!, onRemove: () => onSelectPartner?.(null) }] : []),
+    ...(canSelectGroup && selectedPartnerGroup ? [{ key: "partner-group-current", icon: Users, kind: t("Organize partner discussion"), label: partnerGroupName!, onRemove: () => onSelectPartnerGroup?.(null) }] : []),
     ...(selectedAgent ? [{key:"collaborator-current",icon:Bot,kind:t("Ask subagent"),label:selectedAgent,onRemove:()=>onSelectAgent?.(null)}] : []),
     ...(resourceSelection?.skills || []).map((id): ContextTreeItem=>({key:`skill-${id}`,icon:Wand2,kind:t("Skills"),label:resourceCatalog?.skills.find(option=>option.id===id)?.name || id,onRemove:()=>onResourceSelectionChange?.({...resourceSelection!,skills:resourceSelection!.skills.filter(value=>value!==id)})})),
     ...(resourceSelection?.mcp || []).map((id): ContextTreeItem=>({key:`mcp-${id}`,icon:Plug,kind:t("MCP"),label:resourceCatalog?.mcp.find(option=>option.id===id)?.name || id,onRemove:()=>onResourceSelectionChange?.({...resourceSelection!,mcp:resourceSelection!.mcp.filter(value=>value!==id)})})),
@@ -1041,7 +1045,7 @@ export default memo(function ChatComposer({
     });
   }
 
-  if (onSelectPartner) {
+  if (canSelectPartner && onSelectPartner) {
     resourceItems.push({
       key: "partner", group: "Answer preferences",
       summary: partnerName || t("None"), onClear: () => onSelectPartner(null),
@@ -1051,7 +1055,7 @@ export default memo(function ChatComposer({
     });
   }
 
-  if (onSelectPartnerGroup) {
+  if (canSelectGroup && onSelectPartnerGroup) {
     resourceItems.push({
       key: "partner_group", group: "Answer preferences",
       summary: partnerGroupName || t("None"),
@@ -1122,6 +1126,7 @@ export default memo(function ChatComposer({
             textareaRef={textareaRef}
             isVisualizeMode={isVisualizeMode}
             isStreaming={isStreaming}
+            submissionBlocked={submissionBlocked}
             canSendEmpty={hasReferences}
             onSend={doSend}
             onInputChange={handleInputChange}

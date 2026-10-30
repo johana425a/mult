@@ -269,6 +269,51 @@ def build_openai_client(config: LLMClientConfig) -> Any:
         return client
 
 
+async def build_openai_client_async(config: LLMClientConfig) -> Any:
+    """Initialize blocking SDK/TLS state off-loop, retaining the same pool key."""
+    from deeptutor.services.llm.metrics import instrument_client
+
+    loop = asyncio.get_running_loop()
+    settings = await asyncio.to_thread(load_system_settings)
+    disable_ssl_verify = bool(settings["disable_ssl_verify"])
+    key = _client_cache_key(config, loop, disable_ssl_verify)
+    with _agentic_client_pool_lock:
+        cached = _agentic_client_pool.get(key)
+        if cached is not None:
+            _agentic_client_pool.move_to_end(key)
+            return cached
+
+    def construct():
+        return instrument_client(
+            _build_openai_client(config, disable_ssl_verify=disable_ssl_verify),
+            model=config.model or "", provider=config.binding,
+        )
+
+    task = asyncio.create_task(asyncio.to_thread(construct))
+    try:
+        client = await asyncio.shield(task)
+    except asyncio.CancelledError:
+        def close_unused(done):
+            if not done.cancelled() and done.exception() is None:
+                _schedule_client_close(done.result(), loop)
+        task.add_done_callback(close_unused)
+        raise
+
+    with _agentic_client_pool_lock:
+        # Concurrent callers can initialize the same configuration. Publish one
+        # pool entry and close the unused handle without opening network traffic.
+        cached = _agentic_client_pool.get(key)
+        if cached is not None:
+            _schedule_client_close(client, loop)
+            _agentic_client_pool.move_to_end(key)
+            return cached
+        _agentic_client_pool[key] = client
+        while len(_agentic_client_pool) > _AGENTIC_CLIENT_POOL_MAXSIZE:
+            _, evicted = _agentic_client_pool.popitem(last=False)
+            _schedule_client_close(evicted, loop)
+        return client
+
+
 async def close_agentic_client_pool() -> None:
     with _agentic_client_pool_lock:
         clients = list(_agentic_client_pool.values())

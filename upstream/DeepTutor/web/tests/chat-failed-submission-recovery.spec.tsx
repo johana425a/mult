@@ -133,12 +133,13 @@ function seedUnsentSubmission(content = "Hello offline") {
 function Harness() {
   const { state, sendMessage, resendLastMessage, loadSession, cancelStreamingTurn,
     configureSession, setPersonaSelection, setLLMSelection,
-    setReplyLanguageOverride } =
+    setReplyLanguageOverride, newSession } =
     useChatStateAdapter();
   return (
     <>
       <button onClick={() => void loadSession("s1")}>Load</button>
       <button onClick={() => void loadSession("new-session")}>Load new</button>
+      <button onClick={() => newSession()}>New after load</button>
       <button onClick={() => sendMessage("Hello offline")}>Send</button>
       <button onClick={() => sendMessage("Second offline")}>Send another</button>
       <button onClick={() => sendMessage("", [{ type: "image", filename: "figure.png", base64: "YWJj" }])}>Send image only</button>
@@ -799,6 +800,29 @@ it("moves an older failed draft message into the server session after a later se
   } finally {
     vi.useRealTimers();
   }
+});
+
+for (const status of ["completed", "running"]) it(`reconciles accepted unbound drafts after reopening a ${status} session`, async () => {
+  const content = "Accepted before the tab closed";
+  for (const submissionId of ["accepted-unbound", "another-tab-same-text"]) {
+    storeFailedSubmission("draft:general", {
+      submissionId, content, capability: "chat",
+      requestSnapshot: { content, capability: "chat", enabledTools: [], knowledgeBases: [], language: "en" },
+    });
+  }
+  fixture.session = {
+    ...completedServerSession(), status,
+    messages: [{
+      id: 1, session_id: "s1", role: "user", content,
+      metadata: { client_submission_id: "accepted-unbound" },
+      events: [], attachments: [], created_at: 1, parent_message_id: null,
+    }],
+  };
+  render(<ChatStateAdapterProvider><Harness /></ChatStateAdapterProvider>);
+  await act(async () => { fireEvent.click(screen.getByText("Load")); });
+  expect(readFailedSubmissions("draft:general").map(r => r.submissionId)).toEqual(["another-tab-same-text"]);
+  fireEvent.click(screen.getByText("New after load"));
+  expect(readMessages()).toEqual([{role:"user",content,failed:true}]);
 });
 
 it("does not mistake another tab's identical text for this submission", async () => {

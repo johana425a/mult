@@ -4,6 +4,7 @@
  * and settings remain upstream features. Only explicit actions call models.
  * Modified for DeepSteam on 2026-10-10: user-facing settings names, concise AI
  * attribution, and a shared model / custom API switch. Upstream licenses retained. */
+import { standaloneCopy, useStandaloneCopy } from '@/i18n/standalone'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import {
@@ -133,9 +134,10 @@ const retainedReview = (lesson: Lesson) => lesson.status === 'failed'
   && Boolean(lesson.classroom_id && /^[a-zA-Z0-9_-]+$/.test(lesson.classroom_id))
 
 function ErrorDetails({ message }: { message: string }) {
+  useStandaloneCopy()
   return (
     <details className="text-sm text-[var(--muted-foreground)]">
-      <summary className="cursor-pointer">View error details</summary>
+      <summary className="cursor-pointer">{standaloneCopy("View error details")}</summary>
       <p className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed">
         {safeServiceError(message)}
       </p>
@@ -153,7 +155,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     })
   } catch {
     throw new Error(
-      'The classroom service is currently unavailable. Reopen DeepSteam, then select Refresh. Other features remain available.'
+      standaloneCopy("The classroom service is currently unavailable. Reopen DeepSteam, then select Refresh. Other features remain available.")
     )
   }
   const body = await response.json().catch(() => ({}))
@@ -181,16 +183,18 @@ function date(value: string) {
   })
 }
 function Status({ value }: { value: string }) {
+  useStandaloneCopy()
   return (
     <span
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[11px] ${value === 'ready' || value === 'completed' ? 'bg-[var(--success-surface)] text-[var(--success)]' : 'bg-[var(--muted)] text-[var(--muted-foreground)]'}`}
     >
       {pending(value) && <Loader2 size={11} className="animate-spin" />}
-      {statusLabels[value] || value}
+      {standaloneCopy(statusLabels[value] || value)}
     </span>
   )
 }
 function Field({ title, children, hint }: { title: string; children: ReactNode; hint?: string }) {
+  useStandaloneCopy()
   return (
     <label className="block space-y-2">
       <span className="text-[13px] font-medium">{title}</span>
@@ -203,6 +207,7 @@ function Field({ title, children, hint }: { title: string; children: ReactNode; 
 }
 
 export function EducationStudio() {
+  useStandaloneCopy()
   const [workspaceId, setWorkspaceId] = useState('')
   const [sourcePicker, setSourcePicker] = useState<'workspace' | 'range' | null>(null)
   const [rangeMaterialId, setRangeMaterialId] = useState('')
@@ -262,7 +267,7 @@ export function EducationStudio() {
       persistClassroomSelection(selection)
       setSettings(result); setForm(previous => ({ ...previous, connection_mode: 'native' }))
       setConnection(await request<ModelConnection>('/models/connection'))
-      setNotice('Classroom model selection saved for the next generation.')
+      setNotice(standaloneCopy("Classroom model selection saved for the next generation."))
     })
   }
 
@@ -320,7 +325,7 @@ export function EducationStudio() {
     try {
       await work()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'The operation did not finish. Try again.')
+      setError(e instanceof Error ? e.message : standaloneCopy("The operation did not finish. Try again."))
     } finally {
       setBusy('')
     }
@@ -338,7 +343,7 @@ export function EducationStudio() {
     setPracticeId(current => current === item.id ? '' : current)
     setShowVideo(false)
     await refresh()
-    setNotice('The classroom and its exclusive generated content were permanently deleted. Source materials were preserved.')
+    setNotice(standaloneCopy("The classroom and its exclusive generated content were permanently deleted. Source materials were preserved."))
   }
 
   const deleteSelectedMaterials = async () => {
@@ -354,7 +359,7 @@ export function EducationStudio() {
           const batch = await request<Items<MaterialDeleteResult>>('/materials/delete', json({ ids: ids.slice(offset, offset + 200) }))
           if (Array.isArray(batch.items)) result.items.push(...batch.items)
         } catch (reason) {
-          const message = reason instanceof Error ? reason.message : 'Could not confirm deletion. Try again.'
+          const message = reason instanceof Error ? reason.message : standaloneCopy("Could not confirm deletion. Try again.")
           result.items.push(...ids.slice(offset).map(id => ({ id, deleted: false, error: message })))
           break
         }
@@ -362,7 +367,7 @@ export function EducationStudio() {
       const deleted = new Set(ids.filter(id => result.items?.some(item => item.id === id && item.deleted)))
       const failed = ids.filter(id => !deleted.has(id))
       const errors = Object.fromEntries(failed.map(id => [id,
-        result.items?.find(item => item.id === id)?.error || 'Deletion of this material is not yet confirmed. Try again.']))
+        result.items?.find(item => item.id === id)?.error || standaloneCopy("Deletion of this material is not yet confirmed. Try again.")]))
       setMaterialDeleteErrors(errors)
       setSelectedMaterialIds(new Set(failed))
       setMaterials(current => current.filter(item => !deleted.has(item.id)))
@@ -370,11 +375,11 @@ export function EducationStudio() {
       setPreview(current => current && deleted.has(current.id) ? null : current)
       const message = `Deleted ${deleted.size} materials${failed.length ? `; ${failed.length} items are not confirmed deleted and remain selected.` : '.'}`
       const retained = result.items?.some(item => deleted.has(item.id) && item.retained_shared)
-      setNotice(message + (retained ? ' Material copies in other learning features were retained.' : ''))
+      setNotice(message + (retained ? standaloneCopy(" Material copies in other learning features were retained.") : ''))
       if (failed.length) setMaterialDeleteMessage(message)
       else setConfirmMaterialDelete(false)
     } catch (reason) {
-      setMaterialDeleteMessage(reason instanceof Error ? reason.message : 'Could not confirm deletion. Try again.')
+      setMaterialDeleteMessage(reason instanceof Error ? reason.message : standaloneCopy("Could not confirm deletion. Try again."))
     } finally {
       materialDeleteInFlight.current = false
       setBusy('')
@@ -389,7 +394,7 @@ export function EducationStudio() {
       const result = await request<Material>(`/materials?workspace_id=${encodeURIComponent(workspaceId)}`, { method: 'POST', body })
       await refresh()
       setMaterialId(result.id)
-      setNotice('Material imported. Preview it and select the reading range for this classroom.')
+      setNotice(standaloneCopy("Material imported. Preview it and select the reading range for this classroom."))
       setRangeMaterialId(result.id); setSourcePicker('range')
     })
   }
@@ -400,7 +405,7 @@ export function EducationStudio() {
         '/lessons',
         json({
           material_id: materialId,
-          title: title.trim() || selectedMaterial?.title || 'New interactive classroom',
+          title: title.trim() || selectedMaterial?.title || standaloneCopy("New interactive classroom"),
           goal: goal.trim(),
           ...(unifiedClassroom ? { llm_selection: classroomSelection } : {}),
         })
@@ -419,15 +424,15 @@ export function EducationStudio() {
     event.preventDefault()
     void act(section, async () => {
       if (section === 'language' && form.connection_mode === 'custom' && (!form.base_url.trim() || !form.model.trim()))
-        throw new Error('Enter the model  API  endpoint and model name.')
+        throw new Error(standaloneCopy("Enter the model  API  endpoint and model name."))
       if (
         section === 'narration' && form.tts_enabled &&
         form.tts_mode === 'api' &&
         (!form.tts_base_url.trim() || !form.tts_model.trim() || !form.tts_voice.trim())
       )
-        throw new Error('Before enabling narration, enter the speech  API  endpoint, model and voice name.')
+        throw new Error(standaloneCopy("Before enabling narration, enter the speech  API  endpoint, model and voice name."))
       if ((section === 'language' && clearKey && key.trim()) || (section === 'narration' && clearTtsKey && ttsKey.trim()))
-        throw new Error('Choose either entering a new key or clearing the saved key.')
+        throw new Error(standaloneCopy("Choose either entering a new key or clearing the saved key."))
       const result = await request<Provider>('/settings', {
         ...json(section === 'language' ? languageSettingsPatch(form, key, clearKey) : narrationSettingsPatch(form, ttsKey, clearTtsKey)),
         method: 'PUT',
@@ -442,7 +447,7 @@ export function EducationStudio() {
       setTtsKey('')
       setClearKey(false)
       setClearTtsKey(false)
-      setNotice(section === 'language' ? 'Classroom model connection saved.' : 'Narration settings saved. Learning and classroom model connections are unchanged.')
+      setNotice(section === 'language' ? standaloneCopy("Classroom model connection saved.") : standaloneCopy("Narration settings saved. Learning and classroom model connections are unchanged."))
     })
   }
   const resumeLesson = (item: Lesson) =>
@@ -453,7 +458,7 @@ export function EducationStudio() {
       setLessons(current =>
         current.map(row =>
           row.id === item.id
-            ? { ...row, status: 'generating', progress: 'Checking the original task again...' }
+            ? { ...row, status: 'generating', progress: standaloneCopy("Checking the original task again...") }
             : row
         )
       )
@@ -474,21 +479,21 @@ export function EducationStudio() {
       )
       setAnswer('')
       await refresh()
-      setNotice('Your original answer is saved. Model feedback will appear in the records below.')
+      setNotice(standaloneCopy("Your original answer is saved. Model feedback will appear in the records below."))
     })
   }
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'classroom', label: 'Interactive classroom' },
-    { id: 'materials', label: 'Classroom materials' },
-    { id: 'records', label: 'Answers and records' },
-    { id: 'settings', label: 'Classroom settings' },
+    { id: 'classroom', label: standaloneCopy("Interactive classroom") },
+    { id: 'materials', label: standaloneCopy("Classroom materials") },
+    { id: 'records', label: standaloneCopy("Answers and records") },
+    { id: 'settings', label: standaloneCopy("Classroom settings") },
   ]
 
   return (
     <FeaturePage>
       <PageHeader
-        title="Interactive classroom"
-        description="Turn articles and handouts into illustrated classrooms with questions, practice and review."
+        title={standaloneCopy("Interactive classroom")}
+        description={standaloneCopy("Turn articles and handouts into illustrated classrooms with questions, practice and review.")}
         action={
           <>
             <button
@@ -496,7 +501,7 @@ export function EducationStudio() {
               className={secondary}
               disabled={Boolean(busy)}
               onClick={() => void act('refresh', refresh)}
-              aria-label="Refresh classroom materials and records"
+              aria-label={standaloneCopy("Refresh classroom materials and records")}
             >
               <RefreshCw size={14} className={busy === 'refresh' ? 'animate-spin' : ''} />
               Refresh
@@ -507,13 +512,13 @@ export function EducationStudio() {
           </>
         }
       />
-      <div className="mb-5">{unifiedClassroom ? <div className={`${panelClass} p-4`}><UnifiedModelControl value={classroomSelection} onChange={selectClassroomModel} surface="classroom" disabled={Boolean(busy)} label="Model for the next classroom generation" placement="bottom" /></div> : <ConnectionSummary connection={connection} />}</div>
+      <div className="mb-5">{unifiedClassroom ? <div className={`${panelClass} p-4`}><UnifiedModelControl value={classroomSelection} onChange={selectClassroomModel} surface="classroom" disabled={Boolean(busy)} label={standaloneCopy("Model for the next classroom generation")} placement="bottom" /></div> : <ConnectionSummary connection={connection} />}</div>
       <input
         ref={uploadRef}
         type="file"
         className="hidden"
         accept=".pdf,.docx,.pptx,.md,.txt,.xlsx"
-        aria-label="Upload classroom materials"
+        aria-label={standaloneCopy("Upload classroom materials")}
         onChange={e => {
           upload(e.target.files?.[0])
           e.target.value = ''
@@ -523,10 +528,10 @@ export function EducationStudio() {
         materialId={sourcePicker === 'range' ? rangeMaterialId : undefined}
         onCancel={() => setSourcePicker(null)} onSelected={id => {
           setSourcePicker(null)
-          void act('select-source', async () => { await refresh(); setMaterialId(id); setNotice('Source range selected. The file version will be checked again when generating the classroom.') })
+          void act('select-source', async () => { await refresh(); setMaterialId(id); setNotice(standaloneCopy("Source range selected. The file version will be checked again when generating the classroom.")) })
         }} /></div>}
       <nav
-        aria-label="Interactive classroom page"
+        aria-label={standaloneCopy("Interactive classroom page")}
         className="mb-6 flex gap-1 overflow-x-auto border-b border-[var(--border)]"
       >
         {tabs.map(item => (
@@ -547,10 +552,10 @@ export function EducationStudio() {
           className="mb-5 flex gap-3 rounded-lg border border-[var(--destructive)]/30 bg-[var(--destructive)]/5 p-4 text-sm leading-relaxed"
         >
           <div className="flex-1 space-y-2">
-            <p>The operation did not finish. Check the fields or try again later.</p>
+            <p>{standaloneCopy("The operation did not finish. Check the fields or try again later.")}</p>
             <ErrorDetails message={error} />
           </div>
-          <button type="button" aria-label="Dismiss error" onClick={() => setError('')}>
+          <button type="button" aria-label={standaloneCopy("Dismiss error")} onClick={() => setError('')}>
             <X size={16} />
           </button>
         </div>
@@ -570,7 +575,7 @@ export function EducationStudio() {
           className="flex items-center gap-2 py-5 text-sm text-[var(--muted-foreground)]"
         >
           <Loader2 size={16} className="animate-spin" />
-          Loading classrooms and materials...
+          {standaloneCopy("Loading classrooms and materials...")}
         </div>
       )}
 
@@ -581,10 +586,10 @@ export function EducationStudio() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <button type="button" className={secondary} onClick={() => setLessonId('')}>
                   <ArrowLeft size={14} />
-                  All classrooms
+                  {standaloneCopy("All classrooms")}
                 </button>
                 <label className="flex min-w-0 flex-1 items-center gap-3 sm:max-w-md">
-                  <span className="sr-only">Switch classroom</span>
+                  <span className="sr-only">{standaloneCopy("Switch classroom")}</span>
                   <select
                     className={inputClass}
                     value={lessonId}
@@ -611,11 +616,11 @@ export function EducationStudio() {
                     {safeServiceError(selectedLesson.warning)}
                   </p>
                 )}
-                {selectedLesson.tts_coverage && <p>Narration coverage: {selectedLesson.tts_coverage}</p>}
+                {selectedLesson.tts_coverage && <p>{standaloneCopy("Narration coverage:")} {selectedLesson.tts_coverage}</p>}
                 {selectedLesson.error && (
                   <div className="space-y-2">
                     {!retainedReview(selectedLesson) && (
-                      <p className="text-[var(--destructive)]">The classroom task did not finish. Check the settings or try again later.</p>
+                      <p className="text-[var(--destructive)]">{standaloneCopy("The classroom task did not finish. Check the settings or try again later.")}</p>
                     )}
                     <ErrorDetails message={selectedLesson.error} />
                   </div>
@@ -628,25 +633,25 @@ export function EducationStudio() {
                     onClick={() => resumeLesson(selectedLesson)}
                   >
                     <RefreshCw size={14} />
-                    Check the original task
+                    {standaloneCopy("Check the original task")}
                   </button>
                 )}
                 {['interrupted', 'failed'].includes(selectedLesson.status) && Boolean(selectedLesson.retryable)
                   && selectedLesson.job_attempt_id && (
                   <button type="button" disabled={Boolean(busy)} className={secondary}
                     onClick={() => setRetryLessonTarget(selectedLesson)}>
-                    <RefreshCw size={14} /> Regenerate from the original source
+                    <RefreshCw size={14} /> {standaloneCopy("Regenerate from the original source")}
                   </button>
                 )}
                 {selectedLesson.status === 'interrupted' && !selectedLesson.retryable && (
-                  <p>This older task lacks complete recovery details. Materials and records are retained. Select the source again under Classroom materials to generate a new classroom.</p>
+                  <p>{standaloneCopy("This older task lacks complete recovery details. Materials and records are retained. Select the source again under Classroom materials to generate a new classroom.")}</p>
                 )}
               </div>
-              <ConfirmDialog open={Boolean(retryLessonTarget)} title="Regenerate this classroom?"
-                confirmLabel="Regenerate" busy={busy === 'retry-lesson'} busyLabel="Submitting..."
+              <ConfirmDialog open={Boolean(retryLessonTarget)} title={standaloneCopy("Regenerate this classroom?")}
+                confirmLabel={standaloneCopy("Regenerate")} busy={busy === 'retry-lesson'} busyLabel={standaloneCopy("Submitting...")}
                 onCancel={() => setRetryLessonTarget(null)}
                 onConfirm={() => retryLessonTarget && retryLesson(retryLessonTarget)}>
-                Regenerate from the saved source range and language model. This may use model or narration credits again. Saved answers are retained.
+                {standaloneCopy("Regenerate from the saved source range and language model. This may use model or narration credits again. Saved answers are retained.")}
               </ConfirmDialog>
               {selectedLesson.status === 'ready' && selectedLesson.classroom_id ? (
                 <>
@@ -671,7 +676,7 @@ export function EducationStudio() {
                     </a>
                     <button type="button" className={primary} onClick={() => setTab('records')}>
                       <Send size={14} />
-                      Answers and feedback
+                      {standaloneCopy("Answers and feedback")}
                     </button>
                     {selectedLesson.dt_course_id && (
                       <Link
@@ -679,14 +684,14 @@ export function EducationStudio() {
                         className={secondary}
                       >
                         <BookOpen size={14} />
-                        DeepSteam Course
+                        {standaloneCopy("DeepSteam Course")}
                       </Link>
                     )}
                   </div>
                 </>
               ) : retainedReview(selectedLesson) ? (
                 <div className={`${panelClass} space-y-4 p-6`}>
-                  <h3 className="font-medium text-[var(--destructive)]">Generation failed · Draft awaiting verification</h3>
+                  <h3 className="font-medium text-[var(--destructive)]">{standaloneCopy("Generation failed · Draft awaiting verification")}</h3>
                   <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">
                     The full draft was retained, but source verification has not passed. Compare its explanations, conditions and images with the original. This draft is not yet a completed classroom, and narration or video has not been generated automatically.
                   </p>
@@ -710,11 +715,11 @@ export function EducationStudio() {
                   )}
                   <p className="text-sm">
                     {pending(selectedLesson.status)
-                      ? 'The classroom will appear automatically when ready. You can continue other work while it is prepared.'
-                      : 'Materials and task details were retained.'}
+                      ? standaloneCopy("The classroom will appear automatically when ready. You can continue other work while it is prepared.")
+                      : standaloneCopy("Materials and task details were retained.")}
                   </p>
                   <button type="button" className={secondary} onClick={() => setLessonId('')}>
-                    Back to classrooms
+                    {standaloneCopy("Back to classrooms")}
                   </button>
                 </div>
               )}
@@ -730,30 +735,30 @@ export function EducationStudio() {
                     <Presentation size={22} strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h2 className="font-serif text-xl font-semibold">What would you like to learn today?</h2>
+                    <h2 className="font-serif text-xl font-semibold">{standaloneCopy("What would you like to learn today?")}</h2>
                     <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      Choose a source and tell the teacher what you want to learn.
+                      {standaloneCopy("Choose a source and tell the teacher what you want to learn.")}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-5">
-                  <Field title="Learning materials">
+                  <Field title={standaloneCopy("Learning materials")}>
                     <div className="flex flex-wrap gap-2">
                       <select
-                        aria-label="Select learning materials"
+                        aria-label={standaloneCopy("Select learning materials")}
                         required
                         className={`${inputClass} min-w-0 flex-1 basis-48`}
                         value={materialId}
                         onChange={e => setMaterialId(e.target.value)}
                       >
-                        <option value="">Select materials</option>
+                        <option value="">{standaloneCopy("Select materials")}</option>
                         {materials.map(m => (
                           <option key={m.id} value={m.id}>
                             {m.title}
                           </option>
                         ))}
                       </select>
-                      <button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => setSourcePicker('workspace')}>Choose from workspace</button>
+                      <button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => setSourcePicker('workspace')}>{standaloneCopy("Choose from workspace")}</button>
                       <button
                         type="button"
                         className={secondary}
@@ -765,36 +770,36 @@ export function EducationStudio() {
                         ) : (
                           <Upload size={14} />
                         )}
-                        Upload materials
+                        {standaloneCopy("Upload materials")}
                       </button>
                     </div>
                   </Field>
                   {selectedMaterial && <div className="space-y-2 text-xs text-[var(--muted-foreground)]">
-                    <p>Classroom source range: {sourceRangeLabel(selectedMaterial.source_locators)}{selectedMaterial.preview_truncated ? '; only the selected range is included.' : ''}</p>
-                    <button type="button" className="underline" disabled={Boolean(busy)} onClick={() => { setRangeMaterialId(selectedMaterial.id); setSourcePicker('range') }}>Preview and adjust the reading range</button>
-                    {selectedMaterial.source_status === 'needs_ocr' && <p>This range lacks usable text. First complete  OCR  or select another range.</p>}
+                    <p>{standaloneCopy("Classroom source range:")} {sourceRangeLabel(selectedMaterial.source_locators)}{selectedMaterial.preview_truncated ? standaloneCopy("; only the selected range is included.") : ''}</p>
+                    <button type="button" className="underline" disabled={Boolean(busy)} onClick={() => { setRangeMaterialId(selectedMaterial.id); setSourcePicker('range') }}>{standaloneCopy("Preview and adjust the reading range")}</button>
+                    {selectedMaterial.source_status === 'needs_ocr' && <p>{standaloneCopy("This range lacks usable text. First complete OCR or select another range.")}</p>}
                   </div>}
-                  {!unifiedClassroom && <p className="text-xs text-[var(--muted-foreground)]">Classroom-specific selection: {form.connection_mode === 'unconfigured' ? 'Select a model first' : form.model || connection?.model || 'Model not configured'} · <button type="button" className="underline" onClick={() => selectClassroomModel(null)}>Follow the global default</button></p>}
-                  <Field title="Learning goals">
+                  {!unifiedClassroom && <p className="text-xs text-[var(--muted-foreground)]">Classroom-specific selection: {form.connection_mode === 'unconfigured' ? 'Select a model first' : form.model || connection?.model || standaloneCopy("Model not configured")} · <button type="button" className="underline" onClick={() => selectClassroomModel(null)}>{standaloneCopy("Follow the global default")}</button></p>}
+                  <Field title={standaloneCopy("Learning goals")}>
                     <textarea
                       rows={3}
                       required
                       maxLength={6000}
                       className={`${inputClass} resize-y`}
-                      placeholder="For example: I am a beginner. Explain the core concepts with diagrams, then give me an application question."
+                      placeholder={standaloneCopy("For example: I am a beginner. Explain the core concepts with diagrams, then give me an application question.")}
                       value={goal}
                       onChange={e => setGoal(e.target.value)}
                     />
                   </Field>
                   <details className="text-sm">
                     <summary className="cursor-pointer text-[var(--muted-foreground)]">
-                      Set a classroom name (optional)
+                      {standaloneCopy("Set a classroom name (optional)")}
                     </summary>
                     <input
-                      aria-label="Classroom name"
+                      aria-label={standaloneCopy("Classroom name")}
                       maxLength={200}
                       className={`${inputClass} mt-3`}
-                      placeholder={selectedMaterial?.title || 'Uses the source name by default'}
+                      placeholder={selectedMaterial?.title || standaloneCopy("Uses the source name by default")}
                       value={title}
                       onChange={e => setTitle(e.target.value)}
                     />
@@ -802,8 +807,8 @@ export function EducationStudio() {
                   <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border)] pt-5">
                     <p className="max-w-sm text-xs leading-relaxed text-[var(--muted-foreground)]">
                       {configured
-                        ? 'Generation sends the selected materials and learning goals to the model above. The model is fixed when the task starts.'
-                        : 'Try the example or configure your own model to generate a classroom.'}
+                        ? standaloneCopy("Generation sends the selected materials and learning goals to the model above. The model is fixed when the task starts.")
+                        : standaloneCopy("Try the example or configure your own model to generate a classroom.")}
                     </p>
                     {configured ? (
                       <button
@@ -816,12 +821,12 @@ export function EducationStudio() {
                         ) : (
                           <Plus size={15} />
                         )}
-                        Generate classroom
+                        {standaloneCopy("Generate classroom")}
                       </button>
                     ) : (
                       <button type="button" className={primary} onClick={() => setTab('settings')}>
                         <Settings2 size={15} />
-                        Configure classroom connection
+                        {standaloneCopy("Configure classroom connection")}
                       </button>
                     )}
                   </div>
@@ -839,7 +844,7 @@ export function EducationStudio() {
                   ) : (
                     <Presentation size={15} />
                   )}
-                  Open example classroom
+                  {standaloneCopy("Open example classroom")}
                 </button>
                 <button
                   type="button"
@@ -847,10 +852,10 @@ export function EducationStudio() {
                   className="inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 >
                   <Film size={15} />
-                  {showVideo ? 'Hide example video' : 'Watch a teaching video'}
+                  {showVideo ? standaloneCopy("Hide example video") : standaloneCopy("Watch a teaching video")}
                 </button>
                 <span className="text-[11px] text-[var(--muted-foreground)]">
-                  Prebuilt example · No model calls
+                  {standaloneCopy("Prebuilt example · No model calls")}
                 </span>
               </div>
               {showVideo && (
@@ -860,24 +865,24 @@ export function EducationStudio() {
                     preload="metadata"
                     src={`${API}/demo-video`}
                     className="w-full"
-                    aria-label="Prebuilt conditional probability teaching video"
+                    aria-label={standaloneCopy("Prebuilt conditional probability teaching video")}
                   />
                   <p className="px-4 py-3 text-xs text-[var(--muted-foreground)]">
-                    Codex assisted authoring · Local speech synthesis
+                    {standaloneCopy("Codex assisted authoring · Local speech synthesis")}
                   </p>
                 </div>
               )}
               <section>
                 <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold">My classrooms</h2>
+                  <h2 className="text-sm font-semibold">{standaloneCopy("My classrooms")}</h2>
                   <span className="text-xs text-[var(--muted-foreground)]">
-                    {lessons.length} classrooms
+                    {lessons.length} {standaloneCopy("classrooms")}
                   </span>
                 </div>
                 {lessons.length ? (
                   <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)]">
                     {lessons.map(item => (
-                      <PermanentDeleteMenu key={item.id} title={item.title} onOpen={() => chooseLesson(item)} onDelete={() => deleteLesson(item)} description="Permanently delete this classroom, its answers and generated files used only by it. Running generation will stop first. Original textbooks are retained. This cannot be undone.">
+                      <PermanentDeleteMenu key={item.id} title={item.title} onOpen={() => chooseLesson(item)} onDelete={() => deleteLesson(item)} description={standaloneCopy("Permanently delete this classroom, its answers and generated files used only by it. Running generation will stop first. Original textbooks are retained. This cannot be undone.")}>
                       <button
                         type="button"
                         onClick={() => chooseLesson(item)}
@@ -892,7 +897,7 @@ export function EducationStudio() {
                           <p className="truncate text-sm font-medium">{item.title}</p>
                           <p className="mt-1 truncate text-xs text-[var(--muted-foreground)]">
                             {date(item.created_at)} ·{' '}
-                            {materials.find(m => m.id === item.material_id)?.title || 'Classroom materials'}
+                            {materials.find(m => m.id === item.material_id)?.title || standaloneCopy("Classroom materials")}
                           </p>
                         </div>
                         <Status value={item.status} />
@@ -902,7 +907,7 @@ export function EducationStudio() {
                   </div>
                 ) : (
                   <p className="rounded-xl border border-dashed border-[var(--border)] py-9 text-center text-sm text-[var(--muted-foreground)]">
-                    Your classrooms are saved here. Return anytime to continue learning.
+                    {standaloneCopy("Your classrooms are saved here. Return anytime to continue learning.")}
                   </p>
                 )}
               </section>
@@ -915,35 +920,35 @@ export function EducationStudio() {
         <section className="space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold">Classroom materials</h2>
+              <h2 className="text-sm font-semibold">{standaloneCopy("Classroom materials")}</h2>
               <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                Supports PDF, DOCX, PPTX, Markdown, TXT and XLSX. Maximum file size: {Math.floor(maxMaterialBytes / 1024 / 1024)} MB. Use files in the current workspace without uploading them again. Save legacy DOC/PPT files in a modern format first.
+                {standaloneCopy("Supports PDF, DOCX, PPTX, Markdown, TXT and XLSX. Maximum file size:")} {Math.floor(maxMaterialBytes / 1024 / 1024)} {standaloneCopy("MB. Use files in the current workspace without uploading them again. Save legacy DOC/PPT files in a modern format first.")}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2"><button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => setSourcePicker('workspace')}>Choose from workspace</button><button
+            <div className="flex flex-wrap gap-2"><button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => setSourcePicker('workspace')}>{standaloneCopy("Choose from workspace")}</button><button
               type="button"
               className={primary}
               disabled={Boolean(busy)}
               onClick={() => uploadRef.current?.click()}
             >
               <Upload size={14} />
-              Upload materials
+              {standaloneCopy("Upload materials")}
             </button>
             </div>
           </div>
           {materials.length > 0 && (
-            <div className={`${panelClass} flex flex-wrap items-center gap-3 p-3`} aria-label="Bulk material management">
+            <div className={`${panelClass} flex flex-wrap items-center gap-3 p-3`} aria-label={standaloneCopy("Bulk material management")}>
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" aria-label="Select all materials in the current list"
+                <input type="checkbox" aria-label={standaloneCopy("Select all materials in the current list")}
                   checked={selectedMaterialIds.size === materials.length}
                   ref={node => { if (node) node.indeterminate = selectedMaterialIds.size > 0 && selectedMaterialIds.size < materials.length }}
                   disabled={Boolean(busy)}
                   onChange={event => setSelectedMaterialIds(new Set(event.target.checked ? materials.map(item => item.id) : []))} />
-                Select all in this list
+                {standaloneCopy("Select all in this list")}
               </label>
-              <span className="text-sm text-[var(--muted-foreground)]" aria-live="polite">Selected {selectedMaterialIds.size} items</span>
+              <span className="text-sm text-[var(--muted-foreground)]" aria-live="polite">{standaloneCopy("Selected")} {selectedMaterialIds.size} {standaloneCopy("items")}</span>
               <button type="button" className={secondary} disabled={Boolean(busy) || !selectedMaterialIds.size}
-                onClick={() => { setSelectedMaterialIds(new Set()); setMaterialDeleteErrors({}); setMaterialDeleteMessage('') }}>Clear selection</button>
+                onClick={() => { setSelectedMaterialIds(new Set()); setMaterialDeleteErrors({}); setMaterialDeleteMessage('') }}>{standaloneCopy("Clear selection")}</button>
               <button type="button" className={`${secondary} text-[var(--destructive)]`} disabled={Boolean(busy) || !selectedMaterialIds.size}
                 onClick={() => { setMaterialDeleteMessage(''); setConfirmMaterialDelete(true) }}>
                 <Trash2 size={14} />Delete selected
@@ -952,13 +957,13 @@ export function EducationStudio() {
           )}
           <ConfirmDialog open={confirmMaterialDelete} title={`Permanently delete the selected  ${selectedMaterialIds.size}  materials?`}
             confirmLabel={materialDeleteMessage ? 'Retry remaining deletions' : 'Permanently delete selected items'} cancelLabel="Cancel"
-            tone="danger" busy={busy === 'delete-materials'} busyLabel="Deleting..."
+            tone="danger" busy={busy === 'delete-materials'} busyLabel={standaloneCopy("Deleting...")}
             onCancel={() => setConfirmMaterialDelete(false)} onConfirm={() => void deleteSelectedMaterials()}>
-            <p>Permanently delete imported copies or workspace references and text previews from this list. Original textbooks and workspace folders stay intact. Delete associated classrooms first for materials already in use. Copies in other learning features are retained.</p>
+            <p>{standaloneCopy("Permanently delete imported copies or workspace references and text previews from this list. Original textbooks and workspace folders stay intact. Delete associated classrooms first for materials already in use. Copies in other learning features are retained.")}</p>
             {materialDeleteMessage && <p role="alert" className="mt-3 text-[var(--destructive)]">{materialDeleteMessage}</p>}
-            <div className="mt-3 max-h-[30vh] space-y-2 overflow-y-auto break-words" aria-label="Remaining material deletion details">
+            <div className="mt-3 max-h-[30vh] space-y-2 overflow-y-auto break-words" aria-label={standaloneCopy("Remaining material deletion details")}>
               {Object.entries(materialDeleteErrors).filter(([id]) => selectedMaterialIds.has(id)).map(([id, message]) =>
-                <p key={id} className="text-xs">{materials.find(item => item.id === id)?.title || 'Material'}: {message}</p>)}
+                <p key={id} className="text-xs">{materials.find(item => item.id === id)?.title || standaloneCopy("Material")}: {message}</p>)}
             </div>
           </ConfirmDialog>
           {materials.length ? (
@@ -979,10 +984,10 @@ export function EducationStudio() {
                       {item.filename} · {item.char_count.toLocaleString('en-US')} characters
                       {item.page_count ? ` · ${item.page_count} reading units` : ''}
                     </p>
-                    {item.source_kind && <p className="mt-1 text-xs text-[var(--muted-foreground)]">{item.source_kind === 'workspace' ? 'Original workspace file · ' : 'Upload materials · '}{sourceRangeLabel(item.source_locators)}{item.preview_truncated ? ' · Selected range' : ''}</p>}
+                    {item.source_kind && <p className="mt-1 text-xs text-[var(--muted-foreground)]">{item.source_kind === 'workspace' ? 'Original workspace file · ' : 'Upload materials · '}{sourceRangeLabel(item.source_locators)}{item.preview_truncated ? standaloneCopy(" · Selected range") : ''}</p>}
                     {item.sync_error && (
                       <div className="mt-2 space-y-2">
-                        <p className="text-xs text-[var(--warning-foreground)]">Material synchronization did not finish. Try again later.</p>
+                        <p className="text-xs text-[var(--warning-foreground)]">{standaloneCopy("Material synchronization did not finish. Try again later.")}</p>
                         <ErrorDetails message={item.sync_error} />
                       </div>
                     )}
@@ -1000,7 +1005,7 @@ export function EducationStudio() {
                       setTab('classroom')
                     }}
                   >
-                    Create a classroom from this
+                    {standaloneCopy("Create a classroom from this")}
                   </button>
                   <button
                     type="button"
@@ -1014,9 +1019,9 @@ export function EducationStudio() {
                       )
                     }
                   >
-                    View text
+                    {standaloneCopy("View text")}
                   </button>
-                  <button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => { setRangeMaterialId(item.id); setSourcePicker('range') }}>Choose reading range</button>
+                  <button type="button" className={secondary} disabled={Boolean(busy)} onClick={() => { setRangeMaterialId(item.id); setSourcePicker('range') }}>{standaloneCopy("Choose reading range")}</button>
                   {item.source_kind !== 'workspace' && <a
                     className={secondary}
                     href={`${API}/materials/${encodeURIComponent(item.id)}/file`}
@@ -1024,7 +1029,7 @@ export function EducationStudio() {
                     rel="noreferrer"
                   >
                     <Download size={14} />
-                    Original file
+                    {standaloneCopy("Original file")}
                   </a>}
                 </div>
               </article>
@@ -1033,7 +1038,7 @@ export function EducationStudio() {
             <div
               className={`${panelClass} py-12 text-center text-sm text-[var(--muted-foreground)]`}
             >
-              Upload your own materials or 
+              {standaloneCopy("Upload your own materials or")}
               <button
                 type="button"
                 disabled={Boolean(busy)}
@@ -1046,18 +1051,18 @@ export function EducationStudio() {
                 }
                 className="ml-1 underline underline-offset-4"
               >
-                import the public example handout
+                {standaloneCopy("import the public example handout")}
               </button>
               .
             </div>
           )}
           {preview && (
-            <section className={`${panelClass} p-5`} aria-label="Material text preview">
+            <section className={`${panelClass} p-5`} aria-label={standaloneCopy("Material text preview")}>
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h3 className="text-sm font-semibold">{preview.title}</h3>
                 <button
                   type="button"
-                  aria-label="Close material preview"
+                  aria-label={standaloneCopy("Close material preview")}
                   onClick={() => setPreview(null)}
                   className={secondary}
                 >
@@ -1065,8 +1070,8 @@ export function EducationStudio() {
                 </button>
               </div>
               <p className="mb-3 text-xs text-[var(--muted-foreground)]">
-                The text preview does not display images. Generation checks the original file version and reads only the selected range and its images.
-                {preview.preview_truncated && 'Only part of the text is displayed here.'}
+                {standaloneCopy("The text preview does not display images. Generation checks the original file version and reads only the selected range and its images.")}
+                {preview.preview_truncated && standaloneCopy("Only part of the text is displayed here.")}
               </p>
               <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words font-sans text-sm leading-7">
                 {preview.text_preview}
@@ -1079,15 +1084,15 @@ export function EducationStudio() {
       {tab === 'records' && (
         <section className="space-y-7">
           <form onSubmit={submitAnswer} className={`${panelClass} max-w-3xl space-y-5 p-5 sm:p-6`}>
-            <h2 className="text-sm font-semibold">Submit classroom answer</h2>
-            <Field title="Classroom">
+            <h2 className="text-sm font-semibold">{standaloneCopy("Submit classroom answer")}</h2>
+            <Field title={standaloneCopy("Classroom")}>
               <select
                 required
                 className={inputClass}
                 value={practiceId}
                 onChange={e => setPracticeId(e.target.value)}
               >
-                <option value="">Select a classroom</option>
+                <option value="">{standaloneCopy("Select a classroom")}</option>
                 {lessons.map(l => (
                   <option key={l.id} value={l.id}>
                     {l.title}
@@ -1095,7 +1100,7 @@ export function EducationStudio() {
                 ))}
               </select>
             </Field>
-            <Field title="Question">
+            <Field title={standaloneCopy("Question")}>
               <textarea
                 rows={2}
                 className={inputClass}
@@ -1103,10 +1108,10 @@ export function EducationStudio() {
                 required
                 value={question}
                 onChange={e => setQuestion(e.target.value)}
-                placeholder="Enter the question you are answering"
+                placeholder={standaloneCopy("Enter the question you are answering")}
               />
             </Field>
-            <Field title="My answer">
+            <Field title={standaloneCopy("My answer")}>
               <textarea
                 rows={4}
                 className={inputClass}
@@ -1114,12 +1119,12 @@ export function EducationStudio() {
                 required
                 value={answer}
                 onChange={e => setAnswer(e.target.value)}
-                placeholder="Write your own understanding first, then receive feedback"
+                placeholder={standaloneCopy("Write your own understanding first, then receive feedback")}
               />
             </Field>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="max-w-md text-xs leading-relaxed text-[var(--muted-foreground)]">
-                Your original answer is saved first. The question, answer and related materials are then sent to the configured model.
+                {standaloneCopy("Your original answer is saved first. The question, answer and related materials are then sent to the configured model.")}
               </p>
               {configured ? (
                 <button
@@ -1128,20 +1133,20 @@ export function EducationStudio() {
                   disabled={Boolean(busy) || !practiceId || !question.trim() || !answer.trim()}
                 >
                   <Send size={14} />
-                  Save and get feedback
+                  {standaloneCopy("Save and get feedback")}
                 </button>
               ) : (
                 <button type="button" className={secondary} onClick={() => setTab('settings')}>
-                  Configure the classroom connection first
+                  {standaloneCopy("Configure the classroom connection first")}
                 </button>
               )}
             </div>
           </form>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold">Learning records · {attempts.length}</h2>
+            <h2 className="text-sm font-semibold">{standaloneCopy("Learning records ·")} {attempts.length}</h2>
             <a href={`${API}/export-records`} download className={secondary}>
               <Download size={14} />
-              Export learning records
+              {standaloneCopy("Export learning records")}
             </a>
           </div>
           {attempts.length ? (
@@ -1160,21 +1165,21 @@ export function EducationStudio() {
                   <div className="mt-5 space-y-4 border-t border-[var(--border)] pt-4 text-sm leading-7">
                     <div>
                       <h3 className="mb-1 text-xs font-semibold text-[var(--muted-foreground)]">
-                        Original answer
+                        {standaloneCopy("Original answer")}
                       </h3>
                       <p className="whitespace-pre-wrap break-words">{item.answer}</p>
                     </div>
                     {item.feedback && (
                       <div>
                         <h3 className="mb-1 text-xs font-semibold text-[var(--muted-foreground)]">
-                          Teacher feedback
+                          {standaloneCopy("Teacher feedback")}
                         </h3>
                         <p className="whitespace-pre-wrap break-words">{item.feedback}</p>
                       </div>
                     )}
                     {item.error && (
                       <div className="space-y-2">
-                        <p className="text-xs text-[var(--warning-foreground)]">Your answer was saved; feedback is not ready yet.</p>
+                        <p className="text-xs text-[var(--warning-foreground)]">{standaloneCopy("Your answer was saved; feedback is not ready yet.")}</p>
                         <ErrorDetails message={item.error} />
                       </div>
                     )}
@@ -1183,7 +1188,7 @@ export function EducationStudio() {
                         href={`/chat/${encodeURIComponent(item.dt_session_id)}`}
                         className={secondary}
                       >
-                        In  DeepSteam Continue in <ArrowUpRight size={14} />
+                        {standaloneCopy("In DeepSteam Continue in")} <ArrowUpRight size={14} />
                       </Link>
                     )}
                   </div>
@@ -1192,7 +1197,7 @@ export function EducationStudio() {
             </div>
           ) : (
             <p className="py-8 text-center text-sm text-[var(--muted-foreground)]">
-              No classroom answers yet. Your original answers and feedback appear here after submission.
+              {standaloneCopy("No classroom answers yet. Your original answers and feedback appear here after submission.")}
             </p>
           )}
         </section>
@@ -1216,54 +1221,54 @@ export function EducationStudio() {
           <form onSubmit={event => saveSettings(event, 'language')} className="space-y-5">
             <div className={`${panelClass} space-y-5 p-5 sm:p-6`}>
               <div>
-                <h2 className="text-sm font-semibold">Classroom language model</h2>
+                <h2 className="text-sm font-semibold">{standaloneCopy("Classroom language model")}</h2>
                 <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                  Uses the same default model as other learning features, with an optional classroom-specific selection. Narration is configured separately.
+                  {standaloneCopy("Uses the same default model as other learning features, with an optional classroom-specific selection. Narration is configured separately.")}
                 </p>
               </div>
-              {unifiedClassroom && <UnifiedModelControl value={classroomSelection} onChange={selectClassroomModel} surface="classroom" disabled={Boolean(busy)} label="Classroom model" placement="bottom" />}
-              <Field title="Advanced connection method">
+              {unifiedClassroom && <UnifiedModelControl value={classroomSelection} onChange={selectClassroomModel} surface="classroom" disabled={Boolean(busy)} label={standaloneCopy("Classroom model")} placement="bottom" />}
+              <Field title={standaloneCopy("Advanced connection method")}>
                 <select
                   className={inputClass}
                   value={form.connection_mode || 'current'}
                   onChange={e => setForm({ ...form, connection_mode: e.target.value as Provider['connection_mode'] })}
                 >
-                  <option value="current">Shared model catalog (follow the default or choose separately)</option>
-                  <option value="native">Shared model catalog (follow the default or choose separately)</option>
-                  <option value="unconfigured" disabled>No model selected</option>
-                  <option value="custom">Classroom-specific custom  API</option>
+                  <option value="current">{standaloneCopy("Shared model catalog (follow the default or choose separately)")}</option>
+                  <option value="native">{standaloneCopy("Shared model catalog (follow the default or choose separately)")}</option>
+                  <option value="unconfigured" disabled>{standaloneCopy("No model selected")}</option>
+                  <option value="custom">{standaloneCopy("Classroom-specific custom API")}</option>
                 </select>
               </Field>
-              {unifiedClassroom && <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">The selected model appears above. Changes are saved immediately and affect only the next generation.<Link href="/settings" className="ml-1 underline">Full model and API settings</Link></p>}
+              {unifiedClassroom && <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">{standaloneCopy("The selected model appears above. Changes are saved immediately and affect only the next generation.")}<Link href="/settings" className="ml-1 underline">{standaloneCopy("Full model and API settings")}</Link></p>}
               {form.connection_mode === 'unconfigured' && (
                 <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
-                  Select a model from the shared catalog or enter your own API endpoint.<Link href="/connect" className="ml-1 underline">Connect DeepSeek</Link>
+                  {standaloneCopy("Select a model from the shared catalog or enter your own API endpoint.")}<Link href="/connect" className="ml-1 underline">{standaloneCopy("Connect DeepSeek")}</Link>
                 </p>
               )}
               {form.connection_mode === 'custom' && <div className="space-y-5">
-              <Field title="API  endpoint">
+              <Field title={standaloneCopy("API  endpoint")}>
                 <input
                   className={inputClass}
                   type="url"
-                  placeholder="https://api.example.com/v1"
+                  placeholder={standaloneCopy("https://api.example.com/v1")}
                   value={form.base_url}
                   onChange={e => setForm({ ...form, base_url: e.target.value })}
                 />
               </Field>
-              <Field title="Model name">
+              <Field title={standaloneCopy("Model name")}>
                 <input
                   className={inputClass}
-                  placeholder="Enter the model  ID"
+                  placeholder={standaloneCopy("Enter the model  ID")}
                   value={form.model}
                   onChange={e => setForm({ ...form, model: e.target.value })}
                 />
               </Field>
               <Field
-                title="API key"
+                title={standaloneCopy("API key")}
                 hint={
                   settings.api_key_set
-                    ? 'An API key is already saved. Leave this blank to keep it. The key is never displayed.'
-                    : 'Leave blank if the service does not require a key.'
+                    ? standaloneCopy("An API key is already saved. Leave this blank to keep it. The key is never displayed.")
+                    : standaloneCopy("Leave blank if the service does not require a key.")
                 }
               >
                 <input
@@ -1272,7 +1277,7 @@ export function EducationStudio() {
                   autoComplete="new-password"
                   value={key}
                   onChange={e => setKey(e.target.value)}
-                  placeholder={settings.api_key_set ? 'Saved · Leave blank to keep unchanged' : 'Enter  API key'}
+                  placeholder={settings.api_key_set ? standaloneCopy("Saved · Leave blank to keep unchanged") : standaloneCopy("Enter  API key")}
                 />
               </Field>
               {settings.api_key_set && (
@@ -1282,40 +1287,40 @@ export function EducationStudio() {
                     checked={clearKey}
                     onChange={e => setClearKey(e.target.checked)}
                   />
-                  Clear the saved model key when saving
+                  {standaloneCopy("Clear the saved model key when saving")}
                 </label>
               )}
               </div>}
-              <button type="submit" className={primary} disabled={Boolean(busy)}>{busy === 'language' && <Loader2 size={14} className="animate-spin" />}Save classroom model</button>
+              <button type="submit" className={primary} disabled={Boolean(busy)}>{busy === 'language' && <Loader2 size={14} className="animate-spin" />}{standaloneCopy("Save classroom model")}</button>
             </div>
           </form>
           <form onSubmit={event => saveSettings(event, 'narration')} className="space-y-5">
             <div className={`${panelClass} space-y-5 p-5 sm:p-6`}>
               <label className="flex items-center justify-between gap-3">
                 <span>
-                  <span className="block text-sm font-semibold">Classroom narration</span>
+                  <span className="block text-sm font-semibold">{standaloneCopy("Classroom narration")}</span>
                   <span className="mt-1 block text-xs text-[var(--muted-foreground)]">
-                    Local English narration requires no API. You can also use your own speech service.
+                    {standaloneCopy("Local English narration requires no API. You can also use your own speech service.")}
                   </span>
                 </span>
                 <input
                   type="checkbox"
-                  aria-label="Enable classroom narration"
+                  aria-label={standaloneCopy("Enable classroom narration")}
                   checked={form.tts_enabled}
                   onChange={e => setForm({ ...form, tts_enabled: e.target.checked })}
                 />
               </label>
               {form.tts_enabled && (
                 <>
-                  <Field title="Narration method">
+                  <Field title={standaloneCopy("Narration method")}>
                     <select className={inputClass} value={form.tts_mode || 'local'} onChange={e => setForm({ ...form, tts_mode: e.target.value as 'local' | 'api' })}>
-                      <option value="local">Local English voice</option>
-                      <option value="api">Your speech  API</option>
+                      <option value="local">{standaloneCopy("Local English voice")}</option>
+                      <option value="api">{standaloneCopy("Your speech API")}</option>
                     </select>
                   </Field>
-                  {form.tts_mode !== 'api' && <p className="text-xs text-[var(--muted-foreground)]">Use  Windows installed English voices. If none are available, the app asks you to install one and does not automatically use a cloud service.</p>}
+                  {form.tts_mode !== 'api' && <p className="text-xs text-[var(--muted-foreground)]">{standaloneCopy("Use Windows installed English voices. If none are available, the app asks you to install one and does not automatically use a cloud service.")}</p>}
                   {form.tts_mode === 'api' && <>
-                  <Field title="Speech API  endpoint">
+                  <Field title={standaloneCopy("Speech API  endpoint")}>
                     <input
                       className={inputClass}
                       type="url"
@@ -1324,14 +1329,14 @@ export function EducationStudio() {
                     />
                   </Field>
                   <div className="grid gap-5 sm:grid-cols-2">
-                    <Field title="Speech model">
+                    <Field title={standaloneCopy("Speech model")}>
                       <input
                         className={inputClass}
                         value={form.tts_model}
                         onChange={e => setForm({ ...form, tts_model: e.target.value })}
                       />
                     </Field>
-                    <Field title="Voice name">
+                    <Field title={standaloneCopy("Voice name")}>
                       <input
                         className={inputClass}
                         value={form.tts_voice}
@@ -1340,11 +1345,11 @@ export function EducationStudio() {
                     </Field>
                   </div>
                   <Field
-                    title="Speech API key"
+                    title={standaloneCopy("Speech API key")}
                     hint={
                       settings.tts_key_set
-                        ? 'An API key is saved. Leave this blank to keep it.'
-                        : 'Enter separately if required by the service.'
+                        ? standaloneCopy("An API key is saved. Leave this blank to keep it.")
+                        : standaloneCopy("Enter separately if required by the service.")
                     }
                   >
                     <input
@@ -1353,7 +1358,7 @@ export function EducationStudio() {
                       autoComplete="new-password"
                       value={ttsKey}
                       onChange={e => setTtsKey(e.target.value)}
-                      placeholder={settings.tts_key_set ? 'Saved · Leave blank to keep unchanged' : ''}
+                      placeholder={settings.tts_key_set ? standaloneCopy("Saved · Leave blank to keep unchanged") : ''}
                     />
                   </Field>
                   {settings.tts_key_set && (
@@ -1363,7 +1368,7 @@ export function EducationStudio() {
                         checked={clearTtsKey}
                         onChange={e => setClearTtsKey(e.target.checked)}
                       />
-                      Clear the saved speech key when saving
+                      {standaloneCopy("Clear the saved speech key when saving")}
                     </label>
                   )}
                   </>}
@@ -1372,7 +1377,7 @@ export function EducationStudio() {
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-[var(--muted-foreground)]">
-                Saving updates configuration only and does not call the model.
+                {standaloneCopy("Saving updates configuration only and does not call the model.")}
               </p>
               <button type="submit" className={primary} disabled={Boolean(busy)}>
                 {busy === 'narration' ? (
@@ -1380,21 +1385,21 @@ export function EducationStudio() {
                 ) : (
                   <Check size={14} />
                 )}
-                Save narration settings
+                {standaloneCopy("Save narration settings")}
               </button>
             </div>
           </form>
         </section>
       )}
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4 text-[11px] text-[var(--muted-foreground)]">
-        <span>DeepSteam · This project was AIassisted generation · Primary tools: Codex</span>
+        <span>{standaloneCopy("DeepSteam · This project was AIassisted generation · Primary tools: Codex")}</span>
         <a
           href={`${serviceOrigins.portal}/legacy`}
           target="_blank"
           rel="noreferrer"
           className="hover:underline"
         >
-          Alternative workbench
+          {standaloneCopy("Alternative workbench")}
         </a>
       </footer>
     </FeaturePage>

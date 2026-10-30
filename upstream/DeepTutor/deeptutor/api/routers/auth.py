@@ -512,10 +512,20 @@ def _install_request_workspace(request) -> None:
                 skill_workspace,
                 existing=getattr(request, "method", "GET") in {"GET", "HEAD", "OPTIONS"},
             )
+        # The learning library is account-wide and deliberately keeps showing
+        # reading materials, books and collections stored in archived workspaces.
+        # DELETE is how the owner cleans those rows up, so it must not require
+        # restoring the workspace first; every other write into an archived
+        # workspace stays blocked. Reads remain available either way.
+        archived_library_cleanup = (
+            getattr(request, "method", "").upper() == "DELETE"
+            and path.startswith(("/api/reading/", "/api/books/"))
+        )
         if (
             not management
             and selected.archived
             and getattr(request, "method", "GET") not in {"GET", "HEAD", "OPTIONS"}
+            and not archived_library_cleanup
         ):
             raise WorkspaceError("Restore this workspace before changing its data.")
         # Management/migration requests acquire their own exclusive lease.

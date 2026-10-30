@@ -21,11 +21,15 @@ from deeptutor.tools.builtin import USER_TOGGLEABLE_TOOL_NAMES
 
 UiLanguage = Literal["en", "zh", "fr", "de", "uk", "pl"]
 
+# This is an explicit packaged-edition default, never an OS-language guess.
+# Saved user choices continue to override it in resolve_languages().
+DEFAULT_INTERFACE_LANGUAGE = "zh" if os.environ.get("DEEPSTEAM_DEFAULT_LANGUAGE") == "zh" else "en"
+
 DEFAULT_UI_SETTINGS: dict[str, Any] = {
     # DeepSteam defaults to warm dark; explicit saved choices remain intact.
     "theme": "dark",
-    "language": "en",
-    "response_language": "en",
+    "language": DEFAULT_INTERFACE_LANGUAGE,
+    "response_language": DEFAULT_INTERFACE_LANGUAGE,
     # When true, TTS verbalizes LaTeX (fractions, powers, Greek). Dollar
     # delimiters are stripped either way so the voice never says "dollar".
     "voice_math_speak": True,

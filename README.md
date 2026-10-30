@@ -2,13 +2,15 @@
 
 DeepSteam brings document reading, personalized learning, video study, workspace tools, and interactive classrooms into one desktop application. Chat, personalized learning, immersive reading, the OpenMAIC workbench, and classroom dialogue now submit interactive turns to **one Harness execution core**. DeepTutor and OpenMAIC continue to provide their interfaces and teaching services.
 
-**Current source snapshot: `2026.10.17-r11.1-review`, including the October 17 experience fixes and architecture-review repairs.** Existing Git history and upstream licenses are preserved. The [review disposition](docs/review-remediation.md) distinguishes fixed defects, actual tests and remaining reproducibility limits.
+**Current source snapshot: `2026.10.19-r11.6-settings` (package `r11.6.8`).** It includes the settings and installer repairs, the October 28 archived-workspace deletion fixes, and the October 30 review-closure fix. Existing Git history and upstream licenses are preserved. See [PROJECT-LOG.md](PROJECT-LOG.md) for the dated change record.
 
 | Start here | Contents |
 | --- | --- |
 | [Release notes](RELEASE.md) | Changes since the previous public snapshot and known limits |
+| [Project log](PROJECT-LOG.md) | Dated record of every program change, verification and package sync |
 | [Architecture](docs/architecture.md) | Five entry points, shared execution, tools, model and persistence contracts |
 | [Validation](docs/validation.md) | Real model results, timings, deterministic checks, and untested areas |
+| [Release gate](docs/release-gate.md) | Mandatory regressions, actual provider calls, candidate install, native acceptance and blocked promotion |
 | [Project status](docs/project-status.md) | Resolved and outstanding experience issues |
 | [Source provenance](docs/source-provenance.md) | Upstream pins, source inputs, public normalization, and build coverage |
 | [Review guide](docs/review-guide.md) | Code entry points and questions for independent architecture review |

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { StreamEvent } from "@/features/chat/model/protocol";
 import { StreamingStatus } from "@/features/chat/trace";
 import { initI18n } from "@/i18n/init";
+import { PRODUCT_NAME } from "@/lib/product-brand";
 
 initI18n("en");
 
@@ -27,7 +28,7 @@ describe("chat activity status", () => {
     );
 
     const status = screen.getByRole("status");
-    expect(status).toHaveTextContent("DeepTutor Exploring");
+    expect(status).toHaveTextContent(`${PRODUCT_NAME} Exploring`);
     expect(status).not.toHaveTextContent("Responding");
   });
 
@@ -101,6 +102,59 @@ describe("chat activity status", () => {
         content="Acting now"
       />,
     );
-    expect(screen.getByRole("status")).toHaveTextContent("DeepTutor Exploring");
+    expect(screen.getByRole("status")).toHaveTextContent(`${PRODUCT_NAME} Exploring`);
+  });
+
+  it.each([
+    { type: "done", metadata: { status: "failed" } },
+    { type: "error", metadata: { turn_terminal: true, status: "failed" } },
+  ])("preserves failed status after reopening a terminal $type", (terminal) => {
+    render(<StreamingStatus events={[{
+      ...terminal, source: "chat", stage: "responding", content: "",
+      timestamp: Date.now() / 1000,
+    }] as StreamEvent[]} isStreaming={false} content="The request failed." />);
+    expect(screen.getByRole("status")).toHaveTextContent("Generation failed");
+    expect(screen.getByRole("status")).not.toHaveTextContent("Done");
+  });
+
+  it.each(["done", "error"])("preserves cancellation from terminal %s", (type) => {
+    render(<StreamingStatus events={[{
+      type, source: "chat", stage: "responding", content: "",
+      metadata: { turn_terminal: true, status: "cancelled" },
+      timestamp: Date.now() / 1000,
+    }] as StreamEvent[]} isStreaming={false} content="Partial answer" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Stopped");
+    expect(screen.getByRole("status")).not.toHaveTextContent("Done");
+  });
+
+  it("uses the latest completion after a recovered tool error", () => {
+    const events = [
+      { type: "error", metadata: { status: "failed" } },
+      { type: "done", metadata: { status: "completed" } },
+    ].map((e, index) => ({ ...e, source: "chat", stage: "responding", content: "",
+      timestamp: Date.now() / 1000 + index })) as StreamEvent[];
+    render(<StreamingStatus events={events} isStreaming={false} content="Recovered answer" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Done");
+    expect(screen.getByRole("status")).not.toHaveTextContent("Generation failed");
+  });
+
+  it("does not turn a nonterminal tool error into a failed answer", () => {
+    render(<StreamingStatus events={[{
+      type: "error", source: "tool", stage: "exploring", content: "Tool unavailable",
+      metadata: { status: "failed" }, timestamp: Date.now() / 1000,
+    }] as StreamEvent[]} isStreaming={false} content="Answered using another tool" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Done");
+  });
+
+  it("shows live activity when resuming after an earlier terminal event", () => {
+    render(<StreamingStatus events={[{
+      type: "done", source: "chat", stage: "responding", content: "",
+      metadata: { status: "failed" }, timestamp: Date.now() / 1000,
+    }, {
+      type: "content", source: "chat", stage: "responding", content: "Retrying",
+      timestamp: Date.now() / 1000 + 1,
+    }] as StreamEvent[]} isStreaming content="Retrying" />);
+    expect(screen.getByRole("status")).toHaveTextContent(`${PRODUCT_NAME} Exploring`);
+    expect(screen.getByRole("status")).not.toHaveTextContent("Generation failed");
   });
 });

@@ -1,11 +1,13 @@
 'use client'
 
+import { standaloneCopy, useStandaloneCopy } from '@/i18n/standalone'
 import { useEffect, useState } from 'react'
 import { deepsteamRequest } from '@/lib/deepsteam-api'
 import type { ModelConnection } from '@/lib/model-connection'
 import { ConnectionSummary } from './ConnectionSummary'
 
 export function ModelSetupStatus({ service }: { service: 'llm' | 'embedding' }) {
+  useStandaloneCopy()
   const [connection, setConnection] = useState<ModelConnection | null>(null)
   useEffect(() => {
     let alive = true
@@ -15,5 +17,5 @@ export function ModelSetupStatus({ service }: { service: 'llm' | 'embedding' }) 
   if (service === 'llm') return <ConnectionSummary connection={connection} />
   if (!connection?.embedding) return null
   const embedding = connection.embedding
-  return <div className="rounded-xl border border-[var(--border)] p-4 text-xs leading-relaxed" role="status"><strong className="block text-sm">Embedding search: {embedding.verified ? 'Verified' : embedding.configured ? 'Configured; verification pending' : 'Not configured'}</strong>{embedding.model && <p className="mt-1">{embedding.provider} · {embedding.model}</p>}<p className="mt-2 text-[var(--muted-foreground)]">{embedding.message}</p></div>
+  return <div className="rounded-xl border border-[var(--border)] p-4 text-xs leading-relaxed" role="status"><strong className="block text-sm">{standaloneCopy("Embedding search:")} {embedding.verified ? standaloneCopy("Verified") : embedding.configured ? standaloneCopy("Configured; verification pending") : standaloneCopy("Not configured")}</strong>{embedding.model && <p className="mt-1">{embedding.provider} · {embedding.model}</p>}<p className="mt-2 text-[var(--muted-foreground)]">{embedding.message}</p></div>
 }

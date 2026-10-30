@@ -541,6 +541,8 @@ class SQLiteSessionStore:
         Logical timestamps stay unchanged.
         """
 
+        from deeptutor.services.workspace.context import get_workspace_scope
+        scope = get_workspace_scope()
         migrated = 0
         rows = conn.execute("SELECT id, preferences_json, deleted_at FROM sessions").fetchall()
         for row in rows:
@@ -548,6 +550,11 @@ class SQLiteSessionStore:
             if not isinstance(current, dict):
                 continue
             upgraded = upgrade_workspace_preferences(current)
+            # The database has already been resolved inside this account's
+            # content scope. Old imports omitted only the durable scope marker;
+            # fill that omission without reassigning an explicit owner/scope.
+            if scope is not None and row["id"].startswith("imported_") and "workspace_id" not in upgraded:
+                upgraded["workspace_id"] = scope.workspace_id
             was_deleted = row["deleted_at"] is not None
             if was_deleted:
                 upgraded = {**upgraded, "archived": True}
@@ -2131,6 +2138,11 @@ class SQLiteSessionStore:
         preferences: dict[str, Any],
         messages: list[dict[str, Any]],
     ) -> dict[str, Any]:
+        from deeptutor.services.workspace.context import get_workspace_scope
+        scope = get_workspace_scope()
+        preferences = dict(preferences or {})
+        if scope is not None and session_id.startswith("imported_"):
+            preferences.setdefault("workspace_id", scope.workspace_id)
         with self._connect() as conn:
             existing = conn.execute(
                 "SELECT preferences_json FROM sessions WHERE id = ?", (session_id,)

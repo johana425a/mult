@@ -42,18 +42,19 @@ async function fixture(options = {}) {
   }
   vm.runInNewContext(main, {
     __dirname, URL, setTimeout, clearTimeout, AbortController, AbortSignal,
+    setInterval: () => ({ unref() {} }), clearInterval() {},
     process: { argv: [], pid: 1234, env: { SystemRoot: 'C:\\Windows', TEMP: 'D:\\fixture-temp', PATH: 'fixture-path', OPENAI_API_KEY: 'not-exported', DEEPSEEK_TOKEN: 'not-exported', OPENAI_BASE_URL: 'not-exported' } },
     require(name) {
       if (name === 'electron') return {
         app, BrowserWindow: Window, dialog: {}, shell: {}, net: {},
         protocol: { registerSchemesAsPrivileged() {}, handle() {} },
-        session: { defaultSession: { protocol: { handle() {}, unhandle() {} }, webRequest: { onBeforeRequest() {}, onBeforeSendHeaders() {} } } },
+        session: { defaultSession: { cookies: new EventEmitter(), clearCache: async () => {}, protocol: { handle() {}, unhandle() {} }, webRequest: { onBeforeRequest() {}, onBeforeSendHeaders() {} } } },
         ipcMain: { handle: (name, handler) => handlers.set(name, handler), on: (name, handler) => handlers.set(name, handler) },
       };
       if (name === './storage-migration.cjs') return { MIGRATION_PATH: '/__fixture__', MIGRATION_HTML: '', migrateOwnedOriginStorage: async () => {} };
       if (name === 'node:fs') return {
         existsSync: file => file === path.join(root, 'scripts', 'desktop_runtime.py') || file === path.join(root, 'runtime', 'python', 'python.exe'),
-        readFileSync: () => '{}', mkdirSync() {}, appendFileSync() {},
+        readFileSync: () => '{}', mkdirSync() {}, appendFileSync() {}, writeFileSync() {},
         lstatSync(file) {
           assert.equal(file, uninstallExe);
           if (options.missing) throw new Error('missing fixture');
@@ -76,13 +77,13 @@ async function fixture(options = {}) {
   return { window, children, open: handlers.get('deepsteam:open-uninstaller'), event: () => ({ sender: window.webContents, senderFrame: window.webContents.mainFrame }), quits: () => quits };
 }
 
-test('opens only the pinned uninstaller confirmation without flags, service shutdown, or secrets', async () => {
+test('opens only the pinned uninstaller confirmation with an owned root, no deletion flags, shutdown, or secrets', async () => {
   const f = await fixture();
   assert.equal((await f.open(f.event())).status, 'opened');
   assert.equal(f.children.length, 2); // Existing startup lifecycle + confirmation only.
   const launch = f.children[1];
   assert.equal(launch.program, uninstallExe);
-  assert.deepEqual(Array.from(launch.args), []);
+  assert.deepEqual(Array.from(launch.args), ['--uninstall-from-desktop', root]);
   assert.equal(launch.config.cwd, root);
   assert.equal(launch.config.shell, false);
   assert.equal(launch.config.windowsHide, true);

@@ -51,6 +51,8 @@ def configure_environment():
         "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1", "PYTHONDONTWRITEBYTECODE": "1",
         "PYTHONNOUSERSITE": "1",
         "DEEPSTEAM_HARNESS_CORE": "1",
+        "DEEPSTEAM_DEFAULT_LANGUAGE": "zh",
+        "NEXT_PUBLIC_DEEPSTEAM_DEFAULT_LANGUAGE": "zh",
         "TEMP": str(STORAGE.deeptutor_temporary), "TMP": str(STORAGE.deeptutor_temporary),
     })
     os.environ["PATH"] = str(NODE) + os.pathsep + os.environ.get("PATH", "")

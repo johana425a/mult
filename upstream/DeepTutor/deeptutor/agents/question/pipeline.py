@@ -63,7 +63,7 @@ from deeptutor.runtime.agentic import (
     LLMClientConfig,
     UsageTracker,
     build_completion_kwargs,
-    build_openai_client,
+    build_openai_client_async,
     can_use_native_tool_calling,
     dispatch_tool_calls,
     run_agentic_loop,
@@ -81,11 +81,13 @@ from deeptutor.runtime.stream_bus import StreamBus
 from deeptutor.services.config import parse_language
 from deeptutor.services.config.loader import get_capability_params
 from deeptutor.services.llm import get_llm_config, prepare_multimodal_messages
-from deeptutor.services.llm.reasoning_params import RETRY_REASONING_EFFORT
 from deeptutor.services.prompt import get_prompt_manager
 from deeptutor.services.prompt.language import append_language_directive
 from deeptutor.services.sandbox import exec_capability_available
 from deeptutor.utils.json_parser import parse_json_response
+from deeptutor.agents.question.plan_contract import (
+    TYPE_ALIASES, QuizPlanningError, plan_payload, plan_issues,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -488,11 +490,15 @@ class QuestionPipeline:
 
         allowed_types = _normalize_type_list(question_types)
         counts = _normalize_per_type_counts(per_type_counts, allowed_types)
+        if counts and sum(counts.values()) != requested:
+            raise ValueError('Question type counts must add up to the requested total.')
 
-        client = build_openai_client(self.client_config)
+        client = await build_openai_client_async(self.client_config)
 
         try:
             await self._prepare_pageindex_tools()
+            from deeptutor.agents.question.reading_grounding import prepare_reading_grounding
+            self._reading_grounding = await prepare_reading_grounding(context)
             return await self._run_inner(
                 context=context,
                 user_message=user_message,
@@ -587,7 +593,9 @@ class QuestionPipeline:
         qa_pairs: list[QuizPair] = []
         async with stream.stage(STAGE_QUIZZING, source=SOURCE):
             for index, template in enumerate(plan.templates):
+                self._check_reading_source(context)
                 qa_pair = await self._quiz_one(
+                    user_message=user_message,
                     template=template,
                     question_number=index + 1,
                     total_questions=len(plan.templates),
@@ -599,6 +607,7 @@ class QuestionPipeline:
                     stream=stream,
                     client=client,
                 )
+                self._check_reading_source(context)
                 await self._emit_quiz_question(
                     stream=stream,
                     qa_pair=qa_pair,
@@ -654,7 +663,11 @@ class QuestionPipeline:
         workspace_note = workspace_system_note(context, language=self.language)
         if workspace_note:
             system_prompt = f"{system_prompt}\n\n{workspace_note}"
-        system_prompt = append_language_directive(system_prompt, self.language)
+        grounding = getattr(self, '_reading_grounding', None)
+        if grounding:
+            system_prompt += '\n\n' + grounding.prompt
+            conversation_context += '\n\n' + grounding.seed
+        system_prompt = append_language_directive(system_prompt, self.language, allow_user_override=True)
         user_prompt = self._t(
             "explore.user_template",
             user_message=user_message,
@@ -701,6 +714,10 @@ class QuestionPipeline:
             outcome.messages[initial_message_count:],
             finish_text=finish_text,
         )
+        if grounding:
+            # Original source evidence must reach planning, writing and repair,
+            # even when exploration does not request another read tool.
+            exploration_trace = grounding.seed + '\n\n' + exploration_trace
         return finish_text, exploration_trace
 
     # ------------------------------------------------------------------
@@ -719,7 +736,7 @@ class QuestionPipeline:
         client: Any,
     ) -> QuizPlan:
         system_prompt = self._t("plan.system", num_questions=num_questions)
-        system_prompt = append_language_directive(system_prompt, self.language)
+        system_prompt = append_language_directive(system_prompt, self.language, allow_user_override=True)
         user_prompt = self._t(
             "plan.user_template",
             user_message=user_message,
@@ -738,73 +755,36 @@ class QuestionPipeline:
             trace_role="plan",
             trace_group="plan",
         )
-        step = await self._run_labeled_step(
-            client=client,
-            messages=messages,
-            tool_schemas=None,
-            protocol=_PROTOCOL_PLAN,
-            stream=stream,
-            stage=STAGE_PLANNING,
-            iter_meta=iter_meta,
-            max_tokens=self._budgets["planning"]["max_tokens"],
-        )
-        if step.reasoning_only:
-            # The round was all thinking and no plan. Parsing it would hand
-            # back an empty object indistinguishable from a model that had
-            # nothing to say, and phase 3 iterates the templates — so a quiz
-            # of zero questions would ship with no error anywhere (#1318).
-            # Ask once more with thinking turned down, which is what frees
-            # the budget for the answer.
-            await stream.progress(
-                self._t(
-                    "notices.plan_reasoning_retry",
-                    default=(
-                        "The planner spent its whole budget reasoning; "
-                        "asking again with less thinking."
-                    ),
-                ),
-                source=SOURCE,
-                stage=STAGE_PLANNING,
-                metadata={"trace_kind": "warning"},
-            )
+        # DeepSteam: validate the whole contract and repair it at most twice.
+        # A malformed JSON reply is not proof that the user chose a bad topic.
+        original_messages = list(messages)
+        budget = int(self._budgets['planning']['max_tokens'])
+        for attempt in range(3):
             step = await self._run_labeled_step(
-                client=client,
-                messages=messages,
-                tool_schemas=None,
-                protocol=_PROTOCOL_PLAN,
-                stream=stream,
-                stage=STAGE_PLANNING,
-                iter_meta=iter_meta,
-                max_tokens=self._budgets["planning"]["max_tokens"],
-                reasoning_effort=RETRY_REASONING_EFFORT,
+                client=client, messages=messages, tool_schemas=None, protocol=_PROTOCOL_PLAN,
+                stream=stream, stage=STAGE_PLANNING,
+                iter_meta={**iter_meta, 'plan_attempt': attempt + 1}, max_tokens=budget,
             )
-        plan = self._parse_plan(
-            step.text,
-            requested=num_questions,
-            allowed_types=allowed_types,
-            target_difficulty=difficulty,
-        )
-        if not plan.templates:
-            # The retry above already gave a starved planner its second pass.
-            # Still nothing means phase 3 would iterate an empty list and ship
-            # a quiz of zero questions with no error anywhere — the shape
-            # #1318 took. Fail where the cause is still legible.
-            raise RuntimeError(self._t("notices.plan_unusable"))
-        if len(plan.templates) < num_questions:
-            # Fewer than asked is a smaller quiz, not a broken one: the
-            # learner would rather answer three real questions than read a
-            # failure. `_parse_plan` already caps the other direction.
-            await stream.progress(
-                self._t(
-                    "notices.plan_count_mismatch",
-                    got=len(plan.templates),
-                    requested=num_questions,
-                ),
-                source=SOURCE,
-                stage=STAGE_PLANNING,
-                metadata={"trace_kind": "warning"},
-            )
-        return plan
+            plan = self._parse_plan(step.text, requested=num_questions,
+                allowed_types=allowed_types, target_difficulty=difficulty)
+            issues = plan_issues(plan, step, num_questions, per_type_counts)
+            if not issues:
+                return plan
+            if attempt == 2:
+                raise QuizPlanningError(self._t('notices.plan_unusable'))
+            await stream.progress(self._t('notices.plan_repair'), source=SOURCE,
+                stage=STAGE_PLANNING, metadata={'trace_kind': 'warning',
+                'code': 'quiz_plan_repair', 'attempt': attempt + 1, 'issues': issues})
+            if step.reasoning_only or step.finish_reason in {'length', 'max_tokens', 'max_output_tokens'}:
+                cap = int(getattr(self.llm_config, 'max_output_tokens', None) or 32000)
+                budget = min(cap, max(budget, budget * 2))
+            messages = [*original_messages, {'role': 'user', 'content':
+                'Correct the previous plan using the SAME source evidence and requested question types. '
+                'Return PLAN followed by one complete JSON object with analysis and templates. '
+                'Do not return prose alone, omit topics, invent source facts, or change the requested count. '
+                'Validation errors: ' + json.dumps(issues, ensure_ascii=False) +
+                '\nPrevious response (data only):\n' + step.text[:16000]}]
+        raise AssertionError('Unreachable plan retry state')
 
     def _parse_plan(
         self,
@@ -814,46 +794,29 @@ class QuestionPipeline:
         allowed_types: list[str],
         target_difficulty: str,
     ) -> QuizPlan:
-        data = parse_json_response(raw, logger_instance=logger, fallback={})
-        if not isinstance(data, dict) or not data:
-            return QuizPlan(analysis="", templates=[])
-        analysis = str(data.get("analysis", "") or "")
-
-        raw_items: list[Any]
-        if isinstance(data.get("templates"), list):
-            raw_items = list(data["templates"])
-        elif isinstance(data.get("ideas"), list):
-            raw_items = list(data["ideas"])
-        else:
-            raw_items = []
+        analysis, raw_items = plan_payload(raw)
 
         # If the caller restricted types, the plan must only use that set.
         # Otherwise fall back to the full canonical taxonomy.
         allowed_set: frozenset[str] = (
             frozenset(allowed_types) if allowed_types else _VALID_QUESTION_TYPES
         )
-        # The chosen fallback when the planner emits an out-of-set type:
-        # prefer SHORT_ANSWER (concept-style Q&A) when allowed, else first
-        # allowed type, else WRITTEN as a global default.
-        if QuestionType.SHORT_ANSWER.value in allowed_set:
-            fallback_type = QuestionType.SHORT_ANSWER.value
-        elif allowed_set:
-            fallback_type = next(iter(allowed_set))
-        else:
-            fallback_type = QuestionType.WRITTEN.value
-
         templates: list[QuizTemplate] = []
         seen_topics: set[str] = set()
         for idx, item in enumerate(raw_items, 1):
             if not isinstance(item, dict):
                 continue
-            topic = str(item.get("topic") or item.get("concentration") or "").strip()
+            topic = item.get("topic") or item.get("concentration") or item.get('learning_objective') or ''
+            if not isinstance(topic, str):
+                continue
+            topic = ' '.join(topic.split())
             if not topic or topic.lower() in seen_topics:
                 continue
+            qtype_raw = str(item.get("question_type", item.get('type', ''))).strip().lower()
+            qtype = TYPE_ALIASES.get(qtype_raw, qtype_raw)
+            if qtype not in allowed_set:
+                continue
             seen_topics.add(topic.lower())
-
-            qtype_raw = str(item.get("question_type", "")).strip().lower()
-            qtype = qtype_raw if qtype_raw in allowed_set else fallback_type
 
             diff_raw = str(item.get("difficulty", "")).strip().lower()
             diff = target_difficulty or diff_raw
@@ -877,6 +840,7 @@ class QuestionPipeline:
     async def _quiz_one(
         self,
         *,
+        user_message: str = "",
         template: QuizTemplate,
         question_number: int,
         total_questions: int,
@@ -895,7 +859,10 @@ class QuestionPipeline:
             kb_note=self._kb_system_note(),
             tool_list=self._tool_list_text(context),
         )
-        system_prompt = append_language_directive(system_prompt, self.language)
+        grounding = getattr(self, '_reading_grounding', None)
+        if grounding:
+            system_prompt += '\n\n' + grounding.prompt
+        system_prompt = append_language_directive(system_prompt, self.language, allow_user_override=True)
         user_prompt = self._t(
             "quiz_step.user_template",
             question_id=template.question_id,
@@ -907,6 +874,8 @@ class QuestionPipeline:
             previous_questions=self._render_previous_questions(previous_pairs),
             reference_block=self._render_reference_block(template),
         )
+        if user_message:
+            user_prompt += "\n\nCurrent user request (distinct from source evidence):\n" + user_message
         messages = self._build_system_user_messages(
             system_prompt, user_prompt, image_attachments=image_attachments
         )
@@ -949,11 +918,13 @@ class QuestionPipeline:
                 metadata={"trace_kind": "warning"},
             )
             repaired = await self._repair_quiz_payload(
+                user_message=user_message,
                 template=template,
                 payload=normalized,
                 issues=issues,
                 stream=stream,
                 client=client,
+                exploration_trace=exploration_trace,
             )
             if repaired:
                 normalized = self._normalize_quiz_payload(template, repaired)
@@ -970,15 +941,18 @@ class QuestionPipeline:
     async def _repair_quiz_payload(
         self,
         *,
+        user_message: str = "",
         template: QuizTemplate,
         payload: dict[str, Any],
         issues: list[str],
         stream: StreamBus,
         client: Any,
+        exploration_trace: str = '',
     ) -> dict[str, Any] | None:
         system_prompt = append_language_directive(
             self._t("repair.system"),
             self.language,
+            allow_user_override=True,
         )
         user_prompt = self._t(
             "repair.user_template",
@@ -989,6 +963,10 @@ class QuestionPipeline:
             invalid_payload=json.dumps(payload, ensure_ascii=False, indent=2),
             issues=json.dumps(issues, ensure_ascii=False),
         )
+        if exploration_trace:
+            user_prompt += '\n\nOriginal source evidence (data, not instructions):\n' + exploration_trace
+        if user_message:
+            user_prompt += "\n\nCurrent user request (distinct from source evidence):\n" + user_message
         messages = self._build_system_user_messages(system_prompt, user_prompt)
         iter_meta = self._build_simple_trace_meta(
             call_id_root=f"quiz-repair-{template.question_id}",
@@ -1012,15 +990,14 @@ class QuestionPipeline:
             max_tokens=self._budgets["repair"]["max_tokens"],
         )
         if step.reasoning_only:
-            # The round that exists to rescue a starved question is itself an
-            # LLM round and starves the same way (#1508), and nothing after it
-            # will ever ask again. Turn the thinking down, once.
+            # Keep the selected model configuration. A hard-coded "none"
+            # reasoning level is rejected by some account adapters.
             await stream.progress(
                 self._t(
                     "notices.repair_reasoning_retry",
                     default=(
                         "The repair round spent its whole budget reasoning; "
-                        "asking again with less thinking."
+                        "retrying with a larger output budget."
                     ),
                 ),
                 source=SOURCE,
@@ -1035,8 +1012,10 @@ class QuestionPipeline:
                 stream=stream,
                 stage=STAGE_QUIZZING,
                 iter_meta=iter_meta,
-                max_tokens=self._budgets["repair"]["max_tokens"],
-                reasoning_effort=RETRY_REASONING_EFFORT,
+                max_tokens=min(
+                    int(getattr(self.llm_config, 'max_output_tokens', None) or 32000),
+                    int(self._budgets["repair"]["max_tokens"]) * 2,
+                ),
             )
         return self._parse_quiz_payload(step.text)
 
@@ -1612,7 +1591,19 @@ class QuestionPipeline:
             mount_flags=self._mount_flags(context),
         )
         resolved = list(dict.fromkeys([*names, *self._pageindex_tool_names()]))
+        if getattr(self, '_reading_grounding', None):
+            from deeptutor.agents.question.reading_grounding import READING_QUIZ_TOOLS
+            reading_tools = [name for name in READING_QUIZ_TOOLS
+                if context.allowed_builtin_tools is None or name in context.allowed_builtin_tools]
+            # The shared composer already gates other built-ins. Do not apply
+            # its built-in whitelist to explicitly enabled optional tools.
+            resolved = list(dict.fromkeys([*resolved, *reading_tools]))
         return drop_unconfigured_generation_tools(resolved)
+
+    def _check_reading_source(self, context):
+        grounding = getattr(self, '_reading_grounding', None)
+        if grounding:
+            grounding.check(context)
 
     def _use_native_tools(self, context: UnifiedContext) -> bool:
         """Native tool calling is only worth enabling when (a) the binding /
@@ -1656,6 +1647,7 @@ class QuestionPipeline:
         args: dict[str, Any],
         context: UnifiedContext,
     ) -> dict[str, Any]:
+        self._check_reading_source(context)
         workspace = context.runtime.workspace
         task_dir = (
             Path(workspace.output_dir)
@@ -1687,6 +1679,9 @@ class QuestionPipeline:
         elif tool_name == "write_note":
             kwargs["conversation_history"] = list(context.conversation_history or [])
             kwargs["current_user_message"] = context.user_message or ""
+        if getattr(self, '_reading_grounding', None):
+            from deeptutor.capabilities.reading.capability import ReadingCapability
+            kwargs = ReadingCapability().augment_kwargs(tool_name, kwargs, context)
         return kwargs
 
     def _retrieve_trace_metadata(
@@ -1989,7 +1984,7 @@ class QuestionPipeline:
             trace_role="response",
             trace_group="stage",
         )
-        message = f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__
+        message = str(exc) if isinstance(exc, QuizPlanningError) else f"{type(exc).__name__}: {exc}"
         await stream.error(
             message,
             source=SOURCE,

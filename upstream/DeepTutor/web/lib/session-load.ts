@@ -10,6 +10,16 @@
 /** How long to wait for a session fetch before calling it failed. */
 export const SESSION_LOAD_TIMEOUT_MS = 30_000;
 
+/** A route may render before its history fetch selects the correct session. */
+export function sessionSubmissionBlocked(
+  routeId: string | null,
+  selectedId: string | null,
+  loading: boolean,
+  failed: boolean,
+): boolean {
+  return Boolean(routeId && (routeId !== selectedId || loading || failed));
+}
+
 export interface LoadOutcome {
   /** The load's AbortSignal fired. */
   aborted: boolean;

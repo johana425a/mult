@@ -143,6 +143,7 @@ export function MasteryComposer({
       showCapabilityChip={false}
       hasMessages={state.messages.length > 0}
       isStreaming={state.isStreaming}
+      submissionBlocked={disabled}
       awaitingUserReply={awaitingUserReply}
       selectedKnowledgeBases={state.knowledgeBases}
       onKnowledgeBasesChange={setKBs}

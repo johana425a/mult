@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { AudioIndicatorState } from './audio-indicator';
 import { CanvasToolbar } from '@/components/canvas/canvas-toolbar';
+import { ClassroomMessageText } from '@/components/chat/classroom-message-text';
 import { useAudioRecorder } from '@/lib/hooks/use-audio-recorder';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { toast } from 'sonner';
@@ -1804,7 +1805,7 @@ export function Roundtable({
                           </div>
                         ) : (
                           <p className="whitespace-pre-wrap break-words" suppressHydrationWarning>
-                            {sourceText}
+                            {bubbleRole === 'user' ? sourceText : <ClassroomMessageText text={sourceText} />}
                             {isTopicPending && (
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 ml-1 align-middle" />
                             )}

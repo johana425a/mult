@@ -123,7 +123,7 @@ const nextConfig = {
 
   // web/proxy.ts clones request bodies before rewriting them. Keep enough room
   // for individual large-body endpoints that still use Proxy. Knowledge-base
-  // create/upload batches use dedicated streaming route handlers instead, so
+  // create/upload batches and reading material uploads use streaming handlers, so
   // their total size is not coupled to this in-memory clone limit.
   experimental: {
     proxyClientMaxBodySize: 210 * 1024 * 1024,

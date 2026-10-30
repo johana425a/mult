@@ -1,5 +1,10 @@
 # r11 focused regressions
 
+These scripts are components, not a release authorization. The required unified
+runner and fail-closed candidate promotion are documented in
+[release-gate.md](../../docs/release-gate.md). It also includes model adapters,
+real provider calls, personalized learning, generation and fullscreen checks.
+
 Run from the repository root. These tests make no paid model calls. Node.js must support TypeScript type stripping for `test_prefetch_refill.mjs`; the paired runtime used Node 24. Use the Python version/dependencies required by DeepTutor for the pipeline contract test.
 
 ```powershell

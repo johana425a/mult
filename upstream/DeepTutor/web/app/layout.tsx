@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { PRODUCT_MARK, PRODUCT_NAME } from "@/lib/product-brand";
 import { Geist, Lora } from "next/font/google";
 import "./globals.css";
+// Keep the installed DeepSteam theme in source so rebuilding cannot drop it.
+import "./deepsteam-theme.css";
 import ThemeScript from "@/components/ThemeScript";
 import ToastViewport from "@/components/common/ToastViewport";
 import MotionProvider from "@/components/common/MotionProvider";
@@ -10,6 +12,7 @@ import SettingsReturnTracker from "@/components/settings/SettingsReturnTracker";
 import { WorkspaceNavigation } from "@/components/workspaces/WorkspaceNavigation";
 import { AppShellProvider } from "@/context/AppShellContext";
 import { I18nClientBridge } from "@/i18n/I18nClientBridge";
+import { DEFAULT_APP_LANGUAGE } from "@/i18n/languages";
 
 // Geist matches the public site (deeptutor.info) and stays crisp at the
 // small UI sizes the composer/toolbars use, unlike the rounder Jakarta.
@@ -43,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang={DEFAULT_APP_LANGUAGE}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`dark ${fontSans.variable} ${fontSerif.variable}`}

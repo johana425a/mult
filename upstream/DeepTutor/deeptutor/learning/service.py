@@ -406,7 +406,13 @@ class LearningService:
             progress.updated_at = time.time()
         return found
 
-    def record_quiz_attempt(self, progress: LearningProgress, attempt: QuizAttempt) -> None:
+    def record_quiz_attempt(
+        self,
+        progress: LearningProgress,
+        attempt: QuizAttempt,
+        *,
+        review: bool = False,
+    ) -> None:
         if not attempt.is_correct and attempt.error_type is not None:
             # Find existing error record for this question + knowledge point.
             existing = None
@@ -440,22 +446,33 @@ class LearningService:
                 progress.error_records.append(record)
 
         elif attempt.is_correct:
-            # Graduate any active error record for this question + knowledge point.
+            # A correct answer on the exact question closes that record. A later
+            # independent correct review of the same knowledge point also closes
+            # every older open record for it: the learner has now demonstrated
+            # the objective on a fresh question, so leaving the old failures
+            # active would keep "recent failure", priority and risk inflated
+            # forever. The attempt/evidence history still retains the failures.
             for rec in progress.error_records:
                 if (
-                    rec.question_id == attempt.question_id
-                    and rec.knowledge_point_id == attempt.knowledge_point_id
+                    rec.knowledge_point_id == attempt.knowledge_point_id
                     and rec.status in ("active", "retrying")
                 ):
-                    rec.retry_history.append(
-                        RetryAttempt(
-                            timestamp=time.time(),
-                            is_correct=True,
-                            attempt_number=len(rec.retry_history) + 1,
+                    same_question = rec.question_id == attempt.question_id
+                    if same_question:
+                        rec.retry_history.append(
+                            RetryAttempt(
+                                timestamp=time.time(),
+                                is_correct=True,
+                                attempt_number=len(rec.retry_history) + 1,
+                            )
                         )
-                    )
+                    elif not (review and attempt.independent):
+                        continue
                     rec.status = "graduated"
-                    break
+                    if not same_question and not rec.ai_confirmation:
+                        rec.ai_confirmation = (
+                            "Graduated by a later independent correct review of the same objective."
+                        )
 
         progress.quiz_attempts.append(attempt)
         progress.updated_at = time.time()
@@ -554,6 +571,7 @@ class LearningService:
                 independent=not visual_context or not visual_context.get("hints_used"),
                 visual_context=visual_context or {},
             ),
+            review=already_scheduled,
         )
         evidence = None
         if knowledge_point_id:
@@ -1868,6 +1886,20 @@ class LearningService:
         progress.deferred_objectives.pop(kp_id, None)
         current = progress.mastery_levels.get(kp_id, 0.0)
         progress.mastery_levels[kp_id] = max(current, 1.0) if passed else min(current, 0.4)
+        if passed:
+            # A fresh qualitative pass is a new demonstration of the objective.
+            # Close older unresolved failures for it so the review surface does
+            # not keep reporting a failure the learner has since answered.
+            for record in progress.error_records:
+                if (
+                    record.knowledge_point_id == kp_id
+                    and record.status in ("active", "retrying")
+                ):
+                    record.status = "graduated"
+                    if not record.ai_confirmation:
+                        record.ai_confirmation = (
+                            "Graduated by a later qualitative assessment of the same objective."
+                        )
         if evidence:
             progress.feynman_explanations[kp_id] = evidence
         moment = time.time()

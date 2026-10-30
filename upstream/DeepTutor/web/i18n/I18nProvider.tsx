@@ -36,10 +36,13 @@ export function I18nProvider({
       ? nextLang
       : null,
   );
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     if (!enabled) return () => undefined;
+    setLoadFailed(false);
     void ensureLanguage(nextLang).then(async () => {
       if (cancelled) return;
       if (i18n.language !== nextLang) {
@@ -49,19 +52,33 @@ export function I18nProvider({
       // Keep <html lang="..."> in sync for accessibility & Intl defaults.
       document.documentElement.lang = nextLang;
       setReadyLanguage(nextLang);
+    }).catch(() => {
+      if (!cancelled) setLoadFailed(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [enabled, nextLang]);
+  }, [enabled, nextLang, attempt]);
 
-  if (!enabled || readyLanguage !== nextLang) {
+  // Keep an already mounted workspace alive while a different locale loads.
+  // The old blank placeholder removed drafts, players and in-memory views.
+  if (readyLanguage === null) {
     return (
       <div
-        aria-busy="true"
-        aria-hidden="true"
-        className="min-h-dvh bg-[var(--background)]"
-      />
+        role={loadFailed ? "alert" : "status"}
+        aria-busy={!loadFailed}
+        className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[var(--background)] text-[var(--foreground)]"
+      >
+        <span className="text-lg font-semibold">DeepSteam</span>
+        <p>{nextLang === "zh"
+          ? (loadFailed ? "界面加载失败，请重试。" : "正在加载工作区…")
+          : (loadFailed ? "The interface could not load. Please retry." : "Loading your workspace...")}</p>
+        {loadFailed && (
+          <button type="button" className="rounded-lg border border-[var(--border)] px-4 py-2" onClick={() => setAttempt(value => value + 1)}>
+            {nextLang === "zh" ? "重试" : "Retry"}
+          </button>
+        )}
+      </div>
     );
   }
   return children;

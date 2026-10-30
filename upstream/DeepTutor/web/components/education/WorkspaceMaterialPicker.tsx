@@ -1,5 +1,6 @@
 'use client'
 
+import { standaloneCopy, useStandaloneCopy } from '@/i18n/standalone'
 import { useEffect, useRef, useState } from 'react'
 import { deepsteamService } from '@/lib/deepsteam-api'
 import { WorkspaceSourceStatus } from '@/components/workspaces/WorkspaceSourceStatus'
@@ -37,6 +38,7 @@ async function call<T>(path: string, payload: unknown): Promise<T> {
 export function WorkspaceMaterialPicker({ workspaceId, materialId, onSelected, onCancel }: {
   workspaceId: string; materialId?: string; onSelected: (id: string) => void; onCancel: () => void
 }) {
+  useStandaloneCopy()
   const [directory, setDirectory] = useState('')
   const [entries, setEntries] = useState<Entry[]>([])
   const [listTruncated, setListTruncated] = useState(false)
@@ -58,7 +60,7 @@ export function WorkspaceMaterialPicker({ workspaceId, materialId, onSelected, o
         : `/workspaces/${encodeURIComponent(workspaceId)}/documents/read`,
       { path: file, cursor: next, document_sha256: hash, max_units: maxUnits })
       if (version === generation.current) { setPreview(result); setPath(file); setCursor(next) }
-    } catch (reason) { if (version === generation.current) { setError(reason instanceof Error ? reason.message : 'Could not read the material.'); setPreview(null) } }
+    } catch (reason) { if (version === generation.current) { setError(reason instanceof Error ? reason.message : standaloneCopy("Could not read the material.")); setPreview(null) } }
     finally { if (version === generation.current) setBusy(false) }
   }
 
@@ -69,7 +71,7 @@ export function WorkspaceMaterialPicker({ workspaceId, materialId, onSelected, o
     setBusy(true); setError(''); setPreview(null)
     void call<{ entries: Entry[]; truncated?: boolean }>(`/workspaces/${encodeURIComponent(workspaceId)}/documents/list`, { path: directory })
       .then(result => { if (version === generation.current) { setEntries(result.entries || []); setListTruncated(Boolean(result.truncated)) } })
-      .catch(reason => { if (version === generation.current) setError(reason instanceof Error ? reason.message : 'Could not load the file list.') })
+      .catch(reason => { if (version === generation.current) setError(reason instanceof Error ? reason.message : standaloneCopy("Could not load the file list.")) })
       .finally(() => { if (version === generation.current) setBusy(false) })
     // The selected workspace and directory own this picker instance.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,36 +84,36 @@ export function WorkspaceMaterialPicker({ workspaceId, materialId, onSelected, o
       const result = await call<{ id: string }>(materialId ? `/materials/${encodeURIComponent(materialId)}/select-range` : '/materials/from-workspace',
         { workspace_id: workspaceId, path, cursor, document_sha256: preview.document.sha256, max_units: units })
       onSelected(result.id)
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The selected range was not saved. Try again.'); setBusy(false) }
+    } catch (reason) { setError(reason instanceof Error ? reason.message : standaloneCopy("The selected range was not saved. Try again.")); setBusy(false) }
   }
-  return <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4" aria-label="Select workspace materials">
-    <div className="flex items-center justify-between gap-3"><h3 className="font-medium">{materialId ? 'Select classroom reading range' : 'Choose materials from the current workspace'}</h3>
-      <button type="button" disabled={busy} onClick={onCancel}>Close</button></div>
+  return <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4" aria-label={standaloneCopy("Select workspace materials")}>
+    <div className="flex items-center justify-between gap-3"><h3 className="font-medium">{materialId ? standaloneCopy("Select classroom reading range") : standaloneCopy("Choose materials from the current workspace")}</h3>
+      <button type="button" disabled={busy} onClick={onCancel}>{standaloneCopy("Close")}</button></div>
     {!materialId && <WorkspaceSourceStatus workspaceId={workspaceId} compact />}
-    {!workspaceId && !materialId && <p className="mt-3 text-sm">Select a workspace linked to a folder in the sidebar, then choose materials from it.</p>}
+    {!workspaceId && !materialId && <p className="mt-3 text-sm">{standaloneCopy("Select a workspace linked to a folder in the sidebar, then choose materials from it.")}</p>}
     {error && <p role="alert" className="mt-3 text-sm text-[var(--destructive)]">{error}</p>}
-    {!materialId && workspaceId && <div className="mt-3 max-h-56 overflow-y-auto rounded border border-[var(--border)] p-2" aria-label="Workspace files">
-      {directory && <button type="button" disabled={busy} className="block p-2 text-sm" onClick={() => setDirectory(directory.split('/').slice(0, -1).join('/'))}>Up one level</button>}
+    {!materialId && workspaceId && <div className="mt-3 max-h-56 overflow-y-auto rounded border border-[var(--border)] p-2" aria-label={standaloneCopy("Workspace files")}>
+      {directory && <button type="button" disabled={busy} className="block p-2 text-sm" onClick={() => setDirectory(directory.split('/').slice(0, -1).join('/'))}>{standaloneCopy("Up one level")}</button>}
       {entries.map(entry => <button key={entry.path} type="button" disabled={busy} className="block w-full rounded p-2 text-left text-sm hover:bg-[var(--muted)]"
-        onClick={() => { setHistory([]); if (entry.is_dir) setDirectory(entry.path); else void read(entry.path, null) }}>{entry.is_dir ? 'Folder: ' : ''}{entry.name}</button>)}
-      {!entries.length && !busy && <p className="p-2 text-sm">No usable materials in this directory.</p>}
-      {listTruncated && <p className="p-2 text-xs">Only part of this large directory is shown. Open a more specific subfolder.</p>}
+        onClick={() => { setHistory([]); if (entry.is_dir) setDirectory(entry.path); else void read(entry.path, null) }}>{entry.is_dir ? standaloneCopy("Folder: ") : ''}{entry.name}</button>)}
+      {!entries.length && !busy && <p className="p-2 text-sm">{standaloneCopy("No usable materials in this directory.")}</p>}
+      {listTruncated && <p className="p-2 text-xs">{standaloneCopy("Only part of this large directory is shown. Open a more specific subfolder.")}</p>}
     </div>}
-    {busy && <p role="status" className="mt-3 text-sm">Reading materials...</p>}
+    {busy && <p role="status" className="mt-3 text-sm">{standaloneCopy("Reading materials...")}</p>}
     {preview && <div className="mt-4 space-y-3">
-      <p className="break-words text-sm font-medium">{path || 'Uploaded material'} · {sourceRangeLabel(preview.units?.map(unit => unit.locator))}</p>
-      <label className="flex items-center gap-2 text-sm">Range per read
-        <select aria-label="Range per read" disabled={busy} value={units} onChange={event => { const value = Number(event.target.value); setUnits(value); setHistory([]); void read(path, null, value, preview.document.sha256) }}>
+      <p className="break-words text-sm font-medium">{path || standaloneCopy("Uploaded material")} · {sourceRangeLabel(preview.units?.map(unit => unit.locator))}</p>
+      <label className="flex items-center gap-2 text-sm">{standaloneCopy("Range per read")}
+        <select aria-label={standaloneCopy("Range per read")} disabled={busy} value={units} onChange={event => { const value = Number(event.target.value); setUnits(value); setHistory([]); void read(path, null, value, preview.document.sha256) }}>
           <option value={1}>1 page / paragraph / slide</option><option value={5}>5 pages / paragraphs / slides</option><option value={10}>10 pages / paragraphs / slides</option>
         </select></label>
       <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded bg-[var(--muted)] p-3 text-xs leading-relaxed">{preview.text || 'No text could be extracted from this range.'}</pre>
       <p className="text-xs text-[var(--muted-foreground)]">The classroom uses only the displayed range. {preview.truncated || preview.next_cursor ? 'More content follows. Continue browsing before selecting.' : 'End of document.'} The original file stays in its current location.</p>
       {preview.warnings?.map((warning, index) => <p key={index} className="text-xs text-[var(--warning-foreground)]">{warning}</p>)}
-      {preview.status === 'needs_ocr' && <p className="text-sm">The scanned content does not yet have usable OCR. Pages with missing text cannot be used as complete source text for a classroom.</p>}
+      {preview.status === 'needs_ocr' && <p className="text-sm">{standaloneCopy("The scanned content does not yet have usable OCR. Pages with missing text cannot be used as complete source text for a classroom.")}</p>}
       <div className="flex flex-wrap gap-3">
-        <button type="button" disabled={busy || !history.length} onClick={() => { const previous = history[history.length - 1]; setHistory(history.slice(0, -1)); void read(path, previous, units, preview.document.sha256) }}>Previous section</button>
-        <button type="button" disabled={busy || !preview.next_cursor} onClick={() => { setHistory([...history, cursor]); void read(path, preview.next_cursor || null, units, preview.document.sha256) }}>Next section</button>
-        <button type="button" disabled={busy || !preview.text?.trim() || preview.status === 'needs_ocr'} onClick={() => void select()}>Use the current reading range</button>
+        <button type="button" disabled={busy || !history.length} onClick={() => { const previous = history[history.length - 1]; setHistory(history.slice(0, -1)); void read(path, previous, units, preview.document.sha256) }}>{standaloneCopy("Previous section")}</button>
+        <button type="button" disabled={busy || !preview.next_cursor} onClick={() => { setHistory([...history, cursor]); void read(path, preview.next_cursor || null, units, preview.document.sha256) }}>{standaloneCopy("Next section")}</button>
+        <button type="button" disabled={busy || !preview.text?.trim() || preview.status === 'needs_ocr'} onClick={() => void select()}>{standaloneCopy("Use the current reading range")}</button>
       </div>
     </div>}
   </section>

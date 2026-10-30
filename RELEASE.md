@@ -1,3 +1,35 @@
+# DeepSteam r11.6.8 settings source update
+
+Source version: `2026.10.19-r11.6-settings`.
+Package label: `r11.6.8`.
+Source base: public commit `1e3e6cacb037100a53262e9521c2b87f76ca2b4b`.
+
+This snapshot brings the public tree up to the October 19 r11.6 settings build
+and includes the subsequent local repairs:
+
+- Archived-workspace cleanup: reading materials, reading collections and books
+  can be deleted from the account-wide library without restoring the workspace
+  first. Other writes to an archived workspace remain blocked.
+- Review closure: an independent correct review of an objective now closes every
+  older active error record for that objective, so `recent failure` and its
+  +20 risk contribution do not persist after a successful review. A later
+  qualitative pass does the same.
+- Installer and package metadata for the `r11.6.8` handoff, including the split
+  release assets and checksums.
+
+Verification performed for this source update: installer self-test passed with
+184913 files, full payload CRC passed 184913/184913, the two changed runtime
+files match the regenerated payload manifest, and the review-closure rule was
+tested on an in-memory copy of a real mastery state (active errors 2 → 0; hinted
+and non-review answers unchanged). This is not a claim of a new-PC cold install
+or complete end-to-end acceptance. The dated record is in
+[PROJECT-LOG.md](PROJECT-LOG.md).
+
+The 4 GB installer is published as split release assets, not as a Git object.
+The older r11.1 notes below retain their original scope.
+
+---
+
 # DeepSteam r11.1 source update
 
 Source version: `2026.10.17-r11.1-review`.

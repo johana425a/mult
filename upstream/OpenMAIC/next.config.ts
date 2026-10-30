@@ -64,7 +64,13 @@ const nextConfig: NextConfig = {
     proxyClientMaxBodySize: '200mb',
   },
   async headers() {
-    const extraAncestors = process.env.ALLOWED_FRAME_ANCESTORS?.trim();
+    // Next freezes these headers into the standalone build. DeepSteam's
+    // classroom is embedded by its two local UI services, not by this origin.
+    // Keep upstream deployments same-origin unless explicitly configured.
+    const standaloneAncestors = process.env.DEEPSTEAM_HARNESS_CORE === '1'
+      ? 'http://127.0.0.1:3791 http://127.0.0.1:3792 http://localhost:3791 http://localhost:3792'
+      : '';
+    const extraAncestors = process.env.ALLOWED_FRAME_ANCESTORS?.trim() || standaloneAncestors;
     const frameAncestors = extraAncestors ? `'self' ${extraAncestors}` : "'self'";
 
     return [

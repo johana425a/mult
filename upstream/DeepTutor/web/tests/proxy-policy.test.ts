@@ -67,6 +67,14 @@ test("backend proxy allows long-running agent requests", () => {
   );
 });
 
+test("reading upload bypasses body cloning without excluding adjacent routes", () => {
+  const matches = (url: string) => unstable_doesMiddlewareMatch({ config: proxyConfig, url });
+  assert.equal(matches("http://localhost/api/reading/materials?dt_workspace=ws_1"), false);
+  assert.equal(matches("http://localhost/api/reading/materials/"), false);
+  assert.equal(matches("http://localhost/api/reading/materials/material-1"), true);
+  assert.equal(matches("http://localhost/api/reading/materials-extra"), true);
+});
+
 test("isCodexCallbackPath matches only the exact public callback path", () => {
   assert.equal(CODEX_CALLBACK_PATH, "/auth/callback");
   assert.equal(CODEX_CALLBACK_API_PATH, "/api/auth/openai-codex/callback");

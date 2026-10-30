@@ -1,5 +1,10 @@
 # Document-capable Windows release
 
+Binary build/share entry points described in this historical guide are retired.
+Use [the mandatory release gate](../docs/release-gate.md) for candidates,
+regression, actual provider calls, cold installation, native acceptance and
+promotion. Source-only exports remain available.
+
 The r9 selected-model-vision edition keeps text-layer extraction local. Scan
 pages, standalone images and embedded Office pictures retain their original
 pixels and source locations for the verified model selected for the current task.

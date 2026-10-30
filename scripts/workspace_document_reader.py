@@ -35,9 +35,9 @@ from unittest import mock
 
 SCHEMA_VERSION = 1
 try:
-    MAX_FILE_BYTES = min(512 * 1024 * 1024, max(1024 * 1024, int(os.environ.get("EDUAGENT_DOCUMENT_MAX_BYTES", str(200 * 1024 * 1024)))))
+    MAX_FILE_BYTES = min(512 * 1024 * 1024, max(1024 * 1024, int(os.environ.get("EDUAGENT_DOCUMENT_MAX_BYTES", str(512 * 1024 * 1024)))))
 except ValueError:
-    MAX_FILE_BYTES = 200 * 1024 * 1024
+    MAX_FILE_BYTES = 512 * 1024 * 1024
 MAX_TEXT_BYTES = 32 * 1024 * 1024
 MAX_ZIP_MEMBERS = 10000
 MAX_ZIP_EXPANDED = 256 * 1024 * 1024
@@ -233,6 +233,23 @@ def bounded_int(value: Any, default: int, low: int, high: int) -> int:
     return value
 
 
+def _filesystem_path(path: Path) -> Path:
+    """Use Windows extended paths without changing public workspace identities.
+
+    Generated outputs include workspace, session and turn directories. Their
+    names can exceed MAX_PATH even when every individual name is valid. The
+    bundled Python does not rely on the host's long-path registry policy.
+    """
+    if os.name != "nt":
+        return path
+    value = str(path)
+    if value.startswith("\\\\?\\"):
+        return path
+    if value.startswith("\\\\"):
+        return Path("\\\\?\\UNC\\" + value[2:])
+    return Path("\\\\?\\" + value)
+
+
 def _plain_ancestors(path: Path) -> None:
     for item in [path, *path.parents]:
         info = item.lstat()
@@ -265,7 +282,7 @@ def _opened_windows_path(handle: Any) -> Path:
         name = "\\\\" + name[8:]
     elif name.startswith("\\\\?\\"):
         name = name[4:]
-    return Path(name)
+    return _filesystem_path(Path(name))
 
 
 def source_bytes(request: dict[str, Any]) -> tuple[str, str, bytes, str]:
@@ -281,6 +298,7 @@ def source_bytes(request: dict[str, Any]) -> tuple[str, str, bytes, str]:
     root = Path(root_raw)
     if not root.is_absolute():
         fail("INVALID_REQUEST", "The workspace root must be an absolute path.")
+    root = _filesystem_path(root)
     _plain_ancestors(root)
     root = root.resolve(strict=True)
     if not root.is_dir():

@@ -210,8 +210,8 @@ export function SidebarNav({
   if (collapsed) {
     return (
       <nav className="mt-1 flex w-full flex-col items-center gap-1 px-1.5">
-        <Tooltip label="Connect model" side="right">
-          <Link href={scopedUrl("/connect")} prefetch={false} onClick={onNavigate} aria-label="Connect model" className={`flex h-9 w-9 items-center justify-center rounded-xl ${pathname === '/connect' ? 'bg-[var(--accent)] text-[var(--foreground)]' : 'text-foreground/60 hover:bg-background/60'}`}><PlugZap size={18} strokeWidth={1.6} /></Link>
+        <Tooltip label={t("Connect model")} side="right">
+          <Link href={scopedUrl("/connect")} prefetch={false} onClick={onNavigate} aria-label={t("Connect model")} className={`flex h-9 w-9 items-center justify-center rounded-xl ${pathname === '/connect' ? 'bg-[var(--accent)] text-[var(--foreground)]' : 'text-foreground/60 hover:bg-background/60'}`}><PlugZap size={18} strokeWidth={1.6} /></Link>
         </Tooltip>
         {resolved.visible.map((href) => (
           <RailRow
@@ -411,7 +411,7 @@ export function SidebarNav({
   return (
     <nav className="px-2 pt-1">
       <ModelConnectionChip />
-      <Link href={scopedUrl("/connect")} prefetch={false} onClick={onNavigate} className={`mb-1 flex min-h-8 items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] ${pathname === '/connect' ? 'bg-[var(--accent)] text-[var(--foreground)]' : 'text-foreground/70 hover:bg-background/60 hover:text-[var(--foreground)]'}`}><PlugZap size={15} strokeWidth={1.6} /><span>Connect model</span></Link>
+      <Link href={scopedUrl("/connect")} prefetch={false} onClick={onNavigate} className={`mb-1 flex min-h-8 items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] ${pathname === '/connect' ? 'bg-[var(--accent)] text-[var(--foreground)]' : 'text-foreground/70 hover:bg-background/60 hover:text-[var(--foreground)]'}`}><PlugZap size={15} strokeWidth={1.6} /><span>{t("Connect model")}</span></Link>
       <div className="space-y-px">
         {resolved.visible.map((href) => (
           <Fragment key={href}>{renderRow(href, visibleDrag, false)}</Fragment>

@@ -180,8 +180,13 @@ class OpenAICodexProvider(LLMProvider):
                 if is_transient_transport_error(exc):
                     # Preserve a structured retry signal without exposing the
                     # URL, proxy, response body, or token-bearing request.
-                    logger.warning("Codex transport request failed: {}", type(exc).__name__)
-                    raise LLMProviderTransportError("Codex transport request failed.") from exc
+                    causes=[];current=exc
+                    while current is not None and len(causes)<6:
+                        causes.append(type(current).__name__)
+                        current=current.__cause__ or current.__context__
+                    logger.warning("Codex transport request failed: {}", " > ".join(causes))
+                    label = "TLS certificate verification failed" if "SSLCertVerificationError" in causes else "connection failed"
+                    raise LLMProviderTransportError("Codex " + label + " [" + type(exc).__name__ + "].") from exc
                 # The user-facing text stays generic so upstream payloads never
                 # leak, but an operator still needs the real cause in the log.
                 logger.exception("Codex request failed")
@@ -263,7 +268,7 @@ async def _request_codex(
     on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     on_provider_event: Callable[[str, dict[str, Any]], None] | None = None,
 ) -> tuple[str, list[ToolCallRequest], str]:
-    async with httpx.AsyncClient(timeout=60.0, verify=verify) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0,connect=10.0), verify=verify) as client:
         async with client.stream("POST", url, headers=headers, json=body) as response:
             if response.status_code != 200:
                 raw = await response.aread()

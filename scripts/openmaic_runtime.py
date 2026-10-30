@@ -60,6 +60,7 @@ def environment() -> dict[str, str]:
         # The bundled local renderer supports the upstream video workflow.
         # This flag is compiled into the browser app as well as set at launch.
         "NEXT_PUBLIC_ENABLE_VIDEO_EXPORT": "true",
+        "NEXT_PUBLIC_DEEPSTEAM_DEFAULT_LANGUAGE": "zh",
         "NODE_OPTIONS": "--max-old-space-size=8192",
         "LOG_LEVEL": "warn",
         # This desktop application intentionally calls its own loopback model.
@@ -145,10 +146,15 @@ def start(dev: bool = False) -> dict:
     for _ in range(15):
         time.sleep(1)
         current = status()
-        if current["healthy"] or not current["running"]:
-            break
-    current["mode"] = mode
-    return current
+        if not current["running"]:
+            raise RuntimeError("Classroom service exited before startup completed. See logs/openmaic.stderr.log; saved classrooms are retained.")
+        if current["healthy"]:
+            current["mode"] = mode
+            return current
+    # A zero exit status must mean a healthy service, not merely a spawned PID.
+    # Stop only the verified child; do not leave an unresponsive startup behind.
+    stop()
+    raise RuntimeError("Classroom startup timed out. Retry after checking logs/openmaic.stderr.log; saved classrooms are retained.")
 
 
 def stop() -> dict:

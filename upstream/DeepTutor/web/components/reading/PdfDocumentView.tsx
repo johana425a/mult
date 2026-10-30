@@ -16,7 +16,7 @@ import type {
   NormalisedRect,
   ReadingTextSelector,
 } from "@/lib/reading-api";
-import { rawMaterialUrl } from "@/lib/reading-api";
+import { renderMaterialUrl } from "@/lib/reading-api";
 import { domRangeForQuote } from "@/lib/reading-quote-locator";
 import {
   cleanQuote,
@@ -97,6 +97,7 @@ export function PdfDocumentView({
     materialId: string;
     message: string;
   } | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [pageWidth, setPageWidth] = useState(0);
   const committedWidthRef = useRef(0);
   const resizeAnchorRef = useRef<{
@@ -126,23 +127,42 @@ export function PdfDocumentView({
     // The loading task — not the document proxy — owns `destroy()`, and
     // destroying it is what releases the worker port and the buffered file.
     let task: { destroy: () => Promise<void> } | null = null;
+    let loadTimer: ReturnType<typeof setTimeout> | undefined;
 
     (async () => {
       try {
         const pdfjs = await loadPdfjs();
+        if (cancelled) return;
         const loadingTask = pdfjs.getDocument({
-          url: rawMaterialUrl(materialId),
+          // The reading store keeps original bytes separately. Its browser
+          // view repairs broken container xrefs without rewriting page content.
+          // Feeding the raw file bypasses that repair and can force PDF.js to
+          // allocate a whole-file string beyond the browser's limit.
+          url: renderMaterialUrl(materialId),
           // PDF.js loads OpenJPEG/JBIG2/QCMS from these assets when a PDF uses
           // JPEG2000 or other formats that are not decoded in pure JS.
           wasmUrl: pdfjsWasmUrl(),
-          // The raw route sits behind the session cookie like every other API
+          // The render route sits behind the session cookie like every other API
           // route; pdf.js does its own fetching, so it needs telling.
           withCredentials: true,
+          // The backend supports byte ranges. Read the xref/current pages on
+          // demand instead of buffering a whole large textbook in every tab.
+          disableStream: true,
+          disableAutoFetch: true,
+          // Large flat page trees otherwise fan out thousands of 64 KiB
+          // requests and exhaust Chromium's pending-request resources.
+          rangeChunkSize: 1024 * 1024,
         });
         task = loadingTask;
-        const opened: PdfDocument = await loadingTask.promise;
+        const deadline = new Promise<never>((_, reject) => {
+          loadTimer = setTimeout(() => {
+            reject(new Error(t("Opening the document timed out. Retry to continue.")));
+            void loadingTask.destroy().catch(() => {});
+          }, 90_000);
+        });
+        const opened: PdfDocument = await Promise.race([loadingTask.promise, deadline]);
         if (cancelled) return;
-        const first = await opened.getPage(1);
+        const first = await Promise.race([opened.getPage(1), deadline]);
         const viewport = first.getViewport({ scale: 1 });
         if (cancelled) return;
         setLoaded({
@@ -159,16 +179,19 @@ export function PdfDocumentView({
               ? caught.message
               : t("This document could not be opened."),
         });
+      } finally {
+        clearTimeout(loadTimer);
       }
     })();
 
     return () => {
       cancelled = true;
+      clearTimeout(loadTimer);
       // Release the worker's copy of the file; without this each opened
       // document leaks a worker port for the life of the session.
-      void task?.destroy();
+      void task?.destroy().catch(() => {});
     };
-  }, [materialId, t]);
+  }, [materialId, t, loadAttempt]);
 
   // -- width ---------------------------------------------------------------
 
@@ -475,6 +498,10 @@ export function PdfDocumentView({
         <p className="max-w-[420px] text-[12px] text-[var(--muted-foreground)]">
           {error}
         </p>
+        <button type="button" className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-[12px] text-[var(--primary-foreground)]"
+          onClick={() => { setLoadError(null); setLoadAttempt(value => value + 1); }}>
+          {t("Retry")}
+        </button>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ModelSelector from '@/components/chat/home/ModelSelector'
 import { useLLMOptions } from '@/hooks/useLLMOptions'
 import type { LLMSelection } from '@/features/chat/model/protocol'
@@ -14,6 +15,7 @@ export function UnifiedModelControl({ value, onChange, surface, disabled = false
   label?: string
   placement?: 'top' | 'bottom'
 }) {
+  const { t } = useTranslation()
   const models = useLLMOptions()
   const profileId = value?.profile_id
   const modelId = value?.model_id
@@ -30,7 +32,7 @@ export function UnifiedModelControl({ value, onChange, surface, disabled = false
   return <div className="min-w-0 space-y-1.5" data-model-surface={surface}>
     {label && <p className="text-xs font-medium text-[var(--muted-foreground)]">{label}</p>}
     <ModelSelector options={models.options} activeDefault={models.activeDefault} value={value} loading={models.loading} error={models.error} disabled={disabled} allowSystemDefault pinned placement={placement} onChange={onChange} onRefresh={() => void models.refresh({ force: true })} />
-    {error && <p role="status" className="text-xs text-[var(--destructive)]">{error}</p>}
-    {resolved && <p className="text-[11px] text-[var(--muted-foreground)]">{resolved.context_window ? `Context ${(resolved.context_window / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k` : 'Context capacity not provided'}{resolved.reasoning_effort ? ` · Reasoning ${resolved.reasoning_effort}` : ''}</p>}
+    {error && <p role="status" className="text-xs text-[var(--destructive)]">{t(error)}</p>}
+    {resolved && <p className="text-[11px] text-[var(--muted-foreground)]">{resolved.context_window ? `${t('Context')} ${(resolved.context_window / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k` : t('Context capacity not provided')}{resolved.reasoning_effort ? ` · ${t('Reasoning')} ${resolved.reasoning_effort}` : ''}</p>}
   </div>
 }

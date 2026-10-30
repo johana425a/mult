@@ -492,11 +492,13 @@ export async function upsertNotebookEntry(data: {
   confidence?: number | null;
   response_time?: number | null;
   quality?: number | null;
-}): Promise<NotebookEntry> {
+}, request?: { signal?: AbortSignal; workspaceId?: string }): Promise<NotebookEntry> {
   const response = await apiFetch(
-    apiUrl("/api/question-notebook/entries/upsert"),
+    apiUrl("/api/question-notebook/entries/upsert" + (request?.workspaceId !== undefined
+      ? `?dt_workspace=${encodeURIComponent(request.workspaceId)}` : "")),
     {
       method: "POST",
+      signal: request?.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...data,

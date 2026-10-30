@@ -230,7 +230,8 @@ def start_portal():
     # application root in code rather than relying on the developer shell.
     launch_code = ('import sys; sys.path.insert(0, ' + repr(str(ROOT)) + '); '
                    'import uvicorn; uvicorn.run("portal.app:app", host="127.0.0.1", '
-                   'port=3791, access_log=False, proxy_headers=False)')
+                   'port=3791, access_log=False, proxy_headers=False, '
+                   'loop="integration.server_event_loop:server_loop_factory")')
     with LOG.open('ab') as output:
         proc = subprocess.Popen([str(PYTHON), '-I', '-B', '-c', launch_code], cwd=ROOT, env=env, stdin=subprocess.DEVNULL, stdout=output, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
     STATE.write_text(json.dumps({'pid': proc.pid, 'created': psutil.Process(proc.pid).create_time()}), 'utf-8')

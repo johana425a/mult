@@ -4,9 +4,9 @@ Run with the bundled Python:  runtime\\python\\python.exe -I -B installer\\build
 
   --dry-run   inventory only: what would be packaged, what is excluded, junctions,
               anything that looks private. Nothing is written except the report.
-  (default)   write <out>\\DeepSteam-Setup-<version>-x64.exe (+ .payload.dat when the
-              payload is larger than a Windows EXE may be), then run the installer's
-              own --self-test against it.
+  --candidate-only --source-root <checkout>
+              build an UNRELEASED candidate and run installer self-test. Only
+              release_gate.py promote can create an accepted delivery directory.
 
 Only program files are packaged. Personal state (DeepTutor home with model keys,
 workspaces, chats, classrooms, Harness sessions and tokens, the desktop browser
@@ -19,6 +19,8 @@ import argparse, hashlib, json, os, stat, struct, subprocess, sys, time, zipfile
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'installer'))
+import release_gate
 CSC = Path(r'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe')
 TRAILER_MAGIC = b'DeepSteamZip64v1'
 MAX_PE_BYTES = 4 * 1024**3 - 65536 - 64
@@ -34,9 +36,12 @@ EXCLUDED_DIRS = {
 }
 EXCLUDED_DIR_NAMES = {'__pycache__', '.pytest_cache'}
 EXCLUDED_FILES = {
-    '.deepsteam-installed', '.deepsteam-installing', '.deepsteam-uninstall-id', 'PORTABLE-MANIFEST.sha256',
+    '.deepsteam-installed', '.deepsteam-installing', '.deepsteam-uninstall-id',
+    '.deepsteam-uninstall-manifest', '.deepsteam-uninstall-manifest.json',
+    'deepsteam-storage.json', 'PORTABLE-MANIFEST.sha256',
     'CLAUDE-CODEX-协作.md', 'DeepSteam.exe', 'Uninstall-DeepSteam.exe',
     'installer/payload-manifest.json', 'installer/junctions.json', 'installer/uninstall-manifest.json',
+    'installer/release-source.json',
     'runtime/deeptutor-processes.json', 'runtime/openmaic-process.json', 'runtime/portal-process.json',
     'runtime/video-follow-cache-version',
 }
@@ -135,6 +140,7 @@ def compile_exe(dest: Path):
     subprocess.run([str(CSC), '/nologo', '/target:winexe', '/platform:x64', '/optimize+', '/codepage:65001',
                     '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll',
                     '/reference:System.IO.Compression.dll', '/reference:System.IO.Compression.FileSystem.dll',
+                    '/reference:System.Runtime.Serialization.dll',
                     '/win32manifest:' + str(ROOT / 'installer' / 'DeepSteam.manifest'),
                     '/win32icon:' + str(ROOT / 'DeepSteam.ico'),
                     '/resource:' + str(ROOT / 'installer' / 'DeepSteamSetup.cs') + ',DeepSteamSetup.cs',
@@ -142,7 +148,7 @@ def compile_exe(dest: Path):
                    check=True, creationflags=0x08000000)
 
 
-def build_zip(files, links, version, archive: Path, log):
+def build_zip(files, links, version, archive: Path, log, source_binding=None):
     rows = []
     with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, allowZip64=True, compresslevel=6) as package:
         for index, (r, path, size) in enumerate(files):
@@ -156,6 +162,10 @@ def build_zip(files, links, version, archive: Path, log):
             rows.append({'path': r, 'bytes': size, 'sha256': digest.hexdigest()})
             if index % 2000 == 0:
                 log(f'  packed {index}/{len(files)}')
+        if source_binding is not None:
+            data = json.dumps(source_binding, ensure_ascii=False, indent=2).encode('utf-8')
+            package.writestr('installer/release-source.json', data)
+            rows.append({'path': 'installer/release-source.json', 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
         manifest = {'product': 'DeepSteam', 'version': version, 'created_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
                     'source': 'standalone installation', 'user_data_copied': False, 'credentials_copied': False,
                     'files': rows}
@@ -173,10 +183,22 @@ def sha256_of(path: Path) -> str:
 
 
 def main():
+    global ROOT
     parser = argparse.ArgumentParser()
-    parser.add_argument('--out', default=str(ROOT.parent / 'DeepSteam-Release'))
+    parser.add_argument('--out', default=str(ROOT.parent / 'DeepSteam-Candidates' / 'unreleased.candidate'))
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--candidate-only', action='store_true')
+    parser.add_argument('--source-root', help='Exact source checkout to bind to this candidate')
+    parser.add_argument('--runtime-root', help='Complete staged runtime; defaults to the containing installation')
     args = parser.parse_args()
+    if args.runtime_root:
+        ROOT = Path(args.runtime_root).resolve(strict=True)
+    if not args.dry_run and (not args.candidate_only or not args.source_root):
+        parser.error('Direct release is disabled. Use --candidate-only --source-root, then run all acceptance and release_gate.py promote.')
+    if not args.dry_run and not Path(args.out).name.endswith('.candidate'):
+        parser.error('Unreleased build output must have a .candidate directory suffix')
+    source = release_gate.source_identity(args.source_root) if not args.dry_run else None
+    source_binding = release_gate.runtime_binding(Path(args.source_root), ROOT) if not args.dry_run else None
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     report_path = out / ('dry-run-report.json' if args.dry_run else 'build-report.json')
     log_path = out / ('dry-run.log' if args.dry_run else 'build.log')
@@ -193,20 +215,20 @@ def main():
               'suspicious_names_for_review': suspicious[:200], 'by_folder': summarize(files)}
     log(f'{len(files)} files, {report["gb"]} GB, {len(links)} junctions, suspicious {len(suspicious)}')
     if args.dry_run:
-        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), 'utf-8'); log('dry run written'); return 0
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), 'utf-8'); log('dry run written'); logf.close(); return 0
     stem = f'DeepSteam-Setup-{version}-x64'
     exe, payload, archive = out / (stem + '.exe'), out / (stem + '.payload.dat'), out / (stem + '.zip.building')
     for existing in (exe, payload, archive):
         if existing.exists():
             raise RuntimeError('Output already exists; choose a new --out folder: ' + str(existing))
     log('compiling installer EXE'); compile_exe(exe)
-    log('packing payload'); rows = build_zip(files, links, version, archive, log)
+    log('packing payload'); rows = build_zip(files, links, version, archive, log, source_binding)
     zip_bytes = archive.stat().st_size; zip_sha = sha256_of(archive)
     exe_bytes = exe.stat().st_size
     if exe_bytes + zip_bytes + 64 <= MAX_PE_BYTES:
-        with open(exe, 'ab') as output, open(archive, 'rb') as source:
+        with open(exe, 'ab') as output, open(archive, 'rb') as payload_stream:
             offset = output.tell()
-            while block := source.read(8 * 1024 * 1024): output.write(block)
+            while block := payload_stream.read(8 * 1024 * 1024): output.write(block)
             output.write(struct.pack('<16sQQ32s', TRAILER_MAGIC, offset, zip_bytes, bytes.fromhex(zip_sha)))
         archive.unlink(); container = 'embedded in EXE'
     else:
@@ -218,11 +240,17 @@ def main():
     result = subprocess.run([str(exe), '--self-test', str(self_test)], timeout=3600)
     test_text = self_test.read_text('utf-8', errors='replace').strip() if self_test.exists() else '(no report)'
     log('self-test: ' + test_text)
-    report.update(container=container, compressed_bytes=zip_bytes, payload_sha256=zip_sha, exe=str(exe),
+    passed = result.returncode == 0 and test_text.startswith('PASS') and release_gate.source_identity(args.source_root) == source
+    report.update(release_status='UNRELEASED_CANDIDATE', source_binding=source_binding,
+                  container=container, compressed_bytes=zip_bytes, payload_sha256=zip_sha, exe=str(exe),
                   exe_sha256=sha256_of(exe), self_test=test_text, self_test_exit=result.returncode)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), 'utf-8')
-    log('BUILD ' + ('OK' if result.returncode == 0 and test_text.startswith('PASS') else 'FAILED'))
-    return 0 if result.returncode == 0 else 1
+    log('CANDIDATE ' + ('BUILT; NOT RELEASED' if passed else 'FAILED'))
+    logf.close()
+    if passed:
+        artifacts = [exe] + ([payload] if payload.exists() else [])
+        release_gate.begin(args.source_root, artifacts, out/'acceptance', version)
+    return 0 if passed else 1
 
 
 if __name__ == '__main__':

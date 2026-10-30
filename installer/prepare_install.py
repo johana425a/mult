@@ -31,21 +31,31 @@ def contained(value: str) -> Path:
 def main():
     manifest = json.loads((ROOT / 'installer' / 'payload-manifest.json').read_text('utf-8'))
     files = manifest['files']
-    for index, row in enumerate(files):
+    print(f'Integrity: 0/{len(files)}', flush=True)
+    for index, row in enumerate(files, 1):
         path = contained(row['path'])
         with open(native(path), 'rb') as stream:
             actual = hashlib.file_digest(stream, 'sha256').hexdigest()
         if actual != row['sha256']:
             raise RuntimeError('Package integrity check failed: ' + row['path'])
-        if index % 3000 == 0:
+        if index % 1000 == 0 or index == len(files):
             print(f'Integrity: {index}/{len(files)}', flush=True)
+    # Bounded phase counts report completed checks, never an animated estimate.
+    runtime_done = 0
+    def step():
+        nonlocal runtime_done
+        runtime_done += 1
+        print(f'Runtime: {runtime_done}/12', flush=True)
+    print('Runtime: 0/12', flush=True)
     links_report = repair(ROOT)
     print(f'Local dependency links: {links_report["dependency_links"]}', flush=True)
     for name in ('data', 'logs', 'cache', 'runtime/temp', 'reports'):
         (ROOT / name).mkdir(parents=True, exist_ok=True)
     configure_tokenizer_cache(ROOT)
+    step()
     node = ROOT / 'runtime' / 'node' / 'node.exe'
     subprocess.run([str(node), '--version'], check=True)
+    step()
     desktop = ROOT / 'runtime/desktop/DeepSteam Desktop.exe'
     harness = ROOT / 'runtime/harness/sidecar.mjs'
     desktop_harness = desktop.is_file() or harness.is_file()
@@ -61,12 +71,14 @@ def main():
         subprocess.run([str(node), '--check', str(harness)], check=True, timeout=30)
         subprocess.run([str(node), '--check', str(ROOT / 'runtime/desktop/resources/app/main.cjs')], check=True, timeout=30)
         subprocess.run([str(node), '--check', str(ROOT / 'runtime/desktop/resources/app/preload.cjs')], check=True, timeout=30)
+    step()
     subprocess.run([str(node), '-e', 'require.resolve("next"); console.log("OpenMAIC dependencies OK")'],
                    cwd=ROOT / 'runtime/openmaic-standalone', check=True)
     subprocess.run([str(node), str(ROOT / 'installer/test_sharp_runtime.js'), str(ROOT)], check=True, timeout=30)
     subprocess.run([str(node), str(ROOT / 'installer/test_next_image_cache.js'), str(ROOT)], check=True, timeout=30)
     if not (ROOT / 'runtime/render-service/node_modules/tsx/dist/cli.mjs').is_file():
         raise RuntimeError('Video renderer dependency link is not readable')
+    step()
     # Connection setup must work before a user chooses any teaching model.
     # Document parsing has a separate, installation-owned offline runtime.
     mineru_python = ROOT / 'runtime/mineru/python.exe'
@@ -78,9 +90,13 @@ def main():
         subprocess.run([str(mineru_python), '-I', '-B', str(mineru_worker), '--health'],
                        check=True, timeout=90, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
         mineru_verified = True
+    step()
     subprocess.run([sys.executable, '-I', '-B', '-c', 'import deeptutor, fastapi, uvicorn, psutil, PIL, pymupdf, faiss; print("Python application dependencies OK")'], check=True)
+    step()
     subprocess.run([sys.executable, '-I', '-B', str(ROOT / 'installer/native_backend_probe.py')], check=True, timeout=45)
+    step()
     subprocess.run([sys.executable, '-I', '-B', str(ROOT / 'scripts/verify_timezone_runtime.py')], check=True)
+    step()
     # Test the shipped parser/OCR closure on the recipient's machine as well as
     # at build time. No workspace, account or language model is involved.
     document_reader = ROOT / 'scripts/workspace_document_reader.py'
@@ -91,8 +107,11 @@ def main():
             raise RuntimeError('Document runtime self-check is missing; obtain the complete current installer.')
         subprocess.run([sys.executable, '-I', '-B', str(document_probe)], check=True, timeout=150)
         document_verified = True
+    step()
     subprocess.run([sys.executable, '-I', '-B', str(ROOT / 'installer/test_offline_tokenizer.py'), str(ROOT)], check=True)
+    step()
     subprocess.run([sys.executable, '-I', '-B', str(ROOT / 'scripts' / 'initialize_deepsteam.py')], cwd=ROOT, check=True)
+    step()
     report = {'files_verified': len(files), 'junctions_created_or_verified': links_report['dependency_links'],
               'standalone_install': True, 'network_required_for_install': False,
               'bundled_local_model': False, 'mineru_document_tool_verified': mineru_verified,
@@ -105,6 +124,7 @@ def main():
               'desktop_harness_accounts_or_cloud_calls_tested': False,
               'models_called': False, 'source_machine_credentials_copied': False}
     (ROOT / 'reports' / 'installed-runtime-check.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+    step()
     print('Installed package verification passed.', flush=True)
 
 

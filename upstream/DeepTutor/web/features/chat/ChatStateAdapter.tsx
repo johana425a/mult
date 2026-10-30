@@ -918,6 +918,13 @@ function reducer(state: ProviderState, action: Action): ProviderState {
       if (!state.sessions[action.key]) return state;
       const session = state.sessions[action.key];
       const msgs = [...session.messages];
+      // A restored waiting-input turn is idle until the server confirms
+      // its reply was consumed. Resume that same turn without resetting
+      // the replay cursor or inserting a second assistant message.
+      const resumedReply = !session.isStreaming &&
+        action.event.metadata?.ask_user_resolved === true &&
+        !!session.activeTurnId && action.event.turn_id === session.activeTurnId &&
+        (action.event.seq || 0) > session.lastSeq;
       let last = msgs[msgs.length - 1];
       if (last?.role !== "assistant") {
         msgs.push({
@@ -964,6 +971,9 @@ function reducer(state: ProviderState, action: Action): ProviderState {
         rawContent,
         events,
         capability,
+        ...(resumedReply && last?.trace
+          ? { trace: { ...last.trace, ended_at: undefined } }
+          : {}),
         resolvedModel: last?.resolvedModel ?? publicResolvedModel(action.event.metadata?.resolved_model),
       };
       return {
@@ -973,6 +983,7 @@ function reducer(state: ProviderState, action: Action): ProviderState {
           [action.key]: {
             ...session,
             messages: msgs,
+            ...(resumedReply ? { isStreaming: true, status: "running" as const } : {}),
             currentStage:
               action.event.type === "stage_start"
                 ? action.event.stage
@@ -2471,6 +2482,16 @@ export function ChatStateAdapterProvider({
       // was accepted; equal text from another tab is not enough.
       let restoredMessages = messages;
       let restoredStatus = loadedStatus;
+      // The tab may have closed after the server accepted a first send but
+      // before its session-binding event reached the browser. Reconcile that
+      // still-unbound draft by submission ID when opening its real history.
+      // Equal text, other drafts and genuinely unsent messages remain intact.
+      const unboundDraftKey = draftFailedSubmissionKey();
+      for (const draftRecord of readFailedSubmissions(unboundDraftKey)) {
+        if (serverContainsFailedSubmission(session.messages ?? [], draftRecord)) {
+          clearFailedSubmission(unboundDraftKey, draftRecord.submissionId);
+        }
+      }
       if (!options?.revalidate && loadedStatus !== "running") {
         for (const failedRecord of readFailedSubmissions(key)) {
           if (serverContainsFailedSubmission(session.messages ?? [], failedRecord)) {

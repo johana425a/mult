@@ -211,9 +211,9 @@ parser enforces canonical/reparse boundaries and budgets in both entrypoints.
         environment = {key: value for key, value in os.environ.items() if key.upper() in allowed}
         environment.update(PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1')
         try:
-            max_bytes = min(512 * 1024 * 1024, max(1024 * 1024, int(os.environ.get('EDUAGENT_DOCUMENT_MAX_BYTES', str(200 * 1024 * 1024)))))
+            max_bytes = min(512 * 1024 * 1024, max(1024 * 1024, int(os.environ.get('EDUAGENT_DOCUMENT_MAX_BYTES', str(512 * 1024 * 1024)))))
         except ValueError:
-            max_bytes = 200 * 1024 * 1024
+            max_bytes = 512 * 1024 * 1024
         environment['EDUAGENT_DOCUMENT_MAX_BYTES'] = str(max_bytes)
         arguments = [str(python), '-I', '-B', str(helper)]
         if os.environ.get('DEEPSTEAM_HARNESS_TEST_ROOT'):

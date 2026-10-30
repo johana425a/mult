@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import type { PartnerDraftData } from "@/lib/partner-draft";
 import { confirmPartnerDraft } from "@/lib/partners-api";
+import { releaseFeatureAvailable } from "@/lib/competition-profile";
 
 export const PartnerDraftCard = memo(function PartnerDraftCard({
   data,
@@ -60,6 +61,8 @@ export const PartnerDraftCard = memo(function PartnerDraftCard({
 
   const fieldClass =
     "w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[12px] text-[var(--foreground)] outline-none transition focus:border-[var(--ring)]";
+
+  if (!releaseFeatureAvailable('partners')) return null;
 
   return (
     <div className="mt-3 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.05)]">

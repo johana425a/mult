@@ -34,6 +34,7 @@ class FollowupAgent(BaseAgent):
         system_prompt = append_language_directive(
             self.get_prompt("system", ""),
             self.language,
+            allow_user_override=True,
         )
         user_prompt_template = self.get_prompt("answer_followup", "")
         if not user_prompt_template:

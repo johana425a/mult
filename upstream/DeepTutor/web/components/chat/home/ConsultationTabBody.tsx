@@ -10,6 +10,7 @@ import SubagentTabBody from './SubagentTabBody'
 import SubagentRunTranscript from './SubagentRunTranscript'
 import PartnerChat from '@/components/partners/PartnerChat'
 import { getPartner, getPartnerConsultationSession, type PartnerInfo } from '@/lib/partners-api'
+import { releaseFeatureAvailable } from '@/lib/competition-profile'
 
 export default function ConsultationTabBody({
   tabEvents,
@@ -20,6 +21,9 @@ export default function ConsultationTabBody({
 }) {
   const { t } = useTranslation()
   const meta = [...tabEvents].reverse().map(event => event.metadata ?? {}).find(meta => meta.partner_group_id)
+  if (!releaseFeatureAvailable('partners') && (meta || tabEvents.some(event => event.metadata?.subagent_kind === 'partner'))) {
+    return <div className="h-full min-h-0 overflow-y-auto overscroll-contain"><SubagentRunTranscript events={tabEvents} /></div>
+  }
   if (meta)
     return (
       <div className="flex h-full min-h-0 flex-col overflow-hidden">

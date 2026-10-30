@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useReading } from "@/context/ReadingContext";
 import { useChatStateAdapter } from "@/features/chat/ChatStateAdapter";
 import { courseSessionConfiguration } from "@/lib/course-session-scope";
+import { SESSION_LOAD_TIMEOUT_MS, sessionSubmissionBlocked } from "@/lib/session-load";
 import {
   addBookmark,
   deleteBookmark,
@@ -56,7 +57,7 @@ export function useReadingWorkspace(
 ) {
   const router = useRouter();
   const { t } = useTranslation();
-  const { material, annotations, openMaterial, closeMaterial, reportViewport } =
+  const { material: openedMaterial, annotations: openedAnnotations, openMaterial, closeMaterial, reportViewport } =
     useReading();
   const {
     state,
@@ -71,11 +72,23 @@ export function useReadingWorkspace(
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [activeLocator, setActiveLocator] = useState(1);
-  const [transcript, setTranscript] = useState<TranscriptRow[]>([]);
+  const [loadedTranscript, setLoadedTranscript] = useState<{
+    materialId: string; rows: TranscriptRow[];
+  }>({ materialId: "", rows: [] });
   const [organizedNotes, setOrganizedNotes] =
     useState<OrganizedReadingNotes | null>(null);
   const sessionBootRef = useRef("");
+  const sessionControllerRef = useRef<AbortController | null>(null);
+  const [sessionError, setSessionError] = useState(false);
+  const [sessionRetry, setSessionRetry] = useState(0);
+  const [sessionReadyKey, setSessionReadyKey] = useState("");
+  const sessionBootKey = `${workspaceId}:${sessionIdParam ?? "new"}:${courseId.trim()}`;
   const transcriptRequestRef = useRef(0);
+  const retrySession = useCallback(() => {
+    sessionBootRef.current = "";
+    setSessionError(false);
+    setSessionRetry((value) => value + 1);
+  }, []);
 
   const refresh = useCallback(async () => {
     const result = await getReadingWorkspace(workspaceId);
@@ -109,6 +122,8 @@ export function useReadingWorkspace(
   useEffect(() => {
     setReadingWorkspace(workspaceId);
     return () => {
+      sessionBootRef.current = "";
+      sessionControllerRef.current?.abort();
       setReadingWorkspace(null);
       closeMaterial();
     };
@@ -128,6 +143,16 @@ export function useReadingWorkspace(
       null,
     [workspace],
   );
+
+  // The selected tab changes before its detail request finishes. Never pair a
+  // new video's player with the previous video's locators, notes or transcript.
+  const material = openedMaterial?.material_id === activeTab?.material.material_id
+    ? openedMaterial : null;
+  const annotations = material ? openedAnnotations : [];
+  const transcript = material && loadedTranscript.materialId === material.material_id
+    ? loadedTranscript.rows : [];
+  const submissionBlocked = loading || !workspace || !material || sessionReadyKey !== sessionBootKey ||
+    sessionSubmissionBlocked(sessionIdParam, state.sessionId, false, false);
 
   useEffect(() => {
     const active = activeTab?.material;
@@ -171,17 +196,25 @@ export function useReadingWorkspace(
 
   useEffect(() => {
     if (!workspace || loading) return;
-    const bootKey = `${workspaceId}:${sessionIdParam ?? "new"}:${courseId.trim()}`;
+    const bootKey = sessionBootKey;
     if (sessionBootRef.current === bootKey) return;
     sessionBootRef.current = bootKey;
+    sessionControllerRef.current?.abort();
+    setSessionError(false);
 
     // The URL catching up with the session the first turn just created is not
     // a request to open a different conversation — the transcript on screen
     // already IS that conversation. Reloading it here would swap a streaming
     // answer for whatever partial row the backend has written so far.
-    if (sessionIdParam && sessionIdParam === state.sessionId) return;
+    if (sessionIdParam && sessionIdParam === state.sessionId) {
+      setSessionReadyKey(bootKey);
+      return;
+    }
 
     void (async () => {
+      const controller = new AbortController();
+      sessionControllerRef.current = controller;
+      const timeout = window.setTimeout(() => controller.abort(), SESSION_LOAD_TIMEOUT_MS);
       try {
         // The URL is the truth about which conversation is open, the same
         // rule /chat follows: `/reading/<ws>/sessions/<id>` opens that conversation,
@@ -199,17 +232,19 @@ export function useReadingWorkspace(
           courseId,
         );
         if (sessionIdParam) {
-          await loadSession(sessionIdParam);
+          await loadSession(sessionIdParam, { signal: controller.signal });
+          if (sessionBootRef.current !== bootKey) return;
+          if (controller.signal.aborted) throw new Error("Session restore interrupted");
           configureSession(scopedSessionConfiguration, sessionIdParam);
         } else {
           newSession({ ...scopedSessionConfiguration, capability: null });
         }
+        if (sessionBootRef.current === bootKey) setSessionReadyKey(bootKey);
       } catch (caught) {
-        setError(
-          caught instanceof Error
-            ? caught.message
-            : t("The reading conversation could not be loaded."),
-        );
+        if (sessionBootRef.current !== bootKey) return;
+        setSessionError(true);
+      } finally {
+        window.clearTimeout(timeout);
       }
     })();
   }, [
@@ -219,6 +254,8 @@ export function useReadingWorkspace(
     loading,
     newSession,
     sessionIdParam,
+    sessionBootKey,
+    sessionRetry,
     sessionConfiguration,
     state.sessionId,
     t,
@@ -227,8 +264,8 @@ export function useReadingWorkspace(
   ]);
 
   useEffect(() => {
-    if (!material || material.unit !== "segment") return;
     const requestId = ++transcriptRequestRef.current;
+    if (!material || material.unit !== "segment") return;
     // One request for the whole transcript. Segments follow the speaker's
     // sentences, so a lecture has hundreds of them and fetching each on its own
     // meant hundreds of round trips before the panel could draw anything.
@@ -245,13 +282,14 @@ export function useReadingWorkspace(
             text: row.text,
             sourceHref: row.source_href,
           }));
-        setTranscript(rows);
+        setLoadedTranscript({ materialId: material.material_id, rows });
       })
       .catch(() => {
         if (transcriptRequestRef.current !== requestId) return;
-        setTranscript([]);
+        setLoadedTranscript({ materialId: material.material_id, rows: [] });
         setNotice(t("This transcript could not be loaded."));
       });
+    return () => { transcriptRequestRef.current += 1; };
   }, [material, t]);
 
   const activeConversation = useMemo(
@@ -510,6 +548,9 @@ export function useReadingWorkspace(
     conversations,
     setConversations,
     loading,
+    submissionBlocked,
+    sessionError,
+    retrySession,
     error,
     notice,
     setNotice,

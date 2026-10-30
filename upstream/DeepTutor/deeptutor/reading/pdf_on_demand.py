@@ -101,6 +101,7 @@ def browser_pdf(store, material_id: str) -> Path:
 def ingest_pdf(store, source: Path, filename: str | None = None):
     import pymupdf
     from .extract import _pdf_outline
+    from .directory_commit import publish
     from .models import MaterialManifest, ReadingError
     from .store import MANIFEST_NAME, OUTLINE_NAME, RAW_DIR, _ID_LENGTH, _atomic_write, _safe_filename
 
@@ -144,7 +145,7 @@ def ingest_pdf(store, source: Path, filename: str | None = None):
             _atomic_write(stage / INDEX_NAME, json.dumps({'version':1, 'sha256':digest,
                 'page_count':count, 'text_extraction':'on_demand', 'semantic_completeness':'not_guaranteed'}))
             _atomic_write(stage / MANIFEST_NAME, json.dumps(manifest.to_dict(), ensure_ascii=False))
-            os.replace(stage, destination)
+            publish(destination, stage, store.root / f'.{material_id}.{uuid.uuid4().hex}.backup')
         except BaseException:
             # A failed stage is retained as recovery evidence, not called ready.
             raise

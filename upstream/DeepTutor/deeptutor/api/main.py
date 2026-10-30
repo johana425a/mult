@@ -412,6 +412,8 @@ app = FastAPI(
     redirect_slashes=False,
 )
 app.add_middleware(WorkspaceActivityMiddleware)
+from deeptutor.services.competition_profile import CompetitionProfileMiddleware
+app.add_middleware(CompetitionProfileMiddleware)
 
 
 @app.middleware("http")

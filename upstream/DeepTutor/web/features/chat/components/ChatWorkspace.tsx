@@ -42,6 +42,7 @@ import { TurnNavigator } from "@/components/chat/home/TurnNavigator";
 import SessionLoadingView from "@/components/chat/home/SessionLoadingView";
 import {
   SESSION_LOAD_TIMEOUT_MS,
+  sessionSubmissionBlocked,
   shouldSurfaceLoadFailure,
 } from "@/lib/session-load";
 import StarterSuggestions from "@/components/chat/home/StarterSuggestions";
@@ -1841,6 +1842,10 @@ export default function ChatWorkspace() {
 
   const handleSend = useCallback(
     async (content: string) => {
+      if (sessionSubmissionBlocked(sessionIdParam, state.sessionId, sessionLoading, sessionLoadFailed)) {
+        if (content) prefillInputRef.current?.(content);
+        return;
+      }
       // An existing session saves its selector before the next turn starts.
       // The composer may be used immediately after changing the dropdown.
       if (!(await waitForReplyLanguageSave(
@@ -2035,6 +2040,10 @@ export default function ChatWorkspace() {
       shouldAutoScrollRef,
       state.isStreaming,
       state.sessionKey,
+      state.sessionId,
+      sessionIdParam,
+      sessionLoading,
+      sessionLoadFailed,
       subagentBudget,
       selectedPartnerGroup,
       selectedPartner,
@@ -2725,6 +2734,7 @@ export default function ChatWorkspace() {
                 selectedMemoryFiles={selectedMemoryFiles}
                 selectedKnowledgeBases={selectedKbOnly}
                 isStreaming={state.isStreaming}
+                submissionBlocked={sessionSubmissionBlocked(sessionIdParam, state.sessionId, sessionLoading, sessionLoadFailed)}
                 isVisualizeMode={isVisualizeMode}
                 capabilityNeedsConfig={capabilityNeedsConfig}
                 capabilityConfigConfirmed={capabilityConfigConfirmed}
@@ -2794,7 +2804,7 @@ export default function ChatWorkspace() {
                 <StarterSuggestions
                   workspaceId={state.workspaceId || ""}
                   onPick={(prompt) => void handleSend(prompt)}
-                  disabled={state.isStreaming}
+                  disabled={state.isStreaming || sessionSubmissionBlocked(sessionIdParam, state.sessionId, sessionLoading, sessionLoadFailed)}
                 />
               ) : null}
               <div

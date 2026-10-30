@@ -1,6 +1,7 @@
 """Freeze and build a new document-capable release from a public baseline.
 
-This is the current parameterized entry point. Changed program files come from
+This is a historical prepare/validate entry point. Binary build/share are
+retired in favor of release_gate.py. Changed program files come from
 reviewed manifests; unchanged ZIP records are reused without extracting/copying
 models. A final packaged Python OCR/Office check is mandatory. Never writes E.
 """
@@ -353,6 +354,7 @@ def prepare(args):
 
 def share(args):
     """Create reviewed source/license companions after final runtime verification."""
+    raise RuntimeError('Legacy binary share is retired. Use release_gate.py promote after candidate acceptance. Source-only handoffs remain available through scripts/package_handoff.py.')
     plan, _, _, _, _ = release.load_plan(args.spec_sha256)
     build_path = release.ARTIFACT / "build-report.json"
     build = json.loads(build_path.read_text("utf8"))
@@ -456,6 +458,8 @@ def main():
     parser.add_argument("--extra-share-file", action="append", help="Reviewed DeepSteam ZIP to freeze and include beside the installer")
     parser.add_argument("--spec-sha256")
     args = parser.parse_args()
+    if args.action in ('build', 'share'):
+        parser.error('Legacy build/share cannot bypass the release gate. Use build_standalone_release.py --candidate-only --source-root, then release_gate.py promote.')
     configure(args)
     if args.action == "prepare":
         prepare(args)

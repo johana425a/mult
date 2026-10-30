@@ -1,11 +1,155 @@
 [
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@anthropic-ai+sdk@0.91.1_zod@4.3.6/node_modules/json-schema-to-ts",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/json-schema-to-ts@3.1.1/node_modules/json-schema-to-ts"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@anthropic-ai+sdk@0.91.1_zod@4.3.6/node_modules/zod",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/zod@4.3.6/node_modules/zod"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+crc32@5.2.0/node_modules/@aws-crypto/util",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+util@5.2.0/node_modules/@aws-crypto/util"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+crc32@5.2.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+crc32@5.2.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@aws-crypto/sha256-js",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-js@5.2.0/node_modules/@aws-crypto/sha256-js"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@aws-crypto/supports-web-crypto",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+supports-web-crypto@5.2.0/node_modules/@aws-crypto/supports-web-crypto"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@aws-crypto/util",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+util@5.2.0/node_modules/@aws-crypto/util"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@aws-sdk/util-locate-window",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+util-locate-window@3.965.8/node_modules/@aws-sdk/util-locate-window"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@smithy/util-utf8",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+util-utf8@2.3.0/node_modules/@smithy/util-utf8"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-js@5.2.0/node_modules/@aws-crypto/util",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+util@5.2.0/node_modules/@aws-crypto/util"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-js@5.2.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-js@5.2.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+supports-web-crypto@5.2.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+util@5.2.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+util@5.2.0/node_modules/@smithy/util-utf8",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+util-utf8@2.3.0/node_modules/@smithy/util-utf8"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+util@5.2.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+checksums@3.1000.26/node_modules/@aws-sdk/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+checksums@3.1000.26/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+checksums@3.1000.26/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+checksums@3.1000.26/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+checksums@3.1000.26/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-crypto/sha256-browser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@aws-crypto/sha256-browser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-crypto/sha256-js",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-js@5.2.0/node_modules/@aws-crypto/sha256-js"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/credential-provider-node",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/credential-provider-node"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/eventstream-handler-node",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+eventstream-handler-node@3.972.22/node_modules/@aws-sdk/eventstream-handler-node"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/middleware-eventstream",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-eventstream@3.972.18/node_modules/@aws-sdk/middleware-eventstream"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/middleware-websocket",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/@aws-sdk/middleware-websocket"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/token-providers",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/@aws-sdk/token-providers"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@smithy/fetch-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.5.1/node_modules/@smithy/fetch-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@smithy/node-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.7.3/node_modules/@smithy/node-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/@aws-sdk/checksums",
@@ -28,12 +172,64 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@aws-sdk/signature-v4-multi-region"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/@smithy/fetch-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.6.13/node_modules/@smithy/fetch-http-handler"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/@smithy/node-http-handler",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.9.13/node_modules/@smithy/node-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-s3@3.1106.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/xml-builder",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+xml-builder@3.972.30/node_modules/@aws-sdk/xml-builder"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws/lambda-invoke-store",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws+lambda-invoke-store@0.2.4/node_modules/@aws/lambda-invoke-store"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@smithy/signature-v4",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.5.1/node_modules/@smithy/signature-v4"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/bowser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/bowser@2.14.1/node_modules/bowser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/xml-builder",
@@ -52,28 +248,164 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.6.12/node_modules/@smithy/signature-v4"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/bowser",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/bowser@2.14.1/node_modules/bowser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.67/node_modules/@aws-sdk/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.67/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.67/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.67/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.67/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@smithy/fetch-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.5.1/node_modules/@smithy/fetch-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@smithy/node-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.8.1/node_modules/@smithy/node-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.69/node_modules/@aws-sdk/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.69/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.69/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.69/node_modules/@smithy/fetch-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.6.13/node_modules/@smithy/fetch-http-handler"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.69/node_modules/@smithy/node-http-handler",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.9.13/node_modules/@smithy/node-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.69/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.69/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-env",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/@aws-sdk/credential-provider-env"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-http",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@aws-sdk/credential-provider-http"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-login",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/@aws-sdk/credential-provider-login"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-process",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/@aws-sdk/credential-provider-process"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-sso",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@aws-sdk/credential-provider-sso"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-web-identity",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@aws-sdk/credential-provider-web-identity"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/nested-clients",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/nested-clients"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@smithy/credential-provider-imds",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.1/node_modules/@smithy/credential-provider-imds"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.973.12/node_modules/@aws-sdk/core",
@@ -108,12 +440,48 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@aws-sdk/nested-clients"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.973.12/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.973.12/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.973.12/node_modules/@smithy/credential-provider-imds",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.16/node_modules/@smithy/credential-provider-imds"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.973.12/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.973.12/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/@aws-sdk/nested-clients",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/nested-clients"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.74/node_modules/@aws-sdk/core",
@@ -124,8 +492,64 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@aws-sdk/nested-clients"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.74/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.74/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.74/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.74/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/credential-provider-env",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/@aws-sdk/credential-provider-env"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/credential-provider-http",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@aws-sdk/credential-provider-http"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/credential-provider-ini",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-ini"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/credential-provider-process",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/@aws-sdk/credential-provider-process"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/credential-provider-sso",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@aws-sdk/credential-provider-sso"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/credential-provider-web-identity",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@aws-sdk/credential-provider-web-identity"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@smithy/credential-provider-imds",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.1/node_modules/@smithy/credential-provider-imds"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.57/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.78/node_modules/@aws-sdk/credential-provider-env",
@@ -152,6 +576,10 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.73/node_modules/@aws-sdk/credential-provider-web-identity"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.78/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.78/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
@@ -160,12 +588,80 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.16/node_modules/@smithy/credential-provider-imds"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.78/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.78/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.67/node_modules/@aws-sdk/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.67/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.67/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.67/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.67/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@aws-sdk/nested-clients",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/nested-clients"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@aws-sdk/token-providers",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1071.0/node_modules/@aws-sdk/token-providers"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.973.11/node_modules/@aws-sdk/core",
@@ -180,8 +676,44 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1103.0/node_modules/@aws-sdk/token-providers"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.973.11/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.973.11/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.973.11/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.973.11/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@aws-sdk/nested-clients",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/nested-clients"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.73/node_modules/@aws-sdk/core",
@@ -192,8 +724,52 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@aws-sdk/nested-clients"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.73/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.73/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.73/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.73/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+eventstream-handler-node@3.972.22/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+eventstream-handler-node@3.972.22/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+eventstream-handler-node@3.972.22/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+eventstream-handler-node@3.972.22/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-eventstream@3.972.18/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-eventstream@3.972.18/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-eventstream@3.972.18/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-eventstream@3.972.18/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-sdk-s3@3.972.72/node_modules/@aws-sdk/core",
@@ -204,8 +780,88 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@aws-sdk/signature-v4-multi-region"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-sdk-s3@3.972.72/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-sdk-s3@3.972.72/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-sdk-s3@3.972.72/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-sdk-s3@3.972.72/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/@smithy/fetch-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.5.1/node_modules/@smithy/fetch-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/@smithy/signature-v4",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.5.1/node_modules/@smithy/signature-v4"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-websocket@3.972.30/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-crypto/sha256-browser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-browser@5.2.0/node_modules/@aws-crypto/sha256-browser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-crypto/sha256-js",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+sha256-js@5.2.0/node_modules/@aws-crypto/sha256-js"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/signature-v4-multi-region",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.35/node_modules/@aws-sdk/signature-v4-multi-region"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@smithy/fetch-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.5.1/node_modules/@smithy/fetch-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@smithy/node-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.8.1/node_modules/@smithy/node-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@aws-sdk/core",
@@ -216,12 +872,28 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@aws-sdk/signature-v4-multi-region"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@smithy/fetch-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.6.13/node_modules/@smithy/fetch-http-handler"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@smithy/node-http-handler",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.9.13/node_modules/@smithy/node-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+s3-request-presigner@3.1107.0/node_modules/@aws-sdk/core",
@@ -232,12 +904,100 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@aws-sdk/signature-v4-multi-region"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+s3-request-presigner@3.1107.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+s3-request-presigner@3.1107.0/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+s3-request-presigner@3.1107.0/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+s3-request-presigner@3.1107.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.35/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.35/node_modules/@smithy/signature-v4",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.5.1/node_modules/@smithy/signature-v4"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.35/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.35/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@smithy/signature-v4",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.6.12/node_modules/@smithy/signature-v4"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/@aws-sdk/nested-clients",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/nested-clients"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1071.0/node_modules/@aws-sdk/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.974.22/node_modules/@aws-sdk/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1071.0/node_modules/@aws-sdk/nested-clients",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/nested-clients"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1071.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@aws-sdk/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1071.0/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1071.0/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1071.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1103.0/node_modules/@aws-sdk/core",
@@ -248,8 +1008,256 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.41/node_modules/@aws-sdk/nested-clients"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1103.0/node_modules/@aws-sdk/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@aws-sdk/types"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1103.0/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1103.0/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1103.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.973.13/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+types@3.974.2/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+util-locate-window@3.965.8/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+xml-builder@3.972.30/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+xml-builder@3.972.30/node_modules/fast-xml-parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-parser@5.7.3/node_modules/fast-xml-parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+xml-builder@3.972.30/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+xml-builder@3.972.37/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+xml-builder@3.972.37/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+code-frame@7.29.0/node_modules/@babel/helper-validator-identifier",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-validator-identifier@7.28.5/node_modules/@babel/helper-validator-identifier"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+code-frame@7.29.0/node_modules/js-tokens",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/js-tokens@4.0.0/node_modules/js-tokens"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+code-frame@7.29.0/node_modules/picocolors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/code-frame",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+code-frame@7.29.0/node_modules/@babel/code-frame"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/generator",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+generator@7.29.1/node_modules/@babel/generator"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/helper-compilation-targets",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-compilation-targets@7.28.6/node_modules/@babel/helper-compilation-targets"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/helper-module-transforms",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-transforms@7.28.6_@babel+core@7.29.0/node_modules/@babel/helper-module-transforms"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/helpers",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helpers@7.28.6/node_modules/@babel/helpers"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/template",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+template@7.28.6/node_modules/@babel/template"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/traverse",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/traverse"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@jridgewell/remapping",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+remapping@2.3.5/node_modules/@jridgewell/remapping"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/convert-source-map",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/convert-source-map@2.0.0/node_modules/convert-source-map"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/gensync",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/json5",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/json5@2.2.3/node_modules/json5"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/semver",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/semver@6.3.1/node_modules/semver"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+generator@7.29.1/node_modules/@babel/parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+generator@7.29.1/node_modules/@babel/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+generator@7.29.1/node_modules/@jridgewell/gen-mapping",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+generator@7.29.1/node_modules/@jridgewell/trace-mapping",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+generator@7.29.1/node_modules/jsesc",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/jsesc@3.1.0/node_modules/jsesc"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-compilation-targets@7.28.6/node_modules/@babel/compat-data",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+compat-data@7.29.0/node_modules/@babel/compat-data"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-compilation-targets@7.28.6/node_modules/@babel/helper-validator-option",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-validator-option@7.27.1/node_modules/@babel/helper-validator-option"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-compilation-targets@7.28.6/node_modules/browserslist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/browserslist@4.28.1/node_modules/browserslist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-compilation-targets@7.28.6/node_modules/lru-cache",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/lru-cache@5.1.1/node_modules/lru-cache"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-compilation-targets@7.28.6/node_modules/semver",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/semver@6.3.1/node_modules/semver"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-imports@7.28.6/node_modules/@babel/traverse",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/traverse"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-imports@7.28.6/node_modules/@babel/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-transforms@7.28.6_@babel+core@7.29.0/node_modules/@babel/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-transforms@7.28.6_@babel+core@7.29.0/node_modules/@babel/helper-module-imports",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-imports@7.28.6/node_modules/@babel/helper-module-imports"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-transforms@7.28.6_@babel+core@7.29.0/node_modules/@babel/helper-validator-identifier",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-validator-identifier@7.28.5/node_modules/@babel/helper-validator-identifier"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-module-transforms@7.28.6_@babel+core@7.29.0/node_modules/@babel/traverse",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/traverse"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helpers@7.28.6/node_modules/@babel/template",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+template@7.28.6/node_modules/@babel/template"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helpers@7.28.6/node_modules/@babel/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+template@7.28.6/node_modules/@babel/code-frame",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+code-frame@7.29.0/node_modules/@babel/code-frame"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+template@7.28.6/node_modules/@babel/parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+template@7.28.6/node_modules/@babel/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/code-frame",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+code-frame@7.29.0/node_modules/@babel/code-frame"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/generator",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+generator@7.29.1/node_modules/@babel/generator"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/helper-globals",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-globals@7.28.0/node_modules/@babel/helper-globals"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/template",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+template@7.28.6/node_modules/@babel/template"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/@babel/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+traverse@7.29.0/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/helper-string-parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-string-parser@7.27.1/node_modules/@babel/helper-string-parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+types@7.29.0/node_modules/@babel/helper-validator-identifier",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+helper-validator-identifier@7.28.5/node_modules/@babel/helper-validator-identifier"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-agent-co_a36de0a8d15ca8c8a26221e7d704a3ad/node_modules/@earendil-works/pi-ai",
@@ -260,6 +1268,10 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/ignore@7.0.5/node_modules/ignore"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-agent-co_a36de0a8d15ca8c8a26221e7d704a3ad/node_modules/typebox",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/typebox@1.1.38/node_modules/typebox"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-agent-co_a36de0a8d15ca8c8a26221e7d704a3ad/node_modules/yaml",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml"
   },
@@ -268,12 +1280,28 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@anthropic-ai+sdk@0.91.1_zod@4.3.6/node_modules/@anthropic-ai/sdk"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/@aws-sdk/client-bedrock-runtime",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+client-bedrock-runtime@3.1048.0/node_modules/@aws-sdk/client-bedrock-runtime"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/@google/genai",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@google+genai@1.52.0_@model_51e79fc0fd51b5bc74abd068fb4dd832/node_modules/@google/genai"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/@mistralai/mistralai",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@mistralai+mistralai@2.2.1/node_modules/@mistralai/mistralai"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/@smithy/node-http-handler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.7.3/node_modules/@smithy/node-http-handler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/http-proxy-agent",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/http-proxy-agent@7.0.2/node_modules/http-proxy-agent"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/https-proxy-agent",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/https-proxy-agent@7.0.6/node_modules/https-proxy-agent"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@earendil-works+pi-ai@0.78._4ce42e035d9f2006529f7aee0a76c62c/node_modules/openai",
@@ -288,6 +1316,10 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/typebox@1.1.38/node_modules/typebox"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@google+genai@1.52.0_@model_51e79fc0fd51b5bc74abd068fb4dd832/node_modules/@modelcontextprotocol/sdk",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/@modelcontextprotocol/sdk"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@google+genai@1.52.0_@model_51e79fc0fd51b5bc74abd068fb4dd832/node_modules/google-auth-library",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/google-auth-library@10.7.0/node_modules/google-auth-library"
   },
@@ -296,7 +1328,43 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/p-retry@4.6.2/node_modules/p-retry"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@google+genai@1.52.0_@model_51e79fc0fd51b5bc74abd068fb4dd832/node_modules/protobufjs",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/protobufjs"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@google+genai@1.52.0_@model_51e79fc0fd51b5bc74abd068fb4dd832/node_modules/ws",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ws@8.19.0/node_modules/ws"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@hono+node-server@1.19.11_hono@4.12.7/node_modules/hono",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/hono@4.12.7/node_modules/hono"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/sourcemap-codec",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.5.5/node_modules/@jridgewell/sourcemap-codec"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/trace-mapping",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+remapping@2.3.5/node_modules/@jridgewell/gen-mapping",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+remapping@2.3.5/node_modules/@jridgewell/trace-mapping",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/resolve-uri",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/sourcemap-codec",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.5.5/node_modules/@jridgewell/sourcemap-codec"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@mistralai+mistralai@2.2.1/node_modules/ws",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/ws@8.19.0/node_modules/ws"
   },
   {
@@ -308,6 +1376,86 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/zod-to-json-schema@3.25.1_zod@4.3.6/node_modules/zod-to-json-schema"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/@cfworker/json-schema",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@cfworker+json-schema@4.1.1/node_modules/@cfworker/json-schema"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/@hono/node-server",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@hono+node-server@1.19.11_hono@4.12.7/node_modules/@hono/node-server"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/ajv",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ajv@8.18.0/node_modules/ajv"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/ajv-formats",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.18.0/node_modules/ajv-formats"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/content-type",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/content-type@1.0.5/node_modules/content-type"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/cors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/cors@2.8.6/node_modules/cors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/cross-spawn",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/eventsource",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/eventsource@3.0.7/node_modules/eventsource"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/eventsource-parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/eventsource-parser@3.0.6/node_modules/eventsource-parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/express",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/express"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/express-rate-limit",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express-rate-limit"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/hono",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/hono@4.12.7/node_modules/hono"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/jose",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/jose@6.2.1/node_modules/jose"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/json-schema-typed",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/json-schema-typed@8.0.2/node_modules/json-schema-typed"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/pkce-challenge",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pkce-challenge@5.0.1/node_modules/pkce-challenge"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/raw-body",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/raw-body@3.0.2/node_modules/raw-body"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/zod",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/zod@4.3.6/node_modules/zod"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@modelcontextprotocol+sdk@1_282769b5756c39427bc9d8c4ef21ecc7/node_modules/zod-to-json-schema",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/zod-to-json-schema@3.25.1_zod@4.3.6/node_modules/zod-to-json-schema"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@playwright+test@1.58.2/node_modules/playwright",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/playwright@1.58.2/node_modules/playwright"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+fetch@1.1.1/node_modules/@protobufjs/aspromise",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+aspromise@1.1.2/node_modules/@protobufjs/aspromise"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+core@3.23.0/node_modules/@shikijs/types",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/types"
   },
@@ -316,28 +1464,372 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+vscode-textmate@10.0.2/node_modules/@shikijs/vscode-textmate"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+core@3.23.0/node_modules/@types/hast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+hast@3.0.4/node_modules/@types/hast"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+core@3.23.0/node_modules/hast-util-to-html",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/hast-util-to-html"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+engine-javascript@3.23.0/node_modules/@shikijs/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+engine-javascript@3.23.0/node_modules/@shikijs/vscode-textmate",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+vscode-textmate@10.0.2/node_modules/@shikijs/vscode-textmate"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+engine-javascript@3.23.0/node_modules/oniguruma-to-es",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/oniguruma-to-es@4.3.4/node_modules/oniguruma-to-es"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+engine-oniguruma@3.23.0/node_modules/@shikijs/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+engine-oniguruma@3.23.0/node_modules/@shikijs/vscode-textmate",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+vscode-textmate@10.0.2/node_modules/@shikijs/vscode-textmate"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+langs@3.23.0/node_modules/@shikijs/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+themes@3.23.0/node_modules/@shikijs/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/vscode-textmate",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+vscode-textmate@10.0.2/node_modules/@shikijs/vscode-textmate"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@types/hast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+hast@3.0.4/node_modules/@types/hast"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@aws-crypto/crc32",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-crypto+crc32@5.2.0/node_modules/@aws-crypto/crc32"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/types",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.1/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.1/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.1/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.16/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.16/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.16/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.5.1/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.5.1/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.5.1/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.6.13/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.6.13/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+fetch-http-handler@5.6.13/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+is-array-buffer@2.2.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.7.3/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.7.3/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.7.3/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.8.1/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.8.1/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.8.1/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.9.13/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.9.13/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.9.13/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.5.1/node_modules/@smithy/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.25.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.5.1/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.5.1/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.6.12/node_modules/@smithy/core",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.6.12/node_modules/@smithy/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.6.12/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.15.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+util-buffer-from@2.2.0/node_modules/@smithy/is-array-buffer",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+is-array-buffer@2.2.0/node_modules/@smithy/is-array-buffer"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+util-buffer-from@2.2.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+util-utf8@2.3.0/node_modules/@smithy/util-buffer-from",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+util-buffer-from@2.2.0/node_modules/@smithy/util-buffer-from"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+util-utf8@2.3.0/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/tslib",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@types+hast@3.0.4/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@types+mdast@4.0.4/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@types+node@20.19.37/node_modules/undici-types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/undici-types@6.21.0/node_modules/undici-types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/@types+node@22.19.15/node_modules/undici-types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/undici-types@6.21.0/node_modules/undici-types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/accepts@2.0.0/node_modules/mime-types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/accepts@2.0.0/node_modules/negotiator",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/negotiator@1.0.0/node_modules/negotiator"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.18.0/node_modules/ajv",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ajv@8.18.0/node_modules/ajv"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/ajv@8.18.0/node_modules/fast-deep-equal",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/ajv@8.18.0/node_modules/fast-uri",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fast-uri@3.1.0/node_modules/fast-uri"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/ajv@8.18.0/node_modules/json-schema-traverse",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/ajv@8.18.0/node_modules/require-from-string",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/require-from-string@2.0.2/node_modules/require-from-string"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/bl@4.1.0/node_modules/buffer",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/buffer@5.7.1/node_modules/buffer"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/bl@4.1.0/node_modules/inherits",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/inherits@2.0.4/node_modules/inherits"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/bl@4.1.0/node_modules/readable-stream",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/readable-stream@3.6.2/node_modules/readable-stream"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/bytes",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/bytes@3.1.2/node_modules/bytes"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/content-type",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/content-type@1.0.5/node_modules/content-type"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/http-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/iconv-lite",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/on-finished",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/qs",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/qs@6.15.0/node_modules/qs"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/raw-body",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/raw-body@3.0.2/node_modules/raw-body"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/type-is",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/type-is@2.0.1/node_modules/type-is"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/browserslist@4.28.1/node_modules/baseline-browser-mapping",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/baseline-browser-mapping@2.10.0/node_modules/baseline-browser-mapping"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/browserslist@4.28.1/node_modules/caniuse-lite",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/caniuse-lite@1.0.30001777/node_modules/caniuse-lite"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/browserslist@4.28.1/node_modules/electron-to-chromium",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/electron-to-chromium@1.5.307/node_modules/electron-to-chromium"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/browserslist@4.28.1/node_modules/node-releases",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/node-releases@2.0.36/node_modules/node-releases"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/browserslist@4.28.1/node_modules/update-browserslist-db",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/update-browserslist-db@1.2.3_browserslist@4.28.1/node_modules/update-browserslist-db"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/buffer@5.7.1/node_modules/base64-js",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/base64-js@1.5.1/node_modules/base64-js"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/buffer@5.7.1/node_modules/ieee754",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ieee754@1.2.1/node_modules/ieee754"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/function-bind",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bind-apply-helpers",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/call-bound@1.0.4/node_modules/get-intrinsic",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/canvas@3.2.3/node_modules/node-addon-api",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/node-addon-api@7.1.1/node_modules/node-addon-api"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/canvas@3.2.3/node_modules/prebuild-install",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/prebuild-install"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/cors@2.8.6/node_modules/object-assign",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/object-assign@4.1.1/node_modules/object-assign"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/cors@2.8.6/node_modules/vary",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/vary@1.1.2/node_modules/vary"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/path-key",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/path-key@3.1.1/node_modules/path-key"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/shebang-command",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/which",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/which@2.0.2/node_modules/which"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/css-select@7.0.0/node_modules/boolbase",
@@ -368,8 +1860,20 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/supports-color@8.1.1/node_modules/supports-color"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/decompress-response@6.0.0/node_modules/mimic-response",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mimic-response@3.1.0/node_modules/mimic-response"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/devlop@1.1.0/node_modules/dequal",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/dequal@2.0.3/node_modules/dequal"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/dom-serializer@2.0.0/node_modules/domelementtype",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/domelementtype@2.3.0/node_modules/domelementtype"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/dom-serializer@2.0.0/node_modules/domhandler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/domhandler@5.0.3/node_modules/domhandler"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/dom-serializer@2.0.0/node_modules/entities",
@@ -378,6 +1882,10 @@
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/dom-serializer@3.1.1/node_modules/domelementtype",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/domelementtype@3.0.0/node_modules/domelementtype"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/dom-serializer@3.1.1/node_modules/domhandler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/domhandler@6.0.1/node_modules/domhandler"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/dom-serializer@3.1.1/node_modules/entities",
@@ -416,8 +1924,176 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/domhandler@6.0.1/node_modules/domhandler"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/dunder-proto@1.0.1/node_modules/call-bind-apply-helpers",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/dunder-proto@1.0.1/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/dunder-proto@1.0.1/node_modules/gopd",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/gopd@1.2.0/node_modules/gopd"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/ecdsa-sig-formatter@1.0.11/node_modules/safe-buffer",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/safe-buffer@5.2.1/node_modules/safe-buffer"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/end-of-stream@1.4.5/node_modules/once",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/once@1.4.0/node_modules/once"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/es-object-atoms@1.1.1/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/eventsource@3.0.7/node_modules/eventsource-parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/eventsource-parser@3.0.6/node_modules/eventsource-parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/express",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/express"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express-rate-limit@8.3.1_express@5.2.1/node_modules/ip-address",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ip-address@10.1.0/node_modules/ip-address"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/accepts",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/accepts@2.0.0/node_modules/accepts"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/body-parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/body-parser@2.2.2/node_modules/body-parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/content-disposition",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/content-disposition@1.0.1/node_modules/content-disposition"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/content-type",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/content-type@1.0.5/node_modules/content-type"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/cookie",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/cookie@0.7.2/node_modules/cookie"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/cookie-signature",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/cookie-signature@1.2.2/node_modules/cookie-signature"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/depd",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/depd@2.0.0/node_modules/depd"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/encodeurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/escape-html",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/etag",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/etag@1.8.1/node_modules/etag"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/finalhandler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/finalhandler@2.1.1/node_modules/finalhandler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/fresh",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fresh@2.0.0/node_modules/fresh"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/http-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/merge-descriptors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/merge-descriptors@2.0.0/node_modules/merge-descriptors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/mime-types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/on-finished",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/once",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/once@1.4.0/node_modules/once"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/parseurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/proxy-addr",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/proxy-addr@2.0.7/node_modules/proxy-addr"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/qs",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/qs@6.15.0/node_modules/qs"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/range-parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/range-parser@1.2.1/node_modules/range-parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/router",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/router@2.2.0/node_modules/router"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/send",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/send"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/serve-static",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/serve-static@2.2.1/node_modules/serve-static"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/statuses",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/statuses@2.0.2/node_modules/statuses"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/type-is",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/type-is@2.0.1/node_modules/type-is"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/express@5.2.1/node_modules/vary",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/vary@1.1.2/node_modules/vary"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-builder@1.2.0/node_modules/path-expression-matcher",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/path-expression-matcher@1.5.0/node_modules/path-expression-matcher"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-builder@1.2.0/node_modules/xml-naming",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/xml-naming@0.1.0/node_modules/xml-naming"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-parser@5.7.3/node_modules/@nodable/entities",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@nodable+entities@2.2.0/node_modules/@nodable/entities"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-parser@5.7.3/node_modules/fast-xml-builder",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-builder@1.2.0/node_modules/fast-xml-builder"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-parser@5.7.3/node_modules/path-expression-matcher",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/path-expression-matcher@1.5.0/node_modules/path-expression-matcher"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/fast-xml-parser@5.7.3/node_modules/strnum",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/strnum@2.4.1/node_modules/strnum"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/fetch-blob@3.2.0/node_modules/node-domexception",
@@ -426,6 +2102,30 @@
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/fetch-blob@3.2.0/node_modules/web-streams-polyfill",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/web-streams-polyfill@3.3.3/node_modules/web-streams-polyfill"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/finalhandler@2.1.1/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/finalhandler@2.1.1/node_modules/encodeurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/finalhandler@2.1.1/node_modules/escape-html",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/finalhandler@2.1.1/node_modules/on-finished",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/finalhandler@2.1.1/node_modules/parseurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/finalhandler@2.1.1/node_modules/statuses",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/statuses@2.0.2/node_modules/statuses"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/formdata-polyfill@4.0.10/node_modules/fetch-blob",
@@ -456,6 +2156,54 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/json-bigint@1.0.0/node_modules/json-bigint"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/call-bind-apply-helpers",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/call-bind-apply-helpers@1.0.2/node_modules/call-bind-apply-helpers"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/es-define-property",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-define-property@1.0.1/node_modules/es-define-property"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/es-object-atoms",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-object-atoms@1.1.1/node_modules/es-object-atoms"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/function-bind",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-proto",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/get-proto@1.0.1/node_modules/get-proto"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/gopd",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/gopd@1.2.0/node_modules/gopd"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/has-symbols",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/has-symbols@1.1.0/node_modules/has-symbols"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/hasown",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/hasown@2.0.2/node_modules/hasown"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/math-intrinsics",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/math-intrinsics@1.1.0/node_modules/math-intrinsics"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-proto@1.0.1/node_modules/dunder-proto",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/dunder-proto@1.0.1/node_modules/dunder-proto"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/get-proto@1.0.1/node_modules/es-object-atoms",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-object-atoms@1.1.1/node_modules/es-object-atoms"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/google-auth-library@10.7.0/node_modules/base64-js",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/base64-js@1.5.1/node_modules/base64-js"
   },
@@ -480,6 +2228,18 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/jws@4.0.1/node_modules/jws"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/hasown@2.0.2/node_modules/function-bind",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/function-bind@1.1.2/node_modules/function-bind"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/@types/hast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+hast@3.0.4/node_modules/@types/hast"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/ccount",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/ccount@2.0.1/node_modules/ccount"
   },
@@ -494,6 +2254,10 @@
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/html-void-elements",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/html-void-elements@3.0.0/node_modules/html-void-elements"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/mdast-util-to-hast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/mdast-util-to-hast"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/property-information",
@@ -512,6 +2276,10 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/zwitch@2.0.4/node_modules/zwitch"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-whitespace@3.0.0/node_modules/@types/hast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+hast@3.0.4/node_modules/@types/hast"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/htmlparser2@10.1.0/node_modules/domelementtype",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/domelementtype@2.3.0/node_modules/domelementtype"
   },
@@ -528,6 +2296,34 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/entities@7.0.1/node_modules/entities"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/depd",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/depd@2.0.0/node_modules/depd"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/inherits",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/inherits@2.0.4/node_modules/inherits"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/setprototypeof",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/setprototypeof@1.2.0/node_modules/setprototypeof"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/statuses",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/statuses@2.0.2/node_modules/statuses"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/toidentifier",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/toidentifier@1.0.1/node_modules/toidentifier"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/http-proxy-agent@7.0.2/node_modules/agent-base",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/agent-base@7.1.4/node_modules/agent-base"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/http-proxy-agent@7.0.2/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/https-proxy-agent@7.0.6/node_modules/agent-base",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/agent-base@7.1.4/node_modules/agent-base"
   },
@@ -536,8 +2332,20 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/iconv-lite@0.7.2/node_modules/safer-buffer",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/safer-buffer@2.1.2/node_modules/safer-buffer"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/json-bigint@1.0.0/node_modules/bignumber.js",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/bignumber.js@9.3.1/node_modules/bignumber.js"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/json-schema-to-ts@3.1.1/node_modules/@babel/runtime",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+runtime@7.29.2/node_modules/@babel/runtime"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/json-schema-to-ts@3.1.1/node_modules/ts-algebra",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ts-algebra@2.0.0/node_modules/ts-algebra"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/jwa@2.0.1/node_modules/buffer-equal-constant-time",
@@ -572,6 +2380,10 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/cssom@0.5.0/node_modules/cssom"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/linkedom@0.18.13_canvas@3.2.3/node_modules/html-escaper",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/html-escaper@3.0.3/node_modules/html-escaper"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/linkedom@0.18.13_canvas@3.2.3/node_modules/htmlparser2",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/htmlparser2@10.1.0/node_modules/htmlparser2"
   },
@@ -580,12 +2392,84 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/uhyphen@0.2.0/node_modules/uhyphen"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/lru-cache@5.1.1/node_modules/yallist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/yallist@3.1.1/node_modules/yallist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/@types/hast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+hast@3.0.4/node_modules/@types/hast"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/@types/mdast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+mdast@4.0.4/node_modules/@types/mdast"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/@ungap/structured-clone",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@ungap+structured-clone@1.3.0/node_modules/@ungap/structured-clone"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/devlop",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/devlop@1.1.0/node_modules/devlop"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/micromark-util-sanitize-uri",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-sanitize-uri@2.0.1/node_modules/micromark-util-sanitize-uri"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/trim-lines",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/trim-lines@3.0.1/node_modules/trim-lines"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/unist-util-position",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-position@5.0.0/node_modules/unist-util-position"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/unist-util-visit",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-visit@5.1.0/node_modules/unist-util-visit"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mdast-util-to-hast@13.2.1/node_modules/vfile",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/vfile@6.0.3/node_modules/vfile"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-character@2.1.1/node_modules/micromark-util-symbol",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-symbol@2.0.1/node_modules/micromark-util-symbol"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-character@2.1.1/node_modules/micromark-util-types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-types@2.0.2/node_modules/micromark-util-types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-sanitize-uri@2.0.1/node_modules/micromark-util-character",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-character@2.1.1/node_modules/micromark-util-character"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-sanitize-uri@2.0.1/node_modules/micromark-util-encode",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-encode@2.0.1/node_modules/micromark-util-encode"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-sanitize-uri@2.0.1/node_modules/micromark-util-symbol",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/micromark-util-symbol@2.0.1/node_modules/micromark-util-symbol"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-db",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mime-db@1.54.0/node_modules/mime-db"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/next@16.3.3_@babel+core@7.2_3bf170d3ebc9bf27a63abd7b893889a9/node_modules/@next/env",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@next+env@16.3.3/node_modules/@next/env"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/next@16.3.3_@babel+core@7.2_3bf170d3ebc9bf27a63abd7b893889a9/node_modules/@next/swc-win32-x64-msvc",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@next+swc-win32-x64-msvc@16.3.3/node_modules/@next/swc-win32-x64-msvc"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/next@16.3.3_@babel+core@7.2_3bf170d3ebc9bf27a63abd7b893889a9/node_modules/@opentelemetry/api",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@opentelemetry+api@1.9.0/node_modules/@opentelemetry/api"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/next@16.3.3_@babel+core@7.2_3bf170d3ebc9bf27a63abd7b893889a9/node_modules/@playwright/test",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@playwright+test@1.58.2/node_modules/@playwright/test"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/next@16.3.3_@babel+core@7.2_3bf170d3ebc9bf27a63abd7b893889a9/node_modules/@swc/helpers",
@@ -620,6 +2504,10 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.29.0_react@19.2.3/node_modules/styled-jsx"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node-abi@3.92.0/node_modules/semver",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/semver@7.8.5/node_modules/semver"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/node-fetch@3.3.2/node_modules/data-uri-to-buffer",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer"
   },
@@ -632,420 +2520,16 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/formdata-polyfill@4.0.10/node_modules/formdata-polyfill"
   },
   {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@anthropic-ai/sdk",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@anthropic-ai+sdk@0.91.1_zod@4.3.6/node_modules/@anthropic-ai/sdk"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/checksums",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+checksums@3.1000.26/node_modules/@aws-sdk/checksums"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/core",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+core@3.977.6/node_modules/@aws-sdk/core"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-env",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-env@3.972.48/node_modules/@aws-sdk/credential-provider-env"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-http",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-http@3.972.50/node_modules/@aws-sdk/credential-provider-http"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-ini",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-ini@3.972.55/node_modules/@aws-sdk/credential-provider-ini"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-login",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-login@3.972.54/node_modules/@aws-sdk/credential-provider-login"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-node",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-node@3.972.78/node_modules/@aws-sdk/credential-provider-node"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-process",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-process@3.972.48/node_modules/@aws-sdk/credential-provider-process"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-sso",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-sso@3.972.54/node_modules/@aws-sdk/credential-provider-sso"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/credential-provider-web-identity",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+credential-provider-web-identity@3.972.54/node_modules/@aws-sdk/credential-provider-web-identity"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/middleware-sdk-s3",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+middleware-sdk-s3@3.972.72/node_modules/@aws-sdk/middleware-sdk-s3"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/nested-clients",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+nested-clients@3.997.22/node_modules/@aws-sdk/nested-clients"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/signature-v4-multi-region",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+signature-v4-multi-region@3.996.43/node_modules/@aws-sdk/signature-v4-multi-region"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/token-providers",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+token-providers@3.1048.0/node_modules/@aws-sdk/token-providers"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws-sdk/xml-builder",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws-sdk+xml-builder@3.972.30/node_modules/@aws-sdk/xml-builder"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@aws/lambda-invoke-store",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@aws+lambda-invoke-store@0.2.4/node_modules/@aws/lambda-invoke-store"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@google/genai",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@google+genai@1.52.0_@model_51e79fc0fd51b5bc74abd068fb4dd832/node_modules/@google/genai"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@img/colour",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@img+colour@1.1.0/node_modules/@img/colour"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@img/sharp-win32-x64",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@img+sharp-win32-x64@0.35.4/node_modules/@img/sharp-win32-x64"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@mistralai/mistralai",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@mistralai+mistralai@2.2.1/node_modules/@mistralai/mistralai"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@next/env",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@next+env@16.3.3/node_modules/@next/env"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@opentelemetry/api",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@opentelemetry+api@1.9.0/node_modules/@opentelemetry/api"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@shikijs/core",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+core@3.23.0/node_modules/@shikijs/core"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@shikijs/engine-javascript",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+engine-javascript@3.23.0/node_modules/@shikijs/engine-javascript"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@shikijs/engine-oniguruma",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+engine-oniguruma@3.23.0/node_modules/@shikijs/engine-oniguruma"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@shikijs/langs",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+langs@3.23.0/node_modules/@shikijs/langs"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@shikijs/themes",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+themes@3.23.0/node_modules/@shikijs/themes"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@shikijs/types",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/types"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@shikijs/vscode-textmate",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+vscode-textmate@10.0.2/node_modules/@shikijs/vscode-textmate"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@smithy/core",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+core@3.31.1/node_modules/@smithy/core"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@smithy/credential-provider-imds",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+credential-provider-imds@4.4.1/node_modules/@smithy/credential-provider-imds"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@smithy/node-http-handler",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+node-http-handler@4.9.13/node_modules/@smithy/node-http-handler"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@smithy/signature-v4",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+signature-v4@5.5.1/node_modules/@smithy/signature-v4"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@smithy/types",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@smithy+types@4.16.1/node_modules/@smithy/types"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/@swc/helpers",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@swc+helpers@0.5.15/node_modules/@swc/helpers"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/agent-base",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/agent-base@7.1.4/node_modules/agent-base"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/base64-js",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/base64-js@1.5.1/node_modules/base64-js"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/bignumber.js",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/bignumber.js@9.3.1/node_modules/bignumber.js"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/bowser",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/bowser@2.14.1/node_modules/bowser"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/buffer-equal-constant-time",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/buffer-equal-constant-time@1.0.1/node_modules/buffer-equal-constant-time"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/canvas",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/canvas@3.2.3/node_modules/canvas"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/ccount",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ccount@2.0.1/node_modules/ccount"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/character-entities-html4",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/character-entities-html4@2.1.0/node_modules/character-entities-html4"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/character-entities-legacy",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/character-entities-legacy@3.0.0/node_modules/character-entities-legacy"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/client-only",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/client-only@0.0.1/node_modules/client-only"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/comma-separated-tokens",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/comma-separated-tokens@2.0.3/node_modules/comma-separated-tokens"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/data-uri-to-buffer",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/debug",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/detect-libc",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/detect-libc@2.1.2/node_modules/detect-libc"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/ecdsa-sig-formatter",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ecdsa-sig-formatter@1.0.11/node_modules/ecdsa-sig-formatter"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/extend",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/extend@3.0.2/node_modules/extend"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/fetch-blob",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/formdata-polyfill",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/formdata-polyfill@4.0.10/node_modules/formdata-polyfill"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/gaxios",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/gaxios@7.1.5/node_modules/gaxios"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/gcp-metadata",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/gcp-metadata@8.1.2/node_modules/gcp-metadata"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/google-auth-library",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/google-auth-library@10.7.0/node_modules/google-auth-library"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/google-logging-utils",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/google-logging-utils@1.1.3/node_modules/google-logging-utils"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/has-flag",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/has-flag@3.0.0/node_modules/has-flag"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/hast-util-to-html",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-to-html@9.0.5/node_modules/hast-util-to-html"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/hast-util-whitespace",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/hast-util-whitespace@3.0.0/node_modules/hast-util-whitespace"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/html-void-elements",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/html-void-elements@3.0.0/node_modules/html-void-elements"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/https-proxy-agent",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/https-proxy-agent@7.0.6/node_modules/https-proxy-agent"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/ignore",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ignore@7.0.5/node_modules/ignore"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/json-bigint",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/json-bigint@1.0.0/node_modules/json-bigint"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/jwa",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/jwa@2.0.1/node_modules/jwa"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/jws",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/jws@4.0.1/node_modules/jws"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/ms",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ms@2.1.3/node_modules/ms"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/node-domexception",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/node-domexception@1.0.0/node_modules/node-domexception"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/node-fetch",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/node-fetch@2.7.0/node_modules/node-fetch"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/oniguruma-parser",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/oniguruma-parser@0.12.1/node_modules/oniguruma-parser"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/oniguruma-to-es",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/oniguruma-to-es@4.3.4/node_modules/oniguruma-to-es"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/p-retry",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/p-retry@4.6.2/node_modules/p-retry"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/pg-cloudflare",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pg-cloudflare@1.4.0/node_modules/pg-cloudflare"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/pg-connection-string",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pg-connection-string@2.14.0/node_modules/pg-connection-string"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/pg-int8",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pg-int8@1.0.1/node_modules/pg-int8"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/pg-pool",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/pg-protocol",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/pg-types",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pg-types@2.2.0/node_modules/pg-types"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/pgpass",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pgpass@1.0.5/node_modules/pgpass"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/picocolors",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/postgres-array",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/postgres-array@2.0.0/node_modules/postgres-array"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/postgres-bytea",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/postgres-bytea@1.0.1/node_modules/postgres-bytea"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/postgres-date",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/postgres-date@1.0.7/node_modules/postgres-date"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/postgres-interval",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/postgres-interval@1.2.0/node_modules/postgres-interval"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/property-information",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/property-information@7.1.0/node_modules/property-information"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/regex",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/regex@6.1.0/node_modules/regex"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/regex-recursion",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/regex-recursion@6.0.2/node_modules/regex-recursion"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/regex-utilities",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/regex-utilities@2.3.0/node_modules/regex-utilities"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/retry",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/retry@0.13.1/node_modules/retry"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/safe-buffer",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/safe-buffer@5.2.1/node_modules/safe-buffer"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/source-map-js",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/source-map-js@1.2.1/node_modules/source-map-js"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/space-separated-tokens",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/space-separated-tokens@2.0.2/node_modules/space-separated-tokens"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/split2",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/split2@4.2.0/node_modules/split2"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/stringify-entities",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/stringify-entities@4.0.4/node_modules/stringify-entities"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/styled-jsx",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.29.0_react@19.2.3/node_modules/styled-jsx"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/supports-color",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/supports-color@8.1.1/node_modules/supports-color"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/web-streams-polyfill",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/web-streams-polyfill@4.0.0-beta.3/node_modules/web-streams-polyfill"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/ws",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ws@8.21.3/node_modules/ws"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/xtend",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/xtend@4.0.2/node_modules/xtend"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/yaml",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/zod-to-json-schema",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/zod-to-json-schema@3.25.1_zod@4.3.6/node_modules/zod-to-json-schema"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/.pnpm/node_modules/zwitch",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/zwitch@2.0.4/node_modules/zwitch"
-  },
-  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/nth-check@3.0.1/node_modules/boolbase",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/boolbase@2.0.0/node_modules/boolbase"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/on-finished@2.4.1/node_modules/ee-first",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ee-first@1.1.1/node_modules/ee-first"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/once@1.4.0/node_modules/wrappy",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/oniguruma-to-es@4.3.4/node_modules/oniguruma-parser",
@@ -1058,6 +2542,18 @@
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/oniguruma-to-es@4.3.4/node_modules/regex-recursion",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/regex-recursion@6.0.2/node_modules/regex-recursion"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/openai@6.26.0_ws@8.21.3_zod@4.3.6/node_modules/ws",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ws@8.21.3/node_modules/ws"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/openai@6.26.0_ws@8.21.3_zod@4.3.6/node_modules/zod",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/zod@4.3.6/node_modules/zod"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/p-retry@4.6.2/node_modules/@types/retry",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+retry@0.12.0/node_modules/@types/retry"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/p-retry@4.6.2/node_modules/retry",
@@ -1116,6 +2612,10 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/split2@4.2.0/node_modules/split2"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/playwright@1.58.2/node_modules/playwright-core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/playwright-core@1.58.2/node_modules/playwright-core"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/postcss@8.5.15/node_modules/nanoid",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/nanoid@3.3.12/node_modules/nanoid"
   },
@@ -1144,8 +2644,168 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/xtend@4.0.2/node_modules/xtend"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/detect-libc",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/detect-libc@2.1.2/node_modules/detect-libc"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/expand-template",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/expand-template@2.0.3/node_modules/expand-template"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/github-from-package",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/github-from-package@0.0.0/node_modules/github-from-package"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/minimist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/minimist@1.2.8/node_modules/minimist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/mkdirp-classic",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mkdirp-classic@0.5.3/node_modules/mkdirp-classic"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/napi-build-utils",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/napi-build-utils@2.0.0/node_modules/napi-build-utils"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/node-abi",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/node-abi@3.92.0/node_modules/node-abi"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/pump",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pump@3.0.4/node_modules/pump"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/rc",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/rc@1.2.8/node_modules/rc"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/simple-get",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/simple-get@4.0.1/node_modules/simple-get"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/tar-fs",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tar-fs@2.1.4/node_modules/tar-fs"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/prebuild-install@7.1.3/node_modules/tunnel-agent",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tunnel-agent@0.6.0/node_modules/tunnel-agent"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/aspromise",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+aspromise@1.1.2/node_modules/@protobufjs/aspromise"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/base64",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+base64@1.1.2/node_modules/@protobufjs/base64"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/codegen",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+codegen@2.0.5/node_modules/@protobufjs/codegen"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/eventemitter",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+eventemitter@1.1.1/node_modules/@protobufjs/eventemitter"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/fetch",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+fetch@1.1.1/node_modules/@protobufjs/fetch"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/float",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+float@1.0.2/node_modules/@protobufjs/float"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/path",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+path@1.1.2/node_modules/@protobufjs/path"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/pool",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+pool@1.1.0/node_modules/@protobufjs/pool"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@protobufjs/utf8",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@protobufjs+utf8@1.1.1/node_modules/@protobufjs/utf8"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/@types/node",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+node@22.19.15/node_modules/@types/node"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/protobufjs@7.6.4/node_modules/long",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/long@5.3.2/node_modules/long"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/proxy-addr@2.0.7/node_modules/forwarded",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/forwarded@0.2.0/node_modules/forwarded"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/proxy-addr@2.0.7/node_modules/ipaddr.js",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ipaddr.js@1.9.1/node_modules/ipaddr.js"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/pump@3.0.4/node_modules/end-of-stream",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/end-of-stream@1.4.5/node_modules/end-of-stream"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/pump@3.0.4/node_modules/once",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/once@1.4.0/node_modules/once"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/qs@6.15.0/node_modules/side-channel",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/raw-body@3.0.2/node_modules/bytes",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/bytes@3.1.2/node_modules/bytes"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/raw-body@3.0.2/node_modules/http-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/raw-body@3.0.2/node_modules/iconv-lite",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/iconv-lite@0.7.2/node_modules/iconv-lite"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/raw-body@3.0.2/node_modules/unpipe",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/unpipe@1.0.0/node_modules/unpipe"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/rc@1.2.8/node_modules/deep-extend",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/deep-extend@0.6.0/node_modules/deep-extend"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/rc@1.2.8/node_modules/ini",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ini@1.3.8/node_modules/ini"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/rc@1.2.8/node_modules/minimist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/minimist@1.2.8/node_modules/minimist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/rc@1.2.8/node_modules/strip-json-comments",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/strip-json-comments@2.0.1/node_modules/strip-json-comments"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/react@19.2.3/node_modules/react"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/scheduler",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/scheduler@0.27.0/node_modules/scheduler"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/readable-stream@3.6.2/node_modules/inherits",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/inherits@2.0.4/node_modules/inherits"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/readable-stream@3.6.2/node_modules/string_decoder",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/string_decoder@1.3.0/node_modules/string_decoder"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/readable-stream@3.6.2/node_modules/util-deprecate",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/util-deprecate@1.0.2/node_modules/util-deprecate"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/regex-recursion@6.0.2/node_modules/regex-utilities",
@@ -1156,6 +2816,86 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/regex-utilities@2.3.0/node_modules/regex-utilities"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/router@2.2.0/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/router@2.2.0/node_modules/depd",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/depd@2.0.0/node_modules/depd"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/router@2.2.0/node_modules/is-promise",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/is-promise@4.0.0/node_modules/is-promise"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/router@2.2.0/node_modules/parseurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/router@2.2.0/node_modules/path-to-regexp",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/path-to-regexp@8.3.0/node_modules/path-to-regexp"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/debug",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/debug@4.4.3_supports-color@8.1.1/node_modules/debug"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/encodeurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/escape-html",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/etag",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/etag@1.8.1/node_modules/etag"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/fresh",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fresh@2.0.0/node_modules/fresh"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/http-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/http-errors@2.0.1/node_modules/http-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/mime-types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/ms",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/ms@2.1.3/node_modules/ms"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/on-finished",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/on-finished@2.4.1/node_modules/on-finished"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/range-parser",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/range-parser@1.2.1/node_modules/range-parser"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/statuses",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/statuses@2.0.2/node_modules/statuses"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/serve-static@2.2.1/node_modules/encodeurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/encodeurl@2.0.0/node_modules/encodeurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/serve-static@2.2.1/node_modules/escape-html",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/escape-html@1.0.3/node_modules/escape-html"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/serve-static@2.2.1/node_modules/parseurl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/parseurl@1.3.3/node_modules/parseurl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/serve-static@2.2.1/node_modules/send",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/send@1.2.1/node_modules/send"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/sharp@0.35.4_@types+node@20.19.37/node_modules/@img/colour",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@img+colour@1.1.0/node_modules/@img/colour"
   },
@@ -1164,12 +2904,20 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@img+sharp-win32-x64@0.35.4/node_modules/@img/sharp-win32-x64"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/sharp@0.35.4_@types+node@20.19.37/node_modules/@types/node",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+node@20.19.37/node_modules/@types/node"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/sharp@0.35.4_@types+node@20.19.37/node_modules/detect-libc",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/detect-libc@2.1.2/node_modules/detect-libc"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/sharp@0.35.4_@types+node@20.19.37/node_modules/semver",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/semver@7.8.5/node_modules/semver"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-regex",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/shiki@3.23.0/node_modules/@shikijs/core",
@@ -1192,12 +2940,112 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+themes@3.23.0/node_modules/@shikijs/themes"
   },
   {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/shiki@3.23.0/node_modules/@shikijs/types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+types@3.23.0/node_modules/@shikijs/types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/shiki@3.23.0/node_modules/@shikijs/vscode-textmate",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@shikijs+vscode-textmate@10.0.2/node_modules/@shikijs/vscode-textmate"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/shiki@3.23.0/node_modules/@types/hast",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+hast@3.0.4/node_modules/@types/hast"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-list@1.0.0/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-list@1.0.0/node_modules/object-inspect",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-map@1.0.1/node_modules/call-bound",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-map@1.0.1/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-map@1.0.1/node_modules/get-intrinsic",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-map@1.0.1/node_modules/object-inspect",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/call-bound",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/call-bound@1.0.4/node_modules/call-bound"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/get-intrinsic",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/get-intrinsic@1.3.0/node_modules/get-intrinsic"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/object-inspect",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/side-channel-map",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-map@1.0.1/node_modules/side-channel-map"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel@1.1.0/node_modules/es-errors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/es-errors@1.3.0/node_modules/es-errors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel@1.1.0/node_modules/object-inspect",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/object-inspect@1.13.4/node_modules/object-inspect"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel-list",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-list@1.0.0/node_modules/side-channel-list"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel-map",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-map@1.0.1/node_modules/side-channel-map"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel@1.1.0/node_modules/side-channel-weakmap",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/side-channel-weakmap@1.0.2/node_modules/side-channel-weakmap"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/simple-get@4.0.1/node_modules/decompress-response",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/decompress-response@6.0.0/node_modules/decompress-response"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/simple-get@4.0.1/node_modules/once",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/once@1.4.0/node_modules/once"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/simple-get@4.0.1/node_modules/simple-concat",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/simple-concat@1.0.1/node_modules/simple-concat"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/string_decoder@1.3.0/node_modules/safe-buffer",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/safe-buffer@5.2.1/node_modules/safe-buffer"
+  },
+  {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/stringify-entities@4.0.4/node_modules/character-entities-html4",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/character-entities-html4@2.1.0/node_modules/character-entities-html4"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/stringify-entities@4.0.4/node_modules/character-entities-legacy",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/character-entities-legacy@3.0.0/node_modules/character-entities-legacy"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/strnum@2.4.1/node_modules/anynum",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/anynum@1.0.1/node_modules/anynum"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.29.0_react@19.2.3/node_modules/@babel/core",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@babel+core@7.29.0/node_modules/@babel/core"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/styled-jsx@5.1.6_@babel+core@7.29.0_react@19.2.3/node_modules/client-only",
@@ -1210,6 +3058,122 @@
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/supports-color@8.1.1/node_modules/has-flag",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/has-flag@4.0.0/node_modules/has-flag"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-fs@2.1.4/node_modules/chownr",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/chownr@1.1.4/node_modules/chownr"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-fs@2.1.4/node_modules/mkdirp-classic",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mkdirp-classic@0.5.3/node_modules/mkdirp-classic"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-fs@2.1.4/node_modules/pump",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/pump@3.0.4/node_modules/pump"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-fs@2.1.4/node_modules/tar-stream",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/tar-stream@2.2.0/node_modules/tar-stream"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-stream@2.2.0/node_modules/bl",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/bl@4.1.0/node_modules/bl"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-stream@2.2.0/node_modules/end-of-stream",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/end-of-stream@1.4.5/node_modules/end-of-stream"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-stream@2.2.0/node_modules/fs-constants",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/fs-constants@1.0.0/node_modules/fs-constants"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-stream@2.2.0/node_modules/inherits",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/inherits@2.0.4/node_modules/inherits"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tar-stream@2.2.0/node_modules/readable-stream",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/readable-stream@3.6.2/node_modules/readable-stream"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/tunnel-agent@0.6.0/node_modules/safe-buffer",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/safe-buffer@5.2.1/node_modules/safe-buffer"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/type-is@2.0.1/node_modules/content-type",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/content-type@1.0.5/node_modules/content-type"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/type-is@2.0.1/node_modules/media-typer",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/media-typer@1.1.0/node_modules/media-typer"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/type-is@2.0.1/node_modules/mime-types",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/mime-types@3.0.2/node_modules/mime-types"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-is@6.0.1/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-position@5.0.0/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-stringify-position@4.0.0/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-visit-parents@6.0.2/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-visit-parents@6.0.2/node_modules/unist-util-is",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-is@6.0.1/node_modules/unist-util-is"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-visit@5.1.0/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-visit@5.1.0/node_modules/unist-util-is",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-is@6.0.1/node_modules/unist-util-is"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-visit@5.1.0/node_modules/unist-util-visit-parents",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-visit-parents@6.0.2/node_modules/unist-util-visit-parents"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/update-browserslist-db@1.2.3_browserslist@4.28.1/node_modules/browserslist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/browserslist@4.28.1/node_modules/browserslist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/update-browserslist-db@1.2.3_browserslist@4.28.1/node_modules/escalade",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/escalade@3.2.0/node_modules/escalade"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/update-browserslist-db@1.2.3_browserslist@4.28.1/node_modules/picocolors",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/vfile-message@4.0.3/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/vfile-message@4.0.3/node_modules/unist-util-stringify-position",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/unist-util-stringify-position@4.0.0/node_modules/unist-util-stringify-position"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/vfile@6.0.3/node_modules/@types/unist",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/@types+unist@3.0.3/node_modules/@types/unist"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/vfile@6.0.3/node_modules/vfile-message",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/vfile-message@4.0.3/node_modules/vfile-message"
+  },
+  {
+    "path": "runtime/openmaic-standalone/node_modules/.pnpm/which@2.0.2/node_modules/isexe",
+    "target": "runtime/openmaic-standalone/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/.pnpm/zod-to-json-schema@3.25.1_zod@4.3.6/node_modules/zod",
@@ -1236,20 +3200,8 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/linkedom@0.18.13_canvas@3.2.3/node_modules/linkedom"
   },
   {
-    "path": "runtime/openmaic-standalone/node_modules/nanoid",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/nanoid@5.1.16/node_modules/nanoid"
-  },
-  {
     "path": "runtime/openmaic-standalone/node_modules/next",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/next@16.3.3_@babel+core@7.2_3bf170d3ebc9bf27a63abd7b893889a9/node_modules/next"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/openai",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/openai@4.104.0_ws@8.21.3_zod@4.3.6/node_modules/openai"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/partial-json",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/partial-json@0.1.7/node_modules/partial-json"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/pg",
@@ -1260,32 +3212,12 @@
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/postcss@8.5.15/node_modules/postcss"
   },
   {
-    "path": "runtime/openmaic-standalone/node_modules/react",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/react@19.2.3/node_modules/react"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/react-dom",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/semver",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/semver@7.8.5/node_modules/semver"
-  },
-  {
     "path": "runtime/openmaic-standalone/node_modules/sharp",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/sharp@0.35.4_@types+node@20.19.37/node_modules/sharp"
   },
   {
     "path": "runtime/openmaic-standalone/node_modules/shiki",
     "target": "runtime/openmaic-standalone/node_modules/.pnpm/shiki@3.23.0/node_modules/shiki"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/typebox",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/typebox@1.2.17/node_modules/typebox"
-  },
-  {
-    "path": "runtime/openmaic-standalone/node_modules/zod",
-    "target": "runtime/openmaic-standalone/node_modules/.pnpm/zod@4.3.6/node_modules/zod"
   },
   {
     "path": "runtime/render-service/node_modules/.pnpm/@babel+parser@7.29.8/node_modules/@babel/types",

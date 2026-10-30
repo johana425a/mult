@@ -403,7 +403,9 @@ function openUninstaller(event, ...args) {
       const env = {};
       const allowed = new Set(['systemroot', 'windir', 'path', 'pathext', 'temp', 'tmp', 'userprofile', 'appdata', 'localappdata', 'programdata', 'homedrive', 'homepath', 'comspec']);
       for (const [key, value] of Object.entries(process.env)) if (allowed.has(key.toLowerCase())) env[key] = value;
-      const child = spawn(executable, [], { cwd: root, env, windowsHide: true, stdio: 'ignore', shell: false });
+      // Pin the same root at the executable boundary. The bootstrap checks it
+      // against its own location before creating the temporary worker.
+      const child = spawn(executable, ['--uninstall-from-desktop', root], { cwd: root, env, windowsHide: true, stdio: 'ignore', shell: false });
       uninstallWindowProcess = child;
       const clear = () => { if (uninstallWindowProcess === child) uninstallWindowProcess = null; };
       child.once('error', () => { clear(); resolve({ status: 'failed' }); });

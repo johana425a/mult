@@ -78,6 +78,9 @@ const COMPOSER_FADE =
 
 export function ReadingCompanion({
   workspaceId,
+  submissionBlocked,
+  sessionError,
+  onRetrySession,
   material,
   activeConversation,
   linkedSessionIds,
@@ -88,6 +91,9 @@ export function ReadingCompanion({
   prefillInputRef,
 }: {
   workspaceId: string;
+  submissionBlocked: boolean;
+  sessionError: boolean;
+  onRetrySession: () => void;
   /** The material currently open in the reader, if any. */
   material: ReadingLibraryMaterial | null;
   activeConversation: ReadingConversation | null;
@@ -435,7 +441,17 @@ export function ReadingCompanion({
           maskImage: COMPOSER_FADE,
         }}
       >
-        {state.messages.length ? (
+        {sessionError ? (
+          <div role="alert" className="mb-4 rounded-lg border border-[var(--border)] p-3 text-sm">
+            <p>{t("The reading conversation could not be loaded.")}</p>
+            <button type="button" onClick={onRetrySession} className="mt-2 text-[var(--primary)]">
+              {t("Retry")}
+            </button>
+          </div>
+        ) : submissionBlocked ? (
+          <p role="status" className="mb-4 text-sm text-[var(--muted-foreground)]">{t("Reopening this session…")}</p>
+        ) : null}
+        {!submissionBlocked && state.messages.length ? (
           <ChatMessageList
             messages={state.messages}
             isStreaming={state.isStreaming}
@@ -486,6 +502,7 @@ export function ReadingCompanion({
           </div>
         )}
         <ReadingComposer
+          submissionBlocked={submissionBlocked}
           // The offered question *is* the placeholder, and Tab takes it. When
           // there is none, the static line stands.
           placeholder={askHint || t("Ask about this material…")}

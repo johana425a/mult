@@ -12,7 +12,6 @@ import {
   FileScan,
   FolderOpen,
   Image as ImageIcon,
-  Info,
   KeyRound,
   Library,
   ListChecks,
@@ -119,10 +118,10 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "voice",
     href: "/settings/voice",
-    label: { en: "Voice", zh: "Voice" },
+    label: { en: "Voice", zh: "语音" },
     blurb: {
       en: "Speech synthesis and transcription models with saved providers.",
-      zh: "Speech synthesis and transcription models with saved providers.",
+      zh: "配置语音合成和语音转写模型及其提供方。",
     },
     icon: AudioLines,
     tile: "bg-rose-500/10 text-rose-600",
@@ -130,10 +129,10 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "multimodal",
     href: "/settings/multimodal",
-    label: { en: "Multimodal generation", zh: "Multimodal generation" },
+    label: { en: "Multimodal generation", zh: "多模态生成" },
     blurb: {
       en: "Image and video generation models with saved providers.",
-      zh: "Image and video generation models with saved providers.",
+      zh: "配置图像和视频生成模型及其提供方。",
     },
     icon: ImageIcon,
     tile: "bg-violet-500/10 text-violet-600",
@@ -141,9 +140,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "connections",
     href: "/settings#connections",
-    label: { zh: "Providers", en: "Providers" },
+    label: { zh: "提供方", en: "Providers" },
     blurb: {
-      zh: "Manage provider names, addresses, credentials, and connectivity.",
+      zh: "管理提供方名称、地址、凭据与连接。",
       en: "Manage provider names, addresses, credentials, and connectivity.",
     },
     icon: KeyRound,
@@ -152,9 +151,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "llm",
     href: "/settings#llm",
-    label: { zh: "Language models", en: "Language models" },
+    label: { zh: "语言模型", en: "Language models" },
     blurb: {
-      zh: "Model names, context windows, capabilities, and connection tests.",
+      zh: "管理模型名称、上下文长度、能力与连接测试。",
       en: "Model names, context windows, capabilities, and connection tests.",
     },
     icon: Brain,
@@ -164,9 +163,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "task-models",
     href: "/settings#task-models",
-    label: { zh: "Task models", en: "Task models" },
+    label: { zh: "后台任务模型", en: "Task models" },
     blurb: {
-      zh: `The model behind the calls ${PRODUCT_NAME} makes on its own.`,
+      zh: `${PRODUCT_NAME} 执行后台任务时使用的模型。`,
       en: `The model behind the calls ${PRODUCT_NAME} makes on its own.`,
     },
     icon: ListChecks,
@@ -175,9 +174,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "embedding",
     href: "/settings#embedding",
-    label: { zh: "Embedding models", en: "Embedding models" },
+    label: { zh: "嵌入模型", en: "Embedding models" },
     blurb: {
-      zh: "Embedding models, dimensions, and connection tests.",
+      zh: "管理嵌入模型、向量维度与连接测试。",
       en: "Embedding models, dimensions, and connection tests.",
     },
     icon: Database,
@@ -187,8 +186,8 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "search",
     href: "/settings#search",
-    label: { zh: "Search", en: "Search" },
-    blurb: { zh: "Web search providers.", en: "Web search providers." },
+    label: { zh: "搜索", en: "Search" },
+    blurb: { zh: "配置网络搜索提供方。", en: "Web search providers." },
     icon: Search,
     tile: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
     service: "search",
@@ -196,9 +195,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "tts",
     href: "/settings#tts",
-    label: { zh: "Text-to-Speech", en: "Text-to-Speech" },
+    label: { zh: "语音合成", en: "Text-to-Speech" },
     blurb: {
-      zh: "Text-to-speech for reading replies aloud.",
+      zh: "将回复转换为语音并朗读。",
       en: "Text-to-speech for reading replies aloud.",
     },
     icon: AudioLines,
@@ -208,9 +207,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "stt",
     href: "/settings#stt",
-    label: { zh: "Speech-to-Text", en: "Speech-to-Text" },
+    label: { zh: "语音转写", en: "Speech-to-Text" },
     blurb: {
-      zh: "Speech-to-text for the composer microphone.",
+      zh: "将麦克风输入转写为文字。",
       en: "Speech-to-text for the composer microphone.",
     },
     icon: Mic,
@@ -220,9 +219,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "imagegen",
     href: "/settings#imagegen",
-    label: { zh: "Image Generation", en: "Image Generation" },
+    label: { zh: "图像生成", en: "Image Generation" },
     blurb: {
-      zh: "Text-to-image model for the chat imagegen tool.",
+      zh: "对话图像生成工具使用的文生图模型。",
       en: "Text-to-image model for the chat imagegen tool.",
     },
     icon: ImageIcon,
@@ -232,9 +231,9 @@ const MODEL_CHILDREN: SettingsLeaf[] = [
   {
     key: "videogen",
     href: "/settings#videogen",
-    label: { zh: "Video Generation", en: "Video Generation" },
+    label: { zh: "视频生成", en: "Video Generation" },
     blurb: {
-      zh: "Text-to-video model for the chat videogen tool.",
+      zh: "对话视频生成工具使用的文生视频模型。",
       en: "Text-to-video model for the chat videogen tool.",
     },
     icon: Clapperboard,
@@ -247,9 +246,9 @@ const CHAT_CHILDREN: SettingsLeaf[] = [
   {
     key: "video-learning",
     href: "/settings#video-learning",
-    label: { zh: "Video Learning", en: "Video Learning" },
+    label: { zh: "视频学习", en: "Video Learning" },
     blurb: {
-      zh: "Native YouTube and local Invidious playback providers.",
+      zh: "配置 YouTube 与本地 Invidious 播放服务。",
       en: "Native YouTube and local Invidious playback providers.",
     },
     icon: Clapperboard,
@@ -259,9 +258,9 @@ const CHAT_CHILDREN: SettingsLeaf[] = [
   {
     key: "tools",
     href: "/settings#tools",
-    label: { zh: "Tools", en: "Tools" },
+    label: { zh: "工具", en: "Tools" },
     blurb: {
-      zh: "Built-in tools the chat agent can invoke.",
+      zh: "对话智能体可以调用的内置工具。",
       en: "Built-in tools the chat agent can invoke.",
     },
     icon: Wrench,
@@ -270,9 +269,9 @@ const CHAT_CHILDREN: SettingsLeaf[] = [
   {
     key: "capabilities",
     href: "/settings#capabilities",
-    label: { zh: "Capabilities", en: "Capabilities" },
+    label: { zh: "能力", en: "Capabilities" },
     blurb: {
-      zh: "Per-capability LLM parameters and runtime knobs.",
+      zh: "配置各项能力使用的模型参数与运行选项。",
       en: "Per-capability LLM parameters and runtime knobs.",
     },
     icon: SlidersHorizontal,
@@ -281,9 +280,9 @@ const CHAT_CHILDREN: SettingsLeaf[] = [
   {
     key: "starters",
     href: "/settings#starters",
-    label: { zh: "Starting points", en: "Starting points" },
+    label: { zh: "对话起点", en: "Starting points" },
     blurb: {
-      zh: "How much history shapes the three lines under the composer.",
+      zh: "控制输入框下方建议使用多少历史对话。",
       en: "How much history shapes the three lines under the composer.",
     },
     icon: Sparkles,
@@ -292,9 +291,9 @@ const CHAT_CHILDREN: SettingsLeaf[] = [
   {
     key: "attachments",
     href: "/settings#attachments",
-    label: { zh: "Attachments", en: "Attachments" },
+    label: { zh: "附件", en: "Attachments" },
     blurb: {
-      zh: "Upload caps and extraction budgets for chat attachments.",
+      zh: "配置对话附件的上传与内容提取选项。",
       en: "Upload caps and extraction budgets for chat attachments.",
     },
     icon: Paperclip,
@@ -309,7 +308,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-claude-code",
     label: { zh: "Claude Code", en: "Claude Code" },
     blurb: {
-      zh: "Model, reasoning effort, and run params for the local Claude Code.",
+      zh: "配置本地 Claude Code 的模型、推理强度与运行参数。",
       en: "Model, reasoning effort, and run params for the local Claude Code.",
     },
     // Brand glyph shares the lucide call signature (size/className).
@@ -322,7 +321,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-codex",
     label: { zh: "Codex", en: "Codex" },
     blurb: {
-      zh: "Model, reasoning effort, and run params for the local Codex.",
+      zh: "配置本地 Codex 的模型、推理强度与运行参数。",
       en: "Model, reasoning effort, and run params for the local Codex.",
     },
     icon: CodexGlyph as unknown as LucideIcon,
@@ -334,7 +333,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-grok",
     label: { zh: "Grok CLI", en: "Grok CLI" },
     blurb: {
-      zh: "Model, reasoning effort, and permission mode for the local Grok CLI.",
+      zh: "配置本地 Grok CLI 的模型、推理强度与权限模式。",
       en: "Model, reasoning effort, and permission mode for the local Grok CLI.",
     },
     icon: GrokGlyph as unknown as LucideIcon,
@@ -347,7 +346,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-antigravity",
     label: { zh: "Antigravity CLI", en: "Antigravity CLI" },
     blurb: {
-      zh: "Model and run params for the local Antigravity CLI.",
+      zh: "配置本地 Antigravity CLI 的模型与运行参数。",
       en: "Model and run params for the local Antigravity CLI.",
     },
     icon: GeminiGlyph as unknown as LucideIcon,
@@ -359,7 +358,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-kimi",
     label: { zh: "Kimi CLI", en: "Kimi CLI" },
     blurb: {
-      zh: "Model and run params for the local Kimi CLI.",
+      zh: "配置本地 Kimi CLI 的模型与运行参数。",
       en: "Model and run params for the local Kimi CLI.",
     },
     icon: KimiGlyph as unknown as LucideIcon,
@@ -371,7 +370,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-opencode",
     label: { zh: "opencode", en: "opencode" },
     blurb: {
-      zh: "Model, reasoning effort, and run params for the local opencode.",
+      zh: "配置本地 opencode 的模型、推理强度与运行参数。",
       en: "Model, reasoning effort, and run params for the local opencode.",
     },
     icon: OpencodeGlyph as unknown as LucideIcon,
@@ -383,7 +382,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-mimo",
     label: { zh: "MiMo Code", en: "MiMo Code" },
     blurb: {
-      zh: "Model, reasoning effort, and run params for the local MiMo Code.",
+      zh: "配置本地 MiMo Code 的模型、推理强度与运行参数。",
       en: "Model, reasoning effort, and run params for the local MiMo Code.",
     },
     icon: MimoGlyph as unknown as LucideIcon,
@@ -395,7 +394,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-hermes",
     label: { zh: "Hermes Agent", en: "Hermes Agent" },
     blurb: {
-      zh: "Model, reasoning effort, and run params for the local Hermes Agent.",
+      zh: "配置本地 Hermes Agent 的模型、推理强度与运行参数。",
       en: "Model, reasoning effort, and run params for the local Hermes Agent.",
     },
     icon: HermesGlyph as unknown as LucideIcon,
@@ -405,9 +404,9 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
   {
     key: "agent-hermes-remote",
     href: "/settings#agent-hermes-remote",
-    label: { zh: "Hermes Agent (remote)", en: "Hermes Agent (remote)" },
+    label: { zh: "Hermes Agent（远程）", en: "Hermes Agent (remote)" },
     blurb: {
-      zh: "Call a remote Hermes Agent over HTTP with per-chat session continuity.",
+      zh: "通过 HTTP 调用远程 Hermes Agent，并保留每段对话的会话。",
       en: "Call a remote Hermes Agent over HTTP with per-chat session continuity.",
     },
     icon: HermesGlyph as unknown as LucideIcon,
@@ -419,7 +418,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-openclaw",
     label: { zh: "OpenClaw", en: "OpenClaw" },
     blurb: {
-      zh: "Gateway or local-mode run params for the local OpenClaw agent.",
+      zh: "配置 OpenClaw 智能体的网关或本地运行参数。",
       en: "Gateway or local-mode run params for the local OpenClaw agent.",
     },
     icon: OpenClawGlyph as unknown as LucideIcon,
@@ -431,7 +430,7 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
     href: "/settings#agent-deepseek-harness",
     label: { zh: "DeepSeek Harness", en: "DeepSeek Harness" },
     blurb: {
-      zh: "Python SDK or headless CLI settings for DeepSeek Harness.",
+      zh: "配置 DeepSeek Harness 的 Python SDK 或后台命令行。",
       en: "Python SDK or headless CLI settings for DeepSeek Harness.",
     },
     icon: DeepSeekGlyph as unknown as LucideIcon,
@@ -443,16 +442,16 @@ const AGENT_CHILDREN: SettingsLeaf[] = [
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   {
     key: "appearance",
-    label: { zh: "Appearance", en: "Appearance" },
-    blurb: { zh: "Theme and code blocks", en: "Theme and code blocks" },
+    label: { zh: "外观", en: "Appearance" },
+    blurb: { zh: "主题与代码块", en: "Theme and code blocks" },
     icon: Palette,
     href: "/settings#appearance",
   },
   {
     key: "network",
-    label: { zh: "Network", en: "Network" },
+    label: { zh: "网络", en: "Network" },
     blurb: {
-      zh: "Ports, browser API base, and CORS",
+      zh: "端口、浏览器接口地址与跨域设置",
       en: "Ports, browser API base, and CORS",
     },
     icon: Network,
@@ -460,9 +459,9 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   },
   {
     key: "workspace",
-    label: { zh: "Workspace", en: "Workspace" },
+    label: { zh: "工作区", en: "Workspace" },
     blurb: {
-      zh: "System, general and custom workspaces, root folder and storage migration",
+      zh: "系统、通用与自定义工作区、根目录及存储迁移",
       en: "System, general and custom workspaces, root folder and storage migration",
     },
     icon: FolderOpen,
@@ -470,9 +469,9 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   },
   {
     key: "models",
-    label: { zh: "Models", en: "Models" },
+    label: { zh: "模型", en: "Models" },
     blurb: {
-      zh: "Language, embedding, search, voice, and generation models",
+      zh: "语言、嵌入、搜索、语音与生成模型",
       en: "Language, embedding, search, voice, and generation models",
     },
     icon: Boxes,
@@ -481,16 +480,16 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   },
   {
     key: "knowledge",
-    label: { zh: "Knowledge Base", en: "Knowledge Base" },
-    blurb: { zh: "Document parsing engine", en: "Document parsing engine" },
+    label: { zh: "知识库", en: "Knowledge Base" },
+    blurb: { zh: "文档解析引擎", en: "Document parsing engine" },
     icon: Library,
     href: "/settings#document-parsing",
   },
   {
     key: "chat",
-    label: { zh: "Chat", en: "Chat" },
+    label: { zh: "聊天", en: "Chat" },
     blurb: {
-      zh: "Tools, capabilities, and attachments",
+      zh: "工具、能力与附件",
       en: "Tools, capabilities, and attachments",
     },
     icon: MessagesSquare,
@@ -499,9 +498,9 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   },
   {
     key: "agents",
-    label: { zh: "Partners & Agents", en: "Partners & Agents" },
+    label: { zh: "伙伴与智能体", en: "Partners & Agents" },
     blurb: {
-      zh: "Configure the subagents you can call on in chat",
+      zh: "配置可以在对话中调用的子智能体",
       en: "Configure the subagents you can call on in chat",
     },
     icon: Bot,
@@ -510,17 +509,17 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   },
   {
     key: "progress",
-    label: { zh: "Learning progress", en: "Learning progress" },
-    blurb: { zh: "Review your reading and learning activity.", en: "Review your reading and learning activity." },
+    label: { zh: "学习进度", en: "Learning progress" },
+    blurb: { zh: "查看阅读与学习活动。", en: "Review your reading and learning activity." },
     icon: ChartNoAxesCombined,
     href: "/settings/progress",
   },
   {
     key: "learner-profile",
     learnerOnly: true,
-    label: { zh: "Learner profile", en: "Learner profile" },
+    label: { zh: "学习者资料", en: "Learner profile" },
     blurb: {
-      zh: "Adjust age, grade, and explanation preferences.",
+      zh: "调整年龄、年级与讲解偏好。",
       en: "Adjust age, grade, and explanation preferences.",
     },
     icon: UserRound,
@@ -529,9 +528,9 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   {
     key: "guardian",
     guardianOnly: true,
-    label: { zh: "Guardian", en: "Guardian" },
+    label: { zh: "监护人", en: "Guardian" },
     blurb: {
-      zh: "Review authorized learners and learning materials.",
+      zh: "查看获授权的学习者与学习资料。",
       en: "Review authorized learners and learning materials.",
     },
     icon: ShieldCheck,
@@ -539,23 +538,13 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   },
   {
     key: "memory",
-    label: { zh: "Memory", en: "Memory" },
+    label: { zh: "记忆", en: "Memory" },
     blurb: {
-      zh: "Chunking, budget, dedup, and reference policies",
+      zh: "内容分块、容量、去重与引用策略",
       en: "Chunking, budget, dedup, and reference policies",
     },
     icon: BrainCircuit,
     href: "/settings#memory",
-  },
-  {
-    key: "about",
-    label: { zh: "Open source & components", en: "Open source & components" },
-    blurb: {
-      zh: "Upstream component versions, licenses and project resources",
-      en: "Upstream component versions, licenses and project resources",
-    },
-    icon: Info,
-    href: "/settings#about",
   },
 ];
 

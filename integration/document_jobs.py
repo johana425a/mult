@@ -87,9 +87,9 @@ def child_environment():
     env.update(PYTHONUTF8='1', PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1',
                HF_HUB_OFFLINE='1', HF_DATASETS_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
     try:
-        limit = min(512 * 1024 * 1024, max(1024 * 1024, int(os.environ.get('EDUAGENT_DOCUMENT_MAX_BYTES', 200 * 1024 * 1024))))
+        limit = min(512 * 1024 * 1024, max(1024 * 1024, int(os.environ.get('EDUAGENT_DOCUMENT_MAX_BYTES', 512 * 1024 * 1024))))
     except ValueError:
-        limit = 200 * 1024 * 1024
+        limit = 512 * 1024 * 1024
     env['EDUAGENT_DOCUMENT_MAX_BYTES'] = str(limit)
     return env
 

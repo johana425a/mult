@@ -1,5 +1,6 @@
 // Modified for DeepSteam on 2026-10-10: added classroom navigation; upstream Apache-2.0 notices retained.
 import { LEARNING_HUB } from '@/lib/learning-routes'
+import { releasePathAvailable } from '@/lib/competition-profile'
 import {
   Bot,
   GraduationCap,
@@ -115,6 +116,7 @@ export function navVisibleUnderPolicy(
   href: string,
   allowedSurfaces: readonly string[] | null,
 ): boolean {
+  if (!releasePathAvailable(href)) return false
   if (allowedSurfaces === null) return true
   if (href === '/settings') return true
   const surfaces = NAV_BY_HREF.get(href)?.surfaces

@@ -11,6 +11,7 @@ import { CircleStop, MessageCircleMore } from 'lucide-react';
 import { InlineActionTag } from './inline-action-tag';
 import { useUserProfileStore } from '@/lib/store/user-profile';
 import { useSoftCloseCountdown } from './use-soft-close-countdown';
+import { ClassroomMessageText } from './classroom-message-text';
 
 /** Extended message part type covering standard + custom action parts */
 interface MessagePart {
@@ -128,7 +129,7 @@ const MessageBubble = memo(function MessageBubble({
 
             return (
               <span key={`${message.id}-${i}`}>
-                {text}
+                {isUser ? text : <ClassroomMessageText text={text} />}
                 {isLive && isLast && (
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-current opacity-50 animate-pulse ml-1 align-middle" />
                 )}

@@ -140,6 +140,10 @@ def _record_reading_activity(
 
 @router.get("/extensions")
 async def list_extensions() -> list[dict[str, Any]]:
+    return await asyncio.to_thread(_list_extensions)
+
+
+def _list_extensions() -> list[dict[str, Any]]:
     allowed = allowed_reading_extensions()
     return [
         extension.manifest.model_dump()

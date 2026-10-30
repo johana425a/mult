@@ -53,6 +53,8 @@ import {
 import { randomUuid } from "@/lib/random-uuid";
 import { ModelSetupStatus } from '@/components/education/ModelSetupStatus';
 import { visibleModelId } from '@/lib/model-connection';
+import { isNewProvider, providerSetupOptions } from '@/lib/provider-setup-options';
+import type { CatalogConnection } from '@/lib/model-catalog-types';
 type ModelPage = "llm" | "embedding" | "search" | "voice" | "multimodal";
 const PAGE_SERVICES: Record<ModelPage, ServiceName[]> = {
   llm: ["llm", "task"],
@@ -121,6 +123,7 @@ export function ModelsWorkspace({
   const selectable = sources.filter(
     (source) => !("managed_by" in source.source && source.source.managed_by),
   );
+  const templates = providerSetupOptions(newService, providers[newService] ?? []);
   const start = () => {
     setAdding(true);
     revealDetail();
@@ -131,8 +134,13 @@ export function ModelsWorkspace({
       setNewProvider(preferred);
   };
   const create = () => {
-    const source = selectable.find((p) => p.id === newProvider);
-    if (!source) return;
+    const chosen = [...selectable, ...templates].find((p) => p.id === newProvider);
+    if (!chosen) return;
+    const connection: CatalogConnection | null = isNewProvider(chosen)
+      ? { ...chosen.source as CatalogConnection, id: `conn-${randomUuid()}` }
+      : null;
+    const source = connection ? { ...chosen, id: `connection:${connection.id}`,
+      ref: { connection_id: connection.id }, source: connection } : chosen;
     const profileId = `${newService}-profile-${randomUuid()}`;
     const modelId = `${newService}-model-${randomUuid()}`;
     const ref = providerAdapter(
@@ -144,6 +152,7 @@ export function ModelsWorkspace({
     const target = providers[newService]?.find((p) => p.value === ref.binding);
     const model = target?.default_model || "";
     mutateCatalog((next) => {
+      if (connection) (next.connections ??= []).push(connection);
       const profile: CatalogProfile = {
         id: profileId,
         name: source.name,
@@ -204,7 +213,7 @@ export function ModelsWorkspace({
       {(page === 'llm' || page === 'embedding') && <ModelSetupStatus service={page} />}
       {!sources.length && (
         <div className="rounded-xl border border-[var(--border)] p-5 text-sm">
-          <p>{t("Add a provider before adding models.")}</p>
+          <p>{t("Select an available provider below to configure your first model.")}</p>
           <Link
             href="/settings/connections"
             className="mt-3 inline-block underline underline-offset-4"
@@ -347,6 +356,7 @@ export function ModelsWorkspace({
                 provider={newProvider}
                 onProvider={setNewProvider}
                 sources={selectable}
+                templates={templates}
                 declared={(source) => declared(source, newService)}
                 onCreate={create}
                 onCancel={() => setAdding(false)}
@@ -419,6 +429,7 @@ function AddModelPanel({
   provider,
   onProvider,
   sources,
+  templates,
   declared,
   onCreate,
   onCancel,
@@ -429,11 +440,13 @@ function AddModelPanel({
   provider: string;
   onProvider: (value: string) => void;
   sources: ProviderSource[];
+  templates: ProviderSource[];
   declared: (source: ProviderSource) => boolean;
   onCreate: () => void;
   onCancel: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const uiLanguage = i18n?.resolvedLanguage ?? i18n?.language ?? "en";
   const [custom, setCustom] = useState(false);
   const visible = sources.filter(source => declared(source) || (service !== "search" && custom && source.source.service_overrides?.[service === "task" ? "llm" : service]?.enabled !== false));
   const title = t(
@@ -468,7 +481,7 @@ function AddModelPanel({
           </label>
         )}
         <label className="space-y-1.5 text-[13px] font-medium">
-          <span className="block">{t("Configured provider")}</span>
+          <span className="block">{t("Provider")}</span>
           <select
             aria-label={t("Configured provider")}
             className={selectClass}
@@ -477,9 +490,20 @@ function AddModelPanel({
           >
             <option value="">{t("Choose a provider")}</option>
             <ProviderOptions sources={visible} declared={declared} />
+            {templates.length > 0 && <optgroup label={t("Set up a new provider")}>
+              {templates.map(source => <option key={source.id} value={source.id}>
+                {formatConfiguredProviderName(source.provider, source.name, uiLanguage)}
+              </option>)}
+            </optgroup>}
           </select>
         </label>
       </div>
+      {templates.some(source => source.id === provider) && <p className="mt-3 text-[13px] text-[var(--muted-foreground)]">
+        {t("Continue to configure this provider. Credentials may be required; nothing is installed automatically.")}
+      </p>}
+      {visible.length === 0 && templates.length === 0 && <p role="status" className="mt-3 text-[13px]">
+        {t("No provider supports this model type yet. Open Manage providers to add a compatible service.")}
+      </p>}
       {service !== "search" && sources.some(source => !declared(source)) && <label className="mt-3 flex items-center gap-2 text-[13px]">
         <input type="checkbox" checked={custom} onChange={e => { setCustom(e.target.checked); onProvider(""); }} />
         {t("settings.serviceConfig.custom")}
@@ -490,7 +514,7 @@ function AddModelPanel({
       <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-[color-mix(in_srgb,var(--border)_70%,transparent)] pt-4">
         <button
           type="button"
-          disabled={!provider || !visible.some(source => source.id === provider)}
+          disabled={!provider || ![...visible, ...templates].some(source => source.id === provider)}
           onClick={onCreate}
           className={registryPrimary}
         >

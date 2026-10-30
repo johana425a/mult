@@ -446,6 +446,21 @@ class TurnRequestPreparer:
                 assert_learning_material(reading_material_id)
             except PermissionError as exc:
                 raise RuntimeError(str(exc)) from exc
+            # DeepSteam: freeze the currently available timed transcript at
+            # admission, before the user snapshot and model prompt are built.
+            # Pinned quotations/replays of changed content still fail closed.
+            from deeptutor.reading import ReadingStore
+            from deeptutor.reading.source_revision import resolve_media_revision
+
+            reading_material_revision, reading_viewport, source_refresh = resolve_media_revision(
+                ReadingStore(), reading_material_id, reading_material_revision,
+                payload.get("reading_viewport"), replay=bool(payload.get("regenerate")),
+                language=payload.get("language") or "en",
+            )
+            payload = {**payload, "reading_material_revision": reading_material_revision,
+                       "reading_viewport": reading_viewport}
+            if source_refresh:
+                payload["_reading_source_refresh"] = source_refresh
         if reading_catalog is not None:
             reading_catalog.attach_session(
                 reading_workspace_id,
@@ -847,6 +862,8 @@ class TurnRequestPreparer:
             "session_id": session["id"],
             "turn_id": turn["id"],
         }
+        if payload.get("_reading_source_refresh"):
+            session_metadata["reading_source_refresh"] = payload["_reading_source_refresh"]
         regenerated_from = payload.get("regenerated_from_message_id")
         if regenerated_from is not None:
             session_metadata["regenerated_from_message_id"] = regenerated_from

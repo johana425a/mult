@@ -65,7 +65,7 @@ export default function AppearanceSettingsPage() {
       <SettingsPageHeader
         title={t("Appearance")}
         description={t(
-          "Customize the visual theme and code blocks. Apply changes using the bar below.",
+          "Theme and code preferences save automatically when selected.",
         )}
       />
 
@@ -108,7 +108,7 @@ export default function AppearanceSettingsPage() {
       <SettingSection
         title={t("Code blocks")}
         description={t(
-          "Choose how code snippets look across the app after you apply changes.",
+          "Choose how code snippets look across the app. Changes save automatically.",
         )}
       >
         <div className="border-t border-[var(--border)]/50 py-3.5 first:border-t-0">

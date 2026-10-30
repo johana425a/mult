@@ -412,8 +412,8 @@ export async function createWorkspaceAdapter(ctx, options) {
     cursor: { type: 'string', description: 'Exact navigation.next_cursor from the previous result. Omit it (do not send an empty string) to start at the beginning.' },
     start_unit: { type: 'integer', description: 'One-based physical PDF page / PPT slide / text line to start at. Use navigation.next_start_unit to continue when no cursor is at hand.' },
     ocr: { type: 'string', description: 'Reading mode owned by the application settings: image-only pages are transcribed locally by the bundled OCR engine, and every original page image stays available to read_document_image. Leave unset.' },
-    max_chars: { type: 'integer', description: 'Bounded text budget, normally 12000 characters.' },
-    max_units: { type: 'integer', description: 'Bounded page/slide budget, normally 10.' },
+    max_chars: { type: 'integer', description: 'Text budget: 256 to 100000 characters; normally 12000.' },
+    max_units: { type: 'integer', description: 'Page/slide budget: 1 to 40; normally 10. Continue with the returned cursor for the next batch.' },
     engine: { type: 'string', description: 'auto (default) and builtin extract local text layers and expose original images. mineru only runs when local MinerU is enabled in Settings and explicitly requested; do not choose it automatically for scans or embedded pictures.' },
     tier: { type: 'string', enum: ['adaptive', 'basic', 'standard', 'advanced'], description: 'MinerU tier, all local. adaptive (default): fast small models first; only pages with tables or display formulas go through the local VLM. standard: local VLM on every page (slow for scans on a CPU). advanced: local VLM with image analysis, slowest; use for figures or charts whose meaning matters. basic: small models only, never the VLM.' },
     wait_seconds: { type: 'integer', description: 'Seconds to wait for local parsing before returning progress, 0 to 300 (default 25). A pending result is not an error: do other work, then call again with the same arguments.' },
@@ -696,9 +696,11 @@ export async function createWorkspaceAdapter(ctx, options) {
       options.configureWorkspaceProvider(provider, {
         displayName: 'Selected workspace model', apiKeyEnv: 'DEEPSTEAM_REQUEST_KEY', api: 'openai-completions', baseURL: route.base_url,
         models: [{ id: route.model, name: route.model, contextWindow: route.context_window ?? 65536, maxTokens: route.max_output_tokens ?? 8192, input: routeSupportsImages(route) ? ['text', 'image'] : ['text'], ...reasoningDeclaration(route) }],
-        // Retry recoverable transport failures inside the current model request;
-        // completed tool calls and task admission are never replayed here.
-        timeoutMs: 180000, retryPolicy: { mode: 'normal', maxRetries: 2 }
+        // The frozen execution endpoint owns pre-output recovery. Stacking an
+        // outer retry here would multiply three attempts into nine and could
+        // replay a partially delivered stream. Legacy direct endpoints retain
+        // their existing provider retry policy.
+        timeoutMs: 180000, retryPolicy: { mode: 'normal', maxRetries: route.model.startsWith('dsexec_') ? 0 : 2 }
       });
       customRoutes.set(provider, true);
     }

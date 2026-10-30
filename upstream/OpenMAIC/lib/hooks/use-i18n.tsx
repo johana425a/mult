@@ -18,6 +18,12 @@ function resolveLocale(lang: string): Locale {
   return match?.code ?? defaultLocale;
 }
 
+export function resolveInitialLocale(stored: string | null, browserLanguage?: string): Locale {
+  const editionDefault = process.env.NEXT_PUBLIC_DEEPSTEAM_DEFAULT_LANGUAGE === 'zh'
+    ? defaultLocale : browserLanguage;
+  return resolveLocale(stored || editionDefault || defaultLocale);
+}
+
 type I18nContextType = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
@@ -37,8 +43,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-      const raw = stored || navigator.language || defaultLocale;
-      const target = resolveLocale(raw);
+      const target = resolveInitialLocale(stored, navigator.language);
       if (target !== i18n.language) i18n.changeLanguage(target);
     } catch {
       // localStorage unavailable, keep default

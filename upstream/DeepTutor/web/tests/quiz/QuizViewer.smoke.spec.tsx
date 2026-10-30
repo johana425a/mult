@@ -23,6 +23,24 @@ const mocks = vi.hoisted(() => ({
   openFollowupTab: vi.fn(),
   judgeHandle: { close: vi.fn(), cancel: vi.fn() },
   judgeHandlers: null as QuizJudgeHandlers | null,
+  drafts: new Map<string, { text: string; attachments: [] }>(),
+  draftSave: vi.fn(),
+}));
+
+vi.mock("@/lib/workspace-drafts", () => ({
+  openWorkspaceDraft: async (workspace: string, path: string) => {
+    const key = `${workspace}:${path}`;
+    return {
+      read: async () => mocks.drafts.get(key),
+      save: async (draft: { text: string; attachments: [] }) => {
+        await mocks.draftSave();
+        mocks.drafts.set(key, draft);
+      },
+      clearIf: async (text: string) => {
+        if (mocks.drafts.get(key)?.text === text) mocks.drafts.delete(key);
+      },
+    };
+  },
 }));
 
 vi.mock("@/lib/notebook-api", () => ({
@@ -101,6 +119,8 @@ function renderViewer(questions: QuizQuestion[], props: {
 }
 
 beforeEach(() => {
+  mocks.drafts.clear();
+  mocks.draftSave.mockResolvedValue(undefined);
   mocks.lookupNotebookEntry.mockResolvedValue(null);
   mocks.updateNotebookEntry.mockResolvedValue({});
   mocks.upsertNotebookEntry.mockResolvedValue({
@@ -255,6 +275,7 @@ describe("QuizViewer smoke", () => {
           user_answer: "B",
           is_correct: true,
         }),
+        expect.objectContaining({ signal: expect.any(AbortSignal), workspaceId: "" }),
       );
     });
 
@@ -299,6 +320,84 @@ describe("QuizViewer smoke", () => {
     expect(mocks.lookupNotebookEntry).not.toHaveBeenCalled();
     expect(mocks.upsertNotebookEntry).not.toHaveBeenCalled();
     expect(mocks.recordQuizResults).not.toHaveBeenCalled();
+  });
+
+  it("retains a failed answer across remount and retries without reporting false completion", async () => {
+    const user = userEvent.setup();
+    mocks.upsertNotebookEntry.mockRejectedValueOnce(new Error("offline"));
+    const first = renderViewer([choiceQuestion], { sessionId: "save-session", turnId: "save-turn" });
+    await user.click(screen.getByRole("button", { name: /Paris/ }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Check Answer" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "Check Answer" }));
+    await screen.findByText("Answer kept on this device. Saving failed; retry when connected.");
+    expect(mocks.drafts.size).toBe(1);
+    expect(mocks.recordQuizResults).not.toHaveBeenCalled();
+    first.unmount();
+    renderViewer([choiceQuestion], { sessionId: "save-session", turnId: "save-turn" });
+    await screen.findByText("Correct");
+    expect(mocks.upsertNotebookEntry).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole("button", { name: "Retry saving" }));
+    await screen.findByText("Answer saved.");
+    expect(mocks.upsertNotebookEntry).toHaveBeenCalledTimes(2);
+    expect(mocks.drafts.size).toBe(0);
+    await waitFor(() => expect(mocks.recordQuizResults).toHaveBeenCalledTimes(1));
+  });
+
+  it("does not claim local durability or send a write when local storage fails", async () => {
+    const user = userEvent.setup();
+    mocks.draftSave.mockRejectedValue(new Error("quota exceeded"));
+    renderViewer([choiceQuestion], { sessionId: "save-session", turnId: "save-turn" });
+    await user.click(screen.getByRole("button", { name: /Paris/ }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Check Answer" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "Check Answer" }));
+    await screen.findByText("Could not save the answer. Keep this page open and retry.");
+    expect(mocks.upsertNotebookEntry).not.toHaveBeenCalled();
+    expect(mocks.recordQuizResults).not.toHaveBeenCalled();
+    expect(screen.getByText("Correct")).toBeInTheDocument();
+  });
+
+  it("blocks overlapping writes and redo while a save is in flight", async () => {
+    const user = userEvent.setup();
+    let finish!: (value: unknown) => void;
+    mocks.upsertNotebookEntry.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    renderViewer([choiceQuestion], { sessionId: "save-session", turnId: "save-turn" });
+    await user.click(screen.getByRole("button", { name: /Paris/ }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Check Answer" })).toBeEnabled());
+    await user.dblClick(screen.getByRole("button", { name: "Check Answer" }));
+    await screen.findByText("Saving answer...");
+    expect(screen.getByRole("button", { name: "Retry" })).toBeDisabled();
+    expect(mocks.upsertNotebookEntry).toHaveBeenCalledTimes(1);
+    await act(async () => finish({ id: 11, bookmarked: false, user_answer_images: [] }));
+    await screen.findByText("Answer saved.");
+  });
+
+  it("keeps pending drafts separate for another quiz turn", async () => {
+    const user = userEvent.setup();
+    mocks.upsertNotebookEntry.mockRejectedValueOnce(new Error("offline"));
+    const first = renderViewer([choiceQuestion], { sessionId: "save-session", turnId: "first-turn" });
+    await user.click(screen.getByRole("button", { name: /Paris/ }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Check Answer" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "Check Answer" }));
+    await screen.findByRole("button", { name: "Retry saving" });
+    first.unmount();
+    renderViewer([choiceQuestion], { sessionId: "save-session", turnId: "another-turn" });
+    await waitFor(() => expect(screen.getByRole("button", { name: /Paris/ })).toBeEnabled());
+    expect(screen.queryByText("Correct")).toBeNull();
+    expect(mocks.drafts.size).toBe(1);
+  });
+
+  it("offers a separate retry when the aggregate learning record fails", async () => {
+    const user = userEvent.setup();
+    mocks.recordQuizResults.mockRejectedValueOnce(new Error("offline"));
+    renderViewer([choiceQuestion], { sessionId: "save-session", turnId: "save-turn" });
+    await user.click(screen.getByRole("button", { name: /Paris/ }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Check Answer" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "Check Answer" }));
+    await screen.findByText("Answers are saved, but the learning record needs to be retried.");
+    await user.click(screen.getByRole("button", { name: "Retry recording" }));
+    await waitFor(() => expect(mocks.recordQuizResults).toHaveBeenCalledTimes(2));
+    expect(mocks.upsertNotebookEntry).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Retry recording" })).toBeNull();
   });
 
   it("streams AI judge feedback into the judgment view (mock API)", async () => {

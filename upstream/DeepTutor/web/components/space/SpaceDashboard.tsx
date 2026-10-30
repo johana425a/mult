@@ -91,18 +91,18 @@ interface DashboardGroup {
 
 const GROUPS: DashboardGroup[] = [
   {
-    label: { zh: "Conversations & Materials", en: "Conversations & Materials" },
+    label: { zh: "对话与资料", en: "Conversations & Materials" },
     items: [
       {
         key: "chat_history",
         href: "/space/chat-history",
         icon: History,
-        title: { zh: "Chat History", en: "Chat History" },
+        title: { zh: "聊天记录", en: "Chat History" },
         blurb: {
-          zh: "Review and reopen previous conversations.",
+          zh: "查看并重新打开以前的对话。",
           en: "Review and reopen previous conversations.",
         },
-        unit: { zh: "conversations", en: "conversations" },
+        unit: { zh: "条对话", en: "conversations" },
         tile: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
         load: async () => (await listSessions(200, 0, { force: true })).length,
       },
@@ -110,12 +110,12 @@ const GROUPS: DashboardGroup[] = [
         key: "notebooks",
         href: "/notebooks",
         icon: NotebookPen,
-        title: { zh: "Notebooks", en: "Notebooks" },
+        title: { zh: "笔记本", en: "Notebooks" },
         blurb: {
-          zh: "Organize saved outputs from chat, research, Co-Writer, and more.",
+          zh: "整理聊天、研究和智能写作中保存的内容。",
           en: "Organize saved outputs from chat, research, Co-Writer, and more.",
         },
-        unit: { zh: "notebooks", en: "notebooks" },
+        unit: { zh: "本笔记", en: "notebooks" },
         tile: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
         load: async () => (await listNotebooks()).length,
       },
@@ -123,20 +123,20 @@ const GROUPS: DashboardGroup[] = [
         key: "journal",
         href: "/space/journal",
         icon: NotebookPen,
-        title: { zh: "Learning journal", en: "Learning journal" },
-        blurb: { zh: "Inspect your mission, session handoff and confirmed records.", en: "Inspect your mission, session handoff and confirmed records." },
+        title: { zh: "学习记录", en: "Learning journal" },
+        blurb: { zh: "查看学习目标、会话衔接和已经确认的记录。", en: "Inspect your mission, session handoff and confirmed records." },
         tile: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
       },
       {
         key: "question_bank",
         href: "/space/questions",
         icon: ClipboardList,
-        title: { zh: "Question Bank", en: "Question Bank" },
+        title: { zh: "题库", en: "Question Bank" },
         blurb: {
-          zh: "Review and organize quiz questions across sessions.",
+          zh: "查看和整理各次测验的题目。",
           en: "Review and organize quiz questions across sessions.",
         },
-        unit: { zh: "questions", en: "questions" },
+        unit: { zh: "道题", en: "questions" },
         tile: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
         load: async () => (await listNotebookEntries({ limit: 1 })).total,
       },
@@ -144,30 +144,30 @@ const GROUPS: DashboardGroup[] = [
         key: "knowledge",
         href: "/knowledge-bases",
         icon: BookOpen,
-        title: { zh: "Knowledge Center", en: "Knowledge Center" },
+        title: { zh: "知识中心", en: "Knowledge Center" },
         blurb: {
-          zh: "Manage knowledge bases and retrieval engines.",
+          zh: "管理知识库与检索服务。",
           en: "Manage knowledge bases and retrieval engines.",
         },
-        unit: { zh: "knowledge bases", en: "knowledge bases" },
+        unit: { zh: "个知识库", en: "knowledge bases" },
         tile: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
         load: async () => (await listKnowledgeBases({ library: true })).length,
       },
     ],
   },
   {
-    label: { zh: "Personalization", en: "Personalization" },
+    label: { zh: "个性化设置", en: "Personalization" },
     items: [
       {
         key: "personas",
         href: "/space/personas",
         icon: UserRound,
-        title: { zh: "Personas", en: "Personas" },
+        title: { zh: "角色", en: "Personas" },
         blurb: {
-          zh: "Behavior presets you can apply per chat turn.",
+          zh: "为每轮对话选择行为预设。",
           en: "Behavior presets you can apply per chat turn.",
         },
-        unit: { zh: "personas", en: "personas" },
+        unit: { zh: "个角色", en: "personas" },
         tile: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
         load: async () => (await listPersonas()).length,
       },
@@ -175,12 +175,12 @@ const GROUPS: DashboardGroup[] = [
         key: "skills",
         href: "/space/skills",
         icon: Wand2,
-        title: { zh: "Skills", en: "Skills" },
+        title: { zh: "技能", en: "Skills" },
         blurb: {
-          zh: "Capability playbooks the model reads on demand.",
+          zh: "模型按需读取的操作指南。",
           en: "Capability playbooks the model reads on demand.",
         },
-        unit: { zh: "skills", en: "skills" },
+        unit: { zh: "项技能", en: "skills" },
         tile: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
         load: async () => (await listSkills()).length,
       },
@@ -188,12 +188,12 @@ const GROUPS: DashboardGroup[] = [
         key: "mcp",
         href: "/space/mcp",
         icon: Plug,
-        title: { zh: "MCP Services", en: "MCP Services" },
+        title: { zh: "MCP 服务", en: "MCP Services" },
         blurb: {
-          zh: "Connect hosted MCP services and bring their tools into chat.",
+          zh: "连接 MCP 服务，在聊天中调用相应工具。",
           en: "Connect hosted MCP services and bring their tools into chat.",
         },
-        unit: { zh: "services", en: "services" },
+        unit: { zh: "项服务", en: "services" },
         tile: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
         // The account's own servers only: the deployment's are shown on the page
         // but are not this reader's to count.
@@ -204,12 +204,12 @@ const GROUPS: DashboardGroup[] = [
         key: "cli_apps",
         href: "/space/cli-apps",
         icon: Terminal,
-        title: { zh: "CLI Apps", en: "CLI Apps" },
+        title: { zh: "命令行工具", en: "CLI Apps" },
         blurb: {
-          zh: "Command-line tools from the CLI-Anything catalog, callable from chat.",
+          zh: "在聊天中调用 CLI-Anything 目录中的命令行工具。",
           en: "Command-line tools from the CLI-Anything catalog, callable from chat.",
         },
-        unit: { zh: "apps", en: "apps" },
+        unit: { zh: "个工具", en: "apps" },
         tile: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
         // What this reader can actually use, not what the deployment installed:
         // an app they were not granted is visible on the page but is not theirs.
@@ -221,9 +221,9 @@ const GROUPS: DashboardGroup[] = [
         key: "memory",
         href: "/memory",
         icon: Brain,
-        title: { zh: "Memory", en: "Memory" },
+        title: { zh: "记忆", en: "Memory" },
         blurb: {
-          zh: "Review what your tutor remembers about you.",
+          zh: "查看导师为你保存的记忆。",
           en: "Review what your tutor remembers about you.",
         },
         tile: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
@@ -231,7 +231,7 @@ const GROUPS: DashboardGroup[] = [
     ],
   },
   {
-    label: { zh: "More Projects", en: "More Projects" },
+    label: { zh: "更多项目", en: "More Projects" },
     items: [
       {
         key: "whisper",
@@ -239,7 +239,7 @@ const GROUPS: DashboardGroup[] = [
         icon: Ear,
         title: { zh: "Whisper", en: "Whisper" },
         blurb: {
-          zh: "Dual-seat practice room — the supervisor whispers to the trainee only.",
+          zh: "双席练习室：指导者只向练习者提供提示。",
           en: "Dual-seat practice room — the supervisor whispers to the trainee only.",
         },
         tile: "bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400",
@@ -316,9 +316,9 @@ export default function SpaceDashboard() {
   return (
     <div>
       <PageHeader
-        title={tr({ zh: "Learning Space", en: "Learning Space" })}
+        title={tr({ zh: "学习空间", en: "Learning Space" })}
         description={tr({
-            zh: "Your conversations, agents, notebooks, and questions in one place — enter from here.",
+            zh: "从这里查看对话、智能体、笔记和题目。",
             en: "Your conversations, agents, notebooks, and questions in one place — enter from here.",
           })}
       />
