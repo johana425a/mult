@@ -8,7 +8,7 @@
   "scope": "source_tests_notices_and_sanitized_records",
   "file_manifest": "PUBLIC-SOURCE-MANIFEST.json",
   "source_files_hashed": 11973,
-  "source_manifest_sha256": "171fb84ec4cbc0fa895fec2f3774ac20e02706cd5a9d4a8f5bce1444cc6373f7",
+  "source_manifest_sha256": "10be2b92eb2affa5e6154da616f0fea0f88baba7e88c0f552a79798da0a152ef",
   "runtime_binaries_included": false,
   "model_weights_included": false,
   "user_data_included": false,

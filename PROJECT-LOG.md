@@ -83,3 +83,25 @@ machine-specific paths out of this file.
   package metadata are attached separately.
 - Status: publication commit and release upload are recorded in the next entry
   once they complete.
+
+## 2026-10-31 — Public source and release published
+
+- Source commit `af33394c8c3d504e38e71d6526ff20046b7fb064` pushed to
+  `johana425a/mult` `main`.
+- Public source manifest re-verified: 11973 files, 0 failures.
+- GitHub Release `r11.6.8-settings` published:
+  `https://github.com/johana425a/mult/releases/tag/r11.6.8-settings`.
+- Release assets verified by GitHub's SHA256 digests:
+  - `DeepSteam-Setup-2026.10.19-r11.6-settings-x64.exe.part001`
+  - `DeepSteam-Setup-2026.10.19-r11.6-settings-x64.exe.part002`
+  - `DeepSteam-Setup-2026.10.19-r11.6-settings-x64.exe.part003`
+  - `JOIN-INSTALLER.cmd`
+  - `DeepSteam-Source-r11.6-settings.zip`
+  - `PACKAGE-STATUS.json`, `SHA256SUMS.txt`, `RELEASE-ASSETS.txt`,
+    `RELEASE-NOTES.md` and this log.
+- Joined installer SHA256:
+  `962915fd6265d6642b3aaef7436e21a43e014242304e9735b28bcec8caea8955`.
+- The three-part upload was performed over the direct GitHub route after the
+  local proxy proved slower; all three parts report `state=uploaded` and the
+  expected sizes.
+
